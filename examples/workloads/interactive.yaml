@@ -1,0 +1,9 @@
+workload_id: interactive-512-256
+prompt_tokens: 512
+output_tokens: 256
+concurrency: 1
+total_cached_tokens: 32768
+kv_overhead_factor: 1.10
+kv_dtype: F16
+activation_dtype: F16
+

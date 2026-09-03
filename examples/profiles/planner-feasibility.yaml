@@ -1,0 +1,8 @@
+mode: feasibility
+execution_dtype: F16
+objective_weights:
+  ttft: 0.25
+  itl: 0.50
+  pipeline_period: 0.20
+  memory_pressure: 0.05
+

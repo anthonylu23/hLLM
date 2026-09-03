@@ -1,0 +1,41 @@
+workers:
+  - worker_id: mac-m3-pro
+    endpoint: anthonys-macbook-pro-2:50051
+    backend: mlx
+    primary_memory_domain: UNIFIED
+    supported_architectures: [llama.v1]
+    supported_execution_dtypes: [F16]
+    memory_budgets:
+      - domain: UNIFIED
+        capacity_bytes: 19327352832  # 18 GiB
+        runtime_reserve_bytes: 4294967296  # 4 GiB reserved for macOS and runtime
+        safety_fraction: 0.10
+    fixed_workspace_bytes: 536870912  # configured estimate; measured in Milestone 5
+    activation_buffer_count: 2
+    allocator_allowance_fraction: 0.05
+    host_transport_buffer_bytes: 67108864
+    provenance: CONFIGURED
+
+  - worker_id: rtx-3060-ti
+    endpoint: anthonypc:50051
+    backend: cuda
+    primary_memory_domain: DEVICE
+    supported_architectures: [llama.v1]
+    supported_execution_dtypes: [F16]
+    memory_budgets:
+      - domain: DEVICE
+        capacity_bytes: 8589934592  # 8 GiB
+        runtime_reserve_bytes: 805306368  # 0.75 GiB driver/runtime reserve
+        safety_fraction: 0.10
+      - domain: HOST
+        capacity_bytes: 17179869184  # 16 GiB nominal system memory
+        runtime_reserve_bytes: 4294967296
+        safety_fraction: 0.10
+    fixed_workspace_bytes: 536870912  # configured estimate; measured in Milestone 5
+    activation_buffer_count: 2
+    allocator_allowance_fraction: 0.05
+    host_transport_buffer_bytes: 67108864
+    provenance: CONFIGURED
+    observed_available_host_bytes: 3758096384  # about 3.5 GiB on 2026-09-02
+    observed_at: "2026-09-02T12:58:23-04:00"
+
