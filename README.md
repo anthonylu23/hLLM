@@ -54,9 +54,11 @@ uv run hllm plan \
   --report build/planning-report.json
 ```
 
-The checked-in machine and link profiles are initial configured/observed estimates. They
-are deliberately conservative and are not benchmark results. Milestone 5 replaces these
-values with dry-load, compute, conversion, and payload-specific link measurements.
+The checked-in memory budgets remain conservative configured estimates. Link RTT and
+effective directional throughput are point-in-time observations from the test pair;
+Milestone 5 replaces them with dry-load, compute, conversion, and payload-specific link
+measurements.
 
 See [the Milestone 0 implementation notes](docs/milestone-0.md) and [the full project
-specification](SPEC.md).
+specification](SPEC.md). The [validation report](docs/validation/milestone-0.md) records the
+pinned real-model and cross-platform checks.

@@ -40,14 +40,17 @@ The initial profiles describe:
 - An 18 GiB Apple M3 Pro MacBook Pro using an MLX worker.
 - An 8 GiB RTX 3060 Ti on `anthonypc` using a CUDA worker.
 
-The observed Tailscale route was direct on 2026-09-02. The recorded 120 ms observation is
-only a point-in-time connectivity check, while bandwidth remains configured rather than
-measured.
+The Tailscale route was direct in both directions during the 2026-09-03 validation. The
+checked-in link profile records point-in-time RTTs and conservative effective throughput
+over SSH/Tailscale. These measurements are suitable for Milestone 0 planning exercises,
+but are not a replacement for payload-specific stage-transport benchmarks.
+
+The pinned Falcon3 checkpoint, generated manifest, planner result, and fresh-clone Fedora
+test are recorded in [the Milestone 0 validation report](validation/milestone-0.md).
 
 ## Next steps
 
-1. Validate a fully hashed manifest for a pinned `tiiuae/Falcon3-3B-Base` revision.
-2. Measure directional bandwidth at representative prefill and decode payload sizes.
-3. Start Milestone 1 with generated C++ bindings and the native CPU reference worker.
-4. As a stretch goal, add a `smollm3.v1` preparation adapter without changing the planner
+1. Add payload-specific link qualification for prefill and decode transfers.
+2. Start Milestone 1 with generated C++ bindings and the native CPU reference worker.
+3. As a stretch goal, add a `smollm3.v1` preparation adapter without changing the planner
    or artifact shapes.
