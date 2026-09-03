@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+import "common.proto";
+
+enum Backend {
+  BACKEND_UNSPECIFIED = 0;
+  BACKEND_CPU = 1;
+  BACKEND_MLX = 2;
+  BACKEND_CUDA = 3;
+}
+
+enum MemoryDomain {
+  MEMORY_DOMAIN_UNSPECIFIED = 0;
+  MEMORY_DOMAIN_UNIFIED = 1;
+  MEMORY_DOMAIN_DEVICE = 2;
+  MEMORY_DOMAIN_HOST = 3;
+  MEMORY_DOMAIN_HOST_PINNED = 4;
+}
+
+enum ConnectionType {
+  CONNECTION_TYPE_UNSPECIFIED = 0;
+  CONNECTION_TYPE_DIRECT = 1;
+  CONNECTION_TYPE_PEER_RELAYED = 2;
+  CONNECTION_TYPE_DERP_RELAYED = 3;
+  CONNECTION_TYPE_UNKNOWN = 4;
+}
+
+message MemoryBudget {
+  MemoryDomain domain = 1;
+  uint64 capacity_bytes = 2;
+  uint64 runtime_reserve_bytes = 3;
+  double safety_fraction = 4;
+}
+
+message WorkerProfile {
+  ArtifactVersion schema_version = 1;
+  string worker_id = 2;
+  string endpoint = 3;
+  Backend backend = 4;
+  MemoryDomain primary_memory_domain = 5;
+  repeated string supported_architectures = 6;
+  repeated DataType supported_execution_dtypes = 7;
+  repeated MemoryBudget memory_budgets = 8;
+  uint64 fixed_workspace_bytes = 9;
+  uint32 activation_buffer_count = 10;
+  double allocator_allowance_fraction = 11;
+  uint64 host_transport_buffer_bytes = 12;
+  Provenance provenance = 13;
+  optional uint64 observed_available_host_bytes = 14;
+  string observed_at = 15;
+}
+
+message LinkProfile {
+  ArtifactVersion schema_version = 1;
+  string source_worker_id = 2;
+  string target_worker_id = 3;
+  ConnectionType connection_type = 4;
+  double fixed_latency_ms = 5;
+  double bandwidth_bytes_per_second = 6;
+  double sender_conversion_ms = 7;
+  double receiver_conversion_ms = 8;
+  Provenance provenance = 9;
+  string observed_at = 10;
+}
+
+message WorkloadProfile {
+  ArtifactVersion schema_version = 1;
+  string workload_id = 2;
+  uint64 prompt_tokens = 3;
+  uint64 output_tokens = 4;
+  uint32 concurrency = 5;
+  uint64 total_cached_tokens = 6;
+  double kv_overhead_factor = 7;
+  DataType kv_dtype = 8;
+  DataType activation_dtype = 9;
+}
+

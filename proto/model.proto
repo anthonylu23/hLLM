@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+import "common.proto";
+
+enum TensorRole {
+  TENSOR_ROLE_UNSPECIFIED = 0;
+  TENSOR_ROLE_TOKEN_EMBEDDING = 1;
+  TENSOR_ROLE_TRANSFORMER_LAYER = 2;
+  TENSOR_ROLE_FINAL_NORM = 3;
+  TENSOR_ROLE_LM_HEAD = 4;
+  TENSOR_ROLE_ARCHITECTURE_STATE = 5;
+}
+
+message ModelSource {
+  string model_id = 1;
+  string revision = 2;
+  string config_sha256 = 3;
+  string index_sha256 = 4;
+  string tensor_metadata_sha256 = 5;
+}
+
+message ArchitectureDescriptor {
+  string architecture_id = 1;
+  string architecture_revision = 2;
+  repeated string feature_flags = 3;
+}
+
+message ModelConfig {
+  uint64 hidden_size = 1;
+  uint64 intermediate_size = 2;
+  uint32 num_layers = 3;
+  uint32 num_attention_heads = 4;
+  uint32 num_kv_heads = 5;
+  uint32 head_dim = 6;
+  uint64 vocabulary_size = 7;
+  uint64 maximum_sequence_length = 8;
+  bool tied_embeddings = 9;
+}
+
+message TensorFile {
+  string name = 1;
+  uint64 size_bytes = 2;
+  uint64 header_size_bytes = 3;
+  string sha256 = 4;
+}
+
+message TensorRecord {
+  string name = 1;
+  string file = 2;
+  DataType dtype = 3;
+  repeated uint64 shape = 4;
+  uint64 data_offset = 5;
+  uint64 byte_length = 6;
+  TensorRole role = 7;
+  optional uint32 layer_index = 8;
+  string shared_weight_group = 9;
+}
+
+message ComponentMemory {
+  TensorRole role = 1;
+  optional uint32 layer_index = 2;
+  uint64 storage_bytes = 3;
+}
+
+message ModelManifest {
+  ArtifactVersion schema_version = 1;
+  string manifest_id = 2;
+  string manifest_digest = 3;
+  ModelSource source = 4;
+  ArchitectureDescriptor architecture = 5;
+  ModelConfig config = 6;
+  repeated TensorFile tensor_files = 7;
+  repeated TensorRecord tensors = 8;
+  repeated ComponentMemory components = 9;
+  uint64 total_storage_bytes = 10;
+}

@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+import "common.proto";
+
+enum ExecutionPhase {
+  EXECUTION_PHASE_UNSPECIFIED = 0;
+  EXECUTION_PHASE_PREFILL = 1;
+  EXECUTION_PHASE_DECODE = 2;
+}
+
+message TensorEnvelope {
+  uint32 protocol_version = 1;
+  string deployment_id = 2;
+  string request_id = 3;
+  uint64 microbatch_id = 4;
+  uint64 sequence_number = 5;
+  ExecutionPhase phase = 6;
+  uint64 first_position = 7;
+  repeated uint64 sequence_lengths = 8;
+  repeated uint64 cache_slot_ids = 9;
+  repeated uint64 shape = 10;
+  DataType dtype = 11;
+  string layout = 12;
+  uint64 payload_length = 13;
+  bytes checksum = 14;
+  bytes payload = 15;
+}
+
+message StageMessage {
+  oneof body {
+    TensorEnvelope tensor = 1;
+    uint64 sampled_token_id = 2;
+    string terminal_error = 3;
+  }
+}
+
+message GenerationRequest {
+  string deployment_id = 1;
+  string request_id = 2;
+  repeated uint64 token_ids = 3;
+  uint64 maximum_new_tokens = 4;
+}
+
+message GenerationEvent {
+  string request_id = 1;
+  optional uint64 token_id = 2;
+  string terminal_state = 3;
+}
+
+service Generation {
+  rpc Generate(GenerationRequest) returns (stream GenerationEvent);
+}
+
+service StageExecution {
+  rpc Execute(stream StageMessage) returns (stream StageMessage);
+}
+

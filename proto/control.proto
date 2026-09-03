@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+import "common.proto";
+import "placement.proto";
+import "profile.proto";
+
+message Capabilities { WorkerProfile worker = 1; }
+message LinkQualificationRequest { string target_worker_id = 1; }
+message LoadStageRequest { DeploymentPlan plan = 1; uint32 stage_index = 2; }
+message LoadStageResponse { bool accepted = 1; string detail = 2; }
+message UnloadStageRequest { string plan_id = 1; }
+message ReserveRequestMessage { string plan_id = 1; string request_id = 2; }
+message ReserveResponse { bool accepted = 1; string detail = 2; }
+message CancelRequestMessage { string request_id = 1; }
+message MemoryReport { repeated MemoryBudget budgets = 1; }
+message WorkerMetrics { string worker_id = 1; }
+message HealthResponse { bool serving = 1; string detail = 2; }
+
+service WorkerControl {
+  rpc GetCapabilities(Empty) returns (Capabilities);
+  rpc QualifyLink(LinkQualificationRequest) returns (LinkProfile);
+  rpc LoadStage(LoadStageRequest) returns (LoadStageResponse);
+  rpc UnloadStage(UnloadStageRequest) returns (Empty);
+  rpc ReserveRequest(ReserveRequestMessage) returns (ReserveResponse);
+  rpc CancelRequest(CancelRequestMessage) returns (Empty);
+  rpc GetMemoryReport(Empty) returns (MemoryReport);
+  rpc GetMetrics(Empty) returns (WorkerMetrics);
+  rpc Health(Empty) returns (HealthResponse);
+}
+

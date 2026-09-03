@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+message TraceContext {
+  string trace_id = 1;
+  string deployment_id = 2;
+  string request_id = 3;
+  uint64 microbatch_id = 4;
+  uint64 token_position = 5;
+  uint32 stage_index = 6;
+  string worker_id = 7;
+  uint64 sequence_number = 8;
+}
+

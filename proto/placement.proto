@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+import "common.proto";
+import "profile.proto";
+
+message StageMemory {
+  string worker_id = 1;
+  MemoryDomain domain = 2;
+  uint32 layer_start = 3;
+  uint32 layer_end = 4;
+  uint64 weight_bytes = 5;
+  uint64 kv_cache_bytes = 6;
+  uint64 workspace_bytes = 7;
+  uint64 activation_buffer_bytes = 8;
+  uint64 allocator_allowance_bytes = 9;
+  uint64 required_bytes = 10;
+  uint64 usable_bytes = 11;
+  double pressure = 12;
+}
+
+message StageAssignment {
+  uint32 stage_index = 1;
+  string worker_id = 2;
+  uint32 layer_start = 3;
+  uint32 layer_end = 4;
+  bool owns_token_embedding = 5;
+  bool owns_final_norm = 6;
+  bool owns_lm_head = 7;
+  bool owns_sampling = 8;
+}
+
+message DeploymentPlan {
+  ArtifactVersion schema_version = 1;
+  string planner_version = 2;
+  string plan_id = 3;
+  string plan_digest = 4;
+  string manifest_digest = 5;
+  string workload_id = 6;
+  string planning_mode = 7;
+  DataType execution_dtype = 8;
+  DataType activation_dtype = 9;
+  uint32 split_layer = 10;
+  repeated StageAssignment stages = 11;
+  string selected_candidate_id = 12;
+  repeated string duplicated_tensor_groups = 13;
+}

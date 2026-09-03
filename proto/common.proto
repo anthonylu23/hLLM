@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package hllm.v1;
+
+message Empty {}
+
+message ArtifactVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  DATA_TYPE_BOOL = 1;
+  DATA_TYPE_U8 = 2;
+  DATA_TYPE_I8 = 3;
+  DATA_TYPE_I16 = 4;
+  DATA_TYPE_U16 = 5;
+  DATA_TYPE_I32 = 6;
+  DATA_TYPE_U32 = 7;
+  DATA_TYPE_I64 = 8;
+  DATA_TYPE_U64 = 9;
+  DATA_TYPE_F16 = 10;
+  DATA_TYPE_BF16 = 11;
+  DATA_TYPE_F32 = 12;
+  DATA_TYPE_F64 = 13;
+}
+
+enum Provenance {
+  PROVENANCE_UNSPECIFIED = 0;
+  PROVENANCE_THEORETICAL = 1;
+  PROVENANCE_CONFIGURED = 2;
+  PROVENANCE_OBSERVED = 3;
+  PROVENANCE_MEASURED = 4;
+}
+
