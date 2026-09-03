@@ -2,19 +2,19 @@ links:
   - source_worker_id: mac-m3-pro
     target_worker_id: rtx-3060-ti
     connection_type: DIRECT
-    fixed_latency_ms: 120.0
-    bandwidth_bytes_per_second: 100000000.0
+    fixed_latency_ms: 58.0
+    bandwidth_bytes_per_second: 6000000.0
     sender_conversion_ms: 0.0
     receiver_conversion_ms: 0.0
     provenance: OBSERVED
-    observed_at: "2026-09-02T12:58:23-04:00"
+    observed_at: "2026-09-03T00:42:30-04:00"
 
   - source_worker_id: rtx-3060-ti
     target_worker_id: mac-m3-pro
     connection_type: DIRECT
-    fixed_latency_ms: 120.0
-    bandwidth_bytes_per_second: 100000000.0
+    fixed_latency_ms: 72.0
+    bandwidth_bytes_per_second: 10000000.0
     sender_conversion_ms: 0.0
     receiver_conversion_ms: 0.0
-    provenance: CONFIGURED
-
+    provenance: OBSERVED
+    observed_at: "2026-09-03T00:42:30-04:00"

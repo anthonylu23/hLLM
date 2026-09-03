@@ -36,6 +36,5 @@ workers:
     allocator_allowance_fraction: 0.05
     host_transport_buffer_bytes: 67108864
     provenance: CONFIGURED
-    observed_available_host_bytes: 3758096384  # about 3.5 GiB on 2026-09-02
-    observed_at: "2026-09-02T12:58:23-04:00"
-
+    observed_available_host_bytes: 3720171520  # about 3.47 GiB during validation
+    observed_at: "2026-09-03T00:42:30-04:00"
