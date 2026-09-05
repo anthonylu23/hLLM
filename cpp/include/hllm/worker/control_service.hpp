@@ -48,9 +48,9 @@ class ControlService final : public v1::WorkerControl::Service {
  private:
   struct DeploymentState {
     std::string plan_id;
+    std::string plan_digest;
     std::uint64_t deployment_version;
     std::uint32_t stage_index;
-    std::size_t selected_weight_bytes;
     std::unordered_set<std::string> active_requests;
   };
 

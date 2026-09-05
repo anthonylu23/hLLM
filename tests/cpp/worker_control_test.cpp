@@ -99,6 +99,29 @@ TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
   EXPECT_TRUE(service.ReserveRequest(&context, &reserve, &reserved).ok());
   EXPECT_TRUE(reserved.accepted());
 
+  // Retrying a successful load must preserve the reservation.
+  v1::LoadStageResponse retried;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &retried).ok());
+  ASSERT_TRUE(retried.accepted());
+  reserve.set_request_id("request-2");
+  v1::ReserveResponse second;
+  ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &second).ok());
+  EXPECT_FALSE(second.accepted());
+  EXPECT_EQ(second.error().code(), v1::ERROR_CODE_RESOURCE_EXHAUSTED);
+
+  v1::UnloadStageRequest busy_unload;
+  busy_unload.set_plan_id("plan-1");
+  busy_unload.set_deployment_version(1U);
+  v1::Empty busy_response;
+  EXPECT_EQ(service.UnloadStage(&context, &busy_unload, &busy_response).error_code(),
+            grpc::StatusCode::FAILED_PRECONDITION);
+
+  load.mutable_plan()->set_plan_digest("changed-digest");
+  v1::LoadStageResponse changed;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &changed).ok());
+  EXPECT_FALSE(changed.accepted());
+  EXPECT_EQ(changed.error().code(), v1::ERROR_CODE_STALE_DEPLOYMENT);
+
   v1::CancelRequestMessage cancel;
   cancel.set_plan_id("plan-1");
   cancel.set_deployment_version(1U);
