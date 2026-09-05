@@ -338,6 +338,7 @@ def create_plan(
     duplicated_groups = ("token_embeddings",) if manifest.config.tied_embeddings else ()
     unsigned_plan = {
         "planner_version": PLANNER_VERSION,
+        "deployment_version": 1,
         "manifest_digest": manifest.manifest_digest,
         "workload_id": workload.workload_id,
         "planning_mode": settings.mode.value,
@@ -352,6 +353,7 @@ def create_plan(
     plan = DeploymentPlan(
         planner_version=PLANNER_VERSION,
         plan_id=f"plan-{plan_digest[:16]}",
+        deployment_version=1,
         plan_digest=plan_digest,
         manifest_digest=manifest.manifest_digest,
         workload_id=workload.workload_id,

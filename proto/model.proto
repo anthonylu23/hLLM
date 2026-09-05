@@ -27,6 +27,12 @@ message ArchitectureDescriptor {
   repeated string feature_flags = 3;
 }
 
+message RopeScaling {
+  string scaling_type = 1;
+  double factor = 2;
+  optional uint64 original_max_position_embeddings = 3;
+}
+
 message ModelConfig {
   uint64 hidden_size = 1;
   uint64 intermediate_size = 2;
@@ -37,6 +43,13 @@ message ModelConfig {
   uint64 vocabulary_size = 7;
   uint64 maximum_sequence_length = 8;
   bool tied_embeddings = 9;
+  double rms_norm_eps = 10;
+  double rope_theta = 11;
+  optional RopeScaling rope_scaling = 12;
+  string hidden_activation = 13;
+  bool attention_bias = 14;
+  bool mlp_bias = 15;
+  repeated uint64 eos_token_ids = 16;
 }
 
 message TensorFile {

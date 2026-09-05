@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
-from hllm_control.models import ArchitectureDescriptor, ModelConfig, TensorRole
+from hllm_control.models import ArchitectureDescriptor, ModelConfig, RopeScaling, TensorRole
 
 LAYER_PATTERN = re.compile(r"^model\.layers\.(\d+)\.")
 LAYER_SUFFIXES = (
@@ -47,6 +47,66 @@ def _required_positive_int(config: Mapping[str, Any], key: str) -> int:
     return value
 
 
+def _positive_float(config: Mapping[str, Any], key: str, default: float) -> float:
+    value = config.get(key, default)
+    if isinstance(value, bool) or not isinstance(value, int | float) or value <= 0:
+        raise ArchitectureError(f"config field {key!r} must be a positive number")
+    return float(value)
+
+
+def _boolean(config: Mapping[str, Any], key: str, default: bool) -> bool:
+    value = config.get(key, default)
+    if not isinstance(value, bool):
+        raise ArchitectureError(f"config field {key!r} must be a boolean")
+    return value
+
+
+def _eos_token_ids(config: Mapping[str, Any]) -> tuple[int, ...]:
+    value = config.get("eos_token_id")
+    if value is None:
+        return ()
+    values = cast(list[object], value) if isinstance(value, list) else [value]
+    if any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in values):
+        raise ArchitectureError(
+            "config field 'eos_token_id' must be a non-negative integer or list"
+        )
+    return tuple(dict.fromkeys(cast(int, item) for item in values))
+
+
+def _rope_scaling(config: Mapping[str, Any]) -> RopeScaling | None:
+    value = config.get("rope_scaling")
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise ArchitectureError("config field 'rope_scaling' must be an object or null")
+    untyped = cast(Mapping[object, object], value)
+    if any(not isinstance(key, str) for key in untyped):
+        raise ArchitectureError("config field 'rope_scaling' keys must be strings")
+    normalized = {cast(str, key): item for key, item in untyped.items()}
+    scaling_type = normalized.pop("rope_type", normalized.pop("type", None))
+    factor = normalized.pop("factor", None)
+    original_maximum = normalized.pop("original_max_position_embeddings", None)
+    if normalized:
+        raise ArchitectureError(
+            f"unsupported rope_scaling fields: {sorted(str(key) for key in normalized)}"
+        )
+    if not isinstance(scaling_type, str) or not scaling_type:
+        raise ArchitectureError("rope_scaling requires a non-empty type")
+    if isinstance(factor, bool) or not isinstance(factor, int | float) or factor <= 0:
+        raise ArchitectureError("rope_scaling requires a positive factor")
+    if original_maximum is not None and (
+        not isinstance(original_maximum, int)
+        or isinstance(original_maximum, bool)
+        or original_maximum <= 0
+    ):
+        raise ArchitectureError("rope_scaling original maximum must be a positive integer")
+    return RopeScaling(
+        scaling_type=scaling_type,
+        factor=float(factor),
+        original_max_position_embeddings=original_maximum,
+    )
+
+
 class LlamaArchitectureAdapter:
     architecture_id = "llama.v1"
     architecture_revision = "1"
@@ -72,9 +132,22 @@ class LlamaArchitectureAdapter:
         else:
             raise ArchitectureError("head_dim must be a positive integer")
 
-        tied_embeddings = raw.get("tie_word_embeddings", False)
-        if not isinstance(tied_embeddings, bool):
-            raise ArchitectureError("tie_word_embeddings must be a boolean")
+        tied_embeddings = _boolean(raw, "tie_word_embeddings", False)
+        attention_bias = _boolean(raw, "attention_bias", False)
+        mlp_bias = _boolean(raw, "mlp_bias", False)
+        if attention_bias or mlp_bias:
+            raise ArchitectureError("llama.v1 does not yet support attention or MLP bias tensors")
+        hidden_activation = raw.get("hidden_act", "silu")
+        if hidden_activation != "silu":
+            raise ArchitectureError("llama.v1 currently requires hidden_act='silu'")
+        pretraining_tp = raw.get("pretraining_tp", 1)
+        if pretraining_tp != 1:
+            raise ArchitectureError("llama.v1 currently requires pretraining_tp=1")
+        partial_rotary_factor = raw.get("partial_rotary_factor", 1.0)
+        if partial_rotary_factor != 1.0:
+            raise ArchitectureError("llama.v1 currently requires partial_rotary_factor=1.0")
+        if raw.get("sliding_window") is not None:
+            raise ArchitectureError("llama.v1 does not yet support sliding-window attention")
 
         model_config = ModelConfig(
             hidden_size=hidden_size,
@@ -86,11 +159,20 @@ class LlamaArchitectureAdapter:
             vocabulary_size=_required_positive_int(raw, "vocab_size"),
             maximum_sequence_length=_required_positive_int(raw, "max_position_embeddings"),
             tied_embeddings=tied_embeddings,
+            rms_norm_eps=_positive_float(raw, "rms_norm_eps", 1e-6),
+            rope_theta=_positive_float(raw, "rope_theta", 10_000.0),
+            rope_scaling=_rope_scaling(raw),
+            hidden_activation=hidden_activation,
+            attention_bias=attention_bias,
+            mlp_bias=mlp_bias,
+            eos_token_ids=_eos_token_ids(raw),
         )
         features = ["gqa" if model_config.num_kv_heads < num_attention_heads else "mha"]
         features.append("tied_embeddings" if tied_embeddings else "untied_embeddings")
         if explicit_head_dim is not None:
             features.append("explicit_head_dim")
+        if model_config.rope_scaling is not None:
+            features.append(f"rope_scaling:{model_config.rope_scaling.scaling_type}")
         return LlamaDescription(
             architecture=ArchitectureDescriptor(
                 architecture_id=self.architecture_id,

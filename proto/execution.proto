@@ -10,6 +10,26 @@ enum ExecutionPhase {
   EXECUTION_PHASE_DECODE = 2;
 }
 
+enum TerminalState {
+  TERMINAL_STATE_UNSPECIFIED = 0;
+  TERMINAL_STATE_COMPLETED = 1;
+  TERMINAL_STATE_CANCELLED = 2;
+  TERMINAL_STATE_DEADLINE_EXCEEDED = 3;
+  TERMINAL_STATE_FAILED = 4;
+}
+
+message SequenceOpen {
+  uint32 protocol_version = 1;
+  string deployment_id = 2;
+  uint64 deployment_version = 3;
+  string request_id = 4;
+  uint64 microbatch_id = 5;
+  uint64 maximum_total_tokens = 6;
+  uint64 maximum_new_tokens = 7;
+  repeated uint64 stop_token_ids = 8;
+  uint64 deadline_unix_ms = 9;
+}
+
 message TensorEnvelope {
   uint32 protocol_version = 1;
   string deployment_id = 2;
@@ -26,13 +46,46 @@ message TensorEnvelope {
   uint64 payload_length = 13;
   bytes checksum = 14;
   bytes payload = 15;
+  uint64 deployment_version = 16;
+}
+
+message SampledToken {
+  string deployment_id = 1;
+  uint64 deployment_version = 2;
+  string request_id = 3;
+  uint64 microbatch_id = 4;
+  uint64 sequence_number = 5;
+  uint64 token_position = 6;
+  uint64 token_id = 7;
+}
+
+message SequenceTermination {
+  string deployment_id = 1;
+  uint64 deployment_version = 2;
+  string request_id = 3;
+  uint64 microbatch_id = 4;
+  TerminalState state = 5;
+  optional RuntimeError error = 6;
+  uint64 prompt_tokens = 7;
+  uint64 generated_tokens = 8;
+}
+
+message StageError {
+  string deployment_id = 1;
+  uint64 deployment_version = 2;
+  string request_id = 3;
+  uint64 microbatch_id = 4;
+  uint64 sequence_number = 5;
+  RuntimeError error = 6;
 }
 
 message StageMessage {
   oneof body {
-    TensorEnvelope tensor = 1;
-    uint64 sampled_token_id = 2;
-    string terminal_error = 3;
+    SequenceOpen open_sequence = 1;
+    TensorEnvelope tensor = 2;
+    SampledToken sampled_token = 3;
+    SequenceTermination terminate = 4;
+    StageError error = 5;
   }
 }
 
@@ -41,12 +94,38 @@ message GenerationRequest {
   string request_id = 2;
   repeated uint64 token_ids = 3;
   uint64 maximum_new_tokens = 4;
+  uint64 deployment_version = 5;
+  repeated uint64 stop_token_ids = 6;
+  uint64 deadline_unix_ms = 7;
+}
+
+message PrefillComplete {
+  uint64 prompt_tokens = 1;
+}
+
+message TokenEvent {
+  uint64 token_id = 1;
+  uint64 token_position = 2;
+}
+
+message UsageEvent {
+  uint64 prompt_tokens = 1;
+  uint64 generated_tokens = 2;
+}
+
+message TerminalEvent {
+  TerminalState state = 1;
+  optional RuntimeError error = 2;
 }
 
 message GenerationEvent {
   string request_id = 1;
-  optional uint64 token_id = 2;
-  string terminal_state = 3;
+  oneof body {
+    PrefillComplete prefill_complete = 2;
+    TokenEvent token = 3;
+    UsageEvent usage = 4;
+    TerminalEvent terminal = 5;
+  }
 }
 
 service Generation {
@@ -56,4 +135,3 @@ service Generation {
 service StageExecution {
   rpc Execute(stream StageMessage) returns (stream StageMessage);
 }
-

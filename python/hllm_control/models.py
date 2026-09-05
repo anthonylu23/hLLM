@@ -7,7 +7,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-MANIFEST_SCHEMA_VERSION = "1.0"
+MANIFEST_SCHEMA_VERSION = "1.1"
 PROFILE_SCHEMA_VERSION = "1.0"
 PLAN_SCHEMA_VERSION = "1.0"
 PLANNER_VERSION = "0.1.0"
@@ -15,6 +15,7 @@ PLANNER_VERSION = "0.1.0"
 NonNegativeInt = Annotated[int, Field(ge=0)]
 PositiveInt = Annotated[int, Field(gt=0)]
 Fraction = Annotated[float, Field(ge=0.0, lt=1.0)]
+PositiveFloat = Annotated[float, Field(gt=0.0)]
 
 
 class StrictModel(BaseModel):
@@ -110,6 +111,14 @@ class ArchitectureDescriptor(StrictModel):
     feature_flags: tuple[str, ...] = ()
 
 
+class RopeScaling(StrictModel):
+    """A deliberately small, lossless subset of Hugging Face RoPE scaling config."""
+
+    scaling_type: str
+    factor: PositiveFloat
+    original_max_position_embeddings: PositiveInt | None = None
+
+
 class ModelConfig(StrictModel):
     hidden_size: PositiveInt
     intermediate_size: PositiveInt
@@ -120,11 +129,20 @@ class ModelConfig(StrictModel):
     vocabulary_size: PositiveInt
     maximum_sequence_length: PositiveInt
     tied_embeddings: bool
+    rms_norm_eps: PositiveFloat = 1e-6
+    rope_theta: PositiveFloat = 10_000.0
+    rope_scaling: RopeScaling | None = None
+    hidden_activation: str = "silu"
+    attention_bias: bool = False
+    mlp_bias: bool = False
+    eos_token_ids: tuple[NonNegativeInt, ...] = ()
 
     @model_validator(mode="after")
     def validate_attention_shape(self) -> ModelConfig:
         if self.num_attention_heads % self.num_kv_heads:
             raise ValueError("num_attention_heads must be divisible by num_kv_heads")
+        if len(self.eos_token_ids) != len(set(self.eos_token_ids)):
+            raise ValueError("eos_token_ids must be unique")
         return self
 
 
@@ -302,6 +320,7 @@ class DeploymentPlan(StrictModel):
     schema_version: str = PLAN_SCHEMA_VERSION
     planner_version: str = PLANNER_VERSION
     plan_id: str
+    deployment_version: PositiveInt = 1
     plan_digest: str
     manifest_digest: str
     workload_id: str

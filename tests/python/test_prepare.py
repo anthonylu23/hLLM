@@ -24,6 +24,9 @@ def test_prepares_deterministic_sharded_manifest(tiny_model: Path) -> None:
     assert first == second
     assert first.manifest_digest == second.manifest_digest
     assert first.config.num_layers == 4
+    assert first.config.rms_norm_eps == 1e-5
+    assert first.config.rope_theta == 500_000.0
+    assert first.config.eos_token_ids == (2, 3)
     assert len(first.tensor_files) == 2
     assert first.total_storage_bytes == sum(tensor.byte_length for tensor in first.tensors)
     assert {item.layer_index for item in first.components if item.layer_index is not None} == {
@@ -87,4 +90,16 @@ def test_rejects_wrong_tensor_shape(tmp_path: Path) -> None:
     write_safetensors(model_path / "model.safetensors", tensors)
 
     with pytest.raises(PreparationError, match="expected"):
+        prepare_model(model_path)
+
+
+def test_rejects_runtime_semantics_the_cpu_backend_cannot_execute(tmp_path: Path) -> None:
+    model_path = tmp_path / "biased"
+    model_path.mkdir()
+    config = tiny_config()
+    config["attention_bias"] = True
+    (model_path / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    write_safetensors(model_path / "model.safetensors", tiny_tensors())
+
+    with pytest.raises(PreparationError, match="bias tensors"):
         prepare_model(model_path)

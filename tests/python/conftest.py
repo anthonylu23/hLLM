@@ -54,6 +54,9 @@ def tiny_config(*, tied: bool = False) -> dict[str, object]:
         "vocab_size": 16,
         "max_position_embeddings": 128,
         "tie_word_embeddings": tied,
+        "rms_norm_eps": 1e-5,
+        "rope_theta": 500_000.0,
+        "eos_token_id": [2, 3],
     }
 
 

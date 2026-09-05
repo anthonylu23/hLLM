@@ -45,4 +45,5 @@ message DeploymentPlan {
   repeated StageAssignment stages = 11;
   string selected_candidate_id = 12;
   repeated string duplicated_tensor_groups = 13;
+  uint64 deployment_version = 14;
 }

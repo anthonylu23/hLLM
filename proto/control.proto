@@ -3,17 +3,50 @@ syntax = "proto3";
 package hllm.v1;
 
 import "common.proto";
+import "model.proto";
 import "placement.proto";
 import "profile.proto";
 
 message Capabilities { WorkerProfile worker = 1; }
 message LinkQualificationRequest { string target_worker_id = 1; }
-message LoadStageRequest { DeploymentPlan plan = 1; uint32 stage_index = 2; }
-message LoadStageResponse { bool accepted = 1; string detail = 2; }
-message UnloadStageRequest { string plan_id = 1; }
-message ReserveRequestMessage { string plan_id = 1; string request_id = 2; }
-message ReserveResponse { bool accepted = 1; string detail = 2; }
-message CancelRequestMessage { string request_id = 1; }
+message StageEndpoint {
+  uint32 stage_index = 1;
+  string worker_id = 2;
+  string endpoint = 3;
+}
+message LoadStageRequest {
+  DeploymentPlan plan = 1;
+  uint32 stage_index = 2;
+  ModelManifest manifest = 3;
+  repeated StageEndpoint stage_endpoints = 4;
+}
+message LoadStageResponse {
+  bool accepted = 1;
+  string detail = 2;
+  optional RuntimeError error = 3;
+}
+message UnloadStageRequest {
+  string plan_id = 1;
+  uint64 deployment_version = 2;
+}
+message ReserveRequestMessage {
+  string plan_id = 1;
+  string request_id = 2;
+  uint64 deployment_version = 3;
+  uint64 maximum_total_tokens = 4;
+  uint64 deadline_unix_ms = 5;
+}
+message ReserveResponse {
+  bool accepted = 1;
+  string detail = 2;
+  optional RuntimeError error = 3;
+}
+message CancelRequestMessage {
+  string plan_id = 1;
+  string request_id = 2;
+  uint64 deployment_version = 3;
+  string reason = 4;
+}
 message MemoryReport { repeated MemoryBudget budgets = 1; }
 message WorkerMetrics { string worker_id = 1; }
 message HealthResponse { bool serving = 1; string detail = 2; }
@@ -29,4 +62,3 @@ service WorkerControl {
   rpc GetMetrics(Empty) returns (WorkerMetrics);
   rpc Health(Empty) returns (HealthResponse);
 }
-
