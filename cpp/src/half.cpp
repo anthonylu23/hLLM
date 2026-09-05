@@ -93,6 +93,10 @@ float bfloat16_to_float(const std::uint16_t value) noexcept {
 
 std::uint16_t float_to_bfloat16(const float value) noexcept {
   const auto bits = std::bit_cast<std::uint32_t>(value);
+  if ((bits & 0x7f800000U) == 0x7f800000U && (bits & 0x007fffffU) != 0U) {
+    // Keep NaNs as NaNs even when their payload is entirely in the discarded bits.
+    return static_cast<std::uint16_t>((bits >> 16U) | 0x0040U);
+  }
   const auto least_significant_bit = (bits >> 16U) & 1U;
   const auto rounded = bits + 0x7fffU + least_significant_bit;
   return static_cast<std::uint16_t>(rounded >> 16U);

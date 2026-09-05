@@ -8,6 +8,19 @@
 namespace hllm::cpu {
 namespace {
 
+[[nodiscard]] std::size_t cache_size(const std::size_t length,
+                                      const std::size_t heads,
+                                      const std::size_t dimension) {
+  if (length == 0U || heads == 0U || dimension == 0U) {
+    throw std::invalid_argument("KV cache dimensions must be positive");
+  }
+  const auto maximum = std::numeric_limits<std::size_t>::max();
+  if (heads > maximum / dimension || length > maximum / (heads * dimension)) {
+    throw std::length_error("KV cache size overflows size_t");
+  }
+  return length * heads * dimension;
+}
+
 void validate_config(const LlamaConfig& config) {
   if (config.hidden_size == 0U || config.intermediate_size == 0U ||
       config.attention_heads == 0U || config.key_value_heads == 0U ||
@@ -104,12 +117,8 @@ LayerKvCache::LayerKvCache(const std::size_t maximum_sequence_length,
     : maximum_sequence_length_(maximum_sequence_length),
       key_value_heads_(key_value_heads),
       head_dimension_(head_dimension),
-      keys_(maximum_sequence_length * key_value_heads * head_dimension),
-      values_(maximum_sequence_length * key_value_heads * head_dimension) {
-  if (maximum_sequence_length == 0U || key_value_heads == 0U || head_dimension == 0U) {
-    throw std::invalid_argument("KV cache dimensions must be positive");
-  }
-}
+      keys_(cache_size(maximum_sequence_length, key_value_heads, head_dimension)),
+      values_(keys_.size()) {}
 
 std::size_t LayerKvCache::offset(const std::size_t position, const std::size_t head,
                                  const std::size_t dimension) const {
