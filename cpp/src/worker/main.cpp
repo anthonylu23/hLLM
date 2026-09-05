@@ -1,3 +1,5 @@
+#include <grpcpp/grpcpp.h>
+
 #include <charconv>
 #include <cstdint>
 #include <filesystem>
@@ -7,9 +9,8 @@
 #include <string>
 #include <string_view>
 
-#include <grpcpp/grpcpp.h>
-
 #include "hllm/worker/control_service.hpp"
+#include "hllm/worker/execution_service.hpp"
 
 namespace {
 
@@ -52,7 +53,8 @@ struct Arguments {
   if (arguments.listen.empty() || arguments.worker_id.empty() || arguments.model_root.empty() ||
       arguments.memory_limit_bytes == 0U) {
     throw std::invalid_argument(
-        "required arguments: --listen, --worker-id, --model-root, --memory-limit-bytes");
+        "required arguments: --listen, --worker-id, "
+        "--model-root, --memory-limit-bytes");
   }
   return arguments;
 }
@@ -69,9 +71,15 @@ int main(const int argc, char** const argv) {
         .host_memory_capacity_bytes = arguments.memory_limit_bytes,
     });
 
+    hllm::worker::GenerationService generation(control);
+    hllm::worker::ExecutionService execution(control);
     grpc::ServerBuilder builder;
+    builder.SetMaxReceiveMessageSize(hllm::worker::kMaximumRpcBytes);
+    builder.SetMaxSendMessageSize(hllm::worker::kMaximumRpcBytes);
     builder.AddListeningPort(arguments.listen, grpc::InsecureServerCredentials());
     builder.RegisterService(&control);
+    builder.RegisterService(&generation);
+    builder.RegisterService(&execution);
     std::unique_ptr<grpc::Server> server = builder.BuildAndStart();
     if (server == nullptr) {
       std::cerr << "failed to start CPU worker on " << arguments.listen << '\n';

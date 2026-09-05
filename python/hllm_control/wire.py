@@ -276,8 +276,8 @@ def deployment_plan_from_proto(message: placement_pb2.DeploymentPlan) -> models.
         )
         for item in message.stages
     )
-    if len(stages) != 2:
-        raise WireMappingError(f"deployment plan has {len(stages)} stages; expected two")
+    if len(stages) not in (1, 2):
+        raise WireMappingError(f"deployment plan has {len(stages)} stages; expected one or two")
     return models.DeploymentPlan(
         schema_version=_version_from_proto(message.schema_version),
         planner_version=message.planner_version,
@@ -289,7 +289,7 @@ def deployment_plan_from_proto(message: placement_pb2.DeploymentPlan) -> models.
         execution_dtype=_required_dtype(message.execution_dtype),
         activation_dtype=_required_dtype(message.activation_dtype),
         split_layer=message.split_layer,
-        stages=(stages[0], stages[1]),
+        stages=stages,
         duplicated_tensor_groups=tuple(message.duplicated_tensor_groups),
         selected_candidate_id=message.selected_candidate_id,
         deployment_version=message.deployment_version,

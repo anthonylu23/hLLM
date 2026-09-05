@@ -47,7 +47,13 @@ message CancelRequestMessage {
   uint64 deployment_version = 3;
   string reason = 4;
 }
-message MemoryReport { repeated MemoryBudget budgets = 1; }
+message MemoryReport {
+  repeated MemoryBudget budgets = 1;
+  uint64 loaded_weight_bytes = 2;
+  uint64 reserved_cache_bytes = 3;
+  uint64 reserved_workspace_bytes = 4;
+  uint64 active_requests = 5;
+}
 message WorkerMetrics { string worker_id = 1; }
 message HealthResponse { bool serving = 1; string detail = 2; }
 

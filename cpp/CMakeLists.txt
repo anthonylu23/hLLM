@@ -39,6 +39,7 @@ add_library(
   hllm_cpu_backend
   src/cpu/llama.cpp
   src/cpu/tensor.cpp
+  src/cpu/stage.cpp
 )
 target_include_directories(
   hllm_cpu_backend
@@ -46,11 +47,11 @@ target_include_directories(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(hllm_cpu_backend PUBLIC hllm::runtime_common hllm_project_options)
+target_link_libraries(hllm_cpu_backend PUBLIC hllm::runtime_common hllm::proto hllm_project_options)
 
 add_library(hllm::cpu_backend ALIAS hllm_cpu_backend)
 
-add_library(hllm_worker_runtime src/worker/control_service.cpp)
+add_library(hllm_worker_runtime src/worker/control_service.cpp src/worker/execution_service.cpp)
 target_include_directories(
   hllm_worker_runtime
   PUBLIC
@@ -59,7 +60,7 @@ target_include_directories(
 )
 target_link_libraries(
   hllm_worker_runtime
-  PUBLIC hllm::proto hllm::runtime_common hllm_project_options
+  PUBLIC hllm::proto hllm::runtime_common hllm::cpu_backend hllm_project_options
 )
 
 add_library(hllm::worker_runtime ALIAS hllm_worker_runtime)

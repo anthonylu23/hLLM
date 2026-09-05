@@ -55,3 +55,32 @@ def test_deployment_plan_round_trips_through_wire_contract(tiny_model: Path) -> 
     decoded = type(deployment_plan_to_proto(report.plan)).FromString(encoded)
 
     assert deployment_plan_from_proto(decoded) == report.plan
+
+
+def test_single_stage_reference_plan_roundtrip() -> None:
+    from hllm_control.models import DeploymentPlan, PlanningMode, StageAssignment
+
+    plan = DeploymentPlan(
+        plan_id="reference",
+        plan_digest="reference-digest",
+        manifest_digest="manifest",
+        workload_id="reference",
+        planning_mode=PlanningMode.FEASIBILITY,
+        execution_dtype=DType.F32,
+        activation_dtype=DType.F16,
+        split_layer=0,
+        stages=(
+            StageAssignment(
+                stage_index=0,
+                worker_id="cpu-a",
+                layer_start=0,
+                layer_end=4,
+                owns_token_embedding=True,
+                owns_final_norm=True,
+                owns_lm_head=True,
+                owns_sampling=True,
+            ),
+        ),
+        selected_candidate_id="reference",
+    )
+    assert deployment_plan_from_proto(deployment_plan_to_proto(plan)) == plan
