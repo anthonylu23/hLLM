@@ -51,6 +51,7 @@ test are recorded in [the Milestone 0 validation report](validation/milestone-0.
 ## Next steps
 
 1. Add payload-specific link qualification for prefill and decode transfers.
-2. Start Milestone 1 with generated C++ bindings and the native CPU reference worker.
+2. Complete Milestone 1 by connecting the existing native CPU kernels and control
+   service to stage execution; see [the quality review](code-quality-review.md).
 3. As a stretch goal, add a `smollm3.v1` preparation adapter without changing the planner
    or artifact shapes.

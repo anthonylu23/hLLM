@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -343,6 +343,3 @@ class PlanningReport(StrictModel):
     candidates: tuple[PlanCandidate, ...]
     plan: DeploymentPlan | None
     notes: tuple[str, ...] = ()
-
-
-JsonObject = dict[str, Any]

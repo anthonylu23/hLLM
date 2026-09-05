@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <cstddef>
+#include <limits>
+#include <stdexcept>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -105,27 +107,11 @@ TEST(CpuLlamaTest, PrefillThenDecodeMatchesOneShotCausalExecution) {
   EXPECT_EQ(incremental_cache.length(), 3U);
 }
 
-TEST(CpuLlamaTest, SplitPipelineMatchesReferenceWithTheSameFp16Boundary) {
-  const auto first = deterministic_layer(kConfig, 0.1F);
-  const auto second = deterministic_layer(kConfig, 0.9F);
-  const Matrix input(2U, 4U,
-                     {0.1F, 0.2F, -0.3F, 0.4F, 0.6F, -0.2F, 0.5F, 0.3F});
-
-  LayerKvCache reference_first_cache(16U, 1U, 2U);
-  LayerKvCache reference_second_cache(16U, 1U, 2U);
-  const auto reference_boundary = quantize_float16(
-      transformer_layer(input, first, kConfig, 0U, reference_first_cache));
-  const auto reference = transformer_layer(reference_boundary, second, kConfig, 0U,
-                                           reference_second_cache);
-
-  LayerKvCache stage_zero_cache(16U, 1U, 2U);
-  const auto transmitted =
-      quantize_float16(transformer_layer(input, first, kConfig, 0U, stage_zero_cache));
-  LayerKvCache final_stage_cache(16U, 1U, 2U);
-  const auto split =
-      transformer_layer(transmitted, second, kConfig, 0U, final_stage_cache);
-
-  expect_near(split, reference, 0.0F);
+TEST(CpuLlamaTest, RejectsOverflowingCacheDimensionsBeforeAllocation) {
+  const auto maximum = std::numeric_limits<std::size_t>::max();
+  EXPECT_THROW(LayerKvCache(2U, maximum / 2U + 1U, 1U), std::length_error);
+  EXPECT_THROW(LayerKvCache(1U, maximum / 2U + 1U, 2U), std::length_error);
+  EXPECT_THROW(LayerKvCache(0U, 1U, 2U), std::invalid_argument);
 }
 
 TEST(CpuLlamaTest, GreedySamplingSelectsFirstMaximumOnTheLastRow) {

@@ -176,7 +176,7 @@ std::optional<std::string> ControlService::validate_stage(
           native.byte_length != tensor.byte_length() ||
           native.shape.size() != static_cast<std::size_t>(tensor.shape_size()) ||
           !std::equal(native.shape.begin(), native.shape.end(), tensor.shape().begin())) {
-        return "native Safetensors metadata does not match the signed manifest";
+        return "native Safetensors metadata does not match the manifest";
       }
       if (native.byte_length > std::numeric_limits<std::size_t>::max() - selected_weight_bytes) {
         return "selected stage weight size overflows native accounting";
@@ -204,16 +204,23 @@ grpc::Status ControlService::LoadStage(grpc::ServerContext*,
   std::scoped_lock lock(mutex_);
   if (deployment_.has_value() &&
       (deployment_->plan_id != request->plan().plan_id() ||
-       deployment_->deployment_version != request->plan().deployment_version())) {
+       deployment_->deployment_version != request->plan().deployment_version() ||
+       deployment_->plan_digest != request->plan().plan_digest() ||
+       deployment_->stage_index != request->stage_index())) {
     reject(*response, v1::ERROR_CODE_STALE_DEPLOYMENT,
            "worker already has a different deployment loaded");
     return grpc::Status::OK;
   }
+  if (deployment_.has_value()) {
+    response->set_accepted(true);
+    response->set_detail("stage already loaded");
+    return grpc::Status::OK;
+  }
   deployment_ = DeploymentState{
       .plan_id = request->plan().plan_id(),
+      .plan_digest = request->plan().plan_digest(),
       .deployment_version = request->plan().deployment_version(),
       .stage_index = request->stage_index(),
-      .selected_weight_bytes = selected_weight_bytes,
       .active_requests = {},
   };
   response->set_accepted(true);

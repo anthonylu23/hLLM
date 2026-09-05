@@ -103,3 +103,16 @@ def test_rejects_runtime_semantics_the_cpu_backend_cannot_execute(tmp_path: Path
 
     with pytest.raises(PreparationError, match="bias tensors"):
         prepare_model(model_path)
+
+
+def test_rejects_duplicate_tensors_across_shards(tiny_model: Path) -> None:
+    tensors = tiny_tensors()
+    names = list(tensors)
+    midpoint = len(names) // 2
+    # Add a tensor owned by shard two to shard one. A dict comprehension would
+    # silently overwrite it with shard two's copy and still match the index.
+    first_shard = {name: tensors[name] for name in names[:midpoint + 1]}
+    write_safetensors(tiny_model / "model-00001-of-00002.safetensors", first_shard)
+
+    with pytest.raises(PreparationError, match="occurs in multiple shards"):
+        prepare_model(tiny_model)
