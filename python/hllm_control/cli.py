@@ -29,7 +29,7 @@ def prepare_command(
     revision: Annotated[str | None, typer.Option(help="Pinned source repository revision.")] = None,
     hash_mode: Annotated[HashMode, typer.Option(case_sensitive=False)] = HashMode.METADATA,
 ) -> None:
-    """Inspect a Llama-compatible Safetensors model and emit its manifest."""
+    """Inspect a Llama-compatible or dense Qwen3 Safetensors model and emit its manifest."""
     manifest = prepare_model(
         model_path,
         model_id=model_id,

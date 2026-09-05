@@ -3,7 +3,7 @@ workers:
     endpoint: anthonys-macbook-pro-2:50051
     backend: mlx
     primary_memory_domain: UNIFIED
-    supported_architectures: [llama.v1]
+    supported_architectures: [llama.v1, qwen3.v1]
     supported_execution_dtypes: [F16]
     memory_budgets:
       - domain: UNIFIED
@@ -20,7 +20,7 @@ workers:
     endpoint: anthonypc:50051
     backend: cuda
     primary_memory_domain: DEVICE
-    supported_architectures: [llama.v1]
+    supported_architectures: [llama.v1, qwen3.v1]
     supported_execution_dtypes: [F16]
     memory_budgets:
       - domain: DEVICE

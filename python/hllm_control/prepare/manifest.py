@@ -19,6 +19,7 @@ from hllm_control.models import (
     TensorRole,
 )
 from hllm_control.prepare.llama import ArchitectureError, LlamaArchitectureAdapter
+from hllm_control.prepare.qwen3 import Qwen3ArchitectureAdapter
 from hllm_control.prepare.safetensors import InspectedFile, InspectedTensor, inspect_safetensors
 from hllm_control.serialization import canonical_json_bytes, sha256_file
 
@@ -107,7 +108,11 @@ def prepare_model(
         raise PreparationError(f"model path is not a directory: {model_path}")
     config_path = model_path / "config.json"
     raw_config = _load_json_object(config_path)
-    adapter = LlamaArchitectureAdapter()
+    adapters = {"llama": LlamaArchitectureAdapter, "qwen3": Qwen3ArchitectureAdapter}
+    model_type = raw_config.get("model_type")
+    if not isinstance(model_type, str) or model_type not in adapters:
+        raise PreparationError(f"unsupported model_type: {model_type!r}")
+    adapter = adapters[model_type]()
     try:
         description = adapter.describe(raw_config)
     except ValueError as error:
