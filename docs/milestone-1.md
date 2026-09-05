@@ -8,11 +8,13 @@ exit criterion for tiny deterministic models. Full-checkpoint performance is not
 ## Architecture and ownership
 
 The [model extensibility boundaries](model-extensibility.md) guide future model support.
-`runtime::StageBackend` owns opaque sequence state and accepts owned host activation
-staging data. This does not expose device tensors or cache layouts to the common runtime.
-The CPU implementation selects explicit `llama.v1` or `qwen3.v1` semantics; the controller
-and transport contain no model-family branches. `forward` is shared by prefill and decode;
-the execution service validates their distinct phase, shape and position requirements.
+`runtime::StageBackend` owns opaque sequence state. The Milestone 2 integration contract
+accepts tokens or owned FP16 boundary bytes and returns boundary bytes or a sampled token,
+keeping embedding, layers and sampling inside the backend. This does not expose device
+tensors or cache layouts to the common runtime. The CPU implementation selects explicit
+`llama.v1` or `qwen3.v1` semantics; the controller and transport contain no model-family
+branches. CPU `forward` remains available for reference tests. The execution service
+validates distinct prefill/decode phase, shape and position requirements.
 
 The CPU loader validates architecture revision 1, required features, dense semantics,
 partition ownership, required tensor shapes, and source metadata before reading payloads.
@@ -179,6 +181,7 @@ remain unverified.
 
 ## Next steps
 
+See [the Milestone 2 integration status and PR sequence](milestone-2.md).
 Milestone 2 is a CUDA backend implementing the same stage and sequence contract. Start
 with tiny-model parity against the CPU golden suite, including FP16 boundaries and
 lifecycle tests; add CUDA buffers, streams, memory reporting and sampling before running
