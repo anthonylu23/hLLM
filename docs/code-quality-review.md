@@ -27,8 +27,13 @@ The incremental-versus-one-shot causal execution test remains.
 
 Regression coverage exercises allocation overflow, NaN payload extremes, reservation
 preservation on load retries, changed deployment digests, and duplicate shard tensors.
-Run Python tests, Ruff, Pyright, binding reproducibility, and native CTest in both
-normal and sanitizer builds using the commands in the README.
+Validation on 2026-09-05: all 21 Python tests and 26 normal native tests passed,
+as did Ruff, Pyright, and binding reproducibility. The ASan/UBSan executable built
+but hung before entering the tests, so sanitizer validation is incomplete. A macOS
+process sample showed recursive AddressSanitizer initialization waiting in
+`StaticSpinMutex::LockSlow` while initializing shadow memory; CMake test discovery
+therefore timed out. Recheck with a working sanitizer toolchain before claiming
+sanitizer coverage. Use the commands in the README to reproduce the suites.
 
 ## Next steps and current limits
 
