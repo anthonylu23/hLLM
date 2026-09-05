@@ -35,7 +35,7 @@ class TensorOwnership:
 
 
 @dataclass(frozen=True)
-class LlamaDescription:
+class ModelDescription:
     architecture: ArchitectureDescriptor
     config: ModelConfig
 
@@ -110,13 +110,16 @@ def _rope_scaling(config: Mapping[str, Any]) -> RopeScaling | None:
 class LlamaArchitectureAdapter:
     architecture_id = "llama.v1"
     architecture_revision = "1"
+    model_type = "llama"
+    model_class = "LlamaForCausalLM"
+    layer_suffixes = LAYER_SUFFIXES
 
-    def describe(self, raw: Mapping[str, Any]) -> LlamaDescription:
-        if raw.get("model_type") != "llama":
-            raise ArchitectureError("only model_type='llama' is currently supported")
+    def describe(self, raw: Mapping[str, Any]) -> ModelDescription:
+        if raw.get("model_type") != self.model_type:
+            raise ArchitectureError(f"expected model_type={self.model_type!r}")
         architectures = raw.get("architectures", [])
-        if architectures and "LlamaForCausalLM" not in architectures:
-            raise ArchitectureError("config does not declare LlamaForCausalLM")
+        if architectures and self.model_class not in architectures:
+            raise ArchitectureError(f"config does not declare {self.model_class}")
 
         hidden_size = _required_positive_int(raw, "hidden_size")
         num_attention_heads = _required_positive_int(raw, "num_attention_heads")
@@ -136,18 +139,24 @@ class LlamaArchitectureAdapter:
         attention_bias = _boolean(raw, "attention_bias", False)
         mlp_bias = _boolean(raw, "mlp_bias", False)
         if attention_bias or mlp_bias:
-            raise ArchitectureError("llama.v1 does not yet support attention or MLP bias tensors")
+            raise ArchitectureError(
+                f"{self.architecture_id} does not yet support attention or MLP bias tensors"
+            )
         hidden_activation = raw.get("hidden_act", "silu")
         if hidden_activation != "silu":
-            raise ArchitectureError("llama.v1 currently requires hidden_act='silu'")
+            raise ArchitectureError(f"{self.architecture_id} currently requires hidden_act='silu'")
         pretraining_tp = raw.get("pretraining_tp", 1)
         if pretraining_tp != 1:
-            raise ArchitectureError("llama.v1 currently requires pretraining_tp=1")
+            raise ArchitectureError(f"{self.architecture_id} currently requires pretraining_tp=1")
         partial_rotary_factor = raw.get("partial_rotary_factor", 1.0)
         if partial_rotary_factor != 1.0:
-            raise ArchitectureError("llama.v1 currently requires partial_rotary_factor=1.0")
+            raise ArchitectureError(
+                f"{self.architecture_id} currently requires partial_rotary_factor=1.0"
+            )
         if raw.get("sliding_window") is not None:
-            raise ArchitectureError("llama.v1 does not yet support sliding-window attention")
+            raise ArchitectureError(
+                f"{self.architecture_id} does not yet support sliding-window attention"
+            )
 
         model_config = ModelConfig(
             hidden_size=hidden_size,
@@ -173,7 +182,7 @@ class LlamaArchitectureAdapter:
             features.append("explicit_head_dim")
         if model_config.rope_scaling is not None:
             features.append(f"rope_scaling:{model_config.rope_scaling.scaling_type}")
-        return LlamaDescription(
+        return ModelDescription(
             architecture=ArchitectureDescriptor(
                 architecture_id=self.architecture_id,
                 architecture_revision=self.architecture_revision,
@@ -196,8 +205,10 @@ class LlamaArchitectureAdapter:
                 )
             expected_prefix = f"model.layers.{layer_index}."
             suffix = name.removeprefix(expected_prefix)
-            if suffix not in LAYER_SUFFIXES:
-                raise ArchitectureError(f"unrecognized Llama layer tensor {name!r}")
+            if suffix not in self.layer_suffixes:
+                raise ArchitectureError(
+                    f"unrecognized {self.model_type.capitalize()} layer tensor {name!r}"
+                )
             return TensorOwnership(TensorRole.TRANSFORMER_LAYER, layer_index=layer_index)
         if name == "model.norm.weight":
             return TensorOwnership(TensorRole.FINAL_NORM)
@@ -206,7 +217,7 @@ class LlamaArchitectureAdapter:
             return TensorOwnership(TensorRole.LM_HEAD, shared_weight_group=group)
         if name in {"model.rotary_emb.inv_freq", "model.rotary_emb.original_inv_freq"}:
             return TensorOwnership(TensorRole.ARCHITECTURE_STATE)
-        raise ArchitectureError(f"unrecognized Llama tensor {name!r}")
+        raise ArchitectureError(f"unrecognized {self.model_type.capitalize()} tensor {name!r}")
 
     def expected_tensor_names(self, config: ModelConfig) -> set[str]:
         names = {
@@ -215,7 +226,7 @@ class LlamaArchitectureAdapter:
             *(
                 f"model.layers.{layer}.{suffix}"
                 for layer in range(config.num_layers)
-                for suffix in LAYER_SUFFIXES
+                for suffix in self.layer_suffixes
             ),
         }
         if not config.tied_embeddings:

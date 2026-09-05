@@ -17,6 +17,7 @@ struct LlamaConfig {
   std::size_t maximum_sequence_length;
   float rms_norm_epsilon;
   float rope_theta;
+  bool query_key_norm{false};
 };
 
 struct LayerWeights {
@@ -29,6 +30,8 @@ struct LayerWeights {
   Matrix gate;
   Matrix up;
   Matrix down;
+  std::vector<float> query_norm{};
+  std::vector<float> key_norm{};
 };
 
 class LayerKvCache final {
@@ -37,6 +40,8 @@ class LayerKvCache final {
                std::size_t head_dimension);
 
   [[nodiscard]] std::size_t length() const noexcept { return length_; }
+  [[nodiscard]] std::size_t heads() const noexcept { return key_value_heads_; }
+  [[nodiscard]] std::size_t head_dimension() const noexcept { return head_dimension_; }
   [[nodiscard]] std::size_t capacity() const noexcept { return maximum_sequence_length_; }
   [[nodiscard]] float key(std::size_t position, std::size_t head,
                           std::size_t dimension) const;

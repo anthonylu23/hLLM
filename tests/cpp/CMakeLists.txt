@@ -19,6 +19,7 @@ add_executable(
   buffer_test.cpp
   half_test.cpp
   llama_test.cpp
+  qwen3_test.cpp
   safetensors_test.cpp
   tensor_envelope_test.cpp
   worker_control_test.cpp
@@ -29,7 +30,12 @@ target_link_libraries(
     hllm::cpu_backend
     hllm::runtime_common
     hllm::worker_runtime
+    nlohmann_json::nlohmann_json
     GTest::gtest_main
     hllm_project_options
 )
 gtest_discover_tests(hllm_runtime_common_tests)
+
+target_compile_definitions(hllm_runtime_common_tests PRIVATE
+  HLLM_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures"
+)

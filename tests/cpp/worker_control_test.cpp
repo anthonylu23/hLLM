@@ -135,6 +135,36 @@ TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
   EXPECT_TRUE(service.UnloadStage(&context, &unload, &empty).ok());
 }
 
+TEST(WorkerControlTest, AdvertisesAndValidatesQwen3Metadata) {
+  const ModelDirectory model;
+  ControlService service({
+      .worker_id = "cpu-a",
+      .endpoint = "127.0.0.1:50051",
+      .model_root = model.path(),
+      .host_memory_capacity_bytes = 1'000'000U,
+  });
+  grpc::ServerContext context;
+  v1::Empty empty;
+  v1::Capabilities capabilities;
+  ASSERT_TRUE(service.GetCapabilities(&context, &empty, &capabilities).ok());
+  ASSERT_EQ(capabilities.worker().supported_architectures_size(), 2);
+  EXPECT_EQ(capabilities.worker().supported_architectures(0), "llama.v1");
+  EXPECT_EQ(capabilities.worker().supported_architectures(1), "qwen3.v1");
+
+  v1::LoadStageRequest load;
+  populate_valid_load(load);
+  load.mutable_manifest()->mutable_architecture()->set_architecture_id("qwen3.v1");
+  load.mutable_manifest()->mutable_config()->mutable_rope_scaling()->set_factor(2.0);
+  v1::LoadStageResponse rejected;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &rejected).ok());
+  EXPECT_FALSE(rejected.accepted());
+
+  load.mutable_manifest()->mutable_config()->clear_rope_scaling();
+  v1::LoadStageResponse accepted;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &accepted).ok());
+  EXPECT_TRUE(accepted.accepted()) << accepted.detail();
+}
+
 TEST(WorkerControlTest, RejectsTraversalAndStaleDeployment) {
   const ModelDirectory model;
   ControlService service({

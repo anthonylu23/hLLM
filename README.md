@@ -44,8 +44,17 @@ when available and fetches pinned versions otherwise. After changing schemas, ru
 
 ## Prepare and plan
 
-Prepare an indexed or single-file Llama-compatible Safetensors model without loading its
-tensor payloads:
+Prepare an indexed or single-file Llama-compatible or dense Qwen3 Safetensors model
+without loading its tensor payloads. Qwen3-4B-Base is the new benchmark target:
+
+```bash
+uv run hllm prepare /models/Qwen3-4B-Base \
+  --model-id Qwen/Qwen3-4B-Base \
+  --revision 906bfd4b4dc7f14ee4320094d8b41684abff8539 \
+  --output build/qwen3.manifest.json
+```
+
+Falcon remains supported, with its existing results retained:
 
 ```bash
 uv run hllm prepare /models/Falcon3-3B-Base \
@@ -58,13 +67,13 @@ Enumerate both worker orders and every contiguous split point:
 
 ```bash
 uv run hllm plan \
-  --manifest build/falcon3.manifest.json \
+  --manifest build/qwen3.manifest.json \
   --workers examples/profiles/workers-m3pro-3060ti.yaml \
   --links examples/profiles/links-m3pro-3060ti.yaml \
   --workload examples/workloads/interactive.yaml \
   --settings examples/profiles/planner-feasibility.yaml \
-  --output build/deployment-plan.json \
-  --report build/planning-report.json
+  --output build/qwen3.deployment-plan.json \
+  --report build/qwen3.planning-report.json
 ```
 
 The checked-in memory budgets remain conservative configured estimates. Link RTT and
@@ -78,3 +87,7 @@ pinned real-model and cross-platform checks.
 
 See [the code quality review](docs/code-quality-review.md) for fixes, validation, and
 the remaining native integration work.
+
+[Qwen3 support and validation](docs/qwen3.md) describes the pinned model, supported
+semantics, independent CPU reference tests, and estimated placement. It is not yet a
+full-checkpoint inference benchmark; distributed stage execution remains unfinished.
