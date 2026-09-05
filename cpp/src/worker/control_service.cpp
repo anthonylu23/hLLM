@@ -114,6 +114,7 @@ grpc::Status ControlService::GetCapabilities(grpc::ServerContext*, const v1::Emp
   profile->set_backend(v1::BACKEND_CPU);
   profile->set_primary_memory_domain(v1::MEMORY_DOMAIN_HOST);
   profile->add_supported_architectures("llama.v1");
+  profile->add_supported_architectures("qwen3.v1");
   profile->add_supported_execution_dtypes(v1::DATA_TYPE_F16);
   profile->add_supported_execution_dtypes(v1::DATA_TYPE_BF16);
   profile->add_supported_execution_dtypes(v1::DATA_TYPE_F32);
@@ -145,7 +146,8 @@ std::optional<std::string> ControlService::validate_stage(
       stage.layer_end() > manifest.config().num_layers()) {
     return "stage assignment is invalid or belongs to another worker";
   }
-  if (manifest.architecture().architecture_id() != "llama.v1" ||
+  if ((manifest.architecture().architecture_id() != "llama.v1" &&
+       manifest.architecture().architecture_id() != "qwen3.v1") ||
       manifest.config().hidden_activation() != "silu" || manifest.config().attention_bias() ||
       manifest.config().mlp_bias() || manifest.config().has_rope_scaling()) {
     return "manifest requests unsupported CPU reference semantics";

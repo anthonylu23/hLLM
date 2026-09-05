@@ -25,16 +25,25 @@ void validate_config(const LlamaConfig& config) {
   if (config.hidden_size == 0U || config.intermediate_size == 0U ||
       config.attention_heads == 0U || config.key_value_heads == 0U ||
       config.head_dimension == 0U || config.maximum_sequence_length == 0U ||
-      config.rms_norm_epsilon <= 0.0F || config.rope_theta <= 0.0F) {
+      config.rms_norm_epsilon <= 0.0F || config.rope_theta <= 0.0F ||
+      !std::isfinite(config.rms_norm_epsilon) || !std::isfinite(config.rope_theta)) {
     throw std::invalid_argument("Llama configuration values must be positive");
   }
   if (config.attention_heads % config.key_value_heads != 0U ||
-      config.attention_heads * config.head_dimension != config.hidden_size) {
+      config.head_dimension % 2U != 0U ||
+      config.attention_heads > std::numeric_limits<std::size_t>::max() / config.head_dimension) {
     throw std::invalid_argument("Llama attention dimensions are inconsistent");
   }
 }
 
 void validate_weights(const LayerWeights& weights, const LlamaConfig& config) {
+  if (config.query_key_norm
+          ? (weights.query_norm.size() != config.head_dimension ||
+             weights.key_norm.size() != config.head_dimension)
+          : (!weights.query_norm.empty() || !weights.key_norm.empty())) {
+    throw std::invalid_argument("query/key normalization weights do not match configuration");
+  }
+  const auto attention_width = config.attention_heads * config.head_dimension;
   const auto key_value_width = config.key_value_heads * config.head_dimension;
   const auto valid_matrix = [](const Matrix& matrix, const std::size_t rows,
                                const std::size_t columns) {
@@ -42,10 +51,10 @@ void validate_weights(const LayerWeights& weights, const LlamaConfig& config) {
   };
   if (weights.input_norm.size() != config.hidden_size ||
       weights.post_attention_norm.size() != config.hidden_size ||
-      !valid_matrix(weights.query, config.hidden_size, config.hidden_size) ||
+      !valid_matrix(weights.query, attention_width, config.hidden_size) ||
       !valid_matrix(weights.key, key_value_width, config.hidden_size) ||
       !valid_matrix(weights.value, key_value_width, config.hidden_size) ||
-      !valid_matrix(weights.attention_output, config.hidden_size, config.hidden_size) ||
+      !valid_matrix(weights.attention_output, config.hidden_size, attention_width) ||
       !valid_matrix(weights.gate, config.intermediate_size, config.hidden_size) ||
       !valid_matrix(weights.up, config.intermediate_size, config.hidden_size) ||
       !valid_matrix(weights.down, config.hidden_size, config.intermediate_size)) {
@@ -56,7 +65,7 @@ void validate_weights(const LayerWeights& weights, const LlamaConfig& config) {
 [[nodiscard]] Matrix attention(const Matrix& queries, const LlamaConfig& config,
                                const std::size_t first_position,
                                const LayerKvCache& cache) {
-  Matrix output(queries.rows(), config.hidden_size);
+  Matrix output(queries.rows(), config.attention_heads * config.head_dimension);
   const auto query_heads_per_key_value_head =
       config.attention_heads / config.key_value_heads;
   const auto scale = 1.0F / std::sqrt(static_cast<float>(config.head_dimension));
@@ -98,6 +107,24 @@ void validate_weights(const LayerWeights& weights, const LlamaConfig& config) {
     }
   }
   return output;
+}
+
+void normalize_heads(Matrix& values, const std::span<const float> weights,
+                     const float epsilon) {
+  // A single learned vector is shared by all heads; normalize each head separately.
+  const auto width = weights.size();
+  for (std::size_t offset = 0U; offset < values.size(); offset += width) {
+    float square_sum = 0.0F;
+    for (std::size_t dimension = 0U; dimension < width; ++dimension) {
+      const auto value = values.values()[offset + dimension];
+      square_sum += value * value;
+    }
+    const auto inverse_rms =
+        1.0F / std::sqrt(square_sum / static_cast<float>(width) + epsilon);
+    for (std::size_t dimension = 0U; dimension < width; ++dimension) {
+      values.values()[offset + dimension] *= inverse_rms * weights[dimension];
+    }
+  }
 }
 
 void add_in_place(Matrix& destination, const Matrix& source) {
@@ -216,6 +243,7 @@ Matrix transformer_layer(const Matrix& input, const LayerWeights& weights,
   validate_config(config);
   validate_weights(weights, config);
   if (input.columns() != config.hidden_size || input.rows() == 0U ||
+      cache.heads() != config.key_value_heads || cache.head_dimension() != config.head_dimension ||
       first_position != cache.length() || first_position > config.maximum_sequence_length ||
       input.rows() > config.maximum_sequence_length - first_position) {
     throw std::invalid_argument("transformer input or cache position is invalid");
@@ -225,6 +253,10 @@ Matrix transformer_layer(const Matrix& input, const LayerWeights& weights,
   auto queries = linear(normalized, weights.query);
   auto keys = linear(normalized, weights.key);
   const auto values = linear(normalized, weights.value);
+  if (config.query_key_norm) {
+    normalize_heads(queries, weights.query_norm, config.rms_norm_epsilon);
+    normalize_heads(keys, weights.key_norm, config.rms_norm_epsilon);
+  }
   apply_rope(queries, config.attention_heads, config.head_dimension, first_position,
              config.rope_theta);
   apply_rope(keys, config.key_value_heads, config.head_dimension, first_position,
