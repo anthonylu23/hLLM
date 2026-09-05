@@ -19,7 +19,7 @@ from hllm_control.models import (
     TensorRole,
 )
 from hllm_control.prepare.llama import ArchitectureError, LlamaArchitectureAdapter
-from hllm_control.prepare.safetensors import InspectedFile, inspect_safetensors
+from hllm_control.prepare.safetensors import InspectedFile, InspectedTensor, inspect_safetensors
 from hllm_control.serialization import canonical_json_bytes, sha256_file
 
 
@@ -115,9 +115,12 @@ def prepare_model(
 
     paths, weight_map, index_path = _discover_tensor_files(model_path)
     inspected = tuple(inspect_safetensors(path) for path in paths)
-    tensors_by_name = {
-        tensor.name: (container, tensor) for container in inspected for tensor in container.tensors
-    }
+    tensors_by_name: dict[str, tuple[InspectedFile, InspectedTensor]] = {}
+    for container in inspected:
+        for tensor in container.tensors:
+            if tensor.name in tensors_by_name:
+                raise PreparationError(f"tensor {tensor.name!r} occurs in multiple shards")
+            tensors_by_name[tensor.name] = (container, tensor)
     if set(weight_map) != set(tensors_by_name):
         missing_from_files = sorted(set(weight_map) - set(tensors_by_name))
         missing_from_index = sorted(set(tensors_by_name) - set(weight_map))
