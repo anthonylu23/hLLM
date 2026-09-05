@@ -6,7 +6,7 @@ Milestone 0 produces a deterministic deployment plan without starting native wor
 
 - `proto/` defines the versioned model, profile, placement, control, execution, and
   telemetry wire contracts.
-- `hllm prepare` strictly validates one Llama-compatible model and reads only Safetensors
+- `hllm prepare` strictly validates a Llama-compatible or dense Qwen3 model and reads only Safetensors
   headers unless full hashing is requested.
 - Worker profiles model CUDA device memory, ordinary host memory, pinned host allocations,
   and Apple unified memory as distinct domains.
@@ -53,5 +53,7 @@ test are recorded in [the Milestone 0 validation report](validation/milestone-0.
 1. Add payload-specific link qualification for prefill and decode transfers.
 2. Complete Milestone 1 by connecting the existing native CPU kernels and control
    service to stage execution; see [the quality review](code-quality-review.md).
-3. As a stretch goal, add a `smollm3.v1` preparation adapter without changing the planner
+3. Complete full-checkpoint Qwen3 numerical validation and measured placement;
+   see [Qwen3 support](qwen3.md).
+4. As a stretch goal, add a `smollm3.v1` preparation adapter without changing the planner
    or artifact shapes.

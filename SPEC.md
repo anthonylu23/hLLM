@@ -357,6 +357,13 @@ Automated tests use a generated tiny Llama model plus a sparse Falcon3-shaped me
 fixture. The sparse fixture reproduces the real tensor dimensions and logical byte sizes but
 does not substitute for validating the pinned upstream weight bytes.
 
+The next benchmark target is `Qwen/Qwen3-4B-Base` at revision
+`906bfd4b4dc7f14ee4320094d8b41684abff8539`, using the `qwen3.v1` adapter.
+Falcon results remain a historical baseline. Qwen3 extends the shared dense decoder
+operations with per-head query/key RMSNorm before RoPE and attention projection widths
+independent of hidden size. Validation includes a full-size sparse metadata fixture and
+a tiny two-layer Transformers oracle; see [Qwen3 support](docs/qwen3.md).
+
 ## 12. Partition rules
 
 - Only contiguous transformer-block ranges are supported.
@@ -1062,9 +1069,6 @@ hllm-runtime/
 
 ## 30. Open questions
 
-- Should Falcon3 remain the long-term public validation checkpoint after the initial
-  implementation, or should it be supplemented by a less restrictively licensed canonical
-  Llama-family checkpoint?
 - Which native Safetensors reader or internal audited implementation should be standardized?
 - Should stage zero or the controller own the canonical sampling RNG seed sequence?
 - What cross-backend numerical thresholds define official support?
