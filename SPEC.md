@@ -935,6 +935,11 @@ hllm-runtime/
 
 ### Milestone 1 — native CPU pipeline
 
+Implemented for tiny Llama and Qwen3 validation models; see the
+[implementation, limits and local demo](docs/milestone-1.md). Model adapters, backend
+implementations and common runtime responsibilities follow the
+[extension boundaries](docs/model-extensibility.md).
+
 - Implement common C++ runtime and buffer abstractions.
 - Implement the CPU reference backend.
 - Run two native worker processes through the Python controller.

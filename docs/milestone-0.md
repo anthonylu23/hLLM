@@ -50,10 +50,10 @@ test are recorded in [the Milestone 0 validation report](validation/milestone-0.
 
 ## Next steps
 
-1. Add payload-specific link qualification for prefill and decode transfers.
-2. Complete Milestone 1 by connecting the existing native CPU kernels and control
-   service to stage execution; see [the quality review](code-quality-review.md).
-3. Complete full-checkpoint Qwen3 numerical validation and measured placement;
-   see [Qwen3 support](qwen3.md).
-4. As a stretch goal, add a `smollm3.v1` preparation adapter without changing the planner
-   or artifact shapes.
+[Milestone 1](milestone-1.md) now connects executable CPU loading, native stage execution,
+and Python token streaming. Next, implement and validate the CUDA backend (Milestone 2),
+then MLX (Milestone 3). Link qualification belongs with cross-machine integration, and
+full-checkpoint Qwen3 validation and measured placement follow backend implementation.
+
+Additional model families should follow the [extension boundaries](model-extensibility.md)
+and be selected with the user rather than delaying the working pipeline.

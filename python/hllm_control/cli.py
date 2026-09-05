@@ -1,4 +1,4 @@
-"""Command-line interface for Milestone 0 model preparation and planning."""
+"""Model preparation, placement, and native CPU generation."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ from typing import Annotated
 
 import typer
 
-from hllm_control.models import ModelManifest, PlanningReport
+from hllm_control.controller import DeploymentSession
+from hllm_control.models import DeploymentPlan, ModelManifest, PlanningReport
 from hllm_control.planner.config import load_links, load_settings, load_workers, load_workload
 from hllm_control.planner.explain import explain_report
 from hllm_control.planner.planner import create_plan
@@ -81,6 +82,34 @@ def explain_command(
     """Render an existing JSON planning report for a human."""
     report = read_artifact(report_path, PlanningReport)
     typer.echo(explain_report(report, rejected_limit=rejected_limit))
+
+
+@app.command("generate")
+def generate_command(
+    manifest_path: Annotated[Path, typer.Option("--manifest", exists=True, dir_okay=False)],
+    plan_path: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    workers_path: Annotated[Path, typer.Option("--workers", exists=True, dir_okay=False)],
+    token_ids: Annotated[str, typer.Option(help="Comma-separated prompt token IDs.")],
+    maximum_new_tokens: Annotated[int, typer.Option("--max-new-tokens", min=1)] = 32,
+    timeout: Annotated[float, typer.Option(min=0.001, max=3600)] = 60,
+) -> None:
+    """Load CPU stages, stream greedy token IDs, and unload the deployment."""
+    manifest = read_artifact(manifest_path, ModelManifest)
+    plan = read_artifact(plan_path, DeploymentPlan)
+    workers = load_workers(workers_path)
+    try:
+        tokens = [int(item.strip()) for item in token_ids.split(",")]
+    except ValueError as error:
+        raise typer.BadParameter("token IDs must be comma-separated integers") from error
+    with DeploymentSession(manifest, plan, {w.worker_id: w.endpoint for w in workers}) as session:
+        events = session.generate(tokens, maximum_new_tokens=maximum_new_tokens, timeout=timeout)
+        try:
+            for event in events:
+                if event.HasField("token"):
+                    typer.echo(str(event.token.token_id) + " ", nl=False)
+        finally:
+            events.close()
+    typer.echo()
 
 
 if __name__ == "__main__":

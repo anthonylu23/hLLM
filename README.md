@@ -4,11 +4,14 @@ hLLM Runtime is a heterogeneous inference system designed to split one decoder-o
 language model across different accelerator platforms. The first target is an Apple MLX
 worker and an NVIDIA CUDA worker connected through Tailscale.
 
-The repository currently implements Milestone 0: model inspection, versioned manifests,
-hardware and workload profiles, memory estimation, and exhaustive two-worker placement
-planning. Native CPU reference kernels, tensor buffers, Safetensors loading, and a
-gRPC control service are also present. The service validates stage metadata and tracks
-reservations; it does not yet load executable stages or run distributed inference.
+The repository implements model preparation and placement planning (Milestone 0) and a
+native CPU pipeline (Milestone 1). Dense Llama and Qwen3 stages load assigned Safetensors
+weights, run prefill and greedy decode across two native processes, and stream token IDs
+through a Python controller. Request admission, cancellation, deadlines, and cleanup are
+covered by numerical and process integration tests. CUDA and MLX execution remain next.
+
+See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
+[the model/backend extension boundaries](docs/model-extensibility.md).
 
 ## Development setup
 
@@ -86,8 +89,9 @@ specification](SPEC.md). The [validation report](docs/validation/milestone-0.md)
 pinned real-model and cross-platform checks.
 
 See [the code quality review](docs/code-quality-review.md) for fixes, validation, and
-the remaining native integration work.
+the historical validation results.
 
 [Qwen3 support and validation](docs/qwen3.md) describes the pinned model, supported
 semantics, independent CPU reference tests, and estimated placement. It is not yet a
-full-checkpoint inference benchmark; distributed stage execution remains unfinished.
+full-checkpoint inference benchmark. Tiny-model CPU pipeline validation is documented
+in the Milestone 1 notes.

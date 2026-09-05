@@ -1,0 +1,7 @@
+workload_id: cpu-demo
+prompt_tokens: 3
+output_tokens: 32
+concurrency: 1
+total_cached_tokens: 512
+kv_dtype: F32
+activation_dtype: F16

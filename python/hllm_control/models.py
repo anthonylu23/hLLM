@@ -327,8 +327,33 @@ class DeploymentPlan(StrictModel):
     planning_mode: PlanningMode
     execution_dtype: DType
     activation_dtype: DType
-    split_layer: PositiveInt
-    stages: tuple[StageAssignment, StageAssignment]
+    split_layer: NonNegativeInt
+    stages: Annotated[tuple[StageAssignment, ...], Field(min_length=1, max_length=2)]
+
+    @model_validator(mode="after")
+    def validate_partition(self) -> DeploymentPlan:
+        end = 0
+        workers: set[str] = set()
+        for index, stage in enumerate(self.stages):
+            last = index == len(self.stages) - 1
+            if (
+                stage.stage_index != index
+                or stage.layer_start != end
+                or stage.layer_end <= end
+                or stage.worker_id in workers
+                or stage.owns_token_embedding != (index == 0)
+                or stage.owns_final_norm != last
+                or stage.owns_lm_head != last
+                or stage.owns_sampling != last
+            ):
+                raise ValueError("invalid contiguous stage partition or ownership")
+            end = stage.layer_end
+            workers.add(stage.worker_id)
+        expected_split = self.stages[0].layer_end if len(self.stages) == 2 else 0
+        if self.split_layer != expected_split:
+            raise ValueError("split_layer does not match stage partition")
+        return self
+
     duplicated_tensor_groups: tuple[str, ...] = ()
     selected_candidate_id: str
 

@@ -99,10 +99,18 @@ class CancelRequestMessage(_message.Message):
     def __init__(self, plan_id: _Optional[str] = ..., request_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., reason: _Optional[str] = ...) -> None: ...
 
 class MemoryReport(_message.Message):
-    __slots__ = ("budgets",)
+    __slots__ = ("budgets", "loaded_weight_bytes", "reserved_cache_bytes", "reserved_workspace_bytes", "active_requests")
     BUDGETS_FIELD_NUMBER: _ClassVar[int]
+    LOADED_WEIGHT_BYTES_FIELD_NUMBER: _ClassVar[int]
+    RESERVED_CACHE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    RESERVED_WORKSPACE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    ACTIVE_REQUESTS_FIELD_NUMBER: _ClassVar[int]
     budgets: _containers.RepeatedCompositeFieldContainer[_profile_pb2.MemoryBudget]
-    def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ...) -> None: ...
+    loaded_weight_bytes: int
+    reserved_cache_bytes: int
+    reserved_workspace_bytes: int
+    active_requests: int
+    def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ..., active_requests: _Optional[int] = ...) -> None: ...
 
 class WorkerMetrics(_message.Message):
     __slots__ = ("worker_id",)
