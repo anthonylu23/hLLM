@@ -6,7 +6,9 @@ worker and an NVIDIA CUDA worker connected through Tailscale.
 
 The repository currently implements Milestone 0: model inspection, versioned manifests,
 hardware and workload profiles, memory estimation, and exhaustive two-worker placement
-planning. It does not run distributed inference yet.
+planning. Native CPU reference kernels, tensor buffers, Safetensors loading, and a
+gRPC control service are also present. The service validates stage metadata and tracks
+reservations; it does not yet load executable stages or run distributed inference.
 
 ## Development setup
 
@@ -23,11 +25,22 @@ Run the quality suite with:
 uv run pytest
 uv run ruff check .
 uv run pyright
-mkdir -p build/proto
-uv run python -m grpc_tools.protoc -Iproto --python_out=build/proto \
-  proto/common.proto proto/model.proto proto/profile.proto proto/placement.proto \
-  proto/control.proto proto/execution.proto proto/telemetry.proto
+uv run python scripts/generate_proto.py --check
 ```
+
+For native development, install the C++ Protobuf and gRPC development packages
+(including their CMake configs), then run:
+
+```bash
+uv run cmake --preset dev
+uv run cmake --build --preset dev
+uv run ctest --preset dev
+```
+
+Use the `asan` preset in all three commands to enable AddressSanitizer and
+UndefinedBehaviorSanitizer. CMake uses installed GoogleTest and nlohmann_json packages
+when available and fetches pinned versions otherwise. After changing schemas, run
+`uv run python scripts/generate_proto.py` to refresh the checked-in Python bindings.
 
 ## Prepare and plan
 
@@ -62,3 +75,6 @@ measurements.
 See [the Milestone 0 implementation notes](docs/milestone-0.md) and [the full project
 specification](SPEC.md). The [validation report](docs/validation/milestone-0.md) records the
 pinned real-model and cross-platform checks.
+
+See [the code quality review](docs/code-quality-review.md) for fixes, validation, and
+the remaining native integration work.
