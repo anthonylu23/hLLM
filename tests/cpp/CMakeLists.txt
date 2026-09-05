@@ -16,6 +16,7 @@ include(GoogleTest)
 
 add_executable(
   hllm_runtime_common_tests
+  backend_contract_test.cpp
   buffer_test.cpp
   half_test.cpp
   llama_test.cpp
@@ -50,3 +51,13 @@ set_tests_properties(CpuPipelineIntegration PROPERTIES
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
   TIMEOUT 120
 )
+
+if(HLLM_ENABLE_CUDA)
+  add_test(NAME CudaBackendSmoke
+    COMMAND ${CMAKE_COMMAND} -E env HLLM_CUDA_WORKER=$<TARGET_FILE:hllm-worker-cuda>
+      ${HLLM_UV_EXECUTABLE} run pytest tests/cuda -q)
+  set_tests_properties(CudaBackendSmoke PROPERTIES
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    TIMEOUT 120
+    LABELS "cuda;hardware")
+endif()

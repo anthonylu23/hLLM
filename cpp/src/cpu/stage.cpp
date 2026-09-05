@@ -35,7 +35,7 @@ struct CpuSequence final : runtime::SequenceState {
   std::vector<LayerKvCache> caches;
 };
 
-class DenseStage final : public runtime::StageBackend {
+class DenseStage final : public ReferenceStage {
  public:
   LlamaConfig config{};
   std::size_t vocab{};
@@ -44,9 +44,11 @@ class DenseStage final : public runtime::StageBackend {
   Matrix embedding{0U, 0U};
   Matrix head{0U, 0U};
   bool tied_head{false};
+  bool first_stage{false};
+  bool final_stage{false};
   std::vector<float> norm;
 
-  std::size_t weight_bytes() const override { return bytes; }
+  runtime::MemoryAmounts weight_memory() const override { return {.host_bytes = bytes}; }
   std::size_t hidden_size() const override { return config.hidden_size; }
   std::size_t vocabulary_size() const override { return vocab; }
   std::size_t maximum_tokens() const override { return config.maximum_sequence_length; }
@@ -68,7 +70,7 @@ class DenseStage final : public runtime::StageBackend {
     const auto workspace =
         add(add(multiply(multiply(tokens, width), sizeof(float)), multiply(vocab, sizeof(float))),
             65536U);
-    return {cache, workspace};
+    return {{.host_bytes = cache}, {.host_bytes = workspace}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens));
@@ -79,12 +81,12 @@ class DenseStage final : public runtime::StageBackend {
     }
     return state;
   }
-  runtime::HostActivation embed(std::span<const std::uint64_t> tokens) const override {
+  HostActivation embed(std::span<const std::uint64_t> tokens) const override {
     if (embedding.rows() == 0U || tokens.empty() || tokens.size() > maximum_tokens()) {
       throw std::invalid_argument("stage cannot embed this input");
     }
-    runtime::HostActivation output{tokens.size(), hidden_size(),
-                                   std::vector<float>(multiply(tokens.size(), hidden_size()))};
+    HostActivation output{tokens.size(), hidden_size(),
+                          std::vector<float>(multiply(tokens.size(), hidden_size()))};
     for (std::size_t row = 0U; row < tokens.size(); ++row) {
       if (tokens[row] >= vocab) {
         throw std::invalid_argument("token ID exceeds vocabulary");
@@ -95,9 +97,8 @@ class DenseStage final : public runtime::StageBackend {
     }
     return output;
   }
-  runtime::HostActivation forward(runtime::HostActivation input, std::size_t position,
-                                  runtime::SequenceState& opaque,
-                                  const std::atomic_bool& cancelled) const override {
+  HostActivation forward(HostActivation input, std::size_t position, runtime::SequenceState& opaque,
+                         const std::atomic_bool& cancelled) const override {
     auto& state = dynamic_cast<CpuSequence&>(opaque);
     Matrix hidden(input.tokens, input.width, std::move(input.values));
     for (std::size_t i = 0U; i < layers.size(); ++i) {
@@ -109,7 +110,53 @@ class DenseStage final : public runtime::StageBackend {
     return {hidden.rows(), hidden.columns(),
             std::vector<float>(hidden.values().begin(), hidden.values().end())};
   }
-  std::uint64_t sample(const runtime::HostActivation& hidden) const override {
+  runtime::StageOutput execute(runtime::StageInput input, std::size_t position,
+                               runtime::SequenceState& state,
+                               const std::atomic_bool& cancelled) const override {
+    HostActivation hidden;
+    if (const auto* tokens = std::get_if<runtime::TokenInput>(&input)) {
+      if (!first_stage) {
+        throw std::invalid_argument("only stage zero accepts tokens");
+      }
+      hidden = embed(tokens->ids);
+    } else {
+      if (first_stage) {
+        throw std::invalid_argument("stage zero requires tokens");
+      }
+      const auto& boundary = std::get<runtime::BoundaryActivation>(input);
+      const auto elements = multiply(boundary.tokens, boundary.width);
+      if (boundary.width != hidden_size() || boundary.tokens == 0U ||
+          boundary.payload.size() != multiply(elements, 2U)) {
+        throw std::invalid_argument("invalid boundary activation");
+      }
+      hidden = {boundary.tokens, boundary.width, std::vector<float>(elements)};
+      for (std::size_t i = 0U; i < elements; ++i) {
+        const auto low = std::to_integer<unsigned char>(boundary.payload[2U * i]);
+        const auto high = std::to_integer<unsigned char>(boundary.payload[2U * i + 1U]);
+        hidden.values[i] =
+            runtime::float16_to_float(static_cast<std::uint16_t>(low | (high << 8U)));
+        if (!std::isfinite(hidden.values[i])) {
+          throw std::invalid_argument("non-finite activation");
+        }
+      }
+    }
+    hidden = forward(std::move(hidden), position, state, cancelled);
+    if (final_stage) {
+      return runtime::SampledToken{sample(hidden)};
+    }
+    runtime::BoundaryActivation output{hidden.tokens, hidden.width,
+                                       std::vector<std::byte>(multiply(hidden.values.size(), 2U))};
+    for (std::size_t i = 0U; i < hidden.values.size(); ++i) {
+      const auto bits = runtime::float_to_float16(hidden.values[i]);
+      if (!std::isfinite(runtime::float16_to_float(bits))) {
+        throw std::runtime_error("activation is not representable as finite FP16");
+      }
+      output.payload[2U * i] = static_cast<std::byte>(bits & 0xffU);
+      output.payload[2U * i + 1U] = static_cast<std::byte>(bits >> 8U);
+    }
+    return output;
+  }
+  std::uint64_t sample(const HostActivation& hidden) const override {
     if (norm.empty() || hidden.tokens == 0U || hidden.width != hidden_size() ||
         hidden.values.size() != multiply(hidden.tokens, hidden.width)) {
       throw std::invalid_argument("stage cannot sample this activation");
@@ -130,9 +177,9 @@ struct ExpectedTensor {
 
 }  // namespace
 
-std::unique_ptr<runtime::StageBackend> load_stage(const v1::LoadStageRequest& request,
-                                                  const std::filesystem::path& root,
-                                                  std::size_t memory_limit) {
+std::unique_ptr<ReferenceStage> load_stage(const v1::LoadStageRequest& request,
+                                           const std::filesystem::path& root,
+                                           std::size_t memory_limit) {
   const auto& manifest = request.manifest();
   const auto& descriptor = manifest.architecture();
   // Explicit architecture registry; unrelated families need their own
@@ -188,6 +235,8 @@ std::unique_ptr<runtime::StageBackend> load_stage(const v1::LoadStageRequest& re
                    static_cast<float>(cfg.rope_theta()),
                    qwen};
   stage->vocab = cfg.vocabulary_size();
+  stage->first_stage = assignment.owns_token_embedding();
+  stage->final_stage = assignment.owns_sampling();
   const auto h = stage->hidden_size();
   const auto attention = multiply(cfg.num_attention_heads(), cfg.head_dim());
   const auto kv = multiply(cfg.num_kv_heads(), cfg.head_dim());
@@ -343,6 +392,28 @@ std::unique_ptr<runtime::StageBackend> load_stage(const v1::LoadStageRequest& re
          qwen ? vector(p + "self_attn.k_norm.weight") : std::vector<float>{}});
   }
   return stage;
+}
+
+namespace {
+class CpuFactory final : public runtime::BackendFactory {
+ public:
+  runtime::BackendCapabilities capabilities() const override {
+    return {v1::BACKEND_CPU,
+            v1::MEMORY_DOMAIN_HOST,
+            {"llama.v1", "qwen3.v1"},
+            {v1::DATA_TYPE_F32},
+            "CPU reference execution ready"};
+  }
+  std::unique_ptr<runtime::StageBackend> load(
+      const v1::LoadStageRequest& request, const std::filesystem::path& root,
+      const runtime::MemoryAmounts& capacity) const override {
+    return load_stage(request, root, capacity.host_bytes);
+  }
+};
+}  // namespace
+
+std::unique_ptr<runtime::BackendFactory> make_backend_factory() {
+  return std::make_unique<CpuFactory>();
 }
 
 }  // namespace hllm::cpu

@@ -13,7 +13,7 @@
 #include <thread>
 
 #include "control.grpc.pb.h"
-#include "hllm/runtime/stage_backend.hpp"
+#include "hllm/runtime/backend_factory.hpp"
 
 namespace hllm::worker {
 
@@ -22,6 +22,8 @@ struct WorkerConfig {
   std::string endpoint;
   std::filesystem::path model_root;
   std::uint64_t host_memory_capacity_bytes;
+  std::uint64_t device_memory_capacity_bytes{0U};
+  std::uint64_t pinned_host_memory_capacity_bytes{0U};
 };
 
 struct LoadedDeployment {
@@ -47,7 +49,7 @@ struct ExecutionLease {
 
 class ControlService final : public v1::WorkerControl::Service {
  public:
-  explicit ControlService(WorkerConfig config);
+  ControlService(WorkerConfig config, std::unique_ptr<runtime::BackendFactory> factory);
   grpc::Status GetCapabilities(grpc::ServerContext*, const v1::Empty*, v1::Capabilities*) override;
   grpc::Status LoadStage(grpc::ServerContext*, const v1::LoadStageRequest*,
                          v1::LoadStageResponse*) override;
@@ -73,6 +75,9 @@ class ControlService final : public v1::WorkerControl::Service {
   bool deployment_matches(const std::string&, std::uint64_t) const;
   std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::uint64_t);
   WorkerConfig config_;
+  std::unique_ptr<runtime::BackendFactory> factory_;
+  runtime::MemoryAmounts capacity_;
+  runtime::BackendCapabilities capabilities_;
   mutable std::mutex mutex_;
   std::shared_ptr<LoadedDeployment> deployment_;
   std::shared_ptr<ActiveRequest> active_;

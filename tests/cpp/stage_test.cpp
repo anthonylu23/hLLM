@@ -39,8 +39,8 @@ TEST(CpuStageTest, LoadedPayloadsMatchIndependentTransformersAtBothLayerBoundari
     EXPECT_EQ(hidden.values, unsplit.values);
     EXPECT_EQ(last->sample(hidden), full->sample(unsplit));
   }
-  EXPECT_GT(first->weight_bytes(), 0U);
-  EXPECT_GT(first->sequence_memory(16U).cache_bytes, 0U);
+  EXPECT_GT(first->weight_memory().host_bytes, 0U);
+  EXPECT_GT(first->sequence_memory(16U).cache.host_bytes, 0U);
 }
 
 TEST(CpuStageTest, RejectsInvalidArchitecturesWeightsAndBudgets) {
@@ -95,6 +95,40 @@ TEST(CpuStageTest, Float16BoundaryHasBoundedErrorAgainstUnsplitOracle) {
   for (std::size_t i = 0U; i < expected.size(); ++i) {
     EXPECT_NEAR(hidden.values[i], expected[i], 1e-3F);
   }
+}
+}  // namespace
+}  // namespace hllm::cpu
+
+namespace hllm::cpu {
+namespace {
+TEST(CpuStageTest, ExecutesThroughOpaqueBoundaryContractForPrefillAndDecode) {
+  const test::ModelFixture fixture;
+  auto first = load_stage(fixture.load(0U), fixture.root, 1'000'000U);
+  auto last = load_stage(fixture.load(1U), fixture.root, 1'000'000U);
+  auto oracle = load_stage(fixture.load(0U, false), fixture.root, 1'000'000U);
+  auto a = first->allocate_sequence(16U);
+  auto b = last->allocate_sequence(16U);
+  auto c = oracle->allocate_sequence(16U);
+  std::atomic_bool cancelled{false};
+  for (const std::size_t position : {0U, 3U, 4U}) {
+    runtime::TokenInput input{position == 0U ? std::vector<std::uint64_t>{1U, 4U, 2U}
+                                             : std::vector<std::uint64_t>{8U}};
+    const auto expected =
+        oracle->sample(oracle->forward(oracle->embed(input.ids), position, *c, cancelled));
+    auto output = first->execute(input, position, *a, cancelled);
+    ASSERT_TRUE(std::holds_alternative<runtime::BoundaryActivation>(output));
+    auto boundary = std::get<runtime::BoundaryActivation>(std::move(output));
+    EXPECT_EQ(boundary.tokens, input.ids.size());
+    EXPECT_EQ(boundary.payload.size(), boundary.tokens * boundary.width * 2U);
+    const auto token = last->execute(std::move(boundary), position, *b, cancelled);
+    ASSERT_TRUE(std::holds_alternative<runtime::SampledToken>(token));
+    EXPECT_EQ(std::get<runtime::SampledToken>(token).id, expected);
+  }
+  EXPECT_THROW(static_cast<void>(last->execute(runtime::TokenInput{{1U}}, 5U, *b, cancelled)),
+               std::invalid_argument);
+  EXPECT_THROW(
+      static_cast<void>(first->execute(runtime::BoundaryActivation{1U, 8U, {}}, 5U, *a, cancelled)),
+      std::invalid_argument);
 }
 }  // namespace
 }  // namespace hllm::cpu
