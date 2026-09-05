@@ -35,7 +35,10 @@ process sample showed recursive AddressSanitizer initialization waiting in
 therefore timed out. Recheck with a working sanitizer toolchain before claiming
 sanitizer coverage. Use the commands in the README to reproduce the suites.
 
-## Next steps and current limits
+## Historical limits at the time of this review
+
+These CPU integration gaps were addressed by [Milestone 1](milestone-1.md). The
+following records the state before that implementation.
 
 The worker control service currently validates selected tensor metadata and tracks one
 request reservation. It does not construct executable stages, allocate request KV

@@ -41,9 +41,8 @@ heads. Q/K projection outputs are normalized per head before RoPE. Attention pro
 residual width. Llama defaults retain normalization disabled. Invalid normalization
 weights and mismatched cache head geometry are rejected before cache mutation.
 
-The control service advertises both architectures and accepts Qwen stage metadata
-under the same validation-only load contract. It still does not construct executable
-stages or implement execution RPCs. The example MLX/CUDA profiles declare target
+The control service now loads executable CPU stages for both architectures and supports
+native generation and stage execution RPCs; see [Milestone 1](milestone-1.md). The example MLX/CUDA profiles declare target
 architecture support for planning, not measured backend execution support.
 
 ## Numerical validation
@@ -89,6 +88,7 @@ checks passed. The prepare/plan/explain CLI flow passed on the sparse header fix
 The existing Apple AddressSanitizer startup issue from the quality review remains an
 unresolved toolchain limitation; this change does not claim sanitizer validation.
 
-Next, connect executable stage loading and execution RPCs, then compare the full pinned
-checkpoint against Transformers and the MLX/CUDA implementations. Measure actual
+Executable CPU loading and execution RPCs are now implemented and tested on tiny models
+in Milestone 1. Next, compare the full pinned checkpoint against Transformers and the
+future MLX/CUDA implementations. Measure actual
 memory, TTFT, and decode latency before promoting placement estimates to benchmark results.
