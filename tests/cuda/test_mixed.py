@@ -11,8 +11,9 @@ from tests.cuda.mixed_helpers import mixed_workers
 from tests.process_helpers import ROOT, Workers, plan, tokens, wait_clean, write_model
 
 
+@pytest.mark.parametrize("mode", ["pageable", "pinned"])
 @pytest.mark.parametrize("family", ["llama", "qwen3"])
-def test_mixed_all_splits_storage_and_heads(tmp_path: Path, family: str) -> None:
+def test_mixed_all_splits_storage_and_heads(tmp_path: Path, family: str, mode: str) -> None:
     for storage, tied in (("F32", False), ("F32", True), ("F16", True), ("BF16", False)):
         manifest = write_model(tmp_path, family, storage, tied=tied)
         expected = {}
@@ -22,7 +23,7 @@ def test_mixed_all_splits_storage_and_heads(tmp_path: Path, family: str) -> None
                     manifest, plan(manifest, split), reference.endpoints
                 ) as session:
                     expected[split] = tokens(session)
-        with mixed_workers(tmp_path) as workers:
+        with mixed_workers(tmp_path, mode=mode) as workers:
             for split, output in expected.items():
                 for reverse in (False, True):
                     with DeploymentSession(
@@ -34,12 +35,13 @@ def test_mixed_all_splits_storage_and_heads(tmp_path: Path, family: str) -> None
                     wait_clean(workers, loaded=False)
 
 
-def test_mixed_long_decode(tmp_path: Path) -> None:
+@pytest.mark.parametrize("mode", ["pageable", "pinned"])
+def test_mixed_long_decode(tmp_path: Path, mode: str) -> None:
     manifest = write_model(tmp_path)
     with Workers(tmp_path) as reference:
         with DeploymentSession(manifest, plan(manifest), reference.endpoints) as session:
             expected = tokens(session, count=256)
-    with mixed_workers(tmp_path) as workers:
+    with mixed_workers(tmp_path, mode=mode) as workers:
         for reverse in (False, True):
             with DeploymentSession(
                 manifest, plan(manifest, reverse=reverse), workers.endpoints
@@ -48,13 +50,21 @@ def test_mixed_long_decode(tmp_path: Path) -> None:
             wait_clean(workers, loaded=False)
 
 
-def test_mixed_cli_profile(tmp_path: Path) -> None:
+@pytest.mark.parametrize("mode", ["pageable", "pinned"])
+def test_mixed_cli_profile(tmp_path: Path, mode: str) -> None:
     from hllm_control.cli import app
     from typer.testing import CliRunner
 
     write_model(tmp_path)
-    with mixed_workers(tmp_path) as workers:
-        config = (ROOT / "examples/profiles/workers-cpu-cuda-local.yaml").read_text()
+    with mixed_workers(tmp_path, mode=mode) as workers:
+        config = (
+            ROOT
+            / (
+                "examples/profiles/workers-cpu-cuda-pinned.yaml"
+                if mode == "pinned"
+                else "examples/profiles/workers-cpu-cuda-local.yaml"
+            )
+        ).read_text()
         for name, default in (("cpu-a", "127.0.0.1:50051"), ("cpu-b", "127.0.0.1:50053")):
             config = config.replace(default, workers.endpoints[name])
         worker_path = tmp_path / "workers.yaml"

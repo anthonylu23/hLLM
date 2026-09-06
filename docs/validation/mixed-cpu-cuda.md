@@ -24,3 +24,24 @@ See `tests/cuda/test_mixed.py` for the executable CLI example using
 These profiles are conservative tiny-fixture qualification estimates. This is
 not a full-checkpoint fit or throughput result. Cross-machine execution remains
 Milestone 4; mixed precision remains globally F32.
+
+## Pinned staging (PR B)
+
+All 47 Linux CTest entries passed, including eight mixed process cases (the
+baseline matrix in both modes), eight CUDA numerical/admission cases and one
+transfer case. Final focused native rerun also passed after adding explicit
+pinned-subset reporting and cancellation cleanup assertions. CPU-only CTest,
+36 Python tests, Ruff and Pyright passed.
+
+A 100-iteration CUDA runtime round-trip probe (upload + download, including
+host staging copies and event waits) measured these mean microseconds:
+
+| Payload | Pageable | Pinned |
+| --- | ---: | ---: |
+| 12 bytes (tiny decode) | 8.47 | 9.95 |
+| 6,144 bytes (512 × 6 FP16) | 9.30 | 11.18 |
+| 65,536 bytes | 31.35 | 19.69 |
+
+These are small transfer microbenchmarks on this machine, not generation
+latency, statistically rigorous performance claims, or a reason to change the
+default. Reproduce with `ctest --test-dir build/cuda -R CudaTransfers -V`.

@@ -3,7 +3,8 @@
 The optional Linux CUDA worker now executes dense Llama and Qwen3 stages with LibTorch/ATen.
 Tiny-model numerical and single-worker process tests establish the initial execution path.
 Mixed CPU/CUDA loopback correctness now passes in both orders and all tiny-fixture splits.
-Pinned transfers, failure qualification and full-checkpoint inference remain next.
+Opt-in bounded pinned transfers are implemented; failure qualification and full-checkpoint
+inference remain next.
 See the [mixed validation report](validation/mixed-cpu-cuda.md). The first integration PR established backend selection and memory domains; this second
 PR adds model execution on top of those interfaces.
 
@@ -55,14 +56,13 @@ and fit the reserved context. Operations complete before returning control to th
 error paths drain the stream before propagating the failure. A state interrupted during an
 operation is marked unusable, since some cache layers may already have been written.
 Cancellation is checked before/between layers and before returning output. It does not
-preempt an individual CUDA kernel. Transfers currently use blocking pageable host staging;
-pinned staging and overlapping transfers are subsequent qualification work.
+preempt an individual CUDA kernel. Transfers default to blocking pageable copies, with opt-in bounded pinned staging
+as described below. Transfer overlap is not implemented.
 
 ## Memory admission and reporting
 
 Host, device and pinned-host amounts have independent caps. Pinned memory also counts toward
-host usage and is counted once in legacy host-plus-device totals. CUDA currently reserves
-zero pinned bytes. Resident GPU weights and exact per-layer KV payloads are reported in
+host usage and is counted once in legacy host-plus-device totals. Pageable mode reserves zero pinned bytes; pinned mode charges sequence staging. Resident GPU weights and exact per-layer KV payloads are reported in
 the device domain; production retains no host weight or KV payload.
 
 Before loading, validate all assigned metadata, then check resident device weights plus the
@@ -161,11 +161,31 @@ and asynchronous transfer overlap remain unverified.
 See the [mixed CPU/CUDA qualification plan](milestone-2-qualification-plan.md) for the
 proposed three-PR sequence, constraints and acceptance criteria.
 
-Qualify real CPU/CUDA processes in both stage orders and at every valid split. Add bounded
-pinned staging and event-based transfer ownership, then test cancellation, deadlines,
+Mixed-process correctness and pinned staging are implemented. Next test cancellation, deadlines,
 allocation failure, peer loss and repeated requests under CUDA execution. Reconcile measured
 workspace/transfer needs with placement estimates before attempting a full checkpoint.
 
 The [model extension boundaries](model-extensibility.md) remain in force. Additional model
 families require explicit decisions rather than a generic graph engine. MLX is Milestone 3,
 cross-machine qualification is Milestone 4, and measured placement/performance is Milestone 5.
+
+## Opt-in pinned boundary staging
+
+`hllm-worker-cuda --boundary-transfer-mode pinned` requires a positive
+`--pinned-host-memory-limit-bytes` cap (also bounded by the host cap).
+The default remains `pageable`. Use `workers-cpu-cuda-pinned.yaml` for the pinned
+qualification profile and the same CPU/link/workload/planner settings as the baseline.
+
+Each reserved sequence owns one `cudaHostAlloc` buffer and a completion event.
+Its size is `min(maximum_tokens * hidden_size * 2, 8 MiB)` for a split stage,
+and zero for a stage owning the complete model. Admission charges these bytes
+to both host workspace and its pinned subset; total usage sums host and device
+only. The planner checks both budgets and rejects a pinned profile lacking a host budget.
+CUDA's existing conservative device workspace covers the FP16 conversion tensor.
+
+Copies use the stage stream and wait for the completion event before staging is
+reused or output bytes are published. Exception cleanup drains outstanding work.
+The sequence frees staging on retirement; no cross-request pinned cache is used.
+The completed stage interface, owned byte-vector boundary and protobuf remain
+unchanged. Serialization and host copies still occur. This implementation does
+not overlap decode steps, and pinned mode has no assumed latency advantage.

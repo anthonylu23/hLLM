@@ -12,5 +12,6 @@ namespace hllm::cuda {
 
 namespace hllm::cuda {
 [[nodiscard]] std::unique_ptr<runtime::StageBackend> load_device_stage(
-    const model::DenseSource& source, int device_id, const runtime::MemoryAmounts& capacity);
+    const model::DenseSource& source, int device_id, const runtime::MemoryAmounts& capacity,
+    bool pinned = false);
 }  // namespace hllm::cuda

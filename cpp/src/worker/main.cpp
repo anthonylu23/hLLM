@@ -32,6 +32,7 @@ struct Arguments {
   std::uint64_t device_memory_limit_bytes{0U};
   std::uint64_t pinned_memory_limit_bytes{0U};
   int device_id{0};
+  bool pinned{false};
 };
 
 [[nodiscard]] std::uint64_t parse_u64(const std::string_view value) {
@@ -64,6 +65,11 @@ struct Arguments {
       arguments.device_memory_limit_bytes = parse_u64(value);
     } else if (flag == "--pinned-host-memory-limit-bytes") {
       arguments.pinned_memory_limit_bytes = parse_u64(value);
+    } else if (flag == "--boundary-transfer-mode") {
+      if (value != "pageable" && value != "pinned") {
+        throw std::invalid_argument("boundary transfer mode must be pageable or pinned");
+      }
+      arguments.pinned = value == "pinned";
     } else if (flag == "--device-id") {
       const auto result =
           std::from_chars(value.data(), value.data() + value.size(), arguments.device_id);
@@ -83,6 +89,9 @@ struct Arguments {
         "--model-root, --memory-limit-bytes");
   }
 #ifdef HLLM_WORKER_CUDA
+  if (arguments.pinned && arguments.pinned_memory_limit_bytes == 0U) {
+    throw std::invalid_argument("pinned transfer mode requires --pinned-host-memory-limit-bytes");
+  }
   if (arguments.device_memory_limit_bytes == 0U) {
     throw std::invalid_argument("CUDA worker requires --device-memory-limit-bytes");
   }
@@ -96,7 +105,7 @@ int main(const int argc, char** const argv) {
   try {
     const auto arguments = parse_arguments(argc, argv);
 #ifdef HLLM_WORKER_CUDA
-    auto factory = hllm::cuda::make_backend_factory(arguments.device_id);
+    auto factory = hllm::cuda::make_backend_factory(arguments.device_id, arguments.pinned);
 #else
     auto factory = hllm::cpu::make_backend_factory();
 #endif

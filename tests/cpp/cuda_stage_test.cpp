@@ -251,6 +251,68 @@ TEST(CudaStageTest, DeviceWorkspaceAdmissionRejectsBeforeReservation) {
   EXPECT_EQ(report.reserved_cache_bytes(), 0U);
 }
 
+TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
+  const test::ModelFixture fixture;
+  auto factory = make_backend_factory(0, true);
+  auto budget = kBudget;
+  budget.pinned_host_bytes = 1024U * 1024U;
+  auto stage = factory->load(fixture.load(0U), fixture.root, budget);
+  const auto memory = stage->sequence_memory(16U);
+  EXPECT_EQ(memory.workspace.pinned_host_bytes, 16U * stage->hidden_size() * 2U);
+  auto single = factory->load(fixture.load(0U, false), fixture.root, budget);
+  EXPECT_EQ(single->sequence_memory(16U).workspace.pinned_host_bytes, 0U);
+  const auto needed = runtime::add_memory(stage->weight_memory(),
+                                        runtime::add_memory(memory.cache, memory.workspace));
+  for (const bool short_budget : {false, true}) {
+    worker::ControlService service(
+        {"cpu-a", "localhost", fixture.root, budget.host_bytes, budget.device_bytes,
+         needed.pinned_host_bytes - (short_budget ? 1U : 0U)}, make_backend_factory(0, true));
+    auto request = fixture.load(0U);
+    v1::LoadStageResponse loaded;
+    ASSERT_TRUE(service.LoadStage(nullptr, &request, &loaded).ok());
+    ASSERT_TRUE(loaded.accepted());
+    v1::ReserveRequestMessage reserve;
+    reserve.set_plan_id("plan-1");
+    reserve.set_deployment_version(1U);
+    reserve.set_request_id("pinned");
+    reserve.set_maximum_total_tokens(16U);
+    v1::ReserveResponse reserved;
+    ASSERT_TRUE(service.ReserveRequest(nullptr, &reserve, &reserved).ok());
+    EXPECT_EQ(reserved.accepted(), !short_budget);
+    if (short_budget) {
+      EXPECT_EQ(reserved.error().code(), v1::ERROR_CODE_RESOURCE_EXHAUSTED);
+    }
+    v1::MemoryReport report;
+    ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &report).ok());
+    EXPECT_EQ(report.active_requests(), short_budget ? 0U : 1U);
+    if (!short_budget) {
+      std::size_t host = 0U, device = 0U, pinned = 0U;
+      for (const auto& domain : report.domain_usage()) {
+        if (domain.domain() == v1::MEMORY_DOMAIN_HOST) host = domain.reserved_workspace_bytes();
+        if (domain.domain() == v1::MEMORY_DOMAIN_DEVICE) device = domain.reserved_workspace_bytes();
+        if (domain.domain() == v1::MEMORY_DOMAIN_HOST_PINNED) pinned = domain.reserved_workspace_bytes();
+      }
+      EXPECT_EQ(pinned, needed.pinned_host_bytes);
+      EXPECT_EQ(host, memory.workspace.host_bytes);
+      EXPECT_EQ(report.reserved_workspace_bytes(), host + device);
+      v1::CancelRequestMessage cancel;
+      cancel.set_plan_id("plan-1");
+      cancel.set_deployment_version(1U);
+      cancel.set_request_id("pinned");
+      v1::Empty empty;
+      ASSERT_TRUE(service.CancelRequest(nullptr, &cancel, &empty).ok());
+      ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &report).ok());
+      EXPECT_EQ(report.active_requests(), 0U);
+      EXPECT_EQ(report.reserved_workspace_bytes(), 0U);
+    }
+    // The common admission rule must enforce the host subset independently.
+    auto host_short = needed;
+    --host_short.host_bytes;
+    EXPECT_THROW(runtime::require_memory(needed, host_short), std::length_error);
+    EXPECT_NO_THROW(runtime::require_memory(needed, needed));
+  }
+}
+
 TEST(CudaStageTest, RejectsNonfiniteWeightsAndHalfOverflowWithoutPublishingStage) {
   const test::ModelFixture fixture;
   const runtime::SafetensorsFile file(fixture.root / "model.safetensors");

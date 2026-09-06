@@ -261,16 +261,18 @@ def create_plan(
             for stage, worker in zip(stages, (first, final), strict=True):
                 if stage.required_bytes > stage.usable_bytes:
                     reasons.append(f"{stage.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}")
-                transport_budget = worker.budget_for(MemoryDomain.HOST_PINNED)
-                if transport_budget is None:
-                    transport_budget = worker.budget_for(MemoryDomain.HOST)
-                if (
-                    transport_budget is not None
-                    and worker.host_transport_buffer_bytes > transport_budget.usable_bytes
-                ):
-                    reasons.append(
-                        f"{transport_budget.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}"
-                    )
+                pinned_budget = worker.budget_for(MemoryDomain.HOST_PINNED)
+                host_budget = worker.budget_for(MemoryDomain.HOST)
+                if pinned_budget is not None and host_budget is None:
+                    reasons.append(f"MISSING_HOST_MEMORY_BUDGET:{stage.worker_id}")
+                for transport_budget in (host_budget, pinned_budget):
+                    if (
+                        transport_budget is not None
+                        and worker.host_transport_buffer_bytes > transport_budget.usable_bytes
+                    ):
+                        reasons.append(
+                            f"{transport_budget.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}"
+                        )
             if settings.mode == PlanningMode.ESTIMATED and link is None:
                 reasons.append(f"MISSING_LINK_PROFILE:{first.worker_id}->{final.worker_id}")
             performance = _boundary_estimate(manifest, workload, link) if link else None
