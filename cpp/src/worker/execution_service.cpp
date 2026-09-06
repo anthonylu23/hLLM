@@ -9,6 +9,7 @@
 #include <thread>
 #include <vector>
 
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/tensor_envelope.hpp"
 
 namespace hllm::worker {
@@ -85,6 +86,15 @@ class Watchdog final {
           }
         }) {}
 
+  // Call once the request has reached a terminal outcome; afterwards a late
+  // cancellation must not disturb the acknowledgment still being written.
+  void stop() {
+    thread_.request_stop();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+  }
+
  private:
   std::jthread thread_;
 };
@@ -99,10 +109,10 @@ std::uint64_t effective_deadline(grpc::ServerContext& context, std::uint64_t req
   if (requested != 0U) {
     const auto now = milliseconds(std::chrono::system_clock::now());
     if (requested <= now) {
-      throw std::invalid_argument("request deadline already expired");
+      throw runtime::Error::deadline_exceeded("request deadline already expired");
     }
     if (requested - now > 3'600'000U) {
-      throw std::invalid_argument("deadline exceeds one hour");
+      throw runtime::Error::invalid_request("deadline exceeds one hour");
     }
     deadline = std::chrono::system_clock::time_point(std::chrono::milliseconds(requested));
   }
@@ -120,7 +130,7 @@ void validate_stop_ids(const google::protobuf::RepeatedField<std::uint64_t>& ids
                        const runtime::StageBackend& backend) {
   for (const auto id : ids) {
     if (id >= backend.vocabulary_size()) {
-      throw std::invalid_argument("stop token exceeds vocabulary");
+      throw runtime::Error::invalid_request("stop token exceeds vocabulary");
     }
   }
 }
@@ -131,7 +141,7 @@ void validate_identity(const std::string& deployment, std::uint64_t version,
   if (deployment != lease.deployment->spec.plan().plan_id() ||
       version != lease.deployment->spec.plan().deployment_version() ||
       request != lease.request->id || microbatch != 0U) {
-    throw std::invalid_argument("message identity does not match the active sequence");
+    throw runtime::Error::invalid_request("message identity does not match the active sequence");
   }
 }
 
@@ -145,7 +155,8 @@ runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
           (sequence == 0U ? v1::EXECUTION_PHASE_PREFILL : v1::EXECUTION_PHASE_DECODE) ||
       tensor.dtype() != v1::DATA_TYPE_F16 || tensor.layout() != "dense_row_major_le" ||
       !tensor.checksum().empty()) {
-    throw std::invalid_argument("invalid tensor order, phase, encoding or unsupported checksum");
+    throw runtime::Error::invalid_request(
+        "invalid tensor order, phase, encoding or unsupported checksum");
   }
   runtime::TensorEnvelopeMetadata metadata{
       tensor.protocol_version(),
@@ -168,7 +179,7 @@ runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
        .hidden_size = lease.deployment->backend->hidden_size(),
        .maximum_payload_bytes = static_cast<std::size_t>(kMaximumRpcBytes / 2)});
   if (tensor.cache_slot_ids_size() != 1 || tensor.cache_slot_ids(0) != 0U) {
-    throw std::invalid_argument("single-sequence execution requires cache slot zero");
+    throw runtime::Error::invalid_request("single-sequence execution requires cache slot zero");
   }
   runtime::BoundaryActivation output{static_cast<std::size_t>(tensor.shape(1)),
                                      lease.deployment->backend->hidden_size(),
@@ -177,7 +188,7 @@ runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
   for (std::size_t i = 0U; i < output.payload.size(); i += 2U) {
     const auto high = std::to_integer<unsigned char>(output.payload[i + 1U]);
     if ((high & 0x7cU) == 0x7cU) {
-      throw std::invalid_argument("non-finite boundary activation");
+      throw runtime::Error::invalid_request("non-finite boundary activation");
     }
   }
   return output;
@@ -187,7 +198,7 @@ v1::StageMessage encode_tensor(const runtime::BoundaryActivation& hidden,
                                const ExecutionLease& lease, std::uint64_t sequence,
                                std::size_t position) {
   if (hidden.payload.size() > static_cast<std::size_t>(kMaximumRpcBytes / 2)) {
-    throw std::length_error("prefill activation exceeds transport limit");
+    throw runtime::Error::resource_exhausted("prefill activation exceeds transport limit");
   }
   v1::StageMessage message;
   auto* tensor = message.mutable_tensor();
@@ -209,11 +220,11 @@ v1::StageMessage encode_tensor(const runtime::BoundaryActivation& hidden,
       hidden.tokens == 0U ||
       hidden.tokens > static_cast<std::size_t>(kMaximumRpcBytes / 4) / hidden.width ||
       hidden.payload.size() != hidden.tokens * hidden.width * 2U) {
-    throw std::runtime_error("backend returned an invalid boundary shape");
+    throw runtime::Error::internal("backend returned an invalid boundary shape");
   }
   for (std::size_t i = 1U; i < hidden.payload.size(); i += 2U) {
     if ((std::to_integer<unsigned char>(hidden.payload[i]) & 0x7cU) == 0x7cU) {
-      throw std::runtime_error("backend returned a non-finite boundary activation");
+      throw runtime::Error::internal("backend returned a non-finite boundary activation");
     }
   }
   tensor->set_payload(hidden.payload.data(), hidden.payload.size());
@@ -232,13 +243,22 @@ grpc::Status failure(const std::exception& error,
   if (const auto* peer = dynamic_cast<const PeerFailure*>(&error)) {
     return peer->status();
   }
-  if (dynamic_cast<const std::bad_alloc*>(&error) ||
-      dynamic_cast<const std::length_error*>(&error)) {
-    return {grpc::StatusCode::RESOURCE_EXHAUSTED, error.what()};
+  if (const auto* typed = dynamic_cast<const runtime::Error*>(&error)) {
+    switch (typed->code()) {
+      case runtime::ErrorCode::kInvalidRequest:
+        return {grpc::StatusCode::INVALID_ARGUMENT, error.what()};
+      case runtime::ErrorCode::kIncompatibleWorker:
+        return {grpc::StatusCode::FAILED_PRECONDITION, error.what()};
+      case runtime::ErrorCode::kResourceExhausted:
+        return {grpc::StatusCode::RESOURCE_EXHAUSTED, error.what()};
+      case runtime::ErrorCode::kDeadlineExceeded:
+        return {grpc::StatusCode::DEADLINE_EXCEEDED, error.what()};
+      case runtime::ErrorCode::kInternal:
+        break;
+    }
   }
-  if (dynamic_cast<const std::invalid_argument*>(&error) ||
-      dynamic_cast<const runtime::EnvelopeError*>(&error)) {
-    return {grpc::StatusCode::INVALID_ARGUMENT, error.what()};
+  if (dynamic_cast<const std::bad_alloc*>(&error)) {
+    return {grpc::StatusCode::RESOURCE_EXHAUSTED, error.what()};
   }
   return {grpc::StatusCode::INTERNAL, error.what()};
 }
@@ -252,13 +272,13 @@ grpc::Status ExecutionService::Execute(
   try {
     v1::StageMessage message;
     if (!stream->Read(&message) || !message.has_open_sequence()) {
-      throw std::invalid_argument("stage stream must start with SequenceOpen");
+      throw runtime::Error::invalid_request("stage stream must start with SequenceOpen");
     }
     const auto open = message.open_sequence();
     if (open.protocol_version() != 1U || open.microbatch_id() != 0U ||
         open.maximum_new_tokens() == 0U ||
         open.maximum_new_tokens() >= open.maximum_total_tokens()) {
-      throw std::invalid_argument("invalid sequence opening");
+      throw runtime::Error::invalid_request("invalid sequence opening");
     }
     RequestGuard guard(control_,
                        control_.acquire(open.deployment_id(), open.deployment_version(),
@@ -280,8 +300,9 @@ grpc::Status ExecutionService::Execute(
                           terminal.request_id(), terminal.microbatch_id(), lease);
         if (terminal.state() != v1::TERMINAL_STATE_COMPLETED || !stopped ||
             terminal.prompt_tokens() != prompt || terminal.generated_tokens() != sequence) {
-          throw std::invalid_argument("invalid sequence termination");
+          throw runtime::Error::invalid_request("invalid sequence termination");
         }
+        watchdog.stop();
         control_.release(active);
         if (!stream->Write(message)) {
           throw std::runtime_error("termination acknowledgment failed");
@@ -289,13 +310,13 @@ grpc::Status ExecutionService::Execute(
         return grpc::Status::OK;
       }
       if (!message.has_tensor() || stopped) {
-        throw std::invalid_argument("unexpected stage message");
+        throw runtime::Error::invalid_request("unexpected stage message");
       }
       auto input = decode_tensor(message.tensor(), lease, sequence, position);
       if (sequence == 0U) {
         prompt = input.tokens;
         if (prompt > active->maximum_tokens - open.maximum_new_tokens()) {
-          throw std::invalid_argument("prompt and output exceed reservation");
+          throw runtime::Error::invalid_request("prompt and output exceed reservation");
         }
       }
       const auto count = input.tokens;
@@ -304,7 +325,7 @@ grpc::Status ExecutionService::Execute(
       const auto* sampled_output = std::get_if<runtime::SampledToken>(&output);
       if (sampled_output == nullptr ||
           sampled_output->id >= lease.deployment->backend->vocabulary_size()) {
-        throw std::runtime_error("final backend did not return a valid sampled token");
+        throw runtime::Error::internal("final backend did not return a valid sampled token");
       }
       const auto token = sampled_output->id;
       check_running(*active, *context);
@@ -339,9 +360,8 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     if (request->token_ids_size() == 0 || request->maximum_new_tokens() == 0U ||
         request->maximum_new_tokens() > std::numeric_limits<std::size_t>::max() -
                                             static_cast<std::size_t>(request->token_ids_size())) {
-      throw std::invalid_argument(
-          "generation requires prompt tokens and a "
-          "bounded positive output length");
+      throw runtime::Error::invalid_request(
+          "generation requires prompt tokens and a bounded positive output length");
     }
     const auto total =
         static_cast<std::size_t>(request->token_ids_size()) + request->maximum_new_tokens();
@@ -353,14 +373,17 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     active = lease.request;
     auto& backend = *lease.deployment->backend;
     validate_stop_ids(request->stop_token_ids(), backend);
-    if (static_cast<std::size_t>(request->token_ids_size()) >
-        static_cast<std::size_t>(kMaximumRpcBytes / 4) / backend.hidden_size()) {
-      throw std::length_error("prefill activation exceeds transport limit");
+    const bool split = lease.deployment->spec.plan().stages_size() == 2;
+    // Only a split deployment ships the prefill activation over the wire; the
+    // planner applies the same ceiling before it emits a two-stage plan.
+    if (split && static_cast<std::size_t>(request->token_ids_size()) >
+                     static_cast<std::size_t>(kMaximumRpcBytes / 4) / backend.hidden_size()) {
+      throw runtime::Error::resource_exhausted("prefill activation exceeds transport limit");
     }
     std::vector<std::uint64_t> tokens(request->token_ids().begin(), request->token_ids().end());
     for (const auto token : tokens) {
       if (token >= backend.vocabulary_size()) {
-        throw std::invalid_argument("token ID exceeds vocabulary");
+        throw runtime::Error::invalid_request("token ID exceeds vocabulary");
       }
     }
     grpc::ClientContext peer_context;
@@ -369,7 +392,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     std::unique_ptr<v1::StageExecution::Stub> stub;
     std::unique_ptr<grpc::ClientReaderWriter<v1::StageMessage, v1::StageMessage>> peer;
     CancelPeerOnExit cancel_peer{peer_context};
-    if (lease.deployment->spec.plan().stages_size() == 2) {
+    if (split) {
       std::string endpoint;
       for (const auto& stage : lease.deployment->spec.stage_endpoints()) {
         if (stage.stage_index() == 1U) {
@@ -411,7 +434,8 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
       if (peer) {
         const auto* boundary = std::get_if<runtime::BoundaryActivation>(&output);
         if (boundary == nullptr || boundary->tokens != tokens.size()) {
-          throw std::runtime_error("intermediate backend did not return boundary activations");
+          throw runtime::Error::internal(
+              "intermediate backend did not return boundary activations");
         }
         if (!peer->Write(encode_tensor(*boundary, lease, step, position))) {
           peer_failure(*peer, "downstream activation send failed");
@@ -421,7 +445,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
           peer_failure(*peer, "downstream failed to return a sampled token");
         }
         if (!response.has_sampled_token()) {
-          throw std::invalid_argument("unexpected downstream response");
+          throw runtime::Error::internal("unexpected downstream response");
         }
         const auto& sampled = response.sampled_token();
         validate_identity(sampled.deployment_id(), sampled.deployment_version(),
@@ -429,13 +453,13 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         if (sampled.sequence_number() != step ||
             sampled.token_position() != position + tokens.size() ||
             sampled.token_id() >= backend.vocabulary_size()) {
-          throw std::invalid_argument("invalid sampled token feedback");
+          throw runtime::Error::internal("invalid sampled token feedback");
         }
         token = sampled.token_id();
       } else {
         const auto* sampled_output = std::get_if<runtime::SampledToken>(&output);
         if (sampled_output == nullptr || sampled_output->id >= backend.vocabulary_size()) {
-          throw std::runtime_error("final backend did not return a valid sampled token");
+          throw runtime::Error::internal("final backend did not return a valid sampled token");
         }
         token = sampled_output->id;
       }
@@ -478,6 +502,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         throw std::runtime_error("downstream cleanup was not acknowledged");
       }
     }
+    watchdog.stop();
     control_.release(active);
     v1::GenerationEvent event;
     event.set_request_id(request->request_id());

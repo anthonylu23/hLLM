@@ -2,10 +2,10 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/safetensors.hpp"
 
 namespace hllm::runtime {
@@ -39,9 +39,10 @@ struct TensorEnvelopeLimits {
   DataType boundary_dtype{DataType::kF16};
 };
 
-class EnvelopeError : public std::runtime_error {
+// Envelope violations are always the sender's fault.
+class EnvelopeError : public Error {
  public:
-  using std::runtime_error::runtime_error;
+  explicit EnvelopeError(const std::string& message) : Error(ErrorCode::kInvalidRequest, message) {}
 };
 
 void validate_tensor_envelope(const TensorEnvelopeMetadata& envelope,

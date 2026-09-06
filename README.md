@@ -95,8 +95,10 @@ See [the Milestone 0 implementation notes](docs/milestone-0.md) and [the full pr
 specification](SPEC.md). The [validation report](docs/validation/milestone-0.md) records the
 pinned real-model and cross-platform checks.
 
-See [the code quality review](docs/code-quality-review.md) for historical fixes and
-[the CUDA PR review](docs/code-quality-review-cuda.md) for the audit of PRs 5–9.
+See [the code quality review](docs/code-quality-review.md) for historical fixes,
+[the CUDA PR review](docs/code-quality-review-cuda.md) for the audit of PRs 5–9, and
+[the runtime and controller review](docs/code-quality-review-runtime.md) for the
+follow-up audit of the worker services, planner gates, and test harness.
 
 [Qwen3 support and validation](docs/qwen3.md) describes the pinned model, supported
 semantics, independent CPU reference tests, and estimated placement. It is not yet a

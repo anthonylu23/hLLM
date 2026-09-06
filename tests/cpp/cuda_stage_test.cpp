@@ -6,6 +6,7 @@
 #include "hllm/cpu/stage.hpp"
 #include "hllm/cuda/backend.hpp"
 #include "hllm/cuda/stage.hpp"
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
 #include "hllm/runtime/safetensors.hpp"
 #include "hllm/worker/control_service.hpp"
@@ -164,35 +165,35 @@ TEST(CudaStageTest, RejectsInvalidMetadataBudgetsContextAndCancelledState) {
   auto request = fixture.load(0U, false);
   EXPECT_THROW(
       static_cast<void>(factory->load(request, fixture.root, {1U, kBudget.device_bytes, 0U})),
-      std::length_error);
+      runtime::Error);
   EXPECT_THROW(
       static_cast<void>(factory->load(request, fixture.root, {kBudget.host_bytes, 1U, 0U})),
-      std::length_error);
+      runtime::Error);
   request.mutable_manifest()->mutable_architecture()->set_architecture_revision("2");
   EXPECT_THROW(static_cast<void>(factory->load(request, fixture.root, kBudget)),
-               std::invalid_argument);
+               runtime::Error);
   request = fixture.load(0U, false);
   request.set_stage_index(10U);
   EXPECT_THROW(static_cast<void>(factory->load(request, fixture.root, kBudget)),
-               std::invalid_argument);
+               runtime::Error);
   request = fixture.load(0U, false);
   auto stage = factory->load(request, fixture.root, kBudget);
-  EXPECT_THROW(static_cast<void>(stage->allocate_sequence(0U)), std::invalid_argument);
+  EXPECT_THROW(static_cast<void>(stage->allocate_sequence(0U)), runtime::Error);
   EXPECT_THROW(static_cast<void>(stage->allocate_sequence(stage->maximum_tokens() + 1U)),
-               std::invalid_argument);
+               runtime::Error);
   auto state = stage->allocate_sequence(4U);
   std::atomic_bool cancelled{false};
   EXPECT_THROW(static_cast<void>(stage->execute(runtime::TokenInput{{1U}}, 1U, *state, cancelled)),
-               std::invalid_argument);
+               runtime::Error);
   cancelled.store(true);
   EXPECT_THROW(static_cast<void>(stage->execute(runtime::TokenInput{{1U}}, 0U, *state, cancelled)),
                std::runtime_error);
   cancelled.store(false);
   EXPECT_THROW(
       static_cast<void>(stage->execute(runtime::TokenInput{{99999U}}, 0U, *state, cancelled)),
-      std::invalid_argument);
+      runtime::Error);
   EXPECT_THROW(static_cast<void>(stage->execute(runtime::TokenInput{{1U}}, 0U, *state, cancelled)),
-               std::invalid_argument);
+               runtime::Error);
   // A fresh reservation remains usable after failed/cancelled execution.
   auto fresh = stage->allocate_sequence(4U);
   EXPECT_NO_THROW(
@@ -310,7 +311,7 @@ TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
     // The common admission rule must enforce the host subset independently.
     auto host_short = needed;
     --host_short.host_bytes;
-    EXPECT_THROW(runtime::require_memory(needed, host_short), std::length_error);
+    EXPECT_THROW(runtime::require_memory(needed, host_short), runtime::Error);
     EXPECT_NO_THROW(runtime::require_memory(needed, needed));
   }
 }
@@ -331,7 +332,7 @@ TEST(CudaStageTest, RejectsNonfiniteWeightsAndHalfOverflowWithoutPublishingStage
     auto request = fixture.load(0U, false);
     request.mutable_plan()->set_execution_dtype(v1::DATA_TYPE_F16);
     EXPECT_THROW(static_cast<void>(factory->load(request, fixture.root, kBudget)),
-                 std::invalid_argument);
+                 runtime::Error);
   }
 }
 

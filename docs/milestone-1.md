@@ -54,8 +54,11 @@ RPC identity, deployment version, sequence number, phase, token position, tensor
 cache slot, payload size and finite values are checked. Empty prompts, zero output budgets,
 invalid token IDs, conflicting reservations, and unsupported encodings fail explicitly.
 Checksums are not negotiated in this version; a nonempty checksum field is rejected.
-Messages are capped at 16 MiB and activation payloads at 8 MiB. Large prefills are rejected;
-chunked prefill and continuous batching are later work.
+Messages are capped at 16 MiB and activation payloads at 8 MiB. A prompt larger than one
+boundary payload is rejected by the planner (`BOUNDARY_PAYLOAD_EXCEEDED`), by the
+controller before a call is issued, and by a split first stage as `RESOURCE_EXHAUSTED`;
+single-stage deployments never cross a boundary and carry no such cap. Chunked prefill and
+continuous batching are later work.
 
 A request defaults to a 60-second deadline; explicit deadlines must be within one hour
 and are bounded by the RPC deadline. A watchdog interrupts blocking stream operations

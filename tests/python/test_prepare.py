@@ -56,6 +56,31 @@ def test_prepares_tied_single_file_model(tmp_path: Path) -> None:
     assert embedding.shared_weight_group == "token_embeddings"
 
 
+def test_prepares_tied_model_that_ships_redundant_lm_head(tmp_path: Path) -> None:
+    model_path = tmp_path / "tied-redundant-head"
+    model_path.mkdir()
+    (model_path / "config.json").write_text(json.dumps(tiny_config(tied=True)), encoding="utf-8")
+    write_safetensors(model_path / "model.safetensors", tiny_tensors(tied=False))
+
+    manifest = prepare_model(model_path)
+
+    assert manifest.config.tied_embeddings
+    head = next(item for item in manifest.tensors if item.role == TensorRole.LM_HEAD)
+    assert head.shared_weight_group == "token_embeddings"
+
+
+def test_rejects_rope_scaling_the_workers_cannot_execute(tmp_path: Path) -> None:
+    model_path = tmp_path / "scaled-rope"
+    model_path.mkdir()
+    config = tiny_config()
+    config["rope_scaling"] = {"rope_type": "linear", "factor": 2.0}
+    (model_path / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    write_safetensors(model_path / "model.safetensors", tiny_tensors())
+
+    with pytest.raises(PreparationError, match="unscaled RoPE"):
+        prepare_model(model_path)
+
+
 def test_rejects_unclassified_tensor(tmp_path: Path) -> None:
     model_path = tmp_path / "unexpected"
     model_path.mkdir()
@@ -111,7 +136,7 @@ def test_rejects_duplicate_tensors_across_shards(tiny_model: Path) -> None:
     midpoint = len(names) // 2
     # Add a tensor owned by shard two to shard one. A dict comprehension would
     # silently overwrite it with shard two's copy and still match the index.
-    first_shard = {name: tensors[name] for name in names[:midpoint + 1]}
+    first_shard = {name: tensors[name] for name in names[: midpoint + 1]}
     write_safetensors(tiny_model / "model-00001-of-00002.safetensors", first_shard)
 
     with pytest.raises(PreparationError, match="occurs in multiple shards"):

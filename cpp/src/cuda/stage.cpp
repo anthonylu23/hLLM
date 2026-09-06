@@ -18,6 +18,7 @@
 #include "device.hpp"
 #include "pinned_buffer.hpp"
 #include "hllm/runtime/checked_size.hpp"
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
 
 namespace hllm::cuda {
@@ -27,7 +28,7 @@ constexpr auto mul = runtime::checked_multiply;
 
 std::int64_t dimension(std::size_t value) {
   if (value > static_cast<std::size_t>(std::numeric_limits<std::int64_t>::max())) {
-    throw std::length_error("tensor dimension exceeds ATen capacity");
+    throw runtime::Error::resource_exhausted("tensor dimension exceeds ATen capacity");
   }
   return static_cast<std::int64_t>(value);
 }
@@ -94,10 +95,12 @@ class CudaStage final : public ReferenceStage {
         dtype_(source.execution_dtype == runtime::DataType::kF16 ? at::kHalf : at::kFloat),
         stream_(c10::cuda::getStreamFromPool(false, static_cast<c10::DeviceIndex>(device_id))) {
     if (std::endian::native != std::endian::little) {
-      throw std::invalid_argument("CUDA boundary transfer requires a little-endian host");
+      throw runtime::Error::incompatible_worker(
+          "CUDA boundary transfer requires a little-endian host");
     }
     if (pinned_ && capacity.pinned_host_bytes == 0U) {
-      throw std::invalid_argument("pinned transfer mode requires pinned host capacity");
+      throw runtime::Error::incompatible_worker(
+          "pinned transfer mode requires pinned host capacity");
     }
     bytes_ = source.float32_weight_bytes / sizeof(float) * element_bytes();
     // Reserve the source payload plus conversion/upload temporaries in each
@@ -120,7 +123,8 @@ class CudaStage final : public ReferenceStage {
         if (dtype_ == at::kHalf) {
           for (const auto value : host) {
             if ((runtime::float_to_float16(value) & 0x7c00U) == 0x7c00U) {
-              throw std::invalid_argument("weight is not representable as finite F16: " + name);
+              throw runtime::Error::incompatible_worker(
+                  "weight is not representable as finite F16: " + name);
             }
           }
         }
@@ -142,7 +146,7 @@ class CudaStage final : public ReferenceStage {
   std::size_t maximum_tokens() const override { return config_.maximum_sequence_length; }
   runtime::SequenceMemory sequence_memory(std::size_t tokens) const override {
     if (tokens == 0U || tokens > maximum_tokens()) {
-      throw std::invalid_argument("request exceeds model context capacity");
+      throw runtime::Error::invalid_request("request exceeds model context capacity");
     }
     static_cast<void>(dimension(tokens));
     const auto cache =
@@ -273,14 +277,14 @@ class CudaStage final : public ReferenceStage {
     std::scoped_lock lock(mutex_);
     auto* state = dynamic_cast<CudaSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
-      throw std::invalid_argument("CUDA sequence state or position is invalid");
+      throw runtime::Error::invalid_request("CUDA sequence state or position is invalid");
     }
     const auto* tokens = std::get_if<runtime::TokenInput>(&input);
     const auto count =
         tokens ? tokens->ids.size() : std::get<runtime::BoundaryActivation>(input).tokens;
     if ((tokens != nullptr) != first_ || count == 0U || position > state->capacity ||
         count > state->capacity - position) {
-      throw std::invalid_argument("invalid CUDA stage input or context capacity");
+      throw runtime::Error::invalid_request("invalid CUDA stage input or context capacity");
     }
     running(cancelled);
     try {
@@ -290,7 +294,7 @@ class CudaStage final : public ReferenceStage {
           std::vector<std::int64_t> ids;
           for (const auto id : tokens->ids) {
             if (id >= vocab_) {
-              throw std::invalid_argument("token ID exceeds vocabulary");
+              throw runtime::Error::invalid_request("token ID exceeds vocabulary");
             }
             ids.push_back(dimension(id));
           }
@@ -302,7 +306,7 @@ class CudaStage final : public ReferenceStage {
           const auto& boundary = std::get<runtime::BoundaryActivation>(input);
           if (boundary.width != hidden_size() ||
               boundary.payload.size() != mul(mul(count, hidden_size()), 2U)) {
-            throw std::invalid_argument("invalid CUDA boundary shape");
+            throw runtime::Error::invalid_request("invalid CUDA boundary shape");
           }
           if (state->staging) {
             auto incoming = at::empty({dimension(count), dimension(hidden_size())},

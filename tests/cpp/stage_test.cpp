@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cmath>
 
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
 #include "model_fixture.hpp"
 
@@ -43,21 +44,46 @@ TEST(CpuStageTest, LoadedPayloadsMatchIndependentTransformersAtBothLayerBoundari
   EXPECT_GT(first->sequence_memory(16U).cache.host_bytes, 0U);
 }
 
+TEST(CpuStageTest, IgnoresRedundantLmHeadShippedWithTiedEmbeddings) {
+  // The oracle's lm_head equals its embedding, as Transformers ties them at load.
+  const test::ModelFixture tied;
+  const test::ModelFixture redundant(true, false);
+  auto request = redundant.load(1U);
+  request.mutable_manifest()->mutable_config()->set_tied_embeddings(true);
+  auto stage = load_stage(request, redundant.root, 1'000'000U);
+  auto reference = load_stage(tied.load(1U), tied.root, 1'000'000U);
+  EXPECT_EQ(stage->weight_memory().host_bytes, reference->weight_memory().host_bytes);
+  auto first = load_stage(tied.load(0U), tied.root, 1'000'000U);
+  auto a = first->allocate_sequence(16U);
+  auto b = stage->allocate_sequence(16U);
+  auto c = reference->allocate_sequence(16U);
+  std::atomic_bool cancelled{false};
+  const std::array<std::uint64_t, 3> tokens{1U, 4U, 2U};
+  const auto boundary = first->forward(first->embed(tokens), 0U, *a, cancelled);
+  EXPECT_EQ(stage->sample(stage->forward(boundary, 0U, *b, cancelled)),
+            reference->sample(reference->forward(boundary, 0U, *c, cancelled)));
+}
+
 TEST(CpuStageTest, RejectsInvalidArchitecturesWeightsAndBudgets) {
   const test::ModelFixture fixture;
   auto request = fixture.load();
   request.mutable_manifest()->mutable_architecture()->set_architecture_revision("2");
-  EXPECT_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)),
-               std::invalid_argument);
+  const auto code = [&](const v1::LoadStageRequest& attempt, std::size_t limit) {
+    try {
+      static_cast<void>(load_stage(attempt, fixture.root, limit));
+    } catch (const runtime::Error& error) {
+      return error.code();
+    }
+    return runtime::ErrorCode::kInternal;
+  };
+  EXPECT_EQ(code(request, 1'000'000U), runtime::ErrorCode::kIncompatibleWorker);
   request = fixture.load();
   request.mutable_manifest()->mutable_architecture()->add_feature_flags("unknown");
-  EXPECT_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)),
-               std::invalid_argument);
+  EXPECT_EQ(code(request, 1'000'000U), runtime::ErrorCode::kIncompatibleWorker);
   request = fixture.load();
   request.mutable_manifest()->mutable_tensors()->DeleteSubrange(0, 1);
-  EXPECT_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)),
-               std::invalid_argument);
-  EXPECT_THROW(static_cast<void>(load_stage(fixture.load(), fixture.root, 1U)), std::length_error);
+  EXPECT_EQ(code(request, 1'000'000U), runtime::ErrorCode::kIncompatibleWorker);
+  EXPECT_EQ(code(fixture.load(), 1U), runtime::ErrorCode::kResourceExhausted);
 }
 
 TEST(CpuStageTest, DoesNotReadUnassignedWeights) {
@@ -125,10 +151,10 @@ TEST(CpuStageTest, ExecutesThroughOpaqueBoundaryContractForPrefillAndDecode) {
     EXPECT_EQ(std::get<runtime::SampledToken>(token).id, expected);
   }
   EXPECT_THROW(static_cast<void>(last->execute(runtime::TokenInput{{1U}}, 5U, *b, cancelled)),
-               std::invalid_argument);
+               runtime::Error);
   EXPECT_THROW(
       static_cast<void>(first->execute(runtime::BoundaryActivation{1U, 8U, {}}, 5U, *a, cancelled)),
-      std::invalid_argument);
+      runtime::Error);
 }
 }  // namespace
 }  // namespace hllm::cpu

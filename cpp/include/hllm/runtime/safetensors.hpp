@@ -3,12 +3,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "hllm/runtime/buffer.hpp"
+#include "hllm/runtime/error.hpp"
 
 namespace hllm::runtime {
 
@@ -36,9 +36,11 @@ struct TensorMetadata {
   std::size_t byte_length;
 };
 
-class SafetensorsError : public std::runtime_error {
+// A malformed or unsupported checkpoint cannot be executed by this worker.
+class SafetensorsError : public Error {
  public:
-  using std::runtime_error::runtime_error;
+  explicit SafetensorsError(const std::string& message)
+      : Error(ErrorCode::kIncompatibleWorker, message) {}
 };
 
 class SafetensorsFile final {

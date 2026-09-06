@@ -57,6 +57,17 @@ DTYPE_BYTES: dict[DType, int] = {
 }
 
 
+# Mirrors kMaximumRpcBytes in the native worker. Prefill crosses a stage boundary
+# as one message whose payload may use at most half of that limit.
+MAXIMUM_RPC_BYTES = 16 * 1024 * 1024
+MAXIMUM_BOUNDARY_PAYLOAD_BYTES = MAXIMUM_RPC_BYTES // 2
+
+
+def maximum_boundary_tokens(hidden_size: int, activation_dtype: DType) -> int:
+    """Largest prefill (in tokens) one stage boundary message can carry."""
+    return MAXIMUM_BOUNDARY_PAYLOAD_BYTES // (hidden_size * DTYPE_BYTES[activation_dtype])
+
+
 class TensorRole(StrEnum):
     TOKEN_EMBEDDING = "TOKEN_EMBEDDING"
     TRANSFORMER_LAYER = "TRANSFORMER_LAYER"

@@ -23,8 +23,6 @@ class Qwen3ArchitectureAdapter(LlamaArchitectureAdapter):
     def describe(self, raw: Mapping[str, Any]) -> ModelDescription:
         if raw.get("use_sliding_window", False) is not False:
             raise ArchitectureError("qwen3.v1 does not support sliding-window attention")
-        if raw.get("rope_scaling") is not None:
-            raise ArchitectureError("qwen3.v1 currently supports unscaled RoPE only")
         description = super().describe(raw)
         if description.config.head_dim % 2:
             raise ArchitectureError("qwen3.v1 requires an even head_dim for RoPE")
