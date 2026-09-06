@@ -59,9 +59,15 @@ if(HLLM_ENABLE_CUDA)
   target_compile_definitions(hllm_cuda_tests PRIVATE HLLM_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures")
   add_test(NAME CudaNumericalParity COMMAND hllm_cuda_tests)
   set_tests_properties(CudaNumericalParity PROPERTIES TIMEOUT 180 LABELS "cuda;hardware")
+  add_test(NAME MixedPipelineIntegration
+    COMMAND ${CMAKE_COMMAND} -E env HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+      HLLM_CUDA_WORKER=$<TARGET_FILE:hllm-worker-cuda>
+      ${HLLM_UV_EXECUTABLE} run pytest tests/cuda/test_mixed.py -q)
+  set_tests_properties(MixedPipelineIntegration PROPERTIES
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 240 LABELS "cuda;hardware")
   add_test(NAME CudaBackendSmoke
     COMMAND ${CMAKE_COMMAND} -E env HLLM_CUDA_WORKER=$<TARGET_FILE:hllm-worker-cuda>
-      ${HLLM_UV_EXECUTABLE} run pytest tests/cuda -q)
+      ${HLLM_UV_EXECUTABLE} run pytest tests/cuda/test_worker.py -q)
   set_tests_properties(CudaBackendSmoke PROPERTIES
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     TIMEOUT 120

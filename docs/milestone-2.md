@@ -2,8 +2,9 @@
 
 The optional Linux CUDA worker now executes dense Llama and Qwen3 stages with LibTorch/ATen.
 Tiny-model numerical and single-worker process tests establish the initial execution path.
-Mixed CPU/CUDA process qualification, pinned transfers and full-checkpoint inference remain
-next. The first integration PR established backend selection and memory domains; this second
+Mixed CPU/CUDA loopback correctness now passes in both orders and all tiny-fixture splits.
+Pinned transfers, failure qualification and full-checkpoint inference remain next.
+See the [mixed validation report](validation/mixed-cpu-cuda.md). The first integration PR established backend selection and memory domains; this second
 PR adds model execution on top of those interfaces.
 
 ## Backend and model boundaries
@@ -156,6 +157,9 @@ Full-checkpoint parity/performance, CUDA sanitizer coverage, mixed-device fault 
 and asynchronous transfer overlap remain unverified.
 
 ## Next PR
+
+See the [mixed CPU/CUDA qualification plan](milestone-2-qualification-plan.md) for the
+proposed three-PR sequence, constraints and acceptance criteria.
 
 Qualify real CPU/CUDA processes in both stage orders and at every valid split. Add bounded
 pinned staging and event-based transfer ownership, then test cancellation, deadlines,
