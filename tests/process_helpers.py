@@ -9,6 +9,7 @@ import struct
 import subprocess
 import time
 from pathlib import Path
+from typing import IO
 
 import grpc
 import pytest
@@ -108,36 +109,63 @@ class Workers:
             if not binary.is_file():
                 pytest.fail(f"Build the requested native worker first: {binary}")
         self.endpoints = {name: endpoint() for name in worker_ids}
-        self.processes = []
-        self.channels = []
-        self.controls = []
+        self.processes: list[subprocess.Popen[bytes]] = []
+        self.channels: list[grpc.Channel] = []
+        self.controls: list[control_pb2_grpc.WorkerControlStub] = []
+        # Worker diagnostics go to files rather than pipes: a pipe nobody drains
+        # would block a chatty worker, and the file survives for failure reports.
+        self.logs = {name: root / f"{name}.stderr.log" for name in worker_ids}
+        self._sinks: list[IO[bytes]] = []
         try:
             for index, (name, address) in enumerate(self.endpoints.items()):
-                self.processes.append(
-                    subprocess.Popen(
-                        [
-                            str(binaries[index]),
-                            "--listen",
-                            address,
-                            "--worker-id",
-                            name,
-                            "--model-root",
-                            str(root),
-                            "--memory-limit-bytes",
-                            str(limit if isinstance(limit, int) else limit[index]),
-                            *extra_args[index],
-                        ],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.PIPE,
-                    )
+                sink = self.logs[name].open("wb")
+                self._sinks.append(sink)
+                process = subprocess.Popen(
+                    [
+                        str(binaries[index]),
+                        "--listen",
+                        address,
+                        "--worker-id",
+                        name,
+                        "--model-root",
+                        str(root),
+                        "--memory-limit-bytes",
+                        str(limit if isinstance(limit, int) else limit[index]),
+                        *extra_args[index],
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=sink,
                 )
+                self.processes.append(process)
                 channel = grpc.insecure_channel(address)
                 self.channels.append(channel)
-                grpc.channel_ready_future(channel).result(timeout=30)
+                self._await_ready(name, process, channel)
                 self.controls.append(control_pb2_grpc.WorkerControlStub(channel))
         except BaseException:
             self.close()
             raise
+
+    def stderr(self, name: str) -> str:
+        return self.logs[name].read_text(errors="replace")
+
+    def _await_ready(
+        self, name: str, process: subprocess.Popen[bytes], channel: grpc.Channel
+    ) -> None:
+        ready = grpc.channel_ready_future(channel)
+        until = time.monotonic() + 30
+        while True:
+            try:
+                ready.result(timeout=0.25)
+                return
+            except grpc.FutureTimeoutError:
+                pass
+            if process.poll() is not None:
+                pytest.fail(
+                    f"worker {name} exited with status {process.returncode} before serving:\n"
+                    f"{self.stderr(name)}"
+                )
+            if time.monotonic() > until:
+                pytest.fail(f"worker {name} did not become ready:\n{self.stderr(name)}")
 
     def close(self) -> None:
         for channel in self.channels:
@@ -150,8 +178,8 @@ class Workers:
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=5)
-            if process.stderr:
-                process.stderr.close()
+        for sink in self._sinks:
+            sink.close()
 
     def __enter__(self) -> Workers:
         return self
