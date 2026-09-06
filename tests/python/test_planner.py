@@ -12,6 +12,7 @@ from hllm_control.models import (
     PlannerSettings,
     WorkerProfile,
     WorkloadProfile,
+    maximum_boundary_tokens,
 )
 from hllm_control.planner.config import load_links, load_workers, load_workload
 from hllm_control.planner.planner import create_plan
@@ -269,3 +270,22 @@ def test_host_stage_and_transport_share_one_budget(tiny_model: Path) -> None:
         for candidate in report.candidates:
             stage = next(stage for stage in candidate.stages if stage.worker_id == "cpu")
             assert stage.workspace_bytes == 100
+
+
+def test_rejects_prompts_that_cannot_cross_the_stage_boundary(tiny_model: Path) -> None:
+    manifest = prepare_model(tiny_model)
+    limit = maximum_boundary_tokens(manifest.config.hidden_size, DType.F16)
+    workers = (worker("mac", Backend.MLX, 10**12), worker("cuda", Backend.CUDA, 10**12))
+    within = workload().model_copy(update={"prompt_tokens": limit, "total_cached_tokens": limit})
+    beyond = within.model_copy(
+        update={"prompt_tokens": limit + 1, "total_cached_tokens": limit + 1}
+    )
+
+    assert create_plan(manifest, workers, (), within).plan is not None
+    report = create_plan(manifest, workers, (), beyond)
+
+    assert report.plan is None
+    assert all(
+        any(reason.startswith("BOUNDARY_PAYLOAD_EXCEEDED:") for reason in c.rejection_reasons)
+        for c in report.candidates
+    )

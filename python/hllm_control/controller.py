@@ -8,7 +8,12 @@ from uuid import uuid4
 
 import grpc
 
-from hllm_control.models import DeploymentPlan, ModelManifest
+from hllm_control.models import (
+    MAXIMUM_RPC_BYTES,
+    DeploymentPlan,
+    ModelManifest,
+    maximum_boundary_tokens,
+)
 from hllm_control.proto import (
     common_pb2,
     control_pb2,
@@ -43,8 +48,8 @@ class DeploymentSession:
             grpc.insecure_channel(
                 endpoints[stage.worker_id],
                 options=[
-                    ("grpc.max_receive_message_length", 16 * 1024 * 1024),
-                    ("grpc.max_send_message_length", 16 * 1024 * 1024),
+                    ("grpc.max_receive_message_length", MAXIMUM_RPC_BYTES),
+                    ("grpc.max_send_message_length", MAXIMUM_RPC_BYTES),
                 ],
             )
             for stage in plan.stages
@@ -97,6 +102,10 @@ class DeploymentSession:
             raise ValueError("prompt, output length and timeout must be positive and bounded")
         if len(token_ids) + maximum_new_tokens > self.manifest.config.maximum_sequence_length:
             raise ValueError("prompt and output exceed model context capacity")
+        if len(self.plan.stages) == 2 and len(token_ids) > maximum_boundary_tokens(
+            self.manifest.config.hidden_size, self.plan.activation_dtype
+        ):
+            raise ValueError("prompt exceeds the stage boundary transport limit")
         stops = self.manifest.config.eos_token_ids if stop_token_ids is None else stop_token_ids
         if any(
             token < 0 or token >= self.manifest.config.vocabulary_size

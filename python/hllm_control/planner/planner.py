@@ -26,6 +26,7 @@ from hllm_control.models import (
     TensorRole,
     WorkerProfile,
     WorkloadProfile,
+    maximum_boundary_tokens,
 )
 from hllm_control.serialization import canonical_json_bytes
 
@@ -234,6 +235,8 @@ def create_plan(
 ) -> PlanningReport:
     settings = settings or PlannerSettings()
     _validate_workers(manifest, workers, settings)
+    # Every two-stage candidate ships the whole prompt across one boundary message.
+    boundary_limit = maximum_boundary_tokens(manifest.config.hidden_size, workload.activation_dtype)
     raw_candidates: list[PlanCandidate] = []
     for first, final in ((workers[0], workers[1]), (workers[1], workers[0])):
         link = _find_link(links, first.worker_id, final.worker_id)
@@ -276,6 +279,10 @@ def create_plan(
                         reasons.append(
                             f"{transport_budget.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}"
                         )
+            if workload.prompt_tokens > boundary_limit:
+                reasons.append(
+                    f"BOUNDARY_PAYLOAD_EXCEEDED:{workload.prompt_tokens}>{boundary_limit}"
+                )
             if settings.mode == PlanningMode.ESTIMATED and link is None:
                 reasons.append(f"MISSING_LINK_PROFILE:{first.worker_id}->{final.worker_id}")
             performance = _boundary_estimate(manifest, workload, link) if link else None

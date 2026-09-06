@@ -363,9 +363,12 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     active = lease.request;
     auto& backend = *lease.deployment->backend;
     validate_stop_ids(request->stop_token_ids(), backend);
-    if (static_cast<std::size_t>(request->token_ids_size()) >
-        static_cast<std::size_t>(kMaximumRpcBytes / 4) / backend.hidden_size()) {
-      throw std::length_error("prefill activation exceeds transport limit");
+    const bool split = lease.deployment->spec.plan().stages_size() == 2;
+    // Only a split deployment ships the prefill activation over the wire; the
+    // planner applies the same ceiling before it emits a two-stage plan.
+    if (split && static_cast<std::size_t>(request->token_ids_size()) >
+                     static_cast<std::size_t>(kMaximumRpcBytes / 4) / backend.hidden_size()) {
+      throw runtime::Error::resource_exhausted("prefill activation exceeds transport limit");
     }
     std::vector<std::uint64_t> tokens(request->token_ids().begin(), request->token_ids().end());
     for (const auto token : tokens) {
@@ -379,7 +382,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     std::unique_ptr<v1::StageExecution::Stub> stub;
     std::unique_ptr<grpc::ClientReaderWriter<v1::StageMessage, v1::StageMessage>> peer;
     CancelPeerOnExit cancel_peer{peer_context};
-    if (lease.deployment->spec.plan().stages_size() == 2) {
+    if (split) {
       std::string endpoint;
       for (const auto& stage : lease.deployment->spec.stage_endpoints()) {
         if (stage.stage_index() == 1U) {
