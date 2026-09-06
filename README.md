@@ -10,7 +10,10 @@ weights, run prefill and greedy decode across two native processes, and stream t
 through a Python controller. Request admission, cancellation, deadlines, and cleanup are
 covered by numerical and process integration tests. Milestone 2 adds an optional Linux
 CUDA worker that executes Llama/Qwen3 with F32/F16 weights and caches on the GPU. Tiny-model
-numerical and single-worker process tests pass; mixed CPU/CUDA qualification and MLX remain next.
+numerical and mixed CPU/CUDA process tests cover both stage orders, pageable/pinned
+boundaries, lifecycle faults and memory cleanup. See the
+[mixed qualification report](docs/validation/mixed-cpu-cuda.md). Full-checkpoint
+fit assessment and MLX remain next.
 
 See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
 [the model/backend extension boundaries](docs/model-extensibility.md).

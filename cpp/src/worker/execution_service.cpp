@@ -65,6 +65,19 @@ class Watchdog final {
               if (peer != nullptr) {
                 peer->TryCancel();
               }
+              // TryCancel forces a CANCELLED transport status, even if the
+              // handler returns DEADLINE_EXCEEDED. For a generation deadline,
+              // cancelling the peer normally wakes the handler immediately;
+              // allow it to return its precise status before cancelling the
+              // client transport. Retain a bounded fallback for blocked writes.
+              if (peer != nullptr && std::chrono::system_clock::now() >= request->deadline) {
+                for (int attempt = 0; attempt < 20 && !stop.stop_requested(); ++attempt) {
+                  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                }
+                if (stop.stop_requested()) {
+                  return;
+                }
+              }
               server.TryCancel();
               return;
             }

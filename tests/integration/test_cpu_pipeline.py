@@ -161,8 +161,13 @@ def test_stage_protocol_rejects_wrong_order_and_disconnects(tmp_path: Path) -> N
                 call = execution_pb2_grpc.StageExecutionStub(workers.channels[1]).Execute(
                     iter(messages), timeout=4
                 )
-                with pytest.raises(grpc.RpcError):
+                with pytest.raises(grpc.RpcError) as error:
                     list(call)
+                assert error.value.code() == (
+                    grpc.StatusCode.INTERNAL
+                    if mutation == "open_only"
+                    else grpc.StatusCode.INVALID_ARGUMENT
+                )
                 wait_clean(workers)
             assert len(tokens(session, count=1)) == 1
 
