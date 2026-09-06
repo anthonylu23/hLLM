@@ -35,6 +35,7 @@ packages = ["python/hllm_control"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
+pythonpath = ["."]
 addopts = "-ra"
 
 [tool.ruff]
@@ -47,6 +48,6 @@ select = ["E", "F", "I", "B", "UP", "RUF"]
 
 [tool.pyright]
 pythonVersion = "3.12"
-include = ["python", "tests/python", "tests/integration", "tests/cuda"]
+include = ["python", "tests/python", "tests/integration", "tests/cuda", "tests/process_helpers.py"]
 exclude = ["python/hllm_control/proto"]
 strict = ["python"]
