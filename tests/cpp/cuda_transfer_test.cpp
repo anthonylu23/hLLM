@@ -13,6 +13,7 @@ namespace hllm::cuda {
 TEST(CudaTransferTest, TransfersPayloadsLargerThanStagingWithoutGrowingTheBuffer) {
   cudaStream_t stream{};
   ASSERT_EQ(cudaStreamCreate(&stream), cudaSuccess);
+  const auto pinned_before = allocated_pinned_bytes.load();
   constexpr std::size_t capacity = 8U * 1024U * 1024U;
   constexpr std::size_t maximum_payload = 2U * capacity + 17U;
   void* device{};
@@ -27,8 +28,10 @@ TEST(CudaTransferTest, TransfersPayloadsLargerThanStagingWithoutGrowingTheBuffer
       staging.upload(device, input.data(), bytes);
       staging.download(output.data(), device, bytes);
       EXPECT_EQ(input, output);
+      EXPECT_EQ(allocated_pinned_bytes.load(), pinned_before + capacity);
     }
   }
+  EXPECT_EQ(allocated_pinned_bytes.load(), pinned_before);
   EXPECT_EQ(cudaFree(device), cudaSuccess);
   EXPECT_EQ(cudaStreamDestroy(stream), cudaSuccess);
 }
