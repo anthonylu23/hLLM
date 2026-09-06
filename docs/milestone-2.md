@@ -1,54 +1,96 @@
 # Milestone 2 — CUDA backend
 
-Milestone 1 is merged. Milestone 2 starts with a backend integration PR, followed by CUDA
-model execution and then CPU/CUDA pipeline qualification. The integration target probes
-LibTorch CUDA on a real device and exposes control RPCs. It **does not execute models**:
-no architectures or execution dtypes are advertised, `Health.serving` is false, and
-`LoadStage` rejects requests with an explicit unsupported-execution detail.
+The optional Linux CUDA worker now executes dense Llama and Qwen3 stages with LibTorch/ATen.
+Tiny-model numerical and single-worker process tests establish the initial execution path.
+Mixed CPU/CUDA process qualification, pinned transfers and full-checkpoint inference remain
+next. The first integration PR established backend selection and memory domains; this second
+PR adds model execution on top of those interfaces.
 
-## First PR: integration boundaries
+## Backend and model boundaries
 
 `ControlService` receives a `BackendFactory`; the shared worker runtime has no CPU or
-LibTorch dependency. Torch-facing code is compiled separately from RPC-facing code,
-avoiding collisions with the Protobuf headers bundled in some Torch distributions. The executable selects its factory: `hllm-worker-cpu` or the optional
-Linux `hllm-worker-cuda`. CPU builds require no Torch/CUDA installation.
+LibTorch dependency. The executable selects `hllm-worker-cpu` or `hllm-worker-cuda`. CPU
+builds require no Torch/CUDA installation. Torch-facing code is compiled separately from
+RPC-facing code to avoid the Protobuf headers bundled in some Torch distributions.
 
-`StageBackend::execute` accepts token IDs on the first stage or owned little-endian FP16
+CPU and CUDA share `model::inspect_dense_stage`: the architecture registry, revision and
+feature validation, tensor ownership/shapes, source metadata and path checks. It returns
+plain metadata and a source that reads one tensor at a time. It does not instantiate a
+CPU backend or retain a full host copy of GPU weights. Dense configuration lives in the
+model layer; CPU numerical kernels remain independent of CUDA execution.
+
+`StageBackend::execute` accepts tokens on the first stage or owned little-endian FP16
 boundary bytes on the final stage. It returns boundary bytes or a sampled token. Embedding,
-owned layers, and sampling run within that call, so a CUDA backend can retain intermediate
-activations and sequence state on the device. CPU-only reference methods remain available
-to numerical tests. Neither Torch tensors nor CPU float activation arrays appear in the
-common execution contract. The existing activation wire protocol remains unchanged.
+owned layers and sampling remain inside that call. Production CUDA execution retains
+weights, intermediate activations and KV state on the selected GPU. CPU float arrays and
+Torch tensors never appear in the common execution contract. The wire protocol is unchanged.
 
-Sequence state remains opaque and owned by the backend. Returned host data must be ready
-for transport. Pending device work must finish before an operation returns or its buffers
-are released, including exceptional/cancelled execution. Stream/event ownership and actual
-GPU sequence allocations are implementation work for the next PR.
+The CUDA-only `ReferenceStage::execute_traced` interface exposes layer/cache/logit snapshots
+for tiny numerical tests. Production requests do not call it. Its diagnostic host copies
+are outside production workspace accounting.
 
-Memory admission checks three independently capped amounts: host, device, and pinned host.
-Pinned bytes are a subset of host usage, with an additional cap; they are counted once in
-legacy host-plus-device totals. Factories must validate peak load/conversion allocations
-before loading. These runtime checks are authoritative; configured planner profiles remain
-estimates, and pinned-transfer estimates must be reconciled during mixed-backend qualification.
-Before sequence allocation, the runtime checks weights plus cache plus
-workspace in every domain, with overflow checks. Allocation failure cannot publish a
-partial stage or reservation.
+## Execution and supported semantics
 
-`MemoryReport.domain_usage` adds per-domain weight/cache/workspace accounting while
-retaining existing total fields. This is payload and reservation accounting, not RSS,
-CUDA allocator-reserved memory, or a hard process limit. CUDA context, allocator pools,
-LibTorch, and RPC overhead need headroom outside configured model budgets. The startup
-probe allocates a tiny tensor and completes a CUDA reduction; it does not claim model
-memory usage or inference readiness.
+CUDA advertises `llama.v1` and `qwen3.v1`, revision 1 semantics, with F32 or F16 execution.
+F32/F16/BF16 checkpoint payloads convert to the selected resident weight dtype. KV caches
+use that same dtype. BF16 execution, quantization, scaled RoPE, sliding attention, biases,
+MoE, and multimodal inputs are not implemented. Existing architecture and shape validation
+rejects unsupported configurations before accepting a stage.
 
-## Linux build and smoke test
+The initial path implements embeddings, RMS normalization, Qwen3 per-head Q/K normalization,
+RoPE, grouped-query causal attention, residuals, SiLU gated feed-forward layers, final
+normalization/projection, and greedy sampling. Tied heads use the resident embedding tensor;
+split tied embeddings are loaded independently where assigned. Sampling uses the first
+maximum on ties. Only the final row is projected to logits in production.
+
+RMS statistics, RoPE arithmetic, attention scores and softmax use F32. Other activations and
+matrix projections use the selected dtype. TF32 and reduced-precision FP16 GEMM reduction
+are disabled. The implementation uses explicit dense attention, not fused attention or
+custom kernels. Prefill therefore has quadratic attention workspace; this reference path
+prioritizes correctness and does not establish full-model latency or memory efficiency.
+
+Each stage owns a guarded CUDA stream and opaque sequence state. Positions must be contiguous
+and fit the reserved context. Operations complete before returning control to the runtime;
+error paths drain the stream before propagating the failure. A state interrupted during an
+operation is marked unusable, since some cache layers may already have been written.
+Cancellation is checked before/between layers and before returning output. It does not
+preempt an individual CUDA kernel. Transfers currently use blocking pageable host staging;
+pinned staging and overlapping transfers are subsequent qualification work.
+
+## Memory admission and reporting
+
+Host, device and pinned-host amounts have independent caps. Pinned memory also counts toward
+host usage and is counted once in legacy host-plus-device totals. CUDA currently reserves
+zero pinned bytes. Resident GPU weights and exact per-layer KV payloads are reported in
+the device domain; production retains no host weight or KV payload.
+
+Before loading, validate all assigned metadata, then check resident device weights plus the
+largest conversion/upload temporary. Host admission includes the largest checkpoint payload,
+conversion/upload temporaries and a fixed allowance. Tensors are read, validated and uploaded
+one at a time. Non-finite weights and weights overflowing F16 are rejected. Load failure
+cannot publish a partial stage.
+
+Before allocating sequence state, check weights plus cache plus workspace in every domain.
+Workspace reserves dense projections, worst-case attention score/softmax matrices, logits,
+transport copies and a fixed device allowance. Size arithmetic checks overflow. LibTorch
+out-of-memory exceptions become allocation failures so the control/execution services return
+resource-exhaustion errors. A rejected reservation does not retain KV state.
+
+These are payload and conservative reservation estimates, not measured RSS, CUDA allocator
+reserved memory or hard process limits. CUDA context, framework, allocator and RPC overhead
+need operating-system/device headroom. Configured planner profiles remain estimates; their
+workspace and transfer assumptions must be reconciled during mixed-backend qualification.
+The GPU allocator may retain freed blocks for reuse after unloading, even though reported
+model/request payload usage is zero.
+
+## Linux build and tests
 
 Prerequisites are a CUDA-capable NVIDIA driver/device, CUDA toolkit, CUDA-enabled LibTorch
 with the modern C++11 ABI, and ABI-compatible Protobuf/gRPC development packages. Install
 LibTorch's transitive CUDA libraries as well. Set its package prefix according to the
 [official LibTorch CMake instructions](https://docs.pytorch.org/cppdocs/installing.html).
 Older pre-C++11-ABI Torch distributions are rejected. Choose a host compiler supported by
-your CUDA toolkit; set `CMAKE_CUDA_HOST_COMPILER` explicitly if the system compiler differs.
+your CUDA toolkit; set `CMAKE_CUDA_HOST_COMPILER` if the system compiler differs.
 
 ```bash
 uv sync
@@ -63,13 +105,11 @@ uv run cmake --build build/native/cuda -j 2
 uv run ctest --test-dir build/native/cuda --output-on-failure
 ```
 
-Use the architecture for your GPU (8.6 is the RTX 3060 Ti). `CudaBackendSmoke` is registered
-only when CUDA is enabled and requires working hardware; it fails rather than silently
-skipping when the device/runtime is unavailable. It starts a real worker, checks its
-capabilities, memory report, health and load rejection, and exercises invalid startup flags.
-The CPU tests also run in a CUDA-enabled build.
+Use your GPU's architecture (8.6 is the RTX 3060 Ti). `CudaNumericalParity` and
+`CudaBackendSmoke` require working CUDA hardware and fail rather than silently skip if it
+is unavailable. CPU tests also run in a CUDA-enabled build.
 
-Start an integration worker with an existing model-root directory:
+Start a CUDA worker with an existing local checkpoint directory:
 
 ```bash
 build/native/cuda/cpp/hllm-worker-cuda --listen 127.0.0.1:50053 \
@@ -78,48 +118,50 @@ build/native/cuda/cpp/hllm-worker-cuda --listen 127.0.0.1:50053 \
   --pinned-host-memory-limit-bytes 67108864 --device-id 0
 ```
 
-`--memory-limit-bytes` remains the host budget. The CUDA device budget is required;
-`--device-id` defaults to zero. The optional pinned budget defaults to zero (no pinned
-allocations admitted). CPU workers reject CUDA-only flags. A successful CUDA process
-startup means the driver, selected device and linked ATen CUDA operation passed the probe;
-use `Health` to check model-serving readiness.
+The host budget keeps its existing `--memory-limit-bytes` name. The device budget is
+required; `--device-id` defaults to zero. The optional pinned budget defaults to zero.
+CPU workers reject CUDA-only flags. Startup probes a real ATen CUDA operation; capabilities
+then advertise implemented model execution. As on CPU, health indicates a serving-capable
+worker even before a stage is loaded. Deploy through `DeploymentSession` with a one-stage
+F32/F16 plan for the current qualified flow; the planner still enumerates two-stage plans.
+The CUDA process tests construct and exercise those one-stage plans against a tiny checkpoint.
 
-## Next PRs
+## Validation
 
-1. Implement CUDA dense Llama/Qwen3 loading, embedding, normalization, RoPE, attention/KV,
-   feed-forward layers, final projection and greedy sampling with ATen/LibTorch. Keep
-   intermediates and KV on the selected GPU. Validate architectural revisions, features,
-   shapes and storage/compute dtypes explicitly. Establish tiny-model parity against the
-   CPU/Transformers fixtures before advertising executable capabilities.
-2. Implement and qualify boundary transfers, pinned staging, stream/event cleanup and
-   memory reservations under real CUDA execution. Test both CPU/CUDA stage orders,
-   repeated requests, cancellation, deadlines, allocation failure and peer loss. Only
-   then attempt a full checkpoint and record its measured limitations.
+The second PR uses the same RTX 3060 Ti environment as the integration PR: GCC 14.4,
+CUDA toolkit 13.3, C++11-ABI LibTorch 2.13.0+cu130, gRPC 1.83, Protobuf 7.35.1 and driver
+610.57.04. Native dependencies and the checkout are isolated from existing workloads.
+The system GCC 16 is unsupported by the CUDA toolkit. The installed Abseil shared package
+has a Debug mutex-destructor link issue; Linux validation uses RelWithDebInfo.
 
-These changes preserve the [model extension boundaries](model-extensibility.md). Additional
-model families remain separate decisions; this PR adds no general model graph engine,
-MoE routing, recurrent state implementation or multimodal input contract. MLX is Milestone 3,
+Numerical tolerances are absolute and apply to the tiny fixture:
+
+- Qwen3 prefill and incremental decode layer outputs, KV caches and last-row logits match
+  the independent Transformers fixture at `3e-5` for F32 and `5e-3` for F16.
+- Llama layer outputs match the CPU reference at the same dtype-specific tolerances.
+- Llama/Qwen3 generated tokens match CPU for F32/F16/BF16 storage, tied/untied heads and
+  F32/F16 execution. Both assigned CUDA stages match CPU boundaries within `5e-3` and produce
+  matching sampled tokens. This is a direct backend test, not mixed-device RPC qualification.
+- CUDA worker tests cover capabilities, unsupported architectures, device selection, required
+  budgets, reservation accounting/cancellation, repeated generation and unload/reload in
+  F32 and F16. Native tests cover invalid metadata/context/state, non-finite or overflowing
+  weights, and host/device budget rejection.
+
+Validation on 2026-09-05 passed 35 Python unit tests, 42 native CPU/common tests and 13 CPU
+process cases on macOS; the Linux CUDA-enabled build passed those 42 native tests and 13
+CPU process cases plus seven CUDA native tests and five CUDA process cases (45 CTest
+entries). Ruff, Pyright, generated-binding reproducibility and whitespace checks passed.
+
+Full-checkpoint parity/performance, CUDA sanitizer coverage, mixed-device fault injection
+and asynchronous transfer overlap remain unverified.
+
+## Next PR
+
+Qualify real CPU/CUDA processes in both stage orders and at every valid split. Add bounded
+pinned staging and event-based transfer ownership, then test cancellation, deadlines,
+allocation failure, peer loss and repeated requests under CUDA execution. Reconcile measured
+workspace/transfer needs with placement estimates before attempting a full checkpoint.
+
+The [model extension boundaries](model-extensibility.md) remain in force. Additional model
+families require explicit decisions rather than a generic graph engine. MLX is Milestone 3,
 cross-machine qualification is Milestone 4, and measured placement/performance is Milestone 5.
-
-## Validation record — 2026-09-05
-
-- macOS CPU Debug build: 42 native tests and all 13 real-process integration cases passed
-  (43 CTest entries). The new tests cover independent memory rejection before allocation,
-  accounting overflow, pinned inclusion, per-domain reporting/release, and the opaque
-  prefill/decode contract against the CPU reference.
-- Linux RTX 3060 Ti: the CUDA-enabled RelWithDebInfo build passed all 44 CTest entries:
-  42 native tests, 13 CPU process cases, and three CUDA startup/control smoke cases.
-  The CUDA process completed an ATen allocation, reduction and host result on device 0.
-  Invalid device IDs and missing device budgets fail startup. The CPU binary has no
-  Torch/CUDA dynamic-library dependency even in this build.
-- 35 Python unit tests, Ruff, Pyright (including CUDA smoke tests), generated-binding
-  reproducibility and whitespace checks passed locally.
-
-The Linux check used GCC 14.4, CUDA toolkit 13.3, the available C++11-ABI LibTorch
-2.13.0+cu130 build, gRPC 1.83 and Protobuf 7.35.1, with driver 610.57.04. Native build
-dependencies were installed in an isolated environment; existing workloads were retained.
-The system GCC 16 was unsupported by the CUDA toolkit, so nvcc used GCC 14 explicitly.
-The installed Abseil 20260526 shared package failed Debug linking on its mutex destructor;
-RelWithDebInfo passed. That package/toolchain limitation is not Debug validation.
-No CUDA model parity, mixed-device inference, full-checkpoint run or sanitizer coverage
-is claimed by this integration PR.

@@ -9,13 +9,13 @@ native CPU pipeline (Milestone 1). Dense Llama and Qwen3 stages load assigned Sa
 weights, run prefill and greedy decode across two native processes, and stream token IDs
 through a Python controller. Request admission, cancellation, deadlines, and cleanup are
 covered by numerical and process integration tests. Milestone 2 adds an optional Linux
-CUDA integration target and backend-independent execution/memory contracts. CUDA model
-execution and MLX remain next.
+CUDA worker that executes Llama/Qwen3 with F32/F16 weights and caches on the GPU. Tiny-model
+numerical and single-worker process tests pass; mixed CPU/CUDA qualification and MLX remain next.
 
 See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
 [the model/backend extension boundaries](docs/model-extensibility.md).
-See [the CUDA integration status and build instructions](docs/milestone-2.md) for the first
-Milestone 2 PR and the remaining implementation sequence.
+See [the CUDA integration status and build instructions](docs/milestone-2.md) for
+Milestone 2 implementation details and remaining work.
 
 ## Development setup
 
