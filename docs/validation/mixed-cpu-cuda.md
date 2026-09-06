@@ -142,3 +142,31 @@ No racecheck, initcheck, full RPC sanitizer run, full-checkpoint inference,
 or cross-machine qualification is claimed. The next step is a physical-memory
 fit assessment; the 64 MiB host and 128 MiB device reservation caps are not
 process/container memory limits.
+
+## PR review validation (2026-09-06)
+
+The independent [review of PRs 5–9](../code-quality-review-cuda.md) found and fixed
+large pinned-boundary transfers and combined host-stage/transport accounting.
+The new large-transfer regression failed on the original CUDA implementation,
+then passed after copying through bounded chunks. Final allocation checks confirm
+that 8 MiB + 1 byte and 16 MiB + 17 byte transfers retain only 8 MiB pinned staging,
+that small transfers still work afterward, and that retirement releases staging.
+
+A fresh CPU-only macOS build passed all 43 CTest entries (42 native cases plus
+13 CPU process cases). All 37 Python unit tests, Ruff, Pyright, generated-binding
+reproducibility, and whitespace checks passed. A fresh Linux CUDA-enabled build
+on the RTX 3060 Ti passed all 48 CTest entries in 325 seconds: 42 common/CPU native
+cases, 13 CPU process cases, four CUDA transfer cases, 10 CUDA numerical/lifecycle
+cases, eight mixed pipeline cases, 68 mixed fault/memory cases, and five CUDA
+worker cases. The deadline tests now keep the client alive five seconds beyond
+the application deadline, so their asserted status comes from the native server.
+
+The Linux build reused the documented GCC 14/CUDA/LibTorch dependencies in an
+isolated source/build directory. Its packaged NVIDIA dependency libraries were
+added to the build/test environment's library search path; no shared workload
+or existing checkout was modified. Full-checkpoint and cross-machine limits
+remain as described above.
+
+Compute Sanitizer memcheck with full leak checking passed all four final transfer
+cases: **zero errors and zero leaked bytes**. This run includes the new multi-chunk
+payload case and the existing pending-copy/event-failure cleanup regression.

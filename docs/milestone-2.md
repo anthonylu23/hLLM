@@ -123,9 +123,9 @@ The host budget keeps its existing `--memory-limit-bytes` name. The device budge
 required; `--device-id` defaults to zero. The optional pinned budget defaults to zero.
 CPU workers reject CUDA-only flags. Startup probes a real ATen CUDA operation; capabilities
 then advertise implemented model execution. As on CPU, health indicates a serving-capable
-worker even before a stage is loaded. Deploy through `DeploymentSession` with a one-stage
-F32/F16 plan for the current qualified flow; the planner still enumerates two-stage plans.
-The CUDA process tests construct and exercise those one-stage plans against a tiny checkpoint.
+worker even before a stage is loaded. Deploy through `DeploymentSession` with a
+one-stage F32/F16 CUDA plan or a two-stage F32 CPU/CUDA plan. The planner enumerates two-stage plans; CUDA process
+tests also construct one-stage plans against a tiny checkpoint.
 
 ## Validation
 
@@ -162,7 +162,8 @@ parity/performance and asynchronous transfer overlap remain unverified.
 See the [mixed CPU/CUDA qualification plan](milestone-2-qualification-plan.md) for the
 three-PR sequence, constraints and acceptance criteria.
 
-Review and land the CUDA stack in dependency order. Next, assess a full-checkpoint
+The [CUDA stack review](code-quality-review-cuda.md) records correctness fixes and
+quality findings for PRs 5–9. Next, assess a full-checkpoint
 workload against available physical memory before scheduling inference. Account for
 CPU F32 resident weights, global F32 compute/KV in mixed plans, dense attention
 workspace, and measured framework/context overhead. Qwen3-4B-Base is still the
