@@ -1,0 +1,38 @@
+# Tiny fixture qualification estimates; not full-checkpoint measurements.
+# cpu-b is the logical peer ID and runs the CUDA executable.
+workers:
+  - worker_id: cpu-a
+    endpoint: 127.0.0.1:50051
+    backend: cpu
+    primary_memory_domain: HOST
+    supported_architectures: [llama.v1, qwen3.v1]
+    supported_execution_dtypes: [F32]
+    memory_budgets:
+      - domain: HOST
+        capacity_bytes: 536870912
+        runtime_reserve_bytes: 67108864
+        safety_fraction: 0.1
+    fixed_workspace_bytes: 16777216
+    provenance: CONFIGURED
+  - worker_id: cpu-b
+    endpoint: 127.0.0.1:50053
+    backend: cuda
+    primary_memory_domain: DEVICE
+    supported_architectures: [llama.v1, qwen3.v1]
+    supported_execution_dtypes: [F32]
+    memory_budgets:
+      - domain: DEVICE
+        capacity_bytes: 134217728
+        runtime_reserve_bytes: 16777216
+        safety_fraction: 0.1
+      - domain: HOST
+        capacity_bytes: 67108864
+        runtime_reserve_bytes: 8388608
+        safety_fraction: 0.1
+      - domain: HOST_PINNED
+        capacity_bytes: 8388608
+        runtime_reserve_bytes: 0
+        safety_fraction: 0.0
+    host_transport_buffer_bytes: 8388608
+    fixed_workspace_bytes: 33554432
+    provenance: CONFIGURED

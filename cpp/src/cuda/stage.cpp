@@ -16,6 +16,7 @@
 #include <stdexcept>
 
 #include "device.hpp"
+#include "pinned_buffer.hpp"
 #include "hllm/runtime/checked_size.hpp"
 #include "hllm/runtime/half.hpp"
 
@@ -76,11 +77,12 @@ struct CudaSequence final : runtime::SequenceState {
   std::size_t length{};
   bool failed{false};
   std::vector<Cache> caches;
+  std::unique_ptr<PinnedBuffer> staging;
 };
 
 class CudaStage final : public ReferenceStage {
  public:
-  CudaStage(const model::DenseSource& source, int device_id, const runtime::MemoryAmounts& capacity)
+  CudaStage(const model::DenseSource& source, int device_id, const runtime::MemoryAmounts& capacity, bool pinned)
       : config_(source.config),
         vocab_(source.vocabulary_size),
         start_(source.layer_start),
@@ -88,10 +90,14 @@ class CudaStage final : public ReferenceStage {
         first_(source.first),
         final_(source.final),
         tied_(source.tied_head),
+        pinned_(pinned),
         dtype_(source.execution_dtype == runtime::DataType::kF16 ? at::kHalf : at::kFloat),
         stream_(c10::cuda::getStreamFromPool(false, static_cast<c10::DeviceIndex>(device_id))) {
     if (std::endian::native != std::endian::little) {
       throw std::invalid_argument("CUDA boundary transfer requires a little-endian host");
+    }
+    if (pinned_ && capacity.pinned_host_bytes == 0U) {
+      throw std::invalid_argument("pinned transfer mode requires pinned host capacity");
     }
     bytes_ = source.float32_weight_bytes / sizeof(float) * element_bytes();
     // Reserve the source payload plus conversion/upload temporaries in each
@@ -152,7 +158,8 @@ class CudaStage final : public ReferenceStage {
         mul(mul(mul(tokens, tokens), config_.attention_heads), 4U * sizeof(float));
     const auto device = add(add(add(linear, attention), mul(vocab_, 32U)), 8U * 1024U * 1024U);
     const auto host = add(add(mul(mul(tokens, hidden_size()), 6U), mul(tokens, 16U)), 65536U);
-    return {{0U, cache, 0U}, {host, device, 0U}};
+    const auto staging = staging_bytes(tokens);
+    return {{0U, cache, 0U}, {add(host, staging), device, staging}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens));
@@ -161,6 +168,9 @@ class CudaStage final : public ReferenceStage {
       auto state = std::make_unique<CudaSequence>();
       state->owner = this;
       state->capacity = tokens;
+      if (const auto bytes = staging_bytes(tokens); bytes != 0U) {
+        state->staging = std::make_unique<PinnedBuffer>(bytes, stream_.stream());
+      }
       for (auto layer = start_; layer < end_; ++layer) {
         const std::vector<std::int64_t> shape{dimension(config_.key_value_heads), dimension(tokens),
                                               dimension(config_.head_dimension)};
@@ -183,6 +193,11 @@ class CudaStage final : public ReferenceStage {
   }
 
  private:
+  std::size_t staging_bytes(std::size_t tokens) const {
+    return pinned_ && !(first_ && final_)
+               ? std::min(mul(mul(tokens, hidden_size()), 2U), std::size_t{8U * 1024U * 1024U})
+               : 0U;
+  }
   std::size_t element_bytes() const { return dtype_ == at::kHalf ? 2U : 4U; }
   at::TensorOptions options() const {
     return at::TensorOptions().device(stream_.device()).dtype(dtype_);
@@ -289,10 +304,18 @@ class CudaStage final : public ReferenceStage {
               boundary.payload.size() != mul(mul(count, hidden_size()), 2U)) {
             throw std::invalid_argument("invalid CUDA boundary shape");
           }
-          hidden = at::from_blob(const_cast<std::byte*>(boundary.payload.data()),
-                                 {dimension(count), dimension(hidden_size())},
-                                 at::TensorOptions().dtype(at::kHalf))
-                       .to(options(), false, true);
+          if (state->staging) {
+            auto incoming = at::empty({dimension(count), dimension(hidden_size())},
+                                      options().dtype(at::kHalf));
+            state->staging->upload(incoming.mutable_data_ptr(), boundary.payload.data(),
+                                   boundary.payload.size());
+            hidden = incoming.to(dtype_);
+          } else {
+            hidden = at::from_blob(const_cast<std::byte*>(boundary.payload.data()),
+                                   {dimension(count), dimension(hidden_size())},
+                                   at::TensorOptions().dtype(at::kHalf))
+                         .to(options(), false, true);
+          }
           finite(hidden);
         }
         for (auto index = start_; index < end_; ++index) {
@@ -322,10 +345,16 @@ class CudaStage final : public ReferenceStage {
         } else {
           auto boundary = hidden.to(at::kHalf);
           finite(boundary);
-          auto host = boundary.to(at::kCPU).contiguous();
+          boundary = boundary.contiguous();
           runtime::BoundaryActivation output{
               count, hidden_size(), std::vector<std::byte>(mul(mul(count, hidden_size()), 2U))};
-          std::memcpy(output.payload.data(), host.const_data_ptr(), output.payload.size());
+          if (state->staging) {
+            state->staging->download(output.payload.data(), boundary.const_data_ptr(),
+                                     output.payload.size());
+          } else {
+            auto host = boundary.to(at::kCPU).contiguous();
+            std::memcpy(output.payload.data(), host.const_data_ptr(), output.payload.size());
+          }
           result = std::move(output);
         }
         running(cancelled);
@@ -342,7 +371,7 @@ class CudaStage final : public ReferenceStage {
 
   model::DenseConfig config_;
   std::size_t vocab_, start_, end_;
-  bool first_, final_, tied_;
+  bool first_, final_, tied_, pinned_;
   at::ScalarType dtype_;
   c10::cuda::CUDAStream stream_;
   std::size_t bytes_{};
@@ -353,9 +382,9 @@ class CudaStage final : public ReferenceStage {
 
 std::unique_ptr<runtime::StageBackend> load_device_stage(const model::DenseSource& source,
                                                          int device_id,
-                                                         const runtime::MemoryAmounts& capacity) {
+                                                         const runtime::MemoryAmounts& capacity, bool pinned) {
   try {
-    return std::make_unique<CudaStage>(source, device_id, capacity);
+    return std::make_unique<CudaStage>(source, device_id, capacity, pinned);
   } catch (const c10::OutOfMemoryError&) {
     throw std::bad_alloc();
   }

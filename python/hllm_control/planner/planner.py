@@ -105,9 +105,11 @@ def _stage_memory(
         * DTYPE_BYTES[workload.activation_dtype]
     )
     activation_buffer_bytes = activation_payload * worker.activation_buffer_count
-    subtotal = (
-        weight_bytes + kv_cache_bytes + worker.fixed_workspace_bytes + activation_buffer_bytes
-    )
+    workspace_bytes = worker.fixed_workspace_bytes
+    if worker.primary_memory_domain == MemoryDomain.HOST:
+        # Host-resident stages and transport staging share the same capacity.
+        workspace_bytes += worker.host_transport_buffer_bytes
+    subtotal = weight_bytes + kv_cache_bytes + workspace_bytes + activation_buffer_bytes
     allocator_allowance_bytes = math.ceil(subtotal * worker.allocator_allowance_fraction)
     required_bytes = subtotal + allocator_allowance_bytes
     usable_bytes = budget.usable_bytes
@@ -119,7 +121,7 @@ def _stage_memory(
         layer_end=end,
         weight_bytes=weight_bytes,
         kv_cache_bytes=kv_cache_bytes,
-        workspace_bytes=worker.fixed_workspace_bytes,
+        workspace_bytes=workspace_bytes,
         activation_buffer_bytes=activation_buffer_bytes,
         allocator_allowance_bytes=allocator_allowance_bytes,
         required_bytes=required_bytes,
@@ -261,16 +263,18 @@ def create_plan(
             for stage, worker in zip(stages, (first, final), strict=True):
                 if stage.required_bytes > stage.usable_bytes:
                     reasons.append(f"{stage.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}")
-                transport_budget = worker.budget_for(MemoryDomain.HOST_PINNED)
-                if transport_budget is None:
-                    transport_budget = worker.budget_for(MemoryDomain.HOST)
-                if (
-                    transport_budget is not None
-                    and worker.host_transport_buffer_bytes > transport_budget.usable_bytes
-                ):
-                    reasons.append(
-                        f"{transport_budget.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}"
-                    )
+                pinned_budget = worker.budget_for(MemoryDomain.HOST_PINNED)
+                host_budget = worker.budget_for(MemoryDomain.HOST)
+                if pinned_budget is not None and host_budget is None:
+                    reasons.append(f"MISSING_HOST_MEMORY_BUDGET:{stage.worker_id}")
+                for transport_budget in (host_budget, pinned_budget):
+                    if (
+                        transport_budget is not None
+                        and worker.host_transport_buffer_bytes > transport_budget.usable_bytes
+                    ):
+                        reasons.append(
+                            f"{transport_budget.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}"
+                        )
             if settings.mode == PlanningMode.ESTIMATED and link is None:
                 reasons.append(f"MISSING_LINK_PROFILE:{first.worker_id}->{final.worker_id}")
             performance = _boundary_estimate(manifest, workload, link) if link else None

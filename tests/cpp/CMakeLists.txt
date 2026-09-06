@@ -53,6 +53,12 @@ set_tests_properties(CpuPipelineIntegration PROPERTIES
 )
 
 if(HLLM_ENABLE_CUDA)
+  find_package(CUDAToolkit REQUIRED)
+  add_executable(hllm_cuda_transfer_tests cuda_transfer_test.cpp)
+  target_include_directories(hllm_cuda_transfer_tests PRIVATE "${PROJECT_SOURCE_DIR}/cpp/src/cuda")
+  target_link_libraries(hllm_cuda_transfer_tests PRIVATE CUDA::cudart GTest::gtest_main hllm_project_options)
+  add_test(NAME CudaTransfers COMMAND hllm_cuda_transfer_tests)
+  set_tests_properties(CudaTransfers PROPERTIES TIMEOUT 60 LABELS "cuda;hardware")
   add_executable(hllm_cuda_tests cuda_stage_test.cpp)
   target_link_libraries(hllm_cuda_tests PRIVATE hllm::cuda_backend hllm::cpu_backend hllm::worker_runtime
     nlohmann_json::nlohmann_json GTest::gtest_main hllm_project_options)

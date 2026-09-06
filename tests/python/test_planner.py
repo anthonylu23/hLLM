@@ -180,3 +180,68 @@ def test_falcon3_shape_fixture_enumerates_42_realistic_candidates(tmp_path: Path
     assert len(report.candidates) == 42
     assert report.plan is not None
     assert any(not candidate.feasible for candidate in report.candidates)
+
+
+def test_pinned_transport_requires_both_host_and_pinned_capacity(tiny_model: Path) -> None:
+    manifest = prepare_model(tiny_model)
+    peer = worker("mac", Backend.MLX, 10_000_000)
+    gpu = worker("cuda", Backend.CUDA, 10_000_000)
+    for host, pinned, feasible in (
+        (100, 100, True),
+        (99, 100, False),
+        (100, 99, False),
+        (None, 100, False),
+    ):
+        budgets = list(gpu.memory_budgets)
+        for domain, capacity in ((MemoryDomain.HOST, host), (MemoryDomain.HOST_PINNED, pinned)):
+            if capacity is not None:
+                budgets.append(
+                    MemoryBudget(
+                        domain=domain,
+                        capacity_bytes=capacity,
+                        runtime_reserve_bytes=0,
+                        safety_fraction=0.0,
+                    )
+                )
+        configured = gpu.model_copy(
+            update={"memory_budgets": tuple(budgets), "host_transport_buffer_bytes": 100}
+        )
+        report = create_plan(manifest, (peer, configured), (), workload())
+        assert (report.plan is not None) == feasible
+
+
+def test_host_stage_and_transport_share_one_budget(tiny_model: Path) -> None:
+    manifest = prepare_model(tiny_model)
+    peer = worker("mac", Backend.MLX, 10_000_000)
+    host_budget = MemoryBudget(
+        domain=MemoryDomain.HOST,
+        capacity_bytes=10_000_000,
+        runtime_reserve_bytes=0,
+        safety_fraction=0.0,
+    )
+    cpu = worker("cpu", Backend.CPU, 10_000_000).model_copy(
+        update={"primary_memory_domain": MemoryDomain.HOST, "memory_budgets": (host_budget,)}
+    )
+    baseline = create_plan(manifest, (peer, cpu), (), workload())
+    smallest_stage = min(
+        stage.required_bytes
+        for candidate in baseline.candidates
+        for stage in candidate.stages
+        if stage.worker_id == "cpu"
+    )
+    for shortage in (0, 1):
+        configured = cpu.model_copy(
+            update={
+                "host_transport_buffer_bytes": 100,
+                "memory_budgets": (
+                    host_budget.model_copy(
+                        update={"capacity_bytes": smallest_stage + 100 - shortage}
+                    ),
+                ),
+            }
+        )
+        report = create_plan(manifest, (peer, configured), (), workload())
+        assert (report.plan is not None) == (shortage == 0)
+        for candidate in report.candidates:
+            stage = next(stage for stage in candidate.stages if stage.worker_id == "cpu")
+            assert stage.workspace_bytes == 100
