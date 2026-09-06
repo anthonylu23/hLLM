@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cmath>
 
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
 #include "model_fixture.hpp"
 
@@ -47,17 +48,22 @@ TEST(CpuStageTest, RejectsInvalidArchitecturesWeightsAndBudgets) {
   const test::ModelFixture fixture;
   auto request = fixture.load();
   request.mutable_manifest()->mutable_architecture()->set_architecture_revision("2");
-  EXPECT_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)),
-               std::invalid_argument);
+  const auto code = [&](const v1::LoadStageRequest& attempt, std::size_t limit) {
+    try {
+      static_cast<void>(load_stage(attempt, fixture.root, limit));
+    } catch (const runtime::Error& error) {
+      return error.code();
+    }
+    return runtime::ErrorCode::kInternal;
+  };
+  EXPECT_EQ(code(request, 1'000'000U), runtime::ErrorCode::kIncompatibleWorker);
   request = fixture.load();
   request.mutable_manifest()->mutable_architecture()->add_feature_flags("unknown");
-  EXPECT_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)),
-               std::invalid_argument);
+  EXPECT_EQ(code(request, 1'000'000U), runtime::ErrorCode::kIncompatibleWorker);
   request = fixture.load();
   request.mutable_manifest()->mutable_tensors()->DeleteSubrange(0, 1);
-  EXPECT_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)),
-               std::invalid_argument);
-  EXPECT_THROW(static_cast<void>(load_stage(fixture.load(), fixture.root, 1U)), std::length_error);
+  EXPECT_EQ(code(request, 1'000'000U), runtime::ErrorCode::kIncompatibleWorker);
+  EXPECT_EQ(code(fixture.load(), 1U), runtime::ErrorCode::kResourceExhausted);
 }
 
 TEST(CpuStageTest, DoesNotReadUnassignedWeights) {
@@ -125,10 +131,10 @@ TEST(CpuStageTest, ExecutesThroughOpaqueBoundaryContractForPrefillAndDecode) {
     EXPECT_EQ(std::get<runtime::SampledToken>(token).id, expected);
   }
   EXPECT_THROW(static_cast<void>(last->execute(runtime::TokenInput{{1U}}, 5U, *b, cancelled)),
-               std::invalid_argument);
+               runtime::Error);
   EXPECT_THROW(
       static_cast<void>(first->execute(runtime::BoundaryActivation{1U, 8U, {}}, 5U, *a, cancelled)),
-      std::invalid_argument);
+      runtime::Error);
 }
 }  // namespace
 }  // namespace hllm::cpu

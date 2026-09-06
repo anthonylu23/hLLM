@@ -9,6 +9,7 @@
 #include "hllm/cpu/llama.hpp"
 #include "hllm/model/dense_loader.hpp"
 #include "hllm/runtime/checked_size.hpp"
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
 
 namespace hllm::cpu {
@@ -40,7 +41,7 @@ class DenseStage final : public ReferenceStage {
   std::size_t maximum_tokens() const override { return config.maximum_sequence_length; }
   runtime::SequenceMemory sequence_memory(std::size_t tokens) const override {
     if (tokens == 0U || tokens > maximum_tokens()) {
-      throw std::invalid_argument("request exceeds model context capacity");
+      throw runtime::Error::invalid_request("request exceeds model context capacity");
     }
     const auto cache =
         multiply(multiply(multiply(multiply(tokens, layers.size()), config.key_value_heads),
@@ -69,13 +70,13 @@ class DenseStage final : public ReferenceStage {
   }
   HostActivation embed(std::span<const std::uint64_t> tokens) const override {
     if (embedding.rows() == 0U || tokens.empty() || tokens.size() > maximum_tokens()) {
-      throw std::invalid_argument("stage cannot embed this input");
+      throw runtime::Error::invalid_request("stage cannot embed this input");
     }
     HostActivation output{tokens.size(), hidden_size(),
                           std::vector<float>(multiply(tokens.size(), hidden_size()))};
     for (std::size_t row = 0U; row < tokens.size(); ++row) {
       if (tokens[row] >= vocab) {
-        throw std::invalid_argument("token ID exceeds vocabulary");
+        throw runtime::Error::invalid_request("token ID exceeds vocabulary");
       }
       for (std::size_t col = 0U; col < hidden_size(); ++col) {
         output.values[row * hidden_size() + col] = embedding(tokens[row], col);
@@ -102,18 +103,18 @@ class DenseStage final : public ReferenceStage {
     HostActivation hidden;
     if (const auto* tokens = std::get_if<runtime::TokenInput>(&input)) {
       if (!first_stage) {
-        throw std::invalid_argument("only stage zero accepts tokens");
+        throw runtime::Error::invalid_request("only stage zero accepts tokens");
       }
       hidden = embed(tokens->ids);
     } else {
       if (first_stage) {
-        throw std::invalid_argument("stage zero requires tokens");
+        throw runtime::Error::invalid_request("stage zero requires tokens");
       }
       const auto& boundary = std::get<runtime::BoundaryActivation>(input);
       const auto elements = multiply(boundary.tokens, boundary.width);
       if (boundary.width != hidden_size() || boundary.tokens == 0U ||
           boundary.payload.size() != multiply(elements, 2U)) {
-        throw std::invalid_argument("invalid boundary activation");
+        throw runtime::Error::invalid_request("invalid boundary activation");
       }
       hidden = {boundary.tokens, boundary.width, std::vector<float>(elements)};
       for (std::size_t i = 0U; i < elements; ++i) {
@@ -122,7 +123,7 @@ class DenseStage final : public ReferenceStage {
         hidden.values[i] =
             runtime::float16_to_float(static_cast<std::uint16_t>(low | (high << 8U)));
         if (!std::isfinite(hidden.values[i])) {
-          throw std::invalid_argument("non-finite activation");
+          throw runtime::Error::invalid_request("non-finite activation");
         }
       }
     }
@@ -135,7 +136,7 @@ class DenseStage final : public ReferenceStage {
     for (std::size_t i = 0U; i < hidden.values.size(); ++i) {
       const auto bits = runtime::float_to_float16(hidden.values[i]);
       if (!std::isfinite(runtime::float16_to_float(bits))) {
-        throw std::runtime_error("activation is not representable as finite FP16");
+        throw runtime::Error::internal("activation is not representable as finite FP16");
       }
       output.payload[2U * i] = static_cast<std::byte>(bits & 0xffU);
       output.payload[2U * i + 1U] = static_cast<std::byte>(bits >> 8U);
@@ -145,7 +146,7 @@ class DenseStage final : public ReferenceStage {
   std::uint64_t sample(const HostActivation& hidden) const override {
     if (norm.empty() || hidden.tokens == 0U || hidden.width != hidden_size() ||
         hidden.values.size() != multiply(hidden.tokens, hidden.width)) {
-      throw std::invalid_argument("stage cannot sample this activation");
+      throw runtime::Error::invalid_request("stage cannot sample this activation");
     }
     Matrix last(1U, hidden.width);
     std::copy_n(hidden.values.end() - static_cast<std::ptrdiff_t>(hidden.width), hidden.width,
@@ -162,10 +163,10 @@ std::unique_ptr<ReferenceStage> load_stage(const v1::LoadStageRequest& request,
                                            std::size_t memory_limit) {
   auto source = model::inspect_dense_stage(request, root);
   if (source.execution_dtype != runtime::DataType::kF32) {
-    throw std::invalid_argument("CPU execution requires F32");
+    throw runtime::Error::incompatible_worker("CPU execution requires F32");
   }
   if (add(add(source.float32_weight_bytes, source.largest_payload_bytes), 65536U) > memory_limit) {
-    throw std::length_error("stage loading exceeds host memory budget");
+    throw runtime::Error::resource_exhausted("stage loading exceeds host memory budget");
   }
   auto stage = std::make_unique<DenseStage>();
   stage->config = source.config;

@@ -4,9 +4,9 @@
 #include <cmath>
 #include <map>
 #include <set>
-#include <stdexcept>
 
 #include "hllm/runtime/checked_size.hpp"
+#include "hllm/runtime/error.hpp"
 
 namespace hllm::model {
 namespace {
@@ -25,7 +25,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   if (request.stage_index() >= static_cast<std::uint32_t>(request.plan().stages_size()) ||
       (request.plan().execution_dtype() != v1::DATA_TYPE_F32 &&
        request.plan().execution_dtype() != v1::DATA_TYPE_F16)) {
-    throw std::invalid_argument("invalid stage index or unsupported execution dtype");
+    throw runtime::Error::incompatible_worker("invalid stage index or unsupported execution dtype");
   }
   const auto& manifest = request.manifest();
   const auto& descriptor = manifest.architecture();
@@ -34,7 +34,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   const std::map<std::string, bool> architectures{{"llama.v1", false}, {"qwen3.v1", true}};
   const auto architecture = architectures.find(descriptor.architecture_id());
   if (architecture == architectures.end() || descriptor.architecture_revision() != "1") {
-    throw std::invalid_argument("unsupported architecture ID or revision");
+    throw runtime::Error::incompatible_worker("unsupported architecture ID or revision");
   }
   const bool qwen = architecture->second;
   const std::set<std::string> supported{"gqa", "mha", "tied_embeddings", "untied_embeddings",
@@ -44,11 +44,11 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
     if (qwen && feature == "qk_norm") {
       qk_flag = true;
     } else if (!supported.contains(feature)) {
-      throw std::invalid_argument("unsupported architecture feature: " + feature);
+      throw runtime::Error::incompatible_worker("unsupported architecture feature: " + feature);
     }
   }
   if (qwen && !qk_flag) {
-    throw std::invalid_argument("Qwen3 requires qk_norm feature");
+    throw runtime::Error::incompatible_worker("Qwen3 requires qk_norm feature");
   }
   const auto& cfg = manifest.config();
   if (cfg.hidden_size() == 0U || cfg.intermediate_size() == 0U || cfg.num_layers() == 0U ||
@@ -61,7 +61,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
       !std::isfinite(static_cast<float>(cfg.rope_theta())) ||
       !std::isfinite(static_cast<float>(cfg.rms_norm_eps())) ||
       static_cast<float>(cfg.rms_norm_eps()) <= 0) {
-    throw std::invalid_argument("unsupported dense model configuration");
+    throw runtime::Error::incompatible_worker("unsupported dense model configuration");
   }
   const auto& assignment = request.plan().stages(static_cast<int>(request.stage_index()));
   const auto layer_count = assignment.layer_end() - assignment.layer_start();
@@ -69,7 +69,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   if (assignment.layer_start() >= assignment.layer_end() ||
       assignment.layer_end() > cfg.num_layers() ||
       layer_count > static_cast<std::uint32_t>(manifest.tensors_size()) / tensors_per_layer) {
-    throw std::invalid_argument("layer range exceeds available tensor records");
+    throw runtime::Error::incompatible_worker("layer range exceeds available tensor records");
   }
   DenseSource source;
   source.config = {cfg.hidden_size(),
@@ -95,7 +95,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
       request.stage_index() + 1U == static_cast<std::uint32_t>(request.plan().stages_size());
   if (assignment.owns_token_embedding() != first || assignment.owns_sampling() != final ||
       assignment.owns_final_norm() != final || assignment.owns_lm_head() != final) {
-    throw std::invalid_argument("inconsistent stage tensor ownership");
+    throw runtime::Error::incompatible_worker("inconsistent stage tensor ownership");
   }
   const auto h = source.config.hidden_size;
   const auto attention = multiply(cfg.num_attention_heads(), cfg.head_dim());
@@ -139,7 +139,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   std::map<std::string, const v1::TensorRecord*> records;
   for (const auto& tensor : manifest.tensors()) {
     if (!records.emplace(tensor.name(), &tensor).second) {
-      throw std::invalid_argument("duplicate tensor in manifest");
+      throw runtime::Error::incompatible_worker("duplicate tensor in manifest");
     }
   }
   for (const auto& [name, record] : records) {
@@ -149,9 +149,10 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
          record->layer_index() < assignment.layer_end()) ||
         (record->role() == v1::TENSOR_ROLE_TOKEN_EMBEDDING && assignment.owns_token_embedding()) ||
         (record->role() == v1::TENSOR_ROLE_FINAL_NORM && assignment.owns_final_norm()) ||
-        (record->role() == v1::TENSOR_ROLE_LM_HEAD && assignment.owns_lm_head());
+        (record->role() == v1::TENSOR_ROLE_LM_HEAD && assignment.owns_lm_head() &&
+         !cfg.tied_embeddings());
     if (selected && !expected.contains(name)) {
-      throw std::invalid_argument("unsupported selected tensor: " + name);
+      throw runtime::Error::incompatible_worker("unsupported selected tensor: " + name);
     }
   }
   auto& files = source.files;
@@ -159,7 +160,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   for (const auto& [name, spec] : expected) {
     const auto found = records.find(name);
     if (found == records.end()) {
-      throw std::invalid_argument("missing required tensor: " + name);
+      throw runtime::Error::incompatible_worker("missing required tensor: " + name);
     }
     const auto& record = *found->second;
     if (record.role() != spec.role ||
@@ -167,14 +168,14 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
                              record.layer_index() != static_cast<std::uint32_t>(spec.layer))) ||
         (spec.layer < 0 && record.has_layer_index()) ||
         std::vector<std::size_t>(record.shape().begin(), record.shape().end()) != spec.shape) {
-      throw std::invalid_argument("incorrect tensor shape or ownership: " + name);
+      throw runtime::Error::incompatible_worker("incorrect tensor shape or ownership: " + name);
     }
     const std::filesystem::path relative(record.file());
     if (relative.empty() || relative.is_absolute() || relative.has_parent_path() ||
         relative == "." || relative == ".." ||
         std::filesystem::canonical(root / relative).parent_path() !=
             std::filesystem::canonical(root)) {
-      throw std::invalid_argument("tensor path escapes model root");
+      throw runtime::Error::incompatible_worker("tensor path escapes model root");
     }
     auto file = files.find(record.file());
     if (file == files.end()) {
@@ -188,7 +189,8 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
     if (dtype == v1::DATA_TYPE_UNSPECIFIED || record.dtype() != dtype ||
         tensor.shape != spec.shape || tensor.data_offset != record.data_offset() ||
         tensor.byte_length != record.byte_length()) {
-      throw std::invalid_argument("Safetensors metadata mismatch or unsupported dtype: " + name);
+      throw runtime::Error::incompatible_worker(
+          "Safetensors metadata mismatch or unsupported dtype: " + name);
     }
     std::size_t elements = 1U;
     for (const auto dim : spec.shape) {

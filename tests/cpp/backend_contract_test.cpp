@@ -2,6 +2,7 @@
 
 #include <limits>
 
+#include "hllm/runtime/error.hpp"
 #include "hllm/worker/control_service.hpp"
 #include "model_fixture.hpp"
 
@@ -136,10 +137,21 @@ TEST(BackendContractTest, RejectsInvalidWeightAccountingWithoutPublishingStage) 
 TEST(BackendContractTest, RejectsOverflowAndUnaccountedPinnedMemory) {
   const auto maximum = std::numeric_limits<std::size_t>::max();
   EXPECT_THROW(static_cast<void>(runtime::add_memory({maximum, 0U, 0U}, {1U, 0U, 0U})),
-               std::length_error);
+               runtime::Error);
   EXPECT_THROW(static_cast<void>(runtime::add_memory({0U, maximum, 0U}, {0U, 1U, 0U})),
-               std::length_error);
-  EXPECT_THROW(runtime::require_memory({1U, 0U, 2U}, {10U, 10U, 10U}), std::invalid_argument);
+               runtime::Error);
+  try {
+    runtime::require_memory({1U, 0U, 2U}, {10U, 10U, 10U});
+    FAIL() << "unaccounted pinned memory must be rejected";
+  } catch (const runtime::Error& error) {
+    EXPECT_EQ(error.code(), runtime::ErrorCode::kInternal);
+  }
+  try {
+    runtime::require_memory({4U, 0U, 0U}, {2U, 0U, 0U});
+    FAIL() << "budget overrun must be rejected";
+  } catch (const runtime::Error& error) {
+    EXPECT_EQ(error.code(), runtime::ErrorCode::kResourceExhausted);
+  }
   const test::ModelFixture model;
   EXPECT_THROW((ControlService({"cpu-a", "localhost", model.root, maximum, 1U, 0U},
                                std::make_unique<TestFactory>(std::make_shared<AllocationPlan>()))),

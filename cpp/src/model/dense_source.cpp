@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "hllm/runtime/checked_size.hpp"
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
 
 namespace hllm::model {
@@ -11,7 +12,7 @@ std::vector<float> DenseSource::read_float32(const std::string& name) const {
   const auto& tensor = tensors.at(name);
   if (tensor.dtype != runtime::DataType::kF32 && tensor.dtype != runtime::DataType::kF16 &&
       tensor.dtype != runtime::DataType::kBF16) {
-    throw std::invalid_argument("unsupported weight dtype");
+    throw runtime::Error::incompatible_worker("unsupported weight dtype");
   }
   runtime::BufferPool pool(0U);
   auto buffer = files.at(tensor.file).read_tensor(name, pool);
@@ -33,7 +34,7 @@ std::vector<float> DenseSource::read_float32(const std::string& name) const {
                     ? runtime::float16_to_float(static_cast<std::uint16_t>(bits))
                     : runtime::bfloat16_to_float(static_cast<std::uint16_t>(bits));
     if (!std::isfinite(values[i])) {
-      throw std::invalid_argument("non-finite weight: " + name);
+      throw runtime::Error::incompatible_worker("non-finite weight: " + name);
     }
   }
   return values;

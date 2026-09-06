@@ -2,7 +2,8 @@
 
 #include <cstddef>
 #include <limits>
-#include <stdexcept>
+
+#include "hllm/runtime/error.hpp"
 
 namespace hllm::runtime {
 
@@ -16,7 +17,7 @@ struct MemoryAmounts {
 inline MemoryAmounts add_memory(const MemoryAmounts& a, const MemoryAmounts& b) {
   const auto add = [](std::size_t x, std::size_t y) {
     if (y > std::numeric_limits<std::size_t>::max() - x) {
-      throw std::length_error("memory accounting overflow");
+      throw Error::resource_exhausted("memory accounting overflow");
     }
     return x + y;
   };
@@ -26,11 +27,12 @@ inline MemoryAmounts add_memory(const MemoryAmounts& a, const MemoryAmounts& b) 
 
 inline void require_memory(const MemoryAmounts& used, const MemoryAmounts& capacity) {
   if (used.pinned_host_bytes > used.host_bytes) {
-    throw std::invalid_argument("pinned memory must also be counted in host memory");
+    throw Error::internal("pinned memory must also be counted in host memory");
   }
   if (used.host_bytes > capacity.host_bytes || used.device_bytes > capacity.device_bytes ||
       used.pinned_host_bytes > capacity.pinned_host_bytes) {
-    throw std::length_error("allocation exceeds host, device, or pinned-host memory budget");
+    throw Error::resource_exhausted(
+        "allocation exceeds host, device, or pinned-host memory budget");
   }
 }
 

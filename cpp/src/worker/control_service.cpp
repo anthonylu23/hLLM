@@ -5,8 +5,26 @@
 #include <set>
 #include <stdexcept>
 
+#include "hllm/runtime/error.hpp"
+
 namespace hllm::worker {
 namespace {
+
+v1::ErrorCode wire_code(runtime::ErrorCode code) {
+  switch (code) {
+    case runtime::ErrorCode::kInvalidRequest:
+      return v1::ERROR_CODE_INVALID_REQUEST;
+    case runtime::ErrorCode::kIncompatibleWorker:
+      return v1::ERROR_CODE_INCOMPATIBLE_WORKER;
+    case runtime::ErrorCode::kResourceExhausted:
+      return v1::ERROR_CODE_RESOURCE_EXHAUSTED;
+    case runtime::ErrorCode::kDeadlineExceeded:
+      return v1::ERROR_CODE_DEADLINE_EXCEEDED;
+    case runtime::ErrorCode::kInternal:
+      break;
+  }
+  return v1::ERROR_CODE_BACKEND_ERROR;
+}
 
 void validate_plan(const v1::LoadStageRequest& request, const std::string& worker,
                    const runtime::BackendCapabilities& capabilities) {
@@ -17,19 +35,20 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
       manifest.schema_version().minor() > 1U || plan.plan_id().empty() ||
       plan.plan_digest().empty() || plan.deployment_version() == 0U ||
       manifest.manifest_digest().empty() || plan.manifest_digest() != manifest.manifest_digest()) {
-    throw std::invalid_argument("unsupported schema or inconsistent deployment identity");
+    throw runtime::Error::incompatible_worker(
+        "unsupported schema or inconsistent deployment identity");
   }
   if (std::find(capabilities.architectures.begin(), capabilities.architectures.end(),
                 manifest.architecture().architecture_id()) == capabilities.architectures.end() ||
       std::find(capabilities.execution_dtypes.begin(), capabilities.execution_dtypes.end(),
                 plan.execution_dtype()) == capabilities.execution_dtypes.end() ||
       plan.activation_dtype() != v1::DATA_TYPE_F16) {
-    throw std::invalid_argument("unsupported architecture or execution dtype: " +
+    throw runtime::Error::incompatible_worker("unsupported architecture or execution dtype: " +
                                 capabilities.detail);
   }
   if ((plan.stages_size() != 1 && plan.stages_size() != 2) ||
       request.stage_index() >= static_cast<std::uint32_t>(plan.stages_size())) {
-    throw std::invalid_argument("pipeline supports one or two stages");
+    throw runtime::Error::incompatible_worker("pipeline supports one or two stages");
   }
   std::uint32_t end = 0U;
   std::set<std::string> workers;
@@ -42,19 +61,19 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
         stage.layer_end() <= end || stage.layer_end() > manifest.config().num_layers() ||
         stage.owns_token_embedding() != first || stage.owns_lm_head() != last ||
         stage.owns_final_norm() != last || stage.owns_sampling() != last) {
-      throw std::invalid_argument("invalid stage partition or tensor ownership");
+      throw runtime::Error::incompatible_worker("invalid stage partition or tensor ownership");
     }
     end = stage.layer_end();
   }
   if (end != manifest.config().num_layers() ||
       plan.stages(static_cast<int>(request.stage_index())).worker_id() != worker) {
-    throw std::invalid_argument("incomplete partition or wrong worker");
+    throw runtime::Error::incompatible_worker("incomplete partition or wrong worker");
   }
   if (plan.stages_size() == 2 && plan.split_layer() != plan.stages(0).layer_end()) {
-    throw std::invalid_argument("split layer does not match assignments");
+    throw runtime::Error::incompatible_worker("split layer does not match assignments");
   }
   if (request.stage_endpoints_size() != plan.stages_size()) {
-    throw std::invalid_argument("each stage requires an endpoint");
+    throw runtime::Error::incompatible_worker("each stage requires an endpoint");
   }
   std::set<std::uint32_t> indices;
   std::set<std::string> endpoints;
@@ -63,13 +82,13 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
         !indices.insert(endpoint.stage_index()).second || endpoint.endpoint().empty() ||
         !endpoints.insert(endpoint.endpoint()).second ||
         endpoint.worker_id() != plan.stages(static_cast<int>(endpoint.stage_index())).worker_id()) {
-      throw std::invalid_argument("invalid stage endpoint mapping");
+      throw runtime::Error::incompatible_worker("invalid stage endpoint mapping");
     }
   }
   if (manifest.config().tied_embeddings() && plan.stages_size() == 2 &&
       std::find(plan.duplicated_tensor_groups().begin(), plan.duplicated_tensor_groups().end(),
                 "token_embeddings") == plan.duplicated_tensor_groups().end()) {
-    throw std::invalid_argument("split tied embedding must be explicitly duplicated");
+    throw runtime::Error::incompatible_worker("split tied embedding must be explicitly duplicated");
   }
 }
 
@@ -177,18 +196,20 @@ grpc::Status ControlService::LoadStage(grpc::ServerContext*, const v1::LoadStage
     next->spec = *request;
     next->backend = factory_->load(*request, config_.model_root, capacity_);
     if (!next->backend) {
-      throw std::runtime_error("backend factory returned no stage");
+      throw runtime::Error::internal("backend factory returned no stage");
     }
     runtime::require_memory(next->backend->weight_memory(), capacity_);
     deployment_ = std::move(next);
     response->set_accepted(true);
     response->set_detail("executable stage loaded");
+  } catch (const runtime::Error& error) {
+    reject(response, wire_code(error.code()), error.what());
   } catch (const std::bad_alloc&) {
     reject(response, v1::ERROR_CODE_RESOURCE_EXHAUSTED, "weight allocation failed");
-  } catch (const std::length_error& error) {
-    reject(response, v1::ERROR_CODE_RESOURCE_EXHAUSTED, error.what());
   } catch (const std::exception& error) {
-    reject(response, v1::ERROR_CODE_INCOMPATIBLE_WORKER, error.what());
+    // Uncategorized failures (I/O, backend libraries) are the worker's problem,
+    // not evidence that the request itself was wrong.
+    reject(response, v1::ERROR_CODE_BACKEND_ERROR, error.what());
   }
   return grpc::Status::OK;
 }
@@ -197,7 +218,7 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
                                                        std::uint64_t deadline_ms) {
   prune_expired();
   if (id.empty() || id.size() > 256U) {
-    throw std::invalid_argument("invalid request ID");
+    throw runtime::Error::invalid_request("invalid request ID");
   }
   const auto now = std::chrono::system_clock::now();
   auto deadline = now + std::chrono::seconds(60);
@@ -212,10 +233,10 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   }
   if (active_) {
     if (active_->id != id) {
-      throw std::length_error("worker already has an active request");
+      throw runtime::Error::resource_exhausted("worker already has an active request");
     }
     if (active_->maximum_tokens != tokens || active_->cancelled.load()) {
-      throw std::invalid_argument("conflicting request reservation retry");
+      throw runtime::Error::invalid_request("conflicting request reservation retry");
     }
     if (!active_->running) {
       active_->deadline = std::min(active_->deadline, deadline);
@@ -235,7 +256,7 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   next->memory = memory;
   next->sequence = deployment_->backend->allocate_sequence(tokens);
   if (!next->sequence) {
-    throw std::runtime_error("backend returned no sequence state");
+    throw runtime::Error::internal("backend returned no sequence state");
   }
   active_ = next;
   return next;
@@ -246,11 +267,11 @@ ExecutionLease ControlService::acquire(const std::string& id, std::uint64_t vers
                                        std::uint64_t deadline, std::uint32_t required_stage) {
   std::scoped_lock lock(mutex_);
   if (!deployment_matches(id, version) || deployment_->spec.stage_index() != required_stage) {
-    throw std::invalid_argument("stale deployment or incorrect execution stage");
+    throw runtime::Error::invalid_request("stale deployment or incorrect execution stage");
   }
   auto state = reserve(request, tokens, deadline);
   if (state->running) {
-    throw std::length_error("request already executing");
+    throw runtime::Error::resource_exhausted("request already executing");
   }
   state->running = true;
   return {deployment_, state};
@@ -278,12 +299,12 @@ grpc::Status ControlService::ReserveRequest(grpc::ServerContext*,
                               request->deadline_unix_ms()));
     response->set_accepted(true);
     response->set_detail("backend sequence allocated and workspace reserved");
+  } catch (const runtime::Error& error) {
+    reject(response, wire_code(error.code()), error.what());
   } catch (const std::bad_alloc&) {
     reject(response, v1::ERROR_CODE_RESOURCE_EXHAUSTED, "cache allocation failed");
-  } catch (const std::length_error& error) {
-    reject(response, v1::ERROR_CODE_RESOURCE_EXHAUSTED, error.what());
   } catch (const std::exception& error) {
-    reject(response, v1::ERROR_CODE_INVALID_REQUEST, error.what());
+    reject(response, v1::ERROR_CODE_BACKEND_ERROR, error.what());
   }
   return grpc::Status::OK;
 }
