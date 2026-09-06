@@ -105,9 +105,11 @@ def _stage_memory(
         * DTYPE_BYTES[workload.activation_dtype]
     )
     activation_buffer_bytes = activation_payload * worker.activation_buffer_count
-    subtotal = (
-        weight_bytes + kv_cache_bytes + worker.fixed_workspace_bytes + activation_buffer_bytes
-    )
+    workspace_bytes = worker.fixed_workspace_bytes
+    if worker.primary_memory_domain == MemoryDomain.HOST:
+        # Host-resident stages and transport staging share the same capacity.
+        workspace_bytes += worker.host_transport_buffer_bytes
+    subtotal = weight_bytes + kv_cache_bytes + workspace_bytes + activation_buffer_bytes
     allocator_allowance_bytes = math.ceil(subtotal * worker.allocator_allowance_fraction)
     required_bytes = subtotal + allocator_allowance_bytes
     usable_bytes = budget.usable_bytes
@@ -119,7 +121,7 @@ def _stage_memory(
         layer_end=end,
         weight_bytes=weight_bytes,
         kv_cache_bytes=kv_cache_bytes,
-        workspace_bytes=worker.fixed_workspace_bytes,
+        workspace_bytes=workspace_bytes,
         activation_buffer_bytes=activation_buffer_bytes,
         allocator_allowance_bytes=allocator_allowance_bytes,
         required_bytes=required_bytes,

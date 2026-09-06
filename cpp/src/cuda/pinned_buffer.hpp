@@ -2,6 +2,7 @@
 
 #include <cuda_runtime_api.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <cstring>
@@ -30,6 +31,9 @@ class PinnedBuffer {
  public:
   PinnedBuffer(std::size_t bytes, cudaStream_t stream, PinnedApi api = {})
       : bytes_(bytes), stream_(stream), api_(api) {
+    if (bytes == 0U) {
+      throw std::invalid_argument("pinned staging capacity must be positive");
+    }
     check(api_.allocate(&data_, bytes, cudaHostAllocDefault));
     const auto status = api_.create_event(&event_, cudaEventDisableTiming);
     if (status != cudaSuccess) {
@@ -46,30 +50,42 @@ class PinnedBuffer {
   PinnedBuffer(const PinnedBuffer&) = delete;
   PinnedBuffer& operator=(const PinnedBuffer&) = delete;
   void upload(void* device, const void* host, std::size_t bytes) {
-    prepare(bytes);
-    std::memcpy(data_, host, bytes);
-    pending_ = true;
+    prepare();
+    auto* destination = static_cast<std::byte*>(device);
+    const auto* source = static_cast<const std::byte*>(host);
     try {
-      check(api_.copy(device, data_, bytes, cudaMemcpyHostToDevice, stream_));
-      check(api_.record(event_, stream_));
-      wait();
+      for (std::size_t offset = 0U; offset < bytes;) {
+        const auto count = std::min(bytes_, bytes - offset);
+        std::memcpy(data_, source + offset, count);
+        pending_ = true;
+        check(api_.copy(destination + offset, data_, count, cudaMemcpyHostToDevice, stream_));
+        check(api_.record(event_, stream_));
+        wait();
+        offset += count;
+      }
     } catch (...) {
       failed_ = true;
       throw;
     }
   }
   void download(void* host, const void* device, std::size_t bytes) {
-    prepare(bytes);
-    pending_ = true;
+    prepare();
+    auto* destination = static_cast<std::byte*>(host);
+    const auto* source = static_cast<const std::byte*>(device);
     try {
-      check(api_.copy(data_, device, bytes, cudaMemcpyDeviceToHost, stream_));
-      check(api_.record(event_, stream_));
-      wait();
+      for (std::size_t offset = 0U; offset < bytes;) {
+        const auto count = std::min(bytes_, bytes - offset);
+        pending_ = true;
+        check(api_.copy(data_, source + offset, count, cudaMemcpyDeviceToHost, stream_));
+        check(api_.record(event_, stream_));
+        wait();
+        std::memcpy(destination + offset, data_, count);
+        offset += count;
+      }
     } catch (...) {
       failed_ = true;
       throw;
     }
-    std::memcpy(host, data_, bytes);
   }
  private:
   static void check(cudaError_t status) {
@@ -82,9 +98,8 @@ class PinnedBuffer {
       pending_ = false;
     }
   }
-  void prepare(std::size_t bytes) {
+  void prepare() {
     if (failed_) throw std::runtime_error("failed pinned staging cannot be reused");
-    if (bytes > bytes_) throw std::length_error("boundary exceeds pinned staging capacity");
     wait();
   }
   std::size_t bytes_;

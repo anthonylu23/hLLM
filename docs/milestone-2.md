@@ -186,7 +186,9 @@ to both host workspace and its pinned subset; total usage sums host and device
 only. The planner checks both budgets and rejects a pinned profile lacking a host budget.
 CUDA's existing conservative device workspace covers the FP16 conversion tensor.
 
-Copies use the stage stream and wait for the completion event before staging is
+Boundaries larger than staging are copied in chunks through the same allocation,
+including a final partial chunk. The 8 MiB cap limits pinned storage, not the
+accepted boundary payload. Copies use the stage stream and wait for the completion event before staging is
 reused or output bytes are published. Exception cleanup drains outstanding work.
 The sequence frees staging on retirement; no cross-request pinned cache is used.
 The completed stage interface, owned byte-vector boundary and protobuf remain
