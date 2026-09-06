@@ -3,6 +3,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <future>
+#include <thread>
 #include <vector>
 
 #include "pinned_buffer.hpp"
@@ -11,6 +13,7 @@ namespace hllm::cuda {
 TEST(CudaTransferTest, TransfersPayloadsLargerThanStagingWithoutGrowingTheBuffer) {
   cudaStream_t stream{};
   ASSERT_EQ(cudaStreamCreate(&stream), cudaSuccess);
+  const auto pinned_before = allocated_pinned_bytes.load();
   constexpr std::size_t capacity = 8U * 1024U * 1024U;
   constexpr std::size_t maximum_payload = 2U * capacity + 17U;
   void* device{};
@@ -25,8 +28,10 @@ TEST(CudaTransferTest, TransfersPayloadsLargerThanStagingWithoutGrowingTheBuffer
       staging.upload(device, input.data(), bytes);
       staging.download(output.data(), device, bytes);
       EXPECT_EQ(input, output);
+      EXPECT_EQ(allocated_pinned_bytes.load(), pinned_before + capacity);
     }
   }
+  EXPECT_EQ(allocated_pinned_bytes.load(), pinned_before);
   EXPECT_EQ(cudaFree(device), cudaSuccess);
   EXPECT_EQ(cudaStreamDestroy(stream), cudaSuccess);
 }
@@ -61,6 +66,61 @@ TEST(CudaTransferTest, ReusesBoundedStorageAndPreservesPayloadBytes) {
       }
     }
   }
+  EXPECT_EQ(cudaFree(device), cudaSuccess);
+  EXPECT_EQ(cudaStreamDestroy(stream), cudaSuccess);
+}
+
+TEST(CudaTransferTest, AllocationAndEventCreationFailuresRollBack) {
+  const auto before = allocated_pinned_bytes.load();
+  PinnedApi api;
+  api.allocate = [](void**, std::size_t, unsigned int) { return cudaErrorMemoryAllocation; };
+  EXPECT_THROW(PinnedBuffer(4096U, nullptr, api), std::bad_alloc);
+  api = {};
+  static int frees = 0;
+  frees = 0;
+  api.free = [](void* pointer) { ++frees; return cudaFreeHost(pointer); };
+  api.create_event = [](cudaEvent_t*, unsigned int) { return cudaErrorMemoryAllocation; };
+  EXPECT_THROW(PinnedBuffer(4096U, nullptr, api), std::bad_alloc);
+  EXPECT_EQ(frees, 1);
+  EXPECT_EQ(allocated_pinned_bytes.load(), before);
+  { PinnedBuffer fresh(4096U, nullptr); }
+  EXPECT_EQ(allocated_pinned_bytes.load(), before);
+}
+
+TEST(CudaTransferTest, FailedEventRecordingDrainsPendingCopyBeforeFree) {
+  cudaStream_t stream{};
+  ASSERT_EQ(cudaStreamCreate(&stream), cudaSuccess);
+  void* device{};
+  ASSERT_EQ(cudaMalloc(&device, 4096U), cudaSuccess);
+  PinnedApi api;
+  api.record = [](cudaEvent_t, cudaStream_t) { return cudaErrorUnknown; };
+  const auto before = allocated_pinned_bytes.load();
+  auto staging = std::make_unique<PinnedBuffer>(4096U, stream, api);
+  std::atomic_bool release{false}, failed{false};
+  ASSERT_EQ(cudaLaunchHostFunc(stream, [](void* opaque) {
+    auto& ready = *static_cast<std::atomic_bool*>(opaque);
+    while (!ready.load()) std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }, &release), cudaSuccess);
+  std::vector<unsigned char> source(4096U, 42U);
+  auto cleanup = std::async(std::launch::async, [&, owned = std::move(staging)]() mutable {
+    try { owned->upload(device, source.data(), source.size()); }
+    catch (const std::runtime_error&) { failed.store(true); }
+    EXPECT_THROW(owned->upload(device, source.data(), source.size()), std::runtime_error);
+    owned.reset();
+  });
+  const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+  while (!failed.load() && std::chrono::steady_clock::now() < until) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  EXPECT_TRUE(failed.load());
+  EXPECT_EQ(cleanup.wait_for(std::chrono::milliseconds(10)), std::future_status::timeout);
+  EXPECT_EQ(allocated_pinned_bytes.load(), before + 4096U);
+  release.store(true);
+  cleanup.get();
+  EXPECT_EQ(allocated_pinned_bytes.load(), before);
+  std::vector<unsigned char> output(4096U);
+  EXPECT_EQ(cudaMemcpy(output.data(), device, output.size(), cudaMemcpyDeviceToHost), cudaSuccess);
+  EXPECT_EQ(source, output);
   EXPECT_EQ(cudaFree(device), cudaSuccess);
   EXPECT_EQ(cudaStreamDestroy(stream), cudaSuccess);
 }

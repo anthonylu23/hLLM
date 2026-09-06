@@ -257,16 +257,18 @@ TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
   auto budget = kBudget;
   budget.pinned_host_bytes = 1024U * 1024U;
   auto stage = factory->load(fixture.load(0U), fixture.root, budget);
-  const auto memory = stage->sequence_memory(16U);
-  EXPECT_EQ(memory.workspace.pinned_host_bytes, 16U * stage->hidden_size() * 2U);
+  const auto memory = stage->sequence_memory(32U);
+  EXPECT_EQ(memory.workspace.pinned_host_bytes, 32U * stage->hidden_size() * 2U);
   auto single = factory->load(fixture.load(0U, false), fixture.root, budget);
-  EXPECT_EQ(single->sequence_memory(16U).workspace.pinned_host_bytes, 0U);
+  EXPECT_EQ(single->sequence_memory(32U).workspace.pinned_host_bytes, 0U);
   const auto needed = runtime::add_memory(stage->weight_memory(),
                                         runtime::add_memory(memory.cache, memory.workspace));
-  for (const bool short_budget : {false, true}) {
+  for (const int short_domain : {0, 1, 2}) {
+    const bool short_budget = short_domain != 0;
     worker::ControlService service(
-        {"cpu-a", "localhost", fixture.root, budget.host_bytes, budget.device_bytes,
-         needed.pinned_host_bytes - (short_budget ? 1U : 0U)}, make_backend_factory(0, true));
+        {"cpu-a", "localhost", fixture.root,
+         needed.host_bytes - (short_domain == 2 ? 1U : 0U), budget.device_bytes,
+         needed.pinned_host_bytes - (short_domain == 1 ? 1U : 0U)}, make_backend_factory(0, true));
     auto request = fixture.load(0U);
     v1::LoadStageResponse loaded;
     ASSERT_TRUE(service.LoadStage(nullptr, &request, &loaded).ok());
@@ -275,7 +277,7 @@ TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
     reserve.set_plan_id("plan-1");
     reserve.set_deployment_version(1U);
     reserve.set_request_id("pinned");
-    reserve.set_maximum_total_tokens(16U);
+    reserve.set_maximum_total_tokens(32U);
     v1::ReserveResponse reserved;
     ASSERT_TRUE(service.ReserveRequest(nullptr, &reserve, &reserved).ok());
     EXPECT_EQ(reserved.accepted(), !short_budget);

@@ -3,10 +3,10 @@
 The optional Linux CUDA worker now executes dense Llama and Qwen3 stages with LibTorch/ATen.
 Tiny-model numerical and single-worker process tests establish the initial execution path.
 Mixed CPU/CUDA loopback correctness now passes in both orders and all tiny-fixture splits.
-Opt-in bounded pinned transfers are implemented; failure qualification and full-checkpoint
-inference remain next.
-See the [mixed validation report](validation/mixed-cpu-cuda.md). The first integration PR established backend selection and memory domains; this second
-PR adds model execution on top of those interfaces.
+Opt-in bounded pinned transfers and failure/memory qualification are implemented.
+Full-checkpoint inference remains next.
+See the [mixed validation report](validation/mixed-cpu-cuda.md). The initial CUDA PRs established backend selection, memory domains and model execution;
+the qualification PRs build on those interfaces.
 
 ## Backend and model boundaries
 
@@ -123,9 +123,9 @@ The host budget keeps its existing `--memory-limit-bytes` name. The device budge
 required; `--device-id` defaults to zero. The optional pinned budget defaults to zero.
 CPU workers reject CUDA-only flags. Startup probes a real ATen CUDA operation; capabilities
 then advertise implemented model execution. As on CPU, health indicates a serving-capable
-worker even before a stage is loaded. Deploy through `DeploymentSession` with a one-stage
-F32/F16 plan for the current qualified flow; the planner still enumerates two-stage plans.
-The CUDA process tests construct and exercise those one-stage plans against a tiny checkpoint.
+worker even before a stage is loaded. Deploy through `DeploymentSession` with a
+one-stage F32/F16 CUDA plan or a two-stage F32 CPU/CUDA plan. The planner enumerates two-stage plans; CUDA process
+tests also construct one-stage plans against a tiny checkpoint.
 
 ## Validation
 
@@ -153,17 +153,21 @@ process cases on macOS; the Linux CUDA-enabled build passed those 42 native test
 CPU process cases plus seven CUDA native tests and five CUDA process cases (45 CTest
 entries). Ruff, Pyright, generated-binding reproducibility and whitespace checks passed.
 
-Full-checkpoint parity/performance, CUDA sanitizer coverage, mixed-device fault injection
-and asynchronous transfer overlap remain unverified.
+For subsequent mixed-process, fault and sanitizer results, see the
+[mixed qualification report](validation/mixed-cpu-cuda.md). Full-checkpoint
+parity/performance and asynchronous transfer overlap remain unverified.
 
-## Next PR
+## Next steps
 
 See the [mixed CPU/CUDA qualification plan](milestone-2-qualification-plan.md) for the
-proposed three-PR sequence, constraints and acceptance criteria.
+three-PR sequence, constraints and acceptance criteria.
 
-Mixed-process correctness and pinned staging are implemented. Next test cancellation, deadlines,
-allocation failure, peer loss and repeated requests under CUDA execution. Reconcile measured
-workspace/transfer needs with placement estimates before attempting a full checkpoint.
+The [CUDA stack review](code-quality-review-cuda.md) records correctness fixes and
+quality findings for PRs 5–9. Next, assess a full-checkpoint
+workload against available physical memory before scheduling inference. Account for
+CPU F32 resident weights, global F32 compute/KV in mixed plans, dense attention
+workspace, and measured framework/context overhead. Qwen3-4B-Base is still the
+project target; choose a smaller compatible checkpoint or shorter context if needed.
 
 The [model extension boundaries](model-extensibility.md) remain in force. Additional model
 families require explicit decisions rather than a generic graph engine. MLX is Milestone 3,
@@ -191,3 +195,37 @@ The sequence frees staging on retirement; no cross-request pinned cache is used.
 The completed stage interface, owned byte-vector boundary and protobuf remain
 unchanged. Serialization and host copies still occur. This implementation does
 not overlap decode steps, and pinned mode has no assumed latency advantage.
+
+## Failure and memory qualification
+
+The mixed fault suite uses a test-only gRPC relay to hold a prefill or decode
+boundary while both native workers own their reservations. It covers client and
+control cancellation, deadlines, disconnects, and loss of either worker, in
+both transfer modes and stage orders. Unload rejects active work. Recoverable
+faults must release reservations and permit reload plus a fresh request;
+worker loss must release the survivor. Malformed/stale stage messages and
+admission/load rollback reuse the CPU suite against mixed workers.
+
+Generation deadlines first cancel the peer call and give the handler up to
+100 ms to return its deadline status. Forcing `ServerContext::TryCancel()`
+immediately can replace that status with `CANCELLED`; a bounded fallback is
+retained for blocked writes. An idle downstream stage still uses transport
+cancellation to unblock a synchronous read. Non-preemptible kernels or stalled
+client writes can require that fallback; CUDA kernels cannot be forcibly stopped
+at the application deadline.
+
+Native tests inject pinned allocation/event failures through private CUDA call
+wrappers and inject a reservation failure after allocating a real CUDA sequence.
+No fault control is exposed through worker arguments or RPCs. A failed transfer
+buffer cannot be reused. Its destructor drains pending stream work before freeing
+staging, including when event recording failed. Recoverable allocation failure
+is reported as resource exhaustion. Other CUDA errors retain their error class;
+fatal device/context failures can require a worker restart and are not induced
+by exhausting the shared machine.
+
+Test-only diagnostics sample LibTorch allocator allocated/reserved/peak bytes,
+actual pinned allocations, and `/proc` RSS during repeated request/unload cycles.
+They are isolated from protobuf-facing translation units; the public metrics
+schema and stage contract remain unchanged. Framework/context memory is distinct
+from model reservation accounting. Reserved allocator cache may remain after
+unload; qualification checks its plateau after warm-up.

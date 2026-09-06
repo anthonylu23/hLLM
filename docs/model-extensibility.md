@@ -51,6 +51,7 @@ pending device operations must finish safely before buffers can be released.
 Executable CPU stages and a two-process pipeline for tiny Llama and Qwen3 are complete.
 Use both as regression cases for every backend. The [CUDA implementation](milestone-2.md)
 shares validated dense checkpoint metadata with CPU and executes model operations through
-ATen. Tiny-model parity and single-worker generation are covered; mixed CPU/CUDA process
-qualification comes next. MLX will implement the same stage contract. Select the next model
-family with the user before widening that contract. Full-checkpoint performance and measured placement remain later validation.
+ATen. Tiny-model parity, single-worker generation, mixed CPU/CUDA execution in both
+stage orders, and failure/memory qualification are covered. MLX will implement the same
+stage contract. Select the next model family with the user before widening that contract.
+Full-checkpoint performance and measured placement remain later validation.

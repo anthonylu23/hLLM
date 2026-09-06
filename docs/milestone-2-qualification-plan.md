@@ -1,9 +1,10 @@
 # Plan: mixed CPU/CUDA qualification
 
-Status: proposed implementation plan, 2026-09-05. This document does not indicate that
-qualification is complete. PR #5 (integration) and PR #6 (CUDA execution, stacked on #5)
-are open. Review and merge them in that order before landing the next changes; implementation
-can start from #6 while review proceeds.
+Status: implemented on the qualification stack, 2026-09-06. PR #7 establishes
+mixed execution; PR #8 adds pinned staging; `codex/cuda-failure-qualification`
+adds failure/memory qualification. See the [validation report](validation/mixed-cpu-cuda.md)
+for measured results and limitations. Upstream PR #5 (integration) and PR #6
+(CUDA execution) remain dependencies. Review and merge in stack order.
 
 ## Outcome and scope
 

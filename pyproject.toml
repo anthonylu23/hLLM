@@ -48,6 +48,13 @@ select = ["E", "F", "I", "B", "UP", "RUF"]
 
 [tool.pyright]
 pythonVersion = "3.12"
-include = ["python", "tests/python", "tests/integration", "tests/cuda", "tests/process_helpers.py"]
+include = [
+  "python",
+  "tests/python",
+  "tests/integration",
+  "tests/cuda",
+  "tests/process_helpers.py",
+  "tests/process_contracts.py",
+]
 exclude = ["python/hllm_control/proto"]
 strict = ["python"]

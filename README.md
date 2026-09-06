@@ -10,7 +10,10 @@ weights, run prefill and greedy decode across two native processes, and stream t
 through a Python controller. Request admission, cancellation, deadlines, and cleanup are
 covered by numerical and process integration tests. Milestone 2 adds an optional Linux
 CUDA worker that executes Llama/Qwen3 with F32/F16 weights and caches on the GPU. Tiny-model
-numerical and single-worker process tests pass; mixed CPU/CUDA qualification and MLX remain next.
+numerical and mixed CPU/CUDA process tests cover both stage orders, pageable/pinned
+boundaries, lifecycle faults and memory cleanup. See the
+[mixed qualification report](docs/validation/mixed-cpu-cuda.md). Full-checkpoint
+fit assessment and MLX remain next.
 
 See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
 [the model/backend extension boundaries](docs/model-extensibility.md).
@@ -92,8 +95,8 @@ See [the Milestone 0 implementation notes](docs/milestone-0.md) and [the full pr
 specification](SPEC.md). The [validation report](docs/validation/milestone-0.md) records the
 pinned real-model and cross-platform checks.
 
-See [the code quality review](docs/code-quality-review.md) for fixes, validation, and
-the historical validation results.
+See [the code quality review](docs/code-quality-review.md) for historical fixes and
+[the CUDA PR review](docs/code-quality-review-cuda.md) for the audit of PRs 5–9.
 
 [Qwen3 support and validation](docs/qwen3.md) describes the pinned model, supported
 semantics, independent CPU reference tests, and estimated placement. It is not yet a
