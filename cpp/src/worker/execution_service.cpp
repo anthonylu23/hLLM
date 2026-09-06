@@ -3,12 +3,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <stdexcept>
 #include <thread>
 #include <vector>
 
-#include "hllm/runtime/half.hpp"
 #include "hllm/runtime/tensor_envelope.hpp"
 
 namespace hllm::worker {
@@ -122,8 +122,9 @@ void validate_identity(const std::string& deployment, std::uint64_t version,
   }
 }
 
-runtime::HostActivation decode_tensor(const v1::TensorEnvelope& tensor, const ExecutionLease& lease,
-                                      std::uint64_t sequence, std::size_t position) {
+runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
+                                          const ExecutionLease& lease, std::uint64_t sequence,
+                                          std::size_t position) {
   validate_identity(tensor.deployment_id(), tensor.deployment_version(), tensor.request_id(),
                     tensor.microbatch_id(), lease);
   if (tensor.sequence_number() != sequence || tensor.first_position() != position ||
@@ -154,25 +155,25 @@ runtime::HostActivation decode_tensor(const v1::TensorEnvelope& tensor, const Ex
        .hidden_size = lease.deployment->backend->hidden_size(),
        .maximum_payload_bytes = static_cast<std::size_t>(kMaximumRpcBytes / 2)});
   if (tensor.cache_slot_ids_size() != 1 || tensor.cache_slot_ids(0) != 0U) {
-    throw std::invalid_argument("single-sequence CPU execution requires cache slot zero");
+    throw std::invalid_argument("single-sequence execution requires cache slot zero");
   }
-  runtime::HostActivation output{static_cast<std::size_t>(tensor.shape(1)),
-                                 lease.deployment->backend->hidden_size(),
-                                 std::vector<float>(tensor.payload().size() / 2U)};
-  for (std::size_t i = 0U; i < output.values.size(); ++i) {
-    const auto low = static_cast<unsigned char>(tensor.payload()[2U * i]);
-    const auto high = static_cast<unsigned char>(tensor.payload()[2U * i + 1U]);
-    output.values[i] = runtime::float16_to_float(static_cast<std::uint16_t>(low | (high << 8U)));
-    if (!std::isfinite(output.values[i])) {
+  runtime::BoundaryActivation output{static_cast<std::size_t>(tensor.shape(1)),
+                                     lease.deployment->backend->hidden_size(),
+                                     std::vector<std::byte>(tensor.payload().size())};
+  std::memcpy(output.payload.data(), tensor.payload().data(), tensor.payload().size());
+  for (std::size_t i = 0U; i < output.payload.size(); i += 2U) {
+    const auto high = std::to_integer<unsigned char>(output.payload[i + 1U]);
+    if ((high & 0x7cU) == 0x7cU) {
       throw std::invalid_argument("non-finite boundary activation");
     }
   }
   return output;
 }
 
-v1::StageMessage encode_tensor(const runtime::HostActivation& hidden, const ExecutionLease& lease,
-                               std::uint64_t sequence, std::size_t position) {
-  if (hidden.values.size() > static_cast<std::size_t>(kMaximumRpcBytes / 4)) {
+v1::StageMessage encode_tensor(const runtime::BoundaryActivation& hidden,
+                               const ExecutionLease& lease, std::uint64_t sequence,
+                               std::size_t position) {
+  if (hidden.payload.size() > static_cast<std::size_t>(kMaximumRpcBytes / 2)) {
     throw std::length_error("prefill activation exceeds transport limit");
   }
   v1::StageMessage message;
@@ -191,17 +192,19 @@ v1::StageMessage encode_tensor(const runtime::HostActivation& hidden, const Exec
   tensor->add_shape(hidden.width);
   tensor->set_dtype(v1::DATA_TYPE_F16);
   tensor->set_layout("dense_row_major_le");
-  auto* payload = tensor->mutable_payload();
-  payload->resize(hidden.values.size() * 2U);
-  for (std::size_t i = 0U; i < hidden.values.size(); ++i) {
-    const auto half = runtime::float_to_float16(hidden.values[i]);
-    if (!std::isfinite(runtime::float16_to_float(half))) {
-      throw std::runtime_error("activation is not representable as finite FP16");
-    }
-    (*payload)[2U * i] = static_cast<char>(half & 0xffU);
-    (*payload)[2U * i + 1U] = static_cast<char>(half >> 8U);
+  if (hidden.width == 0U || hidden.width != lease.deployment->backend->hidden_size() ||
+      hidden.tokens == 0U ||
+      hidden.tokens > static_cast<std::size_t>(kMaximumRpcBytes / 4) / hidden.width ||
+      hidden.payload.size() != hidden.tokens * hidden.width * 2U) {
+    throw std::runtime_error("backend returned an invalid boundary shape");
   }
-  tensor->set_payload_length(payload->size());
+  for (std::size_t i = 1U; i < hidden.payload.size(); i += 2U) {
+    if ((std::to_integer<unsigned char>(hidden.payload[i]) & 0x7cU) == 0x7cU) {
+      throw std::runtime_error("backend returned a non-finite boundary activation");
+    }
+  }
+  tensor->set_payload(hidden.payload.data(), hidden.payload.size());
+  tensor->set_payload_length(hidden.payload.size());
   return message;
 }
 
@@ -283,9 +286,14 @@ grpc::Status ExecutionService::Execute(
         }
       }
       const auto count = input.tokens;
-      auto output = lease.deployment->backend->forward(std::move(input), position,
+      auto output = lease.deployment->backend->execute(std::move(input), position,
                                                        *active->sequence, active->cancelled);
-      const auto token = lease.deployment->backend->sample(output);
+      const auto* sampled_output = std::get_if<runtime::SampledToken>(&output);
+      if (sampled_output == nullptr ||
+          sampled_output->id >= lease.deployment->backend->vocabulary_size()) {
+        throw std::runtime_error("final backend did not return a valid sampled token");
+      }
+      const auto token = sampled_output->id;
       check_running(*active, *context);
       v1::StageMessage response;
       auto* sampled = response.mutable_sampled_token();
@@ -384,11 +392,15 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     std::uint64_t generated = 0U;
     for (std::uint64_t step = 0U; step < request->maximum_new_tokens(); ++step) {
       check_running(*active, *context);
-      auto hidden =
-          backend.forward(backend.embed(tokens), position, *active->sequence, active->cancelled);
+      auto output = backend.execute(runtime::TokenInput{tokens}, position, *active->sequence,
+                                    active->cancelled);
       std::uint64_t token;
       if (peer) {
-        if (!peer->Write(encode_tensor(hidden, lease, step, position))) {
+        const auto* boundary = std::get_if<runtime::BoundaryActivation>(&output);
+        if (boundary == nullptr || boundary->tokens != tokens.size()) {
+          throw std::runtime_error("intermediate backend did not return boundary activations");
+        }
+        if (!peer->Write(encode_tensor(*boundary, lease, step, position))) {
           peer_failure(*peer, "downstream activation send failed");
         }
         v1::StageMessage response;
@@ -408,7 +420,11 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         }
         token = sampled.token_id();
       } else {
-        token = backend.sample(hidden);
+        const auto* sampled_output = std::get_if<runtime::SampledToken>(&output);
+        if (sampled_output == nullptr || sampled_output->id >= backend.vocabulary_size()) {
+          throw std::runtime_error("final backend did not return a valid sampled token");
+        }
+        token = sampled_output->id;
       }
       check_running(*active, *context);
       if (step == 0U) {

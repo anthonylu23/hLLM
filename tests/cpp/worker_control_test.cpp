@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 
+#include "hllm/cpu/stage.hpp"
 #include "hllm/worker/control_service.hpp"
 #include "model_fixture.hpp"
 
@@ -14,12 +15,14 @@ namespace {
 
 TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
   const test::ModelFixture model;
-  ControlService service({
-      .worker_id = "cpu-a",
-      .endpoint = "127.0.0.1:50051",
-      .model_root = model.root,
-      .host_memory_capacity_bytes = 1'000'000U,
-  });
+  ControlService service(
+      {
+          .worker_id = "cpu-a",
+          .endpoint = "127.0.0.1:50051",
+          .model_root = model.root,
+          .host_memory_capacity_bytes = 1'000'000U,
+      },
+      cpu::make_backend_factory());
   grpc::ServerContext context;
   auto load = model.load();
   v1::LoadStageResponse loaded;
@@ -73,12 +76,14 @@ TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
 
 TEST(WorkerControlTest, AdvertisesAndLoadsExecutableQwen3) {
   const test::ModelFixture model;
-  ControlService service({
-      .worker_id = "cpu-a",
-      .endpoint = "127.0.0.1:50051",
-      .model_root = model.root,
-      .host_memory_capacity_bytes = 1'000'000U,
-  });
+  ControlService service(
+      {
+          .worker_id = "cpu-a",
+          .endpoint = "127.0.0.1:50051",
+          .model_root = model.root,
+          .host_memory_capacity_bytes = 1'000'000U,
+      },
+      cpu::make_backend_factory());
   grpc::ServerContext context;
   v1::Empty empty;
   v1::Capabilities capabilities;
@@ -102,12 +107,14 @@ TEST(WorkerControlTest, AdvertisesAndLoadsExecutableQwen3) {
 
 TEST(WorkerControlTest, RejectsTraversalAndStaleDeployment) {
   const test::ModelFixture model;
-  ControlService service({
-      .worker_id = "cpu-a",
-      .endpoint = "127.0.0.1:50051",
-      .model_root = model.root,
-      .host_memory_capacity_bytes = 1'000'000U,
-  });
+  ControlService service(
+      {
+          .worker_id = "cpu-a",
+          .endpoint = "127.0.0.1:50051",
+          .model_root = model.root,
+          .host_memory_capacity_bytes = 1'000'000U,
+      },
+      cpu::make_backend_factory());
   grpc::ServerContext context;
   auto load = model.load();
   load.mutable_manifest()->mutable_tensors(0)->set_file("../model.safetensors");
@@ -134,7 +141,8 @@ namespace hllm::worker {
 namespace {
 TEST(WorkerControlTest, RejectsOversizedAndConflictingReservationsAndReportsAllocations) {
   const test::ModelFixture model;
-  ControlService service({"cpu-a", "127.0.0.1:50051", model.root, 100'000U});
+  ControlService service({"cpu-a", "127.0.0.1:50051", model.root, 100'000U},
+                         cpu::make_backend_factory());
   grpc::ServerContext context;
   auto load = model.load();
   v1::LoadStageResponse loaded;

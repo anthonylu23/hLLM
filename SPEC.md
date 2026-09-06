@@ -560,8 +560,10 @@ Before deployment, hLLM must:
 
 Memory feasibility is a hard constraint.
 
-Memory is budgeted by domain: ordinary host memory, pinned host memory, CUDA device memory,
-or Apple unified memory. For worker `j` and memory domain `d`:
+Memory is budgeted by domain: host memory, pinned host memory, CUDA device memory,
+or Apple unified memory. In the CPU/CUDA runtime, host usage includes pinned allocations;
+pinned usage has an additional independent cap and is not added again to total bytes.
+For worker `j` and memory domain `d`:
 
 ```text
 usable_memory[j,d]

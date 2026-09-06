@@ -36,9 +36,20 @@ Keep sequence state opaque to the common runtime. Add model-specific memory desc
 when a real architecture requires them rather than teaching the planner unrelated
 formulas today. Framework objects must never cross the transport boundary.
 
+## Stage contract
+
+The common stage interface accepts token IDs or FP16 boundary bytes and returns FP16
+boundary bytes or a sampled token. Embedding, layers, and sampling remain inside one
+backend operation so GPU intermediates can stay on device. CPU reference inspection APIs
+are separate from that contract. Factories supply truthful execution capabilities and
+validate load-time allocations; runtime admission checks host, device and pinned-host
+reservations separately. Pinned memory also counts toward host memory. Backend state and
+pending device operations must finish safely before buffers can be released.
+
 ## Implementation order
 
-Complete executable CPU stages and a two-process pipeline for tiny Llama and Qwen3.
-Use both as regression cases for every backend. Then implement CUDA and MLX against the
-same stage contract. Select the next model family with the user before widening that
+Executable CPU stages and a two-process pipeline for tiny Llama and Qwen3 are complete.
+Use both as regression cases for every backend. The [CUDA integration PR](milestone-2.md)
+introduces the build/factory and memory boundaries; CUDA model execution follows next,
+then mixed CPU/CUDA qualification. MLX will implement the same stage contract. Select the next model family with the user before widening that
 contract. Full-checkpoint performance and measured placement remain later validation.

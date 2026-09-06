@@ -5,12 +5,11 @@
 #include <set>
 #include <stdexcept>
 
-#include "hllm/cpu/stage.hpp"
-
 namespace hllm::worker {
 namespace {
 
-void validate_plan(const v1::LoadStageRequest& request, const std::string& worker) {
+void validate_plan(const v1::LoadStageRequest& request, const std::string& worker,
+                   const runtime::BackendCapabilities& capabilities) {
   const auto& plan = request.plan();
   const auto& manifest = request.manifest();
   if (!request.has_plan() || !request.has_manifest() || plan.schema_version().major() != 1U ||
@@ -20,12 +19,17 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
       manifest.manifest_digest().empty() || plan.manifest_digest() != manifest.manifest_digest()) {
     throw std::invalid_argument("unsupported schema or inconsistent deployment identity");
   }
-  if (plan.execution_dtype() != v1::DATA_TYPE_F32 || plan.activation_dtype() != v1::DATA_TYPE_F16) {
-    throw std::invalid_argument("CPU execution requires F32 compute and F16 boundaries");
+  if (std::find(capabilities.architectures.begin(), capabilities.architectures.end(),
+                manifest.architecture().architecture_id()) == capabilities.architectures.end() ||
+      std::find(capabilities.execution_dtypes.begin(), capabilities.execution_dtypes.end(),
+                plan.execution_dtype()) == capabilities.execution_dtypes.end() ||
+      plan.activation_dtype() != v1::DATA_TYPE_F16) {
+    throw std::invalid_argument("unsupported architecture or execution dtype: " +
+                                capabilities.detail);
   }
   if ((plan.stages_size() != 1 && plan.stages_size() != 2) ||
       request.stage_index() >= static_cast<std::uint32_t>(plan.stages_size())) {
-    throw std::invalid_argument("CPU pipeline supports one or two stages");
+    throw std::invalid_argument("pipeline supports one or two stages");
   }
   std::uint32_t end = 0U;
   std::set<std::string> workers;
@@ -79,11 +83,27 @@ void reject(Response* response, v1::ErrorCode code, const std::string& detail) {
 
 }  // namespace
 
-ControlService::ControlService(WorkerConfig config) : config_(std::move(config)) {
+ControlService::ControlService(WorkerConfig config,
+                               std::unique_ptr<runtime::BackendFactory> factory)
+    : config_(std::move(config)),
+      factory_(std::move(factory)),
+      capacity_{config_.host_memory_capacity_bytes, config_.device_memory_capacity_bytes,
+                config_.pinned_host_memory_capacity_bytes} {
   if (config_.worker_id.empty() || config_.endpoint.empty() ||
       !std::filesystem::is_directory(config_.model_root) ||
       config_.host_memory_capacity_bytes == 0U) {
     throw std::invalid_argument("worker configuration is incomplete");
+  }
+  if (!factory_ || capacity_.pinned_host_bytes > capacity_.host_bytes) {
+    throw std::invalid_argument("invalid backend factory or pinned host memory budget");
+  }
+  if (capacity_.device_bytes > std::numeric_limits<std::size_t>::max() - capacity_.host_bytes) {
+    throw std::invalid_argument("combined memory capacity overflows accounting");
+  }
+  capabilities_ = factory_->capabilities();
+  if (capabilities_.primary_memory_domain == v1::MEMORY_DOMAIN_DEVICE &&
+      capacity_.device_bytes == 0U) {
+    throw std::invalid_argument("device backend requires a device memory budget");
   }
   config_.model_root = std::filesystem::canonical(config_.model_root);
   reservation_reaper_ = std::jthread([this](std::stop_token stop) {
@@ -101,14 +121,25 @@ grpc::Status ControlService::GetCapabilities(grpc::ServerContext*, const v1::Emp
   profile->mutable_schema_version()->set_major(1U);
   profile->set_worker_id(config_.worker_id);
   profile->set_endpoint(config_.endpoint);
-  profile->set_backend(v1::BACKEND_CPU);
-  profile->set_primary_memory_domain(v1::MEMORY_DOMAIN_HOST);
-  profile->add_supported_architectures("llama.v1");
-  profile->add_supported_architectures("qwen3.v1");
-  profile->add_supported_execution_dtypes(v1::DATA_TYPE_F32);
-  auto* budget = profile->add_memory_budgets();
-  budget->set_domain(v1::MEMORY_DOMAIN_HOST);
-  budget->set_capacity_bytes(config_.host_memory_capacity_bytes);
+  profile->set_backend(capabilities_.kind);
+  profile->set_primary_memory_domain(capabilities_.primary_memory_domain);
+  for (const auto& architecture : capabilities_.architectures) {
+    profile->add_supported_architectures(architecture);
+  }
+  for (const auto dtype : capabilities_.execution_dtypes) {
+    profile->add_supported_execution_dtypes(dtype);
+  }
+  const auto budget = [&](v1::MemoryDomain domain, std::size_t bytes) {
+    if (bytes == 0U) {
+      return;
+    }
+    auto* value = profile->add_memory_budgets();
+    value->set_domain(domain);
+    value->set_capacity_bytes(bytes);
+  };
+  budget(v1::MEMORY_DOMAIN_HOST, capacity_.host_bytes);
+  budget(v1::MEMORY_DOMAIN_DEVICE, capacity_.device_bytes);
+  budget(v1::MEMORY_DOMAIN_HOST_PINNED, capacity_.pinned_host_bytes);
   profile->set_provenance(v1::PROVENANCE_CONFIGURED);
   return grpc::Status::OK;
 }
@@ -141,14 +172,17 @@ grpc::Status ControlService::LoadStage(grpc::ServerContext*, const v1::LoadStage
     return grpc::Status::OK;
   }
   try {
-    validate_plan(*request, config_.worker_id);
+    validate_plan(*request, config_.worker_id, capabilities_);
     auto next = std::make_shared<LoadedDeployment>();
     next->spec = *request;
-    next->backend =
-        cpu::load_stage(*request, config_.model_root, config_.host_memory_capacity_bytes);
+    next->backend = factory_->load(*request, config_.model_root, capacity_);
+    if (!next->backend) {
+      throw std::runtime_error("backend factory returned no stage");
+    }
+    runtime::require_memory(next->backend->weight_memory(), capacity_);
     deployment_ = std::move(next);
     response->set_accepted(true);
-    response->set_detail("executable CPU stage loaded");
+    response->set_detail("executable stage loaded");
   } catch (const std::bad_alloc&) {
     reject(response, v1::ERROR_CODE_RESOURCE_EXHAUSTED, "weight allocation failed");
   } catch (const std::length_error& error) {
@@ -189,16 +223,20 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
     return active_;
   }
   const auto memory = deployment_->backend->sequence_memory(tokens);
-  const auto available = config_.host_memory_capacity_bytes - deployment_->backend->weight_bytes();
-  if (memory.cache_bytes > available || memory.workspace_bytes > available - memory.cache_bytes) {
-    throw std::length_error("request cache and workspace exceed host memory budget");
-  }
+  runtime::require_memory(memory.cache, capacity_);
+  runtime::require_memory(memory.workspace, capacity_);
+  runtime::require_memory(runtime::add_memory(deployment_->backend->weight_memory(),
+                                              runtime::add_memory(memory.cache, memory.workspace)),
+                          capacity_);
   auto next = std::make_shared<ActiveRequest>();
   next->id = id;
   next->maximum_tokens = tokens;
   next->deadline = deadline;
   next->memory = memory;
   next->sequence = deployment_->backend->allocate_sequence(tokens);
+  if (!next->sequence) {
+    throw std::runtime_error("backend returned no sequence state");
+  }
   active_ = next;
   return next;
 }
@@ -239,7 +277,7 @@ grpc::Status ControlService::ReserveRequest(grpc::ServerContext*,
     static_cast<void>(reserve(request->request_id(), request->maximum_total_tokens(),
                               request->deadline_unix_ms()));
     response->set_accepted(true);
-    response->set_detail("CPU cache allocated and workspace reserved");
+    response->set_detail("backend sequence allocated and workspace reserved");
   } catch (const std::bad_alloc&) {
     reject(response, v1::ERROR_CODE_RESOURCE_EXHAUSTED, "cache allocation failed");
   } catch (const std::length_error& error) {
@@ -284,17 +322,35 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
                                              v1::MemoryReport* response) {
   std::scoped_lock lock(mutex_);
   prune_expired();
-  auto* budget = response->add_budgets();
-  budget->set_domain(v1::MEMORY_DOMAIN_HOST);
-  budget->set_capacity_bytes(config_.host_memory_capacity_bytes);
-  if (deployment_) {
-    response->set_loaded_weight_bytes(deployment_->backend->weight_bytes());
-  }
-  if (active_) {
-    response->set_active_requests(1U);
-    response->set_reserved_cache_bytes(active_->memory.cache_bytes);
-    response->set_reserved_workspace_bytes(active_->memory.workspace_bytes);
-  }
+  const auto weights =
+      deployment_ ? deployment_->backend->weight_memory() : runtime::MemoryAmounts{};
+  const auto cache = active_ ? active_->memory.cache : runtime::MemoryAmounts{};
+  const auto workspace = active_ ? active_->memory.workspace : runtime::MemoryAmounts{};
+  const auto report_domain = [&](v1::MemoryDomain domain, std::size_t capacity, std::size_t weight,
+                                 std::size_t cached, std::size_t work) {
+    if (capacity == 0U) {
+      return;
+    }
+    auto* budget = response->add_budgets();
+    budget->set_domain(domain);
+    budget->set_capacity_bytes(capacity);
+    auto* usage = response->add_domain_usage();
+    usage->set_domain(domain);
+    usage->set_loaded_weight_bytes(weight);
+    usage->set_reserved_cache_bytes(cached);
+    usage->set_reserved_workspace_bytes(work);
+  };
+  report_domain(v1::MEMORY_DOMAIN_HOST, capacity_.host_bytes, weights.host_bytes, cache.host_bytes,
+                workspace.host_bytes);
+  report_domain(v1::MEMORY_DOMAIN_DEVICE, capacity_.device_bytes, weights.device_bytes,
+                cache.device_bytes, workspace.device_bytes);
+  report_domain(v1::MEMORY_DOMAIN_HOST_PINNED, capacity_.pinned_host_bytes,
+                weights.pinned_host_bytes, cache.pinned_host_bytes, workspace.pinned_host_bytes);
+  // Legacy totals count each byte once: pinned memory is already included in host.
+  response->set_loaded_weight_bytes(weights.host_bytes + weights.device_bytes);
+  response->set_reserved_cache_bytes(cache.host_bytes + cache.device_bytes);
+  response->set_reserved_workspace_bytes(workspace.host_bytes + workspace.device_bytes);
+  response->set_active_requests(active_ ? 1U : 0U);
   return grpc::Status::OK;
 }
 grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,
@@ -305,9 +361,8 @@ grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,
 grpc::Status ControlService::Health(grpc::ServerContext*, const v1::Empty*,
                                     v1::HealthResponse* response) {
   std::scoped_lock lock(mutex_);
-  response->set_serving(true);
-  response->set_detail(deployment_ ? "executable CPU stage ready"
-                                   : "worker ready; no stage loaded");
+  response->set_serving(!capabilities_.architectures.empty());
+  response->set_detail(deployment_ ? "executable stage ready" : capabilities_.detail);
   return grpc::Status::OK;
 }
 
