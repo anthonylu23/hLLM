@@ -13,7 +13,13 @@ from hllm_control.controller import DeploymentSession
 from hllm_control.proto import common_pb2, control_pb2, execution_pb2, execution_pb2_grpc
 
 from tests.cuda.mixed_helpers import mixed_workers
-from tests.process_helpers import plan, tokens, wait_clean, write_model
+from tests.process_contracts import (
+    check_admission_rollback,
+    check_idle_cancellation,
+    check_partial_load_rollback,
+    check_stage_protocol,
+)
+from tests.process_helpers import Workers, plan, tokens, wait_clean, write_model
 
 
 @pytest.mark.parametrize("mode", ["pageable", "pinned"])
@@ -75,7 +81,9 @@ def test_fault_at_boundary(
                             maximum_new_tokens=8,
                             deadline_unix_ms=int((time.time() + timeout) * 1000),
                         ),
-                        timeout=timeout,
+                        # Keep the client alive beyond the application deadline so
+                        # the assertion observes the native server's status.
+                        timeout=timeout + 5,
                     )
 
                     def consume():
@@ -161,11 +169,9 @@ def test_fault_at_boundary(
 @pytest.mark.parametrize("cuda_first", [False, True])
 @pytest.mark.parametrize("scenario", ["protocol", "idle", "load", "admission"])
 def test_existing_failure_contracts_on_mixed_workers(
-    tmp_path: Path, mode: str, cuda_first: bool, scenario: str, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, mode: str, cuda_first: bool, scenario: str
 ) -> None:
-    from tests.integration import test_cpu_pipeline as contracts
-
-    def launch(root: Path, limit: int | tuple[int, int] = 64 * 1024 * 1024):
+    def launch(root: Path, limit: int | tuple[int, int] = 64 * 1024 * 1024) -> Workers:
         return mixed_workers(
             root,
             mode=mode,
@@ -174,16 +180,13 @@ def test_existing_failure_contracts_on_mixed_workers(
             device_limit=(10 if scenario == "admission" and not cuda_first else 128) * 1024 * 1024,
         )
 
-    monkeypatch.setattr(contracts, "Workers", launch)
     cases = {
-        "protocol": contracts.test_stage_protocol_rejects_wrong_order_and_disconnects,
-        "idle": contracts.test_idle_stage_deadline_and_control_cancellation,
-        "load": contracts.test_partial_load_failure_unloads_downstream,
-        "admission": (
-            contracts.test_downstream_memory_rejection_preserves_status_and_releases_driver
-        ),
+        "protocol": check_stage_protocol,
+        "idle": check_idle_cancellation,
+        "load": check_partial_load_rollback,
+        "admission": check_admission_rollback,
     }
-    cases[scenario](tmp_path)
+    cases[scenario](tmp_path, launch)
 
 
 @pytest.mark.parametrize("mode", ["pageable", "pinned"])
