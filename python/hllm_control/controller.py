@@ -26,6 +26,8 @@ from hllm_control.wire import deployment_plan_to_proto, model_manifest_to_proto
 # grpcio's generated service factories are untyped. Keep that boundary here.
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 
+_TRANSPORT_DEADLINE_GRACE_SECONDS = 2.0
+
 
 class DeploymentSession:
     """Own a short-lived deployment on already running workers.
@@ -126,7 +128,10 @@ class DeploymentSession:
                 stop_token_ids=stops,
                 deadline_unix_ms=int((time.time() + timeout) * 1000),
             ),
-            timeout=timeout,
+            # The worker enforces the application deadline itself; the transport
+            # deadline trails it slightly so its DEADLINE_EXCEEDED status (rather
+            # than a locally synthesized one) is what the caller observes.
+            timeout=timeout + _TRANSPORT_DEADLINE_GRACE_SECONDS,
         )
         completed = False
         try:

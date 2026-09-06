@@ -86,6 +86,15 @@ class Watchdog final {
           }
         }) {}
 
+  // Call once the request has reached a terminal outcome; afterwards a late
+  // cancellation must not disturb the acknowledgment still being written.
+  void stop() {
+    thread_.request_stop();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+  }
+
  private:
   std::jthread thread_;
 };
@@ -100,10 +109,10 @@ std::uint64_t effective_deadline(grpc::ServerContext& context, std::uint64_t req
   if (requested != 0U) {
     const auto now = milliseconds(std::chrono::system_clock::now());
     if (requested <= now) {
-      throw std::invalid_argument("request deadline already expired");
+      throw runtime::Error::deadline_exceeded("request deadline already expired");
     }
     if (requested - now > 3'600'000U) {
-      throw std::invalid_argument("deadline exceeds one hour");
+      throw runtime::Error::invalid_request("deadline exceeds one hour");
     }
     deadline = std::chrono::system_clock::time_point(std::chrono::milliseconds(requested));
   }
@@ -291,8 +300,9 @@ grpc::Status ExecutionService::Execute(
                           terminal.request_id(), terminal.microbatch_id(), lease);
         if (terminal.state() != v1::TERMINAL_STATE_COMPLETED || !stopped ||
             terminal.prompt_tokens() != prompt || terminal.generated_tokens() != sequence) {
-          throw std::invalid_argument("invalid sequence termination");
+          throw runtime::Error::invalid_request("invalid sequence termination");
         }
+        watchdog.stop();
         control_.release(active);
         if (!stream->Write(message)) {
           throw std::runtime_error("termination acknowledgment failed");
@@ -492,6 +502,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         throw std::runtime_error("downstream cleanup was not acknowledged");
       }
     }
+    watchdog.stop();
     control_.release(active);
     v1::GenerationEvent event;
     event.set_request_id(request->request_id());

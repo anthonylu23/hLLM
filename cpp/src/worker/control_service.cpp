@@ -225,9 +225,11 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   if (deadline_ms != 0U) {
     const auto now_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-    if (deadline_ms <= static_cast<std::uint64_t>(now_ms) ||
-        deadline_ms - static_cast<std::uint64_t>(now_ms) > 3'600'000U) {
-      throw std::invalid_argument("deadline must be in the next hour");
+    if (deadline_ms <= static_cast<std::uint64_t>(now_ms)) {
+      throw runtime::Error::deadline_exceeded("request deadline already expired");
+    }
+    if (deadline_ms - static_cast<std::uint64_t>(now_ms) > 3'600'000U) {
+      throw runtime::Error::invalid_request("deadline exceeds one hour");
     }
     deadline = std::chrono::system_clock::time_point(std::chrono::milliseconds(deadline_ms));
   }

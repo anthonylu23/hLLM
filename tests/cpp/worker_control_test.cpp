@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -132,6 +133,39 @@ TEST(WorkerControlTest, RejectsTraversalAndStaleDeployment) {
   EXPECT_TRUE(service.ReserveRequest(&context, &reserve, &reserved).ok());
   EXPECT_FALSE(reserved.accepted());
   EXPECT_EQ(reserved.error().code(), v1::ERROR_CODE_STALE_DEPLOYMENT);
+}
+
+TEST(WorkerControlTest, DistinguishesExpiredDeadlinesFromInvalidOnes) {
+  const test::ModelFixture model;
+  ControlService service({"cpu-a", "127.0.0.1:50051", model.root, 1'000'000U},
+                         cpu::make_backend_factory());
+  grpc::ServerContext context;
+  auto load = model.load();
+  v1::LoadStageResponse loaded;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &loaded).ok());
+  ASSERT_TRUE(loaded.accepted()) << loaded.detail();
+  const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::system_clock::now().time_since_epoch())
+                       .count();
+  v1::ReserveRequestMessage reserve;
+  reserve.set_plan_id("plan-1");
+  reserve.set_deployment_version(1U);
+  reserve.set_request_id("late");
+  reserve.set_maximum_total_tokens(16U);
+  reserve.set_deadline_unix_ms(static_cast<std::uint64_t>(now) - 1U);
+  v1::ReserveResponse expired;
+  ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &expired).ok());
+  EXPECT_FALSE(expired.accepted());
+  EXPECT_EQ(expired.error().code(), v1::ERROR_CODE_DEADLINE_EXCEEDED);
+  reserve.set_deadline_unix_ms(static_cast<std::uint64_t>(now) + 2U * 3'600'000U);
+  v1::ReserveResponse distant;
+  ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &distant).ok());
+  EXPECT_FALSE(distant.accepted());
+  EXPECT_EQ(distant.error().code(), v1::ERROR_CODE_INVALID_REQUEST);
+  v1::Empty empty;
+  v1::MemoryReport report;
+  ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
+  EXPECT_EQ(report.active_requests(), 0U);
 }
 
 }  // namespace
