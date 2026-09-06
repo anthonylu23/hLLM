@@ -1,17 +1,29 @@
-"""Hardware-required integration check for the CUDA backend foundation."""
+"""Hardware-required CUDA control and single-worker generation tests."""
 
 from __future__ import annotations
 
 import os
 import socket
 import subprocess
+import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import grpc
 import pytest
-from hllm_control.proto import common_pb2, control_pb2, control_pb2_grpc, profile_pb2
+from hllm_control.controller import DeploymentSession
+from hllm_control.models import DeploymentPlan, DType, PlanningMode, StageAssignment
+from hllm_control.prepare.manifest import prepare_model
+from hllm_control.proto import (
+    common_pb2,
+    control_pb2,
+    control_pb2_grpc,
+    execution_pb2,
+    profile_pb2,
+)
 
-BINARY = Path(os.environ.get("HLLM_CUDA_WORKER", "build/native/cuda/cpp/hllm-worker-cuda"))
+ROOT = Path(__file__).resolve().parents[2]
+BINARY = Path(os.environ.get("HLLM_CUDA_WORKER", ROOT / "build/native/cuda/cpp/hllm-worker-cuda"))
 
 
 def arguments(root: Path) -> list[str]:
@@ -31,9 +43,10 @@ def arguments(root: Path) -> list[str]:
     ]
 
 
-def test_cuda_probe_capabilities_memory_and_load_rejection(tmp_path: Path) -> None:
-    command = arguments(tmp_path)
-    command += [
+@pytest.fixture
+def cuda_worker(tmp_path: Path) -> Iterator[tuple[str, control_pb2_grpc.WorkerControlStub]]:
+    command = [
+        *arguments(tmp_path),
         "--device-memory-limit-bytes",
         "67108864",
         "--pinned-host-memory-limit-bytes",
@@ -45,37 +58,7 @@ def test_cuda_probe_capabilities_memory_and_load_rejection(tmp_path: Path) -> No
         try:
             with grpc.insecure_channel(command[2]) as channel:
                 grpc.channel_ready_future(channel).result(timeout=30)
-                control = control_pb2_grpc.WorkerControlStub(channel)
-                caps = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
-                assert caps.backend == profile_pb2.BACKEND_CUDA
-                assert caps.primary_memory_domain == profile_pb2.MEMORY_DOMAIN_DEVICE
-                assert not caps.supported_architectures
-                assert not caps.supported_execution_dtypes
-                assert {b.domain: b.capacity_bytes for b in caps.memory_budgets} == {
-                    profile_pb2.MEMORY_DOMAIN_HOST: 16777216,
-                    profile_pb2.MEMORY_DOMAIN_DEVICE: 67108864,
-                    profile_pb2.MEMORY_DOMAIN_HOST_PINNED: 1048576,
-                }
-                health = control.Health(common_pb2.Empty(), timeout=5)
-                assert not health.serving
-                assert "CUDA runtime ready on device 0" in health.detail
-                assert "model execution is not implemented" in health.detail
-                report = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
-                assert len(report.domain_usage) == 3
-                assert report.loaded_weight_bytes == report.active_requests == 0
-                load = control_pb2.LoadStageRequest()
-                load.plan.schema_version.major = load.manifest.schema_version.major = 1
-                load.plan.plan_id = "probe"
-                load.plan.plan_digest = "plan-digest"
-                load.plan.deployment_version = 1
-                load.plan.manifest_digest = load.manifest.manifest_digest = "manifest-digest"
-                load.manifest.architecture.architecture_id = "qwen3.v1"
-                load.plan.execution_dtype = common_pb2.DATA_TYPE_F32
-                load.plan.activation_dtype = common_pb2.DATA_TYPE_F16
-                result = control.LoadStage(load, timeout=5)
-                assert not result.accepted
-                assert result.error.code == common_pb2.ERROR_CODE_INCOMPATIBLE_WORKER
-                assert "model execution is not implemented" in result.detail
+                yield command[2], control_pb2_grpc.WorkerControlStub(channel)
         finally:
             process.terminate()
             try:
@@ -84,6 +67,127 @@ def test_cuda_probe_capabilities_memory_and_load_rejection(tmp_path: Path) -> No
                 process.kill()
                 _, stderr = process.communicate(timeout=5)
             assert process.returncode in (0, -15), stderr.decode()
+
+
+def test_cuda_capabilities_memory_and_unsupported_model(
+    cuda_worker: tuple[str, control_pb2_grpc.WorkerControlStub],
+) -> None:
+    _, control = cuda_worker
+    caps = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
+    assert caps.backend == profile_pb2.BACKEND_CUDA
+    assert caps.primary_memory_domain == profile_pb2.MEMORY_DOMAIN_DEVICE
+    assert set(caps.supported_architectures) == {"llama.v1", "qwen3.v1"}
+    assert set(caps.supported_execution_dtypes) == {
+        common_pb2.DATA_TYPE_F32,
+        common_pb2.DATA_TYPE_F16,
+    }
+    assert {b.domain: b.capacity_bytes for b in caps.memory_budgets} == {
+        profile_pb2.MEMORY_DOMAIN_HOST: 16777216,
+        profile_pb2.MEMORY_DOMAIN_DEVICE: 67108864,
+        profile_pb2.MEMORY_DOMAIN_HOST_PINNED: 1048576,
+    }
+    health = control.Health(common_pb2.Empty(), timeout=5)
+    assert health.serving
+    assert "CUDA runtime ready on device 0" in health.detail
+    report = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
+    assert len(report.domain_usage) == 3
+    assert report.loaded_weight_bytes == report.active_requests == 0
+    load = control_pb2.LoadStageRequest()
+    load.plan.schema_version.major = load.manifest.schema_version.major = 1
+    load.plan.plan_id = "probe"
+    load.plan.plan_digest = "plan-digest"
+    load.plan.deployment_version = 1
+    load.plan.manifest_digest = load.manifest.manifest_digest = "manifest-digest"
+    load.manifest.architecture.architecture_id = "unsupported.v1"
+    load.plan.execution_dtype = common_pb2.DATA_TYPE_F32
+    load.plan.activation_dtype = common_pb2.DATA_TYPE_F16
+    result = control.LoadStage(load, timeout=5)
+    assert not result.accepted
+    assert result.error.code == common_pb2.ERROR_CODE_INCOMPATIBLE_WORKER
+    assert "unsupported architecture" in result.detail
+
+
+@pytest.mark.parametrize("dtype", [DType.F32, DType.F16])
+def test_cuda_generation_reservations_and_reload(
+    tmp_path: Path,
+    cuda_worker: tuple[str, control_pb2_grpc.WorkerControlStub],
+    dtype: DType,
+) -> None:
+    address, control = cuda_worker
+    subprocess.run(
+        [sys.executable, str(ROOT / "scripts/create_cpu_demo.py"), str(tmp_path)], check=True
+    )
+    manifest = prepare_model(tmp_path)
+    plan = DeploymentPlan(
+        plan_id="cuda-generation",
+        plan_digest="cuda-test-plan",
+        manifest_digest=manifest.manifest_digest,
+        workload_id="tiny",
+        planning_mode=PlanningMode.FEASIBILITY,
+        execution_dtype=dtype,
+        activation_dtype=DType.F16,
+        split_layer=0,
+        selected_candidate_id="test",
+        stages=(
+            StageAssignment(
+                stage_index=0,
+                worker_id="cuda-a",
+                layer_start=0,
+                layer_end=manifest.config.num_layers,
+                owns_token_embedding=True,
+                owns_final_norm=True,
+                owns_lm_head=True,
+                owns_sampling=True,
+            ),
+        ),
+    )
+    previous = None
+    for _ in range(2):
+        with DeploymentSession(manifest, plan, {"cuda-a": address}) as session:
+            reserved = control.ReserveRequest(
+                control_pb2.ReserveRequestMessage(
+                    plan_id=plan.plan_id,
+                    deployment_version=plan.deployment_version,
+                    request_id="reserved",
+                    maximum_total_tokens=16,
+                ),
+                timeout=5,
+            )
+            assert reserved.accepted, reserved.detail
+            report = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
+            usage = {item.domain: item for item in report.domain_usage}
+            assert usage[profile_pb2.MEMORY_DOMAIN_HOST].loaded_weight_bytes == 0
+            assert usage[profile_pb2.MEMORY_DOMAIN_DEVICE].loaded_weight_bytes > 0
+            assert usage[profile_pb2.MEMORY_DOMAIN_DEVICE].reserved_cache_bytes == (
+                16
+                * manifest.config.num_layers
+                * manifest.config.num_kv_heads
+                * manifest.config.head_dim
+                * 2
+                * (4 if dtype == DType.F32 else 2)
+            )
+            assert usage[profile_pb2.MEMORY_DOMAIN_HOST_PINNED].reserved_workspace_bytes == 0
+            control.CancelRequest(
+                control_pb2.CancelRequestMessage(
+                    plan_id=plan.plan_id,
+                    deployment_version=plan.deployment_version,
+                    request_id="reserved",
+                ),
+                timeout=5,
+            )
+            for _ in range(2):
+                events = list(session.generate([1, 4, 2], maximum_new_tokens=16, stop_token_ids=[]))
+                assert events[0].HasField("prefill_complete")
+                assert events[-1].terminal.state == execution_pb2.TERMINAL_STATE_COMPLETED
+                result = [event.token.token_id for event in events if event.HasField("token")]
+                assert len(result) == 16
+                if previous is not None:
+                    assert result == previous
+                previous = result
+                report = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
+                assert report.active_requests == report.reserved_cache_bytes == 0
+                assert report.reserved_workspace_bytes == 0
+        assert control.GetMemoryReport(common_pb2.Empty(), timeout=5).loaded_weight_bytes == 0
 
 
 @pytest.mark.parametrize(

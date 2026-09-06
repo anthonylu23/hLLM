@@ -9,6 +9,7 @@
 #include <string>
 
 #include "control.pb.h"
+#include "hllm/runtime/half.hpp"
 
 namespace hllm::test {
 
@@ -18,7 +19,7 @@ class ModelFixture {
   v1::ModelManifest manifest;
   nlohmann::json oracle;
 
-  ModelFixture() {
+  explicit ModelFixture(bool qwen = true, bool tied = true, const std::string& dtype = "F32") {
     static std::atomic<unsigned> counter{0U};
     root = std::filesystem::temp_directory_path() /
            ("hllm-stage-" +
@@ -31,9 +32,11 @@ class ModelFixture {
     manifest.mutable_schema_version()->set_minor(1U);
     manifest.set_manifest_digest("fixture-manifest");
     auto* architecture = manifest.mutable_architecture();
-    architecture->set_architecture_id("qwen3.v1");
+    architecture->set_architecture_id(qwen ? "qwen3.v1" : "llama.v1");
     architecture->set_architecture_revision("1");
-    architecture->add_feature_flags("qk_norm");
+    if (qwen) {
+      architecture->add_feature_flags("qk_norm");
+    }
     const auto& cfg = oracle.at("config");
     auto* config = manifest.mutable_config();
     config->set_hidden_size(cfg.at("hidden_size").get<std::uint64_t>());
@@ -47,27 +50,33 @@ class ModelFixture {
     config->set_rms_norm_eps(cfg.at("rms_norm_eps").get<double>());
     config->set_rope_theta(cfg.at("rope_theta").get<double>());
     config->set_hidden_activation("silu");
-    config->set_tied_embeddings(true);
+    config->set_tied_embeddings(tied);
     nlohmann::json header = nlohmann::json::object();
     std::string payload;
     for (const auto& [name, tensor] : oracle.at("weights").items()) {
-      if (name == "lm_head.weight") {
+      if ((tied && name == "lm_head.weight") ||
+          (!qwen && (name.ends_with("q_norm.weight") || name.ends_with("k_norm.weight")))) {
         continue;
       }
       const auto start = payload.size();
       for (const float value : tensor.at("values").get<std::vector<float>>()) {
-        const auto bits = std::bit_cast<std::uint32_t>(value);
-        for (std::size_t b = 0U; b < 4U; ++b) {
+        const auto bits =
+            dtype == "F16"    ? static_cast<std::uint32_t>(runtime::float_to_float16(value))
+            : dtype == "BF16" ? static_cast<std::uint32_t>(runtime::float_to_bfloat16(value))
+                              : std::bit_cast<std::uint32_t>(value);
+        for (std::size_t b = 0U; b < (dtype == "F32" ? 4U : 2U); ++b) {
           payload.push_back(static_cast<char>((bits >> (8U * b)) & 0xffU));
         }
       }
-      header[name] = {{"dtype", "F32"},
+      header[name] = {{"dtype", dtype},
                       {"shape", tensor.at("shape")},
                       {"data_offsets", {start, payload.size()}}};
       auto* record = manifest.add_tensors();
       record->set_name(name);
       record->set_file("model.safetensors");
-      record->set_dtype(v1::DATA_TYPE_F32);
+      record->set_dtype(dtype == "F16"    ? v1::DATA_TYPE_F16
+                        : dtype == "BF16" ? v1::DATA_TYPE_BF16
+                                          : v1::DATA_TYPE_F32);
       for (auto dim : tensor.at("shape")) {
         record->add_shape(dim.get<std::uint64_t>());
       }
@@ -77,6 +86,8 @@ class ModelFixture {
         record->set_role(v1::TENSOR_ROLE_TOKEN_EMBEDDING);
       } else if (name == "model.norm.weight") {
         record->set_role(v1::TENSOR_ROLE_FINAL_NORM);
+      } else if (name == "lm_head.weight") {
+        record->set_role(v1::TENSOR_ROLE_LM_HEAD);
       } else {
         record->set_role(v1::TENSOR_ROLE_TRANSFORMER_LAYER);
         record->set_layer_index(static_cast<std::uint32_t>(std::stoul(name.substr(13U))));

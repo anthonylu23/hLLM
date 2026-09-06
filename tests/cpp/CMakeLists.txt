@@ -53,6 +53,12 @@ set_tests_properties(CpuPipelineIntegration PROPERTIES
 )
 
 if(HLLM_ENABLE_CUDA)
+  add_executable(hllm_cuda_tests cuda_stage_test.cpp)
+  target_link_libraries(hllm_cuda_tests PRIVATE hllm::cuda_backend hllm::cpu_backend hllm::worker_runtime
+    nlohmann_json::nlohmann_json GTest::gtest_main hllm_project_options)
+  target_compile_definitions(hllm_cuda_tests PRIVATE HLLM_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures")
+  add_test(NAME CudaNumericalParity COMMAND hllm_cuda_tests)
+  set_tests_properties(CudaNumericalParity PROPERTIES TIMEOUT 180 LABELS "cuda;hardware")
   add_test(NAME CudaBackendSmoke
     COMMAND ${CMAKE_COMMAND} -E env HLLM_CUDA_WORKER=$<TARGET_FILE:hllm-worker-cuda>
       ${HLLM_UV_EXECUTABLE} run pytest tests/cuda -q)
