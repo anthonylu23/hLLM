@@ -15,6 +15,7 @@ endif()
 
 add_library(
   hllm_runtime_common
+  src/model/dense_source.cpp
   src/buffer.cpp
   src/half.cpp
   src/safetensors.cpp
@@ -35,6 +36,9 @@ target_link_libraries(
 
 add_library(hllm::runtime_common ALIAS hllm_runtime_common)
 
+add_library(hllm_dense_loader src/model/dense_loader.cpp)
+target_link_libraries(hllm_dense_loader PUBLIC hllm::runtime_common hllm::proto hllm_project_options)
+
 add_library(
   hllm_cpu_backend
   src/cpu/llama.cpp
@@ -47,7 +51,7 @@ target_include_directories(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(hllm_cpu_backend PUBLIC hllm::runtime_common hllm::proto hllm_project_options)
+target_link_libraries(hllm_cpu_backend PUBLIC hllm_dense_loader hllm_project_options)
 
 add_library(hllm::cpu_backend ALIAS hllm_cpu_backend)
 
@@ -90,11 +94,11 @@ if(HLLM_ENABLE_CUDA)
   separate_arguments(HLLM_TORCH_CXX_FLAGS NATIVE_COMMAND "${TORCH_CXX_FLAGS}")
   # LibTorch can ship its own Protobuf headers. Keep its include directories
   # out of RPC-facing translation units; exchange only our plain C++ types.
-  add_library(hllm_cuda_device src/cuda/device.cpp)
+  add_library(hllm_cuda_device src/cuda/device.cpp src/cuda/stage.cpp)
   target_compile_options(hllm_cuda_device PRIVATE ${HLLM_TORCH_CXX_FLAGS})
-  target_link_libraries(hllm_cuda_device PRIVATE hllm_project_options ${TORCH_LIBRARIES} CUDA::cudart)
+  target_link_libraries(hllm_cuda_device PRIVATE hllm::runtime_common hllm_project_options ${TORCH_LIBRARIES} CUDA::cudart)
   target_link_libraries(hllm_cuda_backend
-    PUBLIC hllm::runtime_common hllm::proto hllm_project_options
+    PUBLIC hllm_dense_loader hllm_project_options
     PRIVATE hllm_cuda_device)
   add_library(hllm::cuda_backend ALIAS hllm_cuda_backend)
   add_executable(hllm-worker-cuda src/worker/main.cpp)

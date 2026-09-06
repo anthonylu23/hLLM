@@ -1,10 +1,12 @@
 #include "device.hpp"
 
 #include <ATen/ATen.h>
+#include <ATen/Context.h>
 #include <c10/cuda/CUDAGuard.h>
 #include <cuda_runtime_api.h>
 
 #include <limits>
+#include <mutex>
 #include <stdexcept>
 
 namespace hllm::cuda {
@@ -19,6 +21,11 @@ void check(cudaError_t result) {
 }  // namespace
 
 std::string probe_device(int device_id) {
+  static std::once_flag precision;
+  std::call_once(precision, [] {
+    at::globalContext().setAllowTF32CuBLAS(false);
+    at::globalContext().setAllowFP16ReductionCuBLAS(false);
+  });
   int count = 0;
   check(cudaGetDeviceCount(&count));
   if (device_id < 0 || device_id >= count ||
@@ -37,6 +44,6 @@ std::string probe_device(int device_id) {
     throw std::runtime_error("LibTorch CUDA startup probe failed");
   }
   return "CUDA runtime ready on device " + std::to_string(device_id) + " (" + properties.name +
-         "); model execution is not implemented";
+         "); dense Llama/Qwen3 F32/F16 execution ready";
 }
 }  // namespace hllm::cuda

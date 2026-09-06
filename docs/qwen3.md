@@ -42,8 +42,10 @@ residual width. Llama defaults retain normalization disabled. Invalid normalizat
 weights and mismatched cache head geometry are rejected before cache mutation.
 
 The control service now loads executable CPU stages for both architectures and supports
-native generation and stage execution RPCs; see [Milestone 1](milestone-1.md). The example MLX/CUDA profiles declare target
-architecture support for planning, not measured backend execution support.
+native generation and stage execution RPCs; see [Milestone 1](milestone-1.md). The optional
+[CUDA backend](milestone-2.md) now executes the same dense Qwen3 semantics with F32/F16
+weights and caches. Tiny layer/cache/logit parity and single-worker generation are tested.
+The example MLX/CUDA profiles remain configured planning estimates.
 
 ## Numerical validation
 
@@ -83,12 +85,13 @@ are separate from Falcon artifacts.
 
 ## Validation status and next steps
 
-All 34 Python tests, 32 normal native tests, Ruff, Pyright, and protobuf reproducibility
-checks passed. The prepare/plan/explain CLI flow passed on the sparse header fixture.
+At the Qwen3 introduction, 34 Python tests, 32 normal native tests, Ruff, Pyright, and
+protobuf reproducibility checks passed. The prepare/plan/explain CLI flow passed on the sparse header fixture.
 The existing Apple AddressSanitizer startup issue from the quality review remains an
 unresolved toolchain limitation; this change does not claim sanitizer validation.
 
 Executable CPU loading and execution RPCs are now implemented and tested on tiny models
-in Milestone 1. Next, compare the full pinned checkpoint against Transformers and the
-future MLX/CUDA implementations. Measure actual
-memory, TTFT, and decode latency before promoting placement estimates to benchmark results.
+in Milestone 1. CUDA tiny-model execution is now validated in Milestone 2. Next qualify
+mixed CPU/CUDA processes, then compare a full pinned checkpoint against Transformers.
+MLX remains later work. Measure actual memory, TTFT, and decode latency before promoting
+placement estimates to benchmark results.
