@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
-from hllm_control.models import ArchitectureDescriptor, ModelConfig, RopeScaling, TensorRole
+from hllm_control.models import ArchitectureDescriptor, ModelConfig, TensorRole
 
 LAYER_PATTERN = re.compile(r"^model\.layers\.(\d+)\.")
 LAYER_SUFFIXES = (
@@ -73,40 +73,6 @@ def _eos_token_ids(config: Mapping[str, Any]) -> tuple[int, ...]:
     return tuple(dict.fromkeys(cast(int, item) for item in values))
 
 
-def _rope_scaling(config: Mapping[str, Any]) -> RopeScaling | None:
-    value = config.get("rope_scaling")
-    if value is None:
-        return None
-    if not isinstance(value, Mapping):
-        raise ArchitectureError("config field 'rope_scaling' must be an object or null")
-    untyped = cast(Mapping[object, object], value)
-    if any(not isinstance(key, str) for key in untyped):
-        raise ArchitectureError("config field 'rope_scaling' keys must be strings")
-    normalized = {cast(str, key): item for key, item in untyped.items()}
-    scaling_type = normalized.pop("rope_type", normalized.pop("type", None))
-    factor = normalized.pop("factor", None)
-    original_maximum = normalized.pop("original_max_position_embeddings", None)
-    if normalized:
-        raise ArchitectureError(
-            f"unsupported rope_scaling fields: {sorted(str(key) for key in normalized)}"
-        )
-    if not isinstance(scaling_type, str) or not scaling_type:
-        raise ArchitectureError("rope_scaling requires a non-empty type")
-    if isinstance(factor, bool) or not isinstance(factor, int | float) or factor <= 0:
-        raise ArchitectureError("rope_scaling requires a positive factor")
-    if original_maximum is not None and (
-        not isinstance(original_maximum, int)
-        or isinstance(original_maximum, bool)
-        or original_maximum <= 0
-    ):
-        raise ArchitectureError("rope_scaling original maximum must be a positive integer")
-    return RopeScaling(
-        scaling_type=scaling_type,
-        factor=float(factor),
-        original_max_position_embeddings=original_maximum,
-    )
-
-
 class LlamaArchitectureAdapter:
     architecture_id = "llama.v1"
     architecture_revision = "1"
@@ -157,6 +123,10 @@ class LlamaArchitectureAdapter:
             raise ArchitectureError(
                 f"{self.architecture_id} does not yet support sliding-window attention"
             )
+        # Workers reject any rope_scaling at load time; refuse it here so a prepared
+        # manifest and its plans describe only checkpoints the runtime can execute.
+        if raw.get("rope_scaling") is not None:
+            raise ArchitectureError(f"{self.architecture_id} currently supports unscaled RoPE only")
 
         model_config = ModelConfig(
             hidden_size=hidden_size,
@@ -170,7 +140,6 @@ class LlamaArchitectureAdapter:
             tied_embeddings=tied_embeddings,
             rms_norm_eps=_positive_float(raw, "rms_norm_eps", 1e-6),
             rope_theta=_positive_float(raw, "rope_theta", 10_000.0),
-            rope_scaling=_rope_scaling(raw),
             hidden_activation=hidden_activation,
             attention_bias=attention_bias,
             mlp_bias=mlp_bias,
@@ -180,8 +149,6 @@ class LlamaArchitectureAdapter:
         features.append("tied_embeddings" if tied_embeddings else "untied_embeddings")
         if explicit_head_dim is not None:
             features.append("explicit_head_dim")
-        if model_config.rope_scaling is not None:
-            features.append(f"rope_scaling:{model_config.rope_scaling.scaling_type}")
         return ModelDescription(
             architecture=ArchitectureDescriptor(
                 architecture_id=self.architecture_id,

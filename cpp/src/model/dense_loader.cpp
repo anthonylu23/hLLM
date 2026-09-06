@@ -143,6 +143,8 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
     }
   }
   for (const auto& [name, record] : records) {
+    // Tied checkpoints may still ship an lm_head.weight copy; the embedding is
+    // authoritative for the head, so that record is neither read nor budgeted.
     const bool selected =
         (record->role() == v1::TENSOR_ROLE_TRANSFORMER_LAYER && record->has_layer_index() &&
          record->layer_index() >= assignment.layer_start() &&

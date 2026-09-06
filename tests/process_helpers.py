@@ -26,7 +26,12 @@ BINARY = Path(os.environ.get("HLLM_CPU_WORKER", ROOT / "build/native/dev/cpp/hll
 
 
 def write_model(
-    path: Path, family: str = "qwen3", dtype: str = "F32", *, tied: bool | None = None
+    path: Path,
+    family: str = "qwen3",
+    dtype: str = "F32",
+    *,
+    tied: bool | None = None,
+    redundant_head: bool = False,
 ) -> ModelManifest:
     path.mkdir(exist_ok=True)
     oracle = json.loads((ROOT / "tests/fixtures/qwen3/tiny-reference.json").read_text())
@@ -56,6 +61,10 @@ def write_model(
             weights.pop("lm_head.weight", None)
         else:
             weights["lm_head.weight"] = oracle["weights"]["lm_head.weight"]
+    if redundant_head:
+        # Some tied checkpoints still ship lm_head.weight; workers must ignore it.
+        assert config["tie_word_embeddings"]
+        weights["lm_head.weight"] = oracle["weights"]["lm_head.weight"]
     config["max_position_embeddings"] = 512
     (path / "config.json").write_text(json.dumps(config))
     payload = bytearray()

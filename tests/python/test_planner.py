@@ -99,6 +99,30 @@ def test_tied_embeddings_are_explicitly_duplicated(tmp_path: Path) -> None:
     assert report.plan.duplicated_tensor_groups == ("token_embeddings",)
 
 
+def test_redundant_lm_head_in_tied_checkpoint_is_not_budgeted(tmp_path: Path) -> None:
+    manifests = []
+    for name, tensors in (("tied", tiny_tensors(tied=True)), ("redundant", tiny_tensors())):
+        model_path = tmp_path / name
+        model_path.mkdir()
+        (model_path / "config.json").write_text(
+            json.dumps(tiny_config(tied=True)), encoding="utf-8"
+        )
+        write_safetensors(model_path / "model.safetensors", tensors)
+        manifests.append(prepare_model(model_path))
+    workers = (worker("mac", Backend.MLX, 10_000_000), worker("cuda", Backend.CUDA, 10_000_000))
+
+    tied, redundant = (create_plan(item, workers, (), workload()) for item in manifests)
+
+    assert [c.stages[0].weight_bytes for c in tied.candidates] == [
+        c.stages[0].weight_bytes for c in redundant.candidates
+    ]
+    assert [c.stages[1].weight_bytes for c in tied.candidates] == [
+        c.stages[1].weight_bytes for c in redundant.candidates
+    ]
+    assert redundant.plan is not None
+    assert redundant.plan.duplicated_tensor_groups == ("token_embeddings",)
+
+
 @given(st.integers(min_value=1, max_value=4096), st.integers(min_value=1, max_value=4096))
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_kv_memory_is_monotonic(tiny_model: Path, smaller: int, increment: int) -> None:

@@ -49,6 +49,20 @@ def test_two_process_generation_all_splits_and_both_worker_orders(
                 wait_clean(workers, loaded=False)
 
 
+def test_tied_checkpoint_with_redundant_lm_head_loads_and_matches(tmp_path: Path) -> None:
+    manifest = write_model(tmp_path)
+    with Workers(tmp_path) as workers:
+        with DeploymentSession(manifest, plan(manifest), workers.endpoints) as session:
+            expected = tokens(session)
+        redundant = write_model(tmp_path, redundant_head=True)
+        assert redundant.config.tied_embeddings
+        assert any(item.name == "lm_head.weight" for item in redundant.tensors)
+        for split in (None, 1):
+            with DeploymentSession(redundant, plan(redundant, split), workers.endpoints) as session:
+                assert tokens(session) == expected
+            wait_clean(workers, loaded=False)
+
+
 @pytest.mark.parametrize("dtype", ["F16", "BF16"])
 def test_low_precision_storage_decodes_to_float32(tmp_path: Path, dtype: str) -> None:
     manifest = write_model(tmp_path, dtype=dtype)

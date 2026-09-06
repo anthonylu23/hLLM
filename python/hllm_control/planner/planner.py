@@ -48,17 +48,18 @@ def _stage_weight_bytes(
     execution_dtype: DType,
 ) -> int:
     total = 0
-    lm_head_present = any(item.role == TensorRole.LM_HEAD for item in manifest.tensors)
+    tied = manifest.config.tied_embeddings
     for tensor in manifest.tensors:
         include = False
         if tensor.role == TensorRole.TRANSFORMER_LAYER:
             include = tensor.layer_index is not None and start <= tensor.layer_index < end
         elif tensor.role == TensorRole.TOKEN_EMBEDDING:
-            include = is_first or (
-                is_final and manifest.config.tied_embeddings and not lm_head_present
-            )
-        elif tensor.role in {TensorRole.FINAL_NORM, TensorRole.LM_HEAD}:
+            include = is_first or (is_final and tied)
+        elif tensor.role == TensorRole.FINAL_NORM:
             include = is_final
+        elif tensor.role == TensorRole.LM_HEAD:
+            # Workers never read a redundant lm_head copy from a tied checkpoint.
+            include = is_final and not tied
         elif tensor.role == TensorRole.ARCHITECTURE_STATE:
             include = True
         if include:
