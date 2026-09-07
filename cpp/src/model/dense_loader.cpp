@@ -1,7 +1,10 @@
 #include "hllm/model/dense_loader.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <fstream>
+#include <limits>
 #include <map>
 #include <set>
 
@@ -17,6 +20,42 @@ struct ExpectedTensor {
   v1::TensorRole role;
   int layer{-1};
 };
+
+// Some checkpoints serialize a redundant copy of a tied head. Validate it in
+// bounded chunks instead of retaining a second resident embedding matrix.
+void verify_tied_head(const runtime::SafetensorsFile& embedding_file,
+                      const runtime::SafetensorsFile& head_file) {
+  const auto& embedding = embedding_file.tensor("model.embed_tokens.weight");
+  const auto& head = head_file.tensor("lm_head.weight");
+  if (embedding.dtype != head.dtype || embedding.shape != head.shape ||
+      embedding.byte_length != head.byte_length) {
+    throw runtime::Error::incompatible_worker(
+        "redundant tied head must match embedding storage metadata");
+  }
+  std::ifstream left(embedding_file.path(), std::ios::binary);
+  std::ifstream right(head_file.path(), std::ios::binary);
+  const auto seek = [](std::ifstream& stream, std::size_t offset) {
+    if (offset > static_cast<std::size_t>(std::numeric_limits<std::streamoff>::max())) {
+      throw runtime::Error::incompatible_worker("tied tensor offset exceeds stream capacity");
+    }
+    stream.seekg(static_cast<std::streamoff>(offset));
+    if (!stream) throw runtime::Error::incompatible_worker("cannot read tied tensor payload");
+  };
+  seek(left, add(embedding_file.header_size(), embedding.data_offset));
+  seek(right, add(head_file.header_size(), head.data_offset));
+  std::array<char, 8192U> a{}, b{};
+  for (std::size_t remaining = head.byte_length; remaining != 0U;) {
+    const auto size = std::min(remaining, a.size());
+    const auto count = static_cast<std::streamsize>(size);
+    if (!left.read(a.data(), count) || !right.read(b.data(), count)) {
+      throw runtime::Error::incompatible_worker("truncated tied tensor payload");
+    }
+    if (!std::equal(a.begin(), a.begin() + static_cast<std::ptrdiff_t>(size), b.begin())) {
+      throw runtime::Error::incompatible_worker("redundant tied head differs from token embedding");
+    }
+    remaining -= size;
+  }
+}
 
 }  // namespace
 
@@ -142,9 +181,14 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
       throw runtime::Error::incompatible_worker("duplicate tensor in manifest");
     }
   }
+  const bool redundant_tied_head = source.tied_head && records.contains("lm_head.weight");
+  if (redundant_tied_head) {
+    expected.emplace("lm_head.weight",
+                     ExpectedTensor{{source.vocabulary_size, h}, v1::TENSOR_ROLE_LM_HEAD});
+  }
   for (const auto& [name, record] : records) {
-    // Tied checkpoints may still ship an lm_head.weight copy; the embedding is
-    // authoritative for the head, so that record is neither read nor budgeted.
+    // The embedding is authoritative for a tied head. An optional serialized
+    // head is validated separately below, without duplicate resident storage.
     const bool selected =
         (record->role() == v1::TENSOR_ROLE_TRANSFORMER_LAYER && record->has_layer_index() &&
          record->layer_index() >= assignment.layer_start() &&
@@ -194,6 +238,9 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
       throw runtime::Error::incompatible_worker(
           "Safetensors metadata mismatch or unsupported dtype: " + name);
     }
+    if (redundant_tied_head && name == "lm_head.weight") {
+      continue;  // Metadata validated above; payload equality checked below.
+    }
     std::size_t elements = 1U;
     for (const auto dim : spec.shape) {
       elements = multiply(elements, dim);
@@ -204,6 +251,10 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
     source.largest_float32_tensor_bytes =
         std::max(source.largest_float32_tensor_bytes, multiply(elements, sizeof(float)));
     source.tensors.emplace(name, TensorSource{record.file(), spec.shape, tensor.dtype});
+  }
+  if (redundant_tied_head) {
+    verify_tied_head(files.at(records.at("model.embed_tokens.weight")->file()),
+                     files.at(records.at("lm_head.weight")->file()));
   }
   return source;
 }

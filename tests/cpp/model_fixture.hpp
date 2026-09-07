@@ -19,7 +19,8 @@ class ModelFixture {
   v1::ModelManifest manifest;
   nlohmann::json oracle;
 
-  explicit ModelFixture(bool qwen = true, bool tied = true, const std::string& dtype = "F32") {
+  explicit ModelFixture(bool qwen = true, bool tied = true, const std::string& dtype = "F32",
+                        bool redundant_tied_head = false) {
     static std::atomic<unsigned> counter{0U};
     root = std::filesystem::temp_directory_path() /
            ("hllm-stage-" +
@@ -53,8 +54,11 @@ class ModelFixture {
     config->set_tied_embeddings(tied);
     nlohmann::json header = nlohmann::json::object();
     std::string payload;
+    if (redundant_tied_head) {
+      oracle["weights"]["lm_head.weight"] = oracle["weights"]["model.embed_tokens.weight"];
+    }
     for (const auto& [name, tensor] : oracle.at("weights").items()) {
-      if ((tied && name == "lm_head.weight") ||
+      if ((tied && name == "lm_head.weight" && !redundant_tied_head) ||
           (!qwen && (name.ends_with("q_norm.weight") || name.ends_with("k_norm.weight")))) {
         continue;
       }
