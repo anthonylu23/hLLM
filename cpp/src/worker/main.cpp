@@ -11,6 +11,8 @@
 
 #ifdef HLLM_WORKER_CUDA
 #include "hllm/cuda/backend.hpp"
+#elif defined(HLLM_WORKER_MLX)
+#include "hllm/mlx/backend.hpp"
 #else
 #include "hllm/cpu/stage.hpp"
 #endif
@@ -20,6 +22,8 @@
 namespace {
 #ifdef HLLM_WORKER_CUDA
 constexpr auto kWorkerName = "hllm-worker-cuda";
+#elif defined(HLLM_WORKER_MLX)
+constexpr auto kWorkerName = "hllm-worker-mlx";
 #else
 constexpr auto kWorkerName = "hllm-worker-cpu";
 #endif
@@ -106,6 +110,8 @@ int main(const int argc, char** const argv) {
     const auto arguments = parse_arguments(argc, argv);
 #ifdef HLLM_WORKER_CUDA
     auto factory = hllm::cuda::make_backend_factory(arguments.device_id, arguments.pinned);
+#elif defined(HLLM_WORKER_MLX)
+    auto factory = hllm::mlx::make_backend_factory(arguments.memory_limit_bytes);
 #else
     auto factory = hllm::cpu::make_backend_factory();
 #endif
@@ -114,9 +120,16 @@ int main(const int argc, char** const argv) {
             .worker_id = arguments.worker_id,
             .endpoint = arguments.listen,
             .model_root = arguments.model_root,
+#ifdef HLLM_WORKER_MLX
+            .host_memory_capacity_bytes = 0U,
+#else
             .host_memory_capacity_bytes = arguments.memory_limit_bytes,
+#endif
             .device_memory_capacity_bytes = arguments.device_memory_limit_bytes,
             .pinned_host_memory_capacity_bytes = arguments.pinned_memory_limit_bytes,
+#ifdef HLLM_WORKER_MLX
+            .unified_memory_capacity_bytes = arguments.memory_limit_bytes,
+#endif
         },
         std::move(factory));
 

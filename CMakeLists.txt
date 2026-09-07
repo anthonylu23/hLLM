@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.28)
 
 project(hllm_runtime VERSION 0.1.0 LANGUAGES CXX)
 
+option(HLLM_ENABLE_MLX "Build the Apple Silicon MLX worker" OFF)
+
 option(HLLM_ENABLE_CUDA "Build the experimental Linux LibTorch CUDA worker" OFF)
 
 option(HLLM_BUILD_TESTS "Build native tests" ON)

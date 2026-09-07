@@ -12,6 +12,8 @@ struct MemoryAmounts {
   std::size_t host_bytes{0U};
   std::size_t device_bytes{0U};
   std::size_t pinned_host_bytes{0U};
+  // Unified allocations include transport and are disjoint from host/device.
+  std::size_t unified_bytes{0U};
 };
 
 inline MemoryAmounts add_memory(const MemoryAmounts& a, const MemoryAmounts& b) {
@@ -22,7 +24,8 @@ inline MemoryAmounts add_memory(const MemoryAmounts& a, const MemoryAmounts& b) 
     return x + y;
   };
   return {add(a.host_bytes, b.host_bytes), add(a.device_bytes, b.device_bytes),
-          add(a.pinned_host_bytes, b.pinned_host_bytes)};
+          add(a.pinned_host_bytes, b.pinned_host_bytes),
+          add(a.unified_bytes, b.unified_bytes)};
 }
 
 inline void require_memory(const MemoryAmounts& used, const MemoryAmounts& capacity) {
@@ -30,9 +33,10 @@ inline void require_memory(const MemoryAmounts& used, const MemoryAmounts& capac
     throw Error::internal("pinned memory must also be counted in host memory");
   }
   if (used.host_bytes > capacity.host_bytes || used.device_bytes > capacity.device_bytes ||
-      used.pinned_host_bytes > capacity.pinned_host_bytes) {
+      used.pinned_host_bytes > capacity.pinned_host_bytes ||
+      used.unified_bytes > capacity.unified_bytes) {
     throw Error::resource_exhausted(
-        "allocation exceeds host, device, or pinned-host memory budget");
+        "allocation exceeds host, device, pinned-host, or unified memory budget");
   }
 }
 

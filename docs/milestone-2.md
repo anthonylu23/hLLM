@@ -170,7 +170,7 @@ workspace, and measured framework/context overhead. Qwen3-4B-Base is still the
 project target; choose a smaller compatible checkpoint or shorter context if needed.
 
 The [model extension boundaries](model-extensibility.md) remain in force. Additional model
-families require explicit decisions rather than a generic graph engine. MLX is Milestone 3,
+families require explicit decisions rather than a generic graph engine. The [MLX worker](milestone-3.md) implements Milestone 3;
 cross-machine qualification is Milestone 4, and measured placement/performance is Milestone 5.
 
 ## Opt-in pinned boundary staging

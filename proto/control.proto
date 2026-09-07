@@ -61,7 +61,17 @@ message MemoryReport {
   uint64 active_requests = 5;
   repeated DomainMemoryUsage domain_usage = 6;
 }
-message WorkerMetrics { string worker_id = 1; }
+// Process-wide framework allocations; separate from model reservation accounting.
+message AllocatorMetrics {
+  MemoryDomain domain = 1;
+  uint64 active_bytes = 2;
+  uint64 cached_bytes = 3;
+  uint64 peak_bytes = 4;
+}
+message WorkerMetrics {
+  string worker_id = 1;
+  optional AllocatorMetrics allocator = 2;
+}
 message HealthResponse { bool serving = 1; string detail = 2; }
 
 service WorkerControl {

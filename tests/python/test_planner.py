@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from conftest import tiny_config, tiny_tensors, write_safetensors
 from hllm_control.models import (
     Backend,
@@ -235,18 +236,19 @@ def test_pinned_transport_requires_both_host_and_pinned_capacity(tiny_model: Pat
         assert (report.plan is not None) == feasible
 
 
-def test_host_stage_and_transport_share_one_budget(tiny_model: Path) -> None:
+@pytest.mark.parametrize("domain", [MemoryDomain.HOST, MemoryDomain.UNIFIED])
+def test_host_stage_and_transport_share_one_budget(tiny_model: Path, domain: MemoryDomain) -> None:
     manifest = prepare_model(tiny_model)
     peer = worker("mac", Backend.MLX, 10_000_000)
     host_budget = MemoryBudget(
-        domain=MemoryDomain.HOST,
+        domain=domain,
         capacity_bytes=10_000_000,
         runtime_reserve_bytes=0,
         safety_fraction=0.0,
     )
-    cpu = worker("cpu", Backend.CPU, 10_000_000).model_copy(
-        update={"primary_memory_domain": MemoryDomain.HOST, "memory_budgets": (host_budget,)}
-    )
+    cpu = worker(
+        "cpu", Backend.CPU if domain == MemoryDomain.HOST else Backend.MLX, 10_000_000
+    ).model_copy(update={"primary_memory_domain": domain, "memory_budgets": (host_budget,)})
     baseline = create_plan(manifest, (peer, cpu), (), workload())
     smallest_stage = min(
         stage.required_bytes

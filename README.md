@@ -12,8 +12,11 @@ covered by numerical and process integration tests. Milestone 2 adds an optional
 CUDA worker that executes Llama/Qwen3 with F32/F16 weights and caches on the GPU. Tiny-model
 numerical and mixed CPU/CUDA process tests cover both stage orders, pageable/pinned
 boundaries, lifecycle faults and memory cleanup. See the
-[mixed qualification report](docs/validation/mixed-cpu-cuda.md). Full-checkpoint
-fit assessment and MLX remain next.
+[mixed qualification report](docs/validation/mixed-cpu-cuda.md).
+Milestone 3 adds an optional Apple Silicon MLX C++ worker with F32/F16 Llama/Qwen3
+execution, unified-memory admission, allocator telemetry, and CPU/MLX qualification.
+See [MLX build and usage](docs/milestone-3.md). Full-checkpoint fit assessment and
+MLX/CUDA cross-machine qualification remain next.
 
 See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
 [the model/backend extension boundaries](docs/model-extensibility.md).

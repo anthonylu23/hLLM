@@ -27,7 +27,8 @@ immutable while loading. Manifest digests identify artifacts; they are not signa
 Execution capabilities now advertise F32 computation only. FP16 is the activation wire
 format; CPU caches remain F32. The optional [CUDA backend](milestone-2.md) now supports
 F32/F16 execution on tiny validated models. Example MLX/CUDA profiles remain configured
-planning estimates, and MLX execution is not yet implemented. Python accepts one-stage plans for the unsplit reference; the
+planning estimates. The [MLX worker](milestone-3.md) now executes both architectures
+with F32/F16 and qualifies CPU/MLX locally. Python accepts one-stage plans for the unsplit reference; the
 placement planner continues to enumerate two-stage plans.
 
 ## Execution and lifecycle
@@ -186,8 +187,8 @@ remain unverified.
 ## Next steps
 
 See [the Milestone 2 integration status and PR sequence](milestone-2.md).
-Milestone 2 now has CUDA model execution and tiny-model parity against the CPU golden suite.
-Next qualify both CPU/CUDA process orders, transfers and failure cleanup before running a
-full checkpoint. Milestone 3 adds MLX, Milestone 4 qualifies cross-machine execution, and
+Milestone 2 qualifies CUDA and mixed CPU/CUDA execution, transfers, and failure cleanup.
+[Milestone 3](milestone-3.md) adds qualified MLX-only and CPU/MLX paths. Next assess
+a full-checkpoint workload and qualify cross-machine MLX/CUDA execution in Milestone 4.
 Milestone 5 measures memory and placement performance. Choose the next model family with
 the user before expanding state, partition or modality contracts.

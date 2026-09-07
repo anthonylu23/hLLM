@@ -126,11 +126,25 @@ class MemoryReport(_message.Message):
     domain_usage: _containers.RepeatedCompositeFieldContainer[DomainMemoryUsage]
     def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ..., active_requests: _Optional[int] = ..., domain_usage: _Optional[_Iterable[_Union[DomainMemoryUsage, _Mapping]]] = ...) -> None: ...
 
+class AllocatorMetrics(_message.Message):
+    __slots__ = ("domain", "active_bytes", "cached_bytes", "peak_bytes")
+    DOMAIN_FIELD_NUMBER: _ClassVar[int]
+    ACTIVE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    CACHED_BYTES_FIELD_NUMBER: _ClassVar[int]
+    PEAK_BYTES_FIELD_NUMBER: _ClassVar[int]
+    domain: _profile_pb2.MemoryDomain
+    active_bytes: int
+    cached_bytes: int
+    peak_bytes: int
+    def __init__(self, domain: _Optional[_Union[_profile_pb2.MemoryDomain, str]] = ..., active_bytes: _Optional[int] = ..., cached_bytes: _Optional[int] = ..., peak_bytes: _Optional[int] = ...) -> None: ...
+
 class WorkerMetrics(_message.Message):
-    __slots__ = ("worker_id",)
+    __slots__ = ("worker_id", "allocator")
     WORKER_ID_FIELD_NUMBER: _ClassVar[int]
+    ALLOCATOR_FIELD_NUMBER: _ClassVar[int]
     worker_id: str
-    def __init__(self, worker_id: _Optional[str] = ...) -> None: ...
+    allocator: AllocatorMetrics
+    def __init__(self, worker_id: _Optional[str] = ..., allocator: _Optional[_Union[AllocatorMetrics, _Mapping]] = ...) -> None: ...
 
 class HealthResponse(_message.Message):
     __slots__ = ("serving", "detail")
