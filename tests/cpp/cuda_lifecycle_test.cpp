@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <future>
 #include <iostream>
 
 #include "cuda_diagnostics.hpp"
@@ -89,11 +90,11 @@ TEST(CudaLifecycleTest, RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarm
       std::vector<test::MemorySnapshot> samples;
       test::reset_peak();
       std::size_t payload{}, pinned_active{};
-      // LibTorch's low-priority pool cycles through 32 streams. Each may
-      // lazily retain a BLAS workspace. Warm the complete pool explicitly so
-      // this assertion also holds when this test runs alone.
-      for (std::size_t cycle = 0; cycle < 44U; ++cycle) {
-        {
+      // Identical assignments should reuse cached buffers after two loads,
+      // without warming every stream in LibTorch's 32-entry pool.
+      for (std::size_t cycle = 0; cycle < 12U; ++cycle) {
+        // gRPC dispatches assignments on host threads that can change over time.
+        std::async(std::launch::async, [&] {
           auto gpu = factory->load(fixture.load(cuda_first ? 0U : 1U), fixture.root, kBudget);
           auto cpu = cpu::load_stage(fixture.load(cuda_first ? 1U : 0U), fixture.root, kBudget.host_bytes);
           auto a = gpu->allocate_sequence(16U);
@@ -113,10 +114,10 @@ TEST(CudaLifecycleTest, RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarm
             const auto result = final->execute(std::move(boundary), position, final_state, cancelled);
             input.ids = {std::get<runtime::SampledToken>(result).id};
           }
-        }
+        }).get();
         const auto snapshot = test::memory_snapshot();
         EXPECT_EQ(snapshot.pinned, 0U);
-        if (cycle >= 32U) samples.push_back(snapshot);
+        if (cycle >= 2U) samples.push_back(snapshot);
       }
       const auto range = [&](auto field) {
         const auto [low, high] = std::minmax_element(samples.begin(), samples.end(),
@@ -135,6 +136,59 @@ TEST(CudaLifecycleTest, RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarm
                 << " reserved_range=" << range(&test::MemorySnapshot::reserved) << '\n';
     }
   }
+}
+
+TEST(CudaLifecycleTest, ReportsAllocatorResidencySeparatelyFromModelReservations) {
+  const hllm::test::ModelFixture fixture;
+  worker::ControlService service({"cpu-a", "localhost", fixture.root, kBudget.host_bytes,
+      kBudget.device_bytes, kBudget.pinned_host_bytes}, make_backend_factory(0, true));
+  auto sample = [&] {
+    v1::WorkerMetrics metrics;
+    EXPECT_TRUE(service.GetMetrics(nullptr, nullptr, &metrics).ok());
+    EXPECT_TRUE(metrics.has_allocator());
+    EXPECT_EQ(metrics.allocator().domain(), v1::MEMORY_DOMAIN_DEVICE);
+    const auto native = test::memory_snapshot();
+    EXPECT_EQ(metrics.allocator().active_bytes(), native.allocated);
+    EXPECT_EQ(metrics.allocator().cached_bytes() + metrics.allocator().active_bytes(),
+              native.reserved);
+    EXPECT_GE(metrics.allocator().peak_bytes(), metrics.allocator().active_bytes());
+    return metrics;
+  };
+  const auto before = sample();
+  auto load = fixture.load(0U);
+  v1::LoadStageResponse loaded;
+  ASSERT_TRUE(service.LoadStage(nullptr, &load, &loaded).ok());
+  ASSERT_TRUE(loaded.accepted());
+  const auto resident = sample();
+  EXPECT_GT(resident.allocator().active_bytes(), before.allocator().active_bytes());
+  v1::ReserveRequestMessage reserve;
+  reserve.set_plan_id("plan-1");
+  reserve.set_deployment_version(1U);
+  reserve.set_request_id("memory");
+  reserve.set_maximum_total_tokens(16U);
+  v1::ReserveResponse reserved;
+  ASSERT_TRUE(service.ReserveRequest(nullptr, &reserve, &reserved).ok());
+  ASSERT_TRUE(reserved.accepted());
+  EXPECT_GT(sample().allocator().active_bytes(), resident.allocator().active_bytes());
+  v1::CancelRequestMessage cancel;
+  cancel.set_plan_id("plan-1");
+  cancel.set_deployment_version(1U);
+  cancel.set_request_id("memory");
+  v1::Empty empty;
+  ASSERT_TRUE(service.CancelRequest(nullptr, &cancel, &empty).ok());
+  EXPECT_EQ(sample().allocator().active_bytes(), resident.allocator().active_bytes());
+  v1::UnloadStageRequest unload;
+  unload.set_plan_id("plan-1");
+  unload.set_deployment_version(1U);
+  ASSERT_TRUE(service.UnloadStage(nullptr, &unload, &empty).ok());
+  const auto after = sample();
+  EXPECT_EQ(after.allocator().active_bytes(), before.allocator().active_bytes());
+  EXPECT_GT(after.allocator().cached_bytes(), 0U);
+  v1::MemoryReport report;
+  ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &report).ok());
+  EXPECT_EQ(report.loaded_weight_bytes(), 0U);
+  EXPECT_EQ(report.reserved_cache_bytes(), 0U);
+  EXPECT_EQ(report.active_requests(), 0U);
 }
 }  // namespace
 }  // namespace hllm::cuda

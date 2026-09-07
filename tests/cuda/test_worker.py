@@ -92,6 +92,10 @@ def test_cuda_capabilities_memory_and_unsupported_model(
     report = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
     assert len(report.domain_usage) == 3
     assert report.loaded_weight_bytes == report.active_requests == 0
+    metrics = control.GetMetrics(common_pb2.Empty(), timeout=5)
+    assert metrics.HasField("allocator")
+    assert metrics.allocator.domain == profile_pb2.MEMORY_DOMAIN_DEVICE
+    assert metrics.allocator.peak_bytes >= metrics.allocator.active_bytes
     load = control_pb2.LoadStageRequest()
     load.plan.schema_version.major = load.manifest.schema_version.major = 1
     load.plan.plan_id = "probe"
@@ -105,6 +109,17 @@ def test_cuda_capabilities_memory_and_unsupported_model(
     assert not result.accepted
     assert result.error.code == common_pb2.ERROR_CODE_INCOMPATIBLE_WORKER
     assert "unsupported architecture" in result.detail
+
+
+def test_cuda_omits_metrics_for_unsupported_allocator(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest,
+) -> None:
+    monkeypatch.delenv("PYTORCH_ALLOC_CONF", raising=False)
+    monkeypatch.setenv("PYTORCH_CUDA_ALLOC_CONF", "backend:cudaMallocAsync")
+    _, control = request.getfixturevalue("cuda_worker")
+    metrics = control.GetMetrics(common_pb2.Empty(), timeout=5)
+    assert metrics.worker_id == "cuda-a"
+    assert not metrics.HasField("allocator")
 
 
 @pytest.mark.parametrize("dtype", [DType.F32, DType.F16])
