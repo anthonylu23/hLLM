@@ -970,6 +970,13 @@ Implemented for tiny Llama/Qwen3 golden-suite qualification; see the
 
 ### Milestone 4 — MLX ↔ CUDA over Tailscale
 
+Qualified with the complete pinned Qwen3-0.6B checkpoint, F16 execution/KV and FP16
+boundaries, split at layer 14. Both stage orders passed 256-token generation on direct
+and DERP links; neither worker retained all model layers. See the
+[implementation notes](docs/milestone-4.md) and
+[qualification report](docs/validation/full-checkpoint-cross-machine.md).
+Qwen3-4B-Base still requires its own physical-fit and inference qualification.
+
 - Run both stage orders on separate tailnet machines.
 - Qualify direct and relayed connections.
 - Use persistent native stage streams.

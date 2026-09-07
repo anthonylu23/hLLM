@@ -1,0 +1,968 @@
+{
+  "date": "2026-09-07",
+  "source_revision": "0893129",
+  "base_main": "fbbd31f1cadcd582a9b7ac24a5f6190f4c6e55af",
+  "model": "Qwen/Qwen3-0.6B",
+  "checkpoint_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+  "oracle_sha256": "a2cc9d695d5de5f7b045307f1acade311e1dfe67d9a3d2f8b5cadcd806a6e034",
+  "native_suites": {
+    "mlx": {
+      "ctest_entries": 50,
+      "passed": 50,
+      "seconds": 219.92
+    },
+    "cuda": {
+      "ctest_entries": 53,
+      "passed": 53,
+      "seconds": 326.6
+    }
+  },
+  "probes": {
+    "mlx-f16-vs-f32": {
+      "absolute_logit_limit": 0.25,
+      "allocator_after_unload": {
+        "active": 0,
+        "cached": 357879324,
+        "peak": 1204869436
+      },
+      "cases": [
+        {
+          "prompt": "What is the capital of France? Answer in one sentence.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 0.05474376678466797,
+              "maximum_layer_relative_l2": 0.0032379515968361332,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 6.608509063720703,
+              "relative_l2": 0.0018857829066388375
+            },
+            {
+              "argmax": 6722,
+              "max_absolute": 0.046634674072265625,
+              "maximum_layer_relative_l2": 0.0021469558974637182,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 6722,
+              "reference_margin": 10.007932662963867,
+              "relative_l2": 0.0013500095984770896
+            },
+            {
+              "argmax": 315,
+              "max_absolute": 0.026729583740234375,
+              "maximum_layer_relative_l2": 0.0016608705033338545,
+              "passed": true,
+              "position": 25,
+              "reference_argmax": 315,
+              "reference_margin": 8.073986053466797,
+              "relative_l2": 0.001228610558597793
+            }
+          ]
+        },
+        {
+          "prompt": "Calculate 17 plus 25. Give the result and a short explanation.",
+          "steps": [
+            {
+              "argmax": 16,
+              "max_absolute": 0.042144775390625,
+              "maximum_layer_relative_l2": 0.0022176841692702776,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 16,
+              "reference_margin": 2.429567337036133,
+              "relative_l2": 0.0027334718103802723
+            },
+            {
+              "argmax": 22,
+              "max_absolute": 0.04827308654785156,
+              "maximum_layer_relative_l2": 0.003268715058898662,
+              "passed": true,
+              "position": 29,
+              "reference_argmax": 22,
+              "reference_margin": 13.20834732055664,
+              "relative_l2": 0.001481940201858159
+            },
+            {
+              "argmax": 5519,
+              "max_absolute": 0.03406715393066406,
+              "maximum_layer_relative_l2": 0.002128887211288636,
+              "passed": true,
+              "position": 30,
+              "reference_argmax": 5519,
+              "reference_margin": 0.27923583984375,
+              "relative_l2": 0.0013128975785627961
+            }
+          ]
+        },
+        {
+          "prompt": "Explain why the sky appears blue in simple language.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 0.04271507263183594,
+              "maximum_layer_relative_l2": 0.001954165332616,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 3.7398929595947266,
+              "relative_l2": 0.002264816990421904
+            },
+            {
+              "argmax": 12884,
+              "max_absolute": 0.02626514434814453,
+              "maximum_layer_relative_l2": 0.0014901636257358092,
+              "passed": true,
+              "position": 23,
+              "reference_argmax": 12884,
+              "reference_margin": 6.670692443847656,
+              "relative_l2": 0.0008890673813323758
+            },
+            {
+              "argmax": 7952,
+              "max_absolute": 0.03535747528076172,
+              "maximum_layer_relative_l2": 0.0020006798580001076,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 7952,
+              "reference_margin": 3.893697738647461,
+              "relative_l2": 0.0010302507114221167
+            }
+          ]
+        }
+      ],
+      "dtype": "F16",
+      "passed": true,
+      "relative_logit_limit": 0.01,
+      "resident_weights": {
+        "device": 0,
+        "host": 0,
+        "unified": 1192099840
+      }
+    },
+    "cuda-f16-vs-f32": {
+      "absolute_logit_limit": 0.25,
+      "cases": [
+        {
+          "prompt": "What is the capital of France? Answer in one sentence.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 0.07186651229858398,
+              "maximum_layer_relative_l2": 0.004032621463514118,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 6.608509063720703,
+              "relative_l2": 0.003671354602888817
+            },
+            {
+              "argmax": 6722,
+              "max_absolute": 0.03771781921386719,
+              "maximum_layer_relative_l2": 0.0024248706596040827,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 6722,
+              "reference_margin": 10.007932662963867,
+              "relative_l2": 0.0012873312309014877
+            },
+            {
+              "argmax": 315,
+              "max_absolute": 0.026604652404785156,
+              "maximum_layer_relative_l2": 0.0015689562471562506,
+              "passed": true,
+              "position": 25,
+              "reference_argmax": 315,
+              "reference_margin": 8.073986053466797,
+              "relative_l2": 0.0012252902227627071
+            }
+          ]
+        },
+        {
+          "prompt": "Calculate 17 plus 25. Give the result and a short explanation.",
+          "steps": [
+            {
+              "argmax": 16,
+              "max_absolute": 0.03394126892089844,
+              "maximum_layer_relative_l2": 0.002070738113389419,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 16,
+              "reference_margin": 2.429567337036133,
+              "relative_l2": 0.0015042534777145384
+            },
+            {
+              "argmax": 22,
+              "max_absolute": 0.036464691162109375,
+              "maximum_layer_relative_l2": 0.0020776363348497555,
+              "passed": true,
+              "position": 29,
+              "reference_argmax": 22,
+              "reference_margin": 13.20834732055664,
+              "relative_l2": 0.0009482939758098738
+            },
+            {
+              "argmax": 5519,
+              "max_absolute": 0.034323692321777344,
+              "maximum_layer_relative_l2": 0.0022391057529832004,
+              "passed": true,
+              "position": 30,
+              "reference_argmax": 5519,
+              "reference_margin": 0.27923583984375,
+              "relative_l2": 0.0012314965786792112
+            }
+          ]
+        },
+        {
+          "prompt": "Explain why the sky appears blue in simple language.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 0.03237295150756836,
+              "maximum_layer_relative_l2": 0.001838755854050408,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 3.7398929595947266,
+              "relative_l2": 0.0016623748046567352
+            },
+            {
+              "argmax": 12884,
+              "max_absolute": 0.025549888610839844,
+              "maximum_layer_relative_l2": 0.0014109618301358445,
+              "passed": true,
+              "position": 23,
+              "reference_argmax": 12884,
+              "reference_margin": 6.670692443847656,
+              "relative_l2": 0.0008692918046019352
+            },
+            {
+              "argmax": 7952,
+              "max_absolute": 0.0267791748046875,
+              "maximum_layer_relative_l2": 0.0016695929376628277,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 7952,
+              "reference_margin": 3.893697738647461,
+              "relative_l2": 0.0007786872526173777
+            }
+          ]
+        }
+      ],
+      "dtype": "F16",
+      "passed": true,
+      "relative_logit_limit": 0.01,
+      "resident_weights": {
+        "device": 1192099840,
+        "host": 0,
+        "unified": 0
+      }
+    },
+    "cuda-f32-vs-f32": {
+      "absolute_logit_limit": 0.01,
+      "cases": [
+        {
+          "prompt": "What is the capital of France? Answer in one sentence.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 3.075599670410156e-05,
+              "maximum_layer_relative_l2": 1.8511371729768946e-06,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 6.608509063720703,
+              "relative_l2": 1.2825539337891536e-06
+            },
+            {
+              "argmax": 6722,
+              "max_absolute": 2.002716064453125e-05,
+              "maximum_layer_relative_l2": 1.208387384688124e-06,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 6722,
+              "reference_margin": 10.007932662963867,
+              "relative_l2": 8.865194179156048e-07
+            },
+            {
+              "argmax": 315,
+              "max_absolute": 1.4781951904296875e-05,
+              "maximum_layer_relative_l2": 8.365403163578594e-07,
+              "passed": true,
+              "position": 25,
+              "reference_argmax": 315,
+              "reference_margin": 8.073986053466797,
+              "relative_l2": 7.2669311595797e-07
+            }
+          ]
+        },
+        {
+          "prompt": "Calculate 17 plus 25. Give the result and a short explanation.",
+          "steps": [
+            {
+              "argmax": 16,
+              "max_absolute": 2.8133392333984375e-05,
+              "maximum_layer_relative_l2": 2.183588159137061e-06,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 16,
+              "reference_margin": 2.429567337036133,
+              "relative_l2": 1.288377222718933e-06
+            },
+            {
+              "argmax": 22,
+              "max_absolute": 2.4318695068359375e-05,
+              "maximum_layer_relative_l2": 1.3358934846784229e-06,
+              "passed": true,
+              "position": 29,
+              "reference_argmax": 22,
+              "reference_margin": 13.20834732055664,
+              "relative_l2": 6.687413241818062e-07
+            },
+            {
+              "argmax": 5519,
+              "max_absolute": 1.71661376953125e-05,
+              "maximum_layer_relative_l2": 8.85579454461884e-07,
+              "passed": true,
+              "position": 30,
+              "reference_argmax": 5519,
+              "reference_margin": 0.27923583984375,
+              "relative_l2": 6.118078956478729e-07
+            }
+          ]
+        },
+        {
+          "prompt": "Explain why the sky appears blue in simple language.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 2.7179718017578125e-05,
+              "maximum_layer_relative_l2": 1.3310256528283058e-06,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 3.7398929595947266,
+              "relative_l2": 9.670348488949045e-07
+            },
+            {
+              "argmax": 12884,
+              "max_absolute": 1.6689300537109375e-05,
+              "maximum_layer_relative_l2": 8.380769947928347e-07,
+              "passed": true,
+              "position": 23,
+              "reference_argmax": 12884,
+              "reference_margin": 6.670692443847656,
+              "relative_l2": 4.874402678611982e-07
+            },
+            {
+              "argmax": 7952,
+              "max_absolute": 1.9073486328125e-05,
+              "maximum_layer_relative_l2": 8.981501121929872e-07,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 7952,
+              "reference_margin": 3.893697738647461,
+              "relative_l2": 5.143465015760739e-07
+            }
+          ]
+        }
+      ],
+      "dtype": "F32",
+      "passed": true,
+      "relative_logit_limit": 0.001,
+      "resident_weights": {
+        "device": 2384199680,
+        "host": 0,
+        "unified": 0
+      }
+    }
+  },
+  "cross_machine": {
+    "mlx-cuda-direct": {
+      "started_unix_time": 1788818794.65486,
+      "finished_unix_time": 1788818864.3059032,
+      "completed": true,
+      "reference_common_prefix": 256,
+      "generated_token_sha256": "0ad9f0897c1e019bf6bd5152ce306cf2d13ef7e0cb67d1f78ceabf1c80ae7089",
+      "seconds": 32.29521995782852,
+      "time_to_first_token_seconds": 0.373128917068243,
+      "loaded_memory": [
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "capacityBytes": "4294967296"
+            }
+          ],
+          "loadedWeightBytes": "751631360",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "loadedWeightBytes": "751631360"
+            }
+          ]
+        },
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST",
+              "capacityBytes": "2147483648"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "capacityBytes": "6442450944"
+            }
+          ],
+          "loadedWeightBytes": "751633408",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "loadedWeightBytes": "751633408"
+            }
+          ]
+        }
+      ],
+      "after_unload": [
+        {
+          "worker": "mlx",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED",
+                "capacityBytes": "4294967296"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "mlx",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "cachedBytes": "67483783",
+              "peakBytes": "933494784"
+            }
+          }
+        },
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda"
+          }
+        }
+      ],
+      "observed_process_peaks": {
+        "mlx": {
+          "rss_bytes": 723582976
+        },
+        "cuda": {
+          "rss_bytes": 1349726208,
+          "cuda_process_bytes": 998244352
+        }
+      }
+    },
+    "cuda-mlx-direct": {
+      "started_unix_time": 1788818866.016205,
+      "finished_unix_time": 1788818932.1587121,
+      "completed": true,
+      "reference_common_prefix": 256,
+      "generated_token_sha256": "0ad9f0897c1e019bf6bd5152ce306cf2d13ef7e0cb67d1f78ceabf1c80ae7089",
+      "seconds": 25.32613129215315,
+      "time_to_first_token_seconds": 0.38812345918267965,
+      "loaded_memory": [
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST",
+              "capacityBytes": "2147483648"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "capacityBytes": "6442450944"
+            }
+          ],
+          "loadedWeightBytes": "751631360",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "loadedWeightBytes": "751631360"
+            }
+          ]
+        },
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "capacityBytes": "4294967296"
+            }
+          ],
+          "loadedWeightBytes": "751633408",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "loadedWeightBytes": "751633408"
+            }
+          ]
+        }
+      ],
+      "after_unload": [
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda"
+          }
+        },
+        {
+          "worker": "mlx",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED",
+                "capacityBytes": "4294967296"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "mlx",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "cachedBytes": "67633769",
+              "peakBytes": "933494784"
+            }
+          }
+        }
+      ],
+      "observed_process_peaks": {
+        "mlx": {
+          "rss_bytes": 957792256
+        },
+        "cuda": {
+          "rss_bytes": 1972105216,
+          "cuda_process_bytes": 1795162112
+        }
+      }
+    },
+    "mlx-cuda-relay": {
+      "started_unix_time": 1788819002.4003782,
+      "finished_unix_time": 1788819065.980086,
+      "completed": true,
+      "reference_common_prefix": 256,
+      "generated_token_sha256": "0ad9f0897c1e019bf6bd5152ce306cf2d13ef7e0cb67d1f78ceabf1c80ae7089",
+      "seconds": 25.53363462490961,
+      "time_to_first_token_seconds": 0.38372824992984533,
+      "loaded_memory": [
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "capacityBytes": "4294967296"
+            }
+          ],
+          "loadedWeightBytes": "751631360",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "loadedWeightBytes": "751631360"
+            }
+          ]
+        },
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST",
+              "capacityBytes": "2147483648"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "capacityBytes": "6442450944"
+            }
+          ],
+          "loadedWeightBytes": "751633408",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "loadedWeightBytes": "751633408"
+            }
+          ]
+        }
+      ],
+      "after_unload": [
+        {
+          "worker": "mlx",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED",
+                "capacityBytes": "4294967296"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "mlx",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "cachedBytes": "67490855",
+              "peakBytes": "933494784"
+            }
+          }
+        },
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda"
+          }
+        }
+      ],
+      "observed_process_peaks": {
+        "mlx": {
+          "rss_bytes": 942080000
+        },
+        "cuda": {
+          "rss_bytes": 2097229824,
+          "cuda_process_bytes": 2592079872
+        }
+      }
+    },
+    "cuda-mlx-relay": {
+      "started_unix_time": 1788819067.433289,
+      "finished_unix_time": 1788819136.175335,
+      "completed": true,
+      "reference_common_prefix": 256,
+      "generated_token_sha256": "0ad9f0897c1e019bf6bd5152ce306cf2d13ef7e0cb67d1f78ceabf1c80ae7089",
+      "seconds": 26.259189000353217,
+      "time_to_first_token_seconds": 0.4272084580734372,
+      "loaded_memory": [
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST",
+              "capacityBytes": "2147483648"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "capacityBytes": "6442450944"
+            }
+          ],
+          "loadedWeightBytes": "751631360",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_HOST"
+            },
+            {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "loadedWeightBytes": "751631360"
+            }
+          ]
+        },
+        {
+          "budgets": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "capacityBytes": "4294967296"
+            }
+          ],
+          "loadedWeightBytes": "751633408",
+          "domainUsage": [
+            {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "loadedWeightBytes": "751633408"
+            }
+          ]
+        }
+      ],
+      "after_unload": [
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda"
+          }
+        },
+        {
+          "worker": "mlx",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED",
+                "capacityBytes": "4294967296"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "mlx",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "cachedBytes": "67625649",
+              "peakBytes": "933494784"
+            }
+          }
+        }
+      ],
+      "observed_process_peaks": {
+        "mlx": {
+          "rss_bytes": 1578500096
+        },
+        "cuda": {
+          "rss_bytes": 2311475200,
+          "cuda_process_bytes": 3388997632
+        }
+      }
+    }
+  },
+  "faults": {
+    "passed": true,
+    "cases": [
+      {
+        "workers": [
+          "mlx",
+          "cuda"
+        ],
+        "fault": "client_cancel",
+        "tokens_before_fault": 1,
+        "seconds_including_recovery": 1.6570563330315053,
+        "recovered_ids": [
+          334,
+          3851,
+          25,
+          576
+        ]
+      },
+      {
+        "workers": [
+          "mlx",
+          "cuda"
+        ],
+        "fault": "deadline",
+        "tokens_before_fault": 12,
+        "seconds_including_recovery": 2.476714957971126,
+        "recovered_ids": [
+          334,
+          3851,
+          25,
+          576
+        ]
+      },
+      {
+        "workers": [
+          "mlx",
+          "cuda"
+        ],
+        "fault": "admission",
+        "tokens_before_fault": 0,
+        "seconds_including_recovery": 0.9173427917994559,
+        "recovered_ids": [
+          334,
+          3851,
+          25,
+          576
+        ]
+      },
+      {
+        "workers": [
+          "cuda",
+          "mlx"
+        ],
+        "fault": "client_cancel",
+        "tokens_before_fault": 1,
+        "seconds_including_recovery": 1.9932863749563694,
+        "recovered_ids": [
+          334,
+          3851,
+          25,
+          576
+        ]
+      },
+      {
+        "workers": [
+          "cuda",
+          "mlx"
+        ],
+        "fault": "deadline",
+        "tokens_before_fault": 11,
+        "seconds_including_recovery": 2.5422325003892183,
+        "recovered_ids": [
+          334,
+          3851,
+          25,
+          576
+        ]
+      },
+      {
+        "workers": [
+          "cuda",
+          "mlx"
+        ],
+        "fault": "admission",
+        "tokens_before_fault": 0,
+        "seconds_including_recovery": 1.1446395833045244,
+        "recovered_ids": [
+          334,
+          3851,
+          25,
+          576
+        ]
+      }
+    ]
+  },
+  "paths": {
+    "direct-before": [
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 52ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 58ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 60ms"
+    ],
+    "direct-after": [
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 55ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 55ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 47ms"
+    ],
+    "relay-before": [
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 63ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 61ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 59ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 64ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 61ms"
+    ],
+    "relay-after": [
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 60ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 63ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 61ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 67ms",
+      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 60ms"
+    ],
+    "relay-counters": [
+      "table inet hllm_m4_relay_20260907 {",
+      "\tchain output {",
+      "\t\ttype filter hook output priority -200; policy accept;",
+      "\t\tip daddr 74.101.203.227 udp sport 41641 counter packets 49 bytes 7448 drop",
+      "\t\tip6 daddr 2600:4040:9261:700::/64 udp sport 41641 counter packets 148 bytes 25460 drop",
+      "\t}",
+      "",
+      "\tchain input {",
+      "\t\ttype filter hook input priority -200; policy accept;",
+      "\t\tip saddr 74.101.203.227 udp dport 41641 counter packets 117 bytes 17784 drop",
+      "\t\tip6 saddr 2600:4040:9261:700::/64 udp dport 41641 counter packets 66 bytes 11344 drop",
+      "\t}",
+      "}"
+    ],
+    "direct-restored": [
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 50ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 53ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 58ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 54ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 57ms"
+    ]
+  },
+  "limitations": [
+    "Full CUDA-only long continuation was not repeated; the previous index-177 F16 divergence remains documented.",
+    "Timings are observations under existing application load; Linux compilation overlapped the DERP qualification.",
+    "Process memory samples are not allocator counters and must not be added to model reservations.",
+    "Fault recovery covers cancellation, decode deadline and admission rejection; full-checkpoint worker death/partition is not newly qualified."
+  ]
+}

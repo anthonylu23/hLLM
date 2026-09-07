@@ -92,7 +92,9 @@ unresolved toolchain limitation; this change does not claim sanitizer validation
 
 Executable CPU loading and execution RPCs are now implemented and tested on tiny models
 in Milestone 1. Milestone 2 qualifies CUDA and mixed CPU/CUDA execution;
-[Milestone 3](milestone-3.md) qualifies MLX-only and CPU/MLX execution. Next assess
-a full pinned checkpoint against physical memory and compare with Transformers, then
-qualify MLX/CUDA across machines. Measure actual memory, TTFT, and decode latency before
-promoting placement estimates to benchmark results.
+[Milestone 3](milestone-3.md) qualifies MLX-only and CPU/MLX execution.
+[Milestone 4](milestone-4.md) qualifies the complete Qwen3-0.6B checkpoint against
+Transformers and across MLX/CUDA machines, including memory and latency measurements.
+Its redundant serialized tied head is validated against the embedding and deduplicated
+in resident storage. The Qwen3-4B-Base shape fixture above remains an estimate;
+it is not evidence of full 4B inference. Measured placement is Milestone 5.
