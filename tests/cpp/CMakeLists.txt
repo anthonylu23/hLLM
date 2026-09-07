@@ -106,3 +106,16 @@ if(HLLM_ENABLE_MLX)
   set_tests_properties(MlxPipelineIntegration PROPERTIES
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 600 LABELS "mlx;hardware")
 endif()
+
+# Manual full-checkpoint probes use the diagnostic stage API and an external oracle.
+foreach(backend IN ITEMS mlx cuda)
+  string(TOUPPER "${backend}" backend_upper)
+  if(HLLM_ENABLE_${backend_upper})
+    add_executable(hllm-checkpoint-${backend} checkpoint_probe.cpp)
+    target_link_libraries(hllm-checkpoint-${backend} PRIVATE hllm::${backend}_backend
+      nlohmann_json::nlohmann_json hllm_project_options)
+    if(backend STREQUAL "mlx")
+      target_compile_definitions(hllm-checkpoint-${backend} PRIVATE HLLM_PROBE_MLX=1)
+    endif()
+  endif()
+endforeach()
