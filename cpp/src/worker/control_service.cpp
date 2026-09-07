@@ -122,6 +122,11 @@ ControlService::ControlService(WorkerConfig config,
     throw std::invalid_argument("combined memory capacity overflows accounting");
   }
   capabilities_ = factory_->capabilities();
+  if (capabilities_.primary_memory_domain != v1::MEMORY_DOMAIN_UNIFIED &&
+      (capacity_.host_bytes == 0U || capacity_.unified_bytes != 0U)) {
+    throw std::invalid_argument(
+        "host/device backends require a host memory budget and no unified budget");
+  }
   if (capabilities_.primary_memory_domain == v1::MEMORY_DOMAIN_DEVICE &&
       capacity_.device_bytes == 0U) {
     throw std::invalid_argument("device backend requires a device memory budget");
@@ -389,6 +394,7 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
 grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,
                                         v1::WorkerMetrics* response) {
   response->set_worker_id(config_.worker_id);
+  response->clear_allocator();
   if (const auto metrics = factory_->allocator_metrics()) {
     auto* allocator = response->mutable_allocator();
     allocator->set_domain(capabilities_.primary_memory_domain);

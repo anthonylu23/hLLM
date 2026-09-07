@@ -37,11 +37,13 @@ class TestStage final : public runtime::StageBackend {
 };
 class TestFactory final : public runtime::BackendFactory {
  public:
-  explicit TestFactory(std::shared_ptr<AllocationPlan> plan, bool unified = false)
-      : plan_(std::move(plan)), unified_(unified) {}
+  explicit TestFactory(std::shared_ptr<AllocationPlan> plan,
+                       v1::MemoryDomain domain = v1::MEMORY_DOMAIN_DEVICE)
+      : plan_(std::move(plan)), domain_(domain) {}
   runtime::BackendCapabilities capabilities() const override {
-    return {unified_ ? v1::BACKEND_MLX : v1::BACKEND_CUDA,
-            unified_ ? v1::MEMORY_DOMAIN_UNIFIED : v1::MEMORY_DOMAIN_DEVICE,
+    return {domain_ == v1::MEMORY_DOMAIN_UNIFIED ? v1::BACKEND_MLX
+                : domain_ == v1::MEMORY_DOMAIN_HOST ? v1::BACKEND_CPU : v1::BACKEND_CUDA,
+            domain_,
             {"qwen3.v1"},
             {v1::DATA_TYPE_F32},
             "test backend"};
@@ -54,7 +56,7 @@ class TestFactory final : public runtime::BackendFactory {
 
  private:
   std::shared_ptr<AllocationPlan> plan_;
-  bool unified_;
+  v1::MemoryDomain domain_;
 };
 
 TEST(BackendContractTest, AdmissionEnforcesEveryDomainBeforeAllocation) {
@@ -143,7 +145,7 @@ TEST(BackendContractTest, UnifiedAdmissionCountsAllAllocationsOnce) {
     allocation->weights = {0U, 0U, 0U, 100U};
     allocation->sequence = {{0U, 0U, 0U, 200U}, {0U, 0U, 0U, 100U}};
     ControlService service({"cpu-a", "localhost", model.root, 0U, 0U, 0U, capacity},
-                           std::make_unique<TestFactory>(allocation, true));
+                           std::make_unique<TestFactory>(allocation, v1::MEMORY_DOMAIN_UNIFIED));
     v1::Capabilities caps;
     ASSERT_TRUE(service.GetCapabilities(nullptr, nullptr, &caps).ok());
     ASSERT_EQ(caps.worker().memory_budgets_size(), 1);
@@ -178,6 +180,35 @@ TEST(BackendContractTest, UnifiedAdmissionCountsAllAllocationsOnce) {
                runtime::Error);
   EXPECT_THROW(runtime::require_memory({0U, 0U, 0U, 1U}, {maximum, 0U, 0U, 0U}),
                runtime::Error);
+}
+
+TEST(BackendContractTest, RejectsBudgetsIncompatibleWithBackendDomain) {
+  const test::ModelFixture model;
+  const auto construct = [&](v1::MemoryDomain domain, runtime::MemoryAmounts budget) {
+    return std::make_unique<ControlService>(
+        WorkerConfig{"cpu-a", "localhost", model.root, budget.host_bytes, budget.device_bytes,
+                     budget.pinned_host_bytes, budget.unified_bytes},
+        std::make_unique<TestFactory>(std::make_shared<AllocationPlan>(), domain));
+  };
+  for (const auto domain : {v1::MEMORY_DOMAIN_HOST, v1::MEMORY_DOMAIN_DEVICE}) {
+    const auto device = domain == v1::MEMORY_DOMAIN_DEVICE ? 100U : 0U;
+    EXPECT_NO_THROW(static_cast<void>(construct(domain, {100U, device, 0U, 0U})));
+    EXPECT_THROW(static_cast<void>(construct(domain, {0U, device, 0U, 100U})),
+                 std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(construct(domain, {100U, device, 0U, 100U})),
+                 std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(construct(domain, {0U, device, 0U, 0U})),
+                 std::invalid_argument);
+  }
+  EXPECT_THROW(static_cast<void>(construct(v1::MEMORY_DOMAIN_DEVICE, {100U, 0U, 0U, 0U})),
+               std::invalid_argument);
+  EXPECT_NO_THROW(static_cast<void>(construct(v1::MEMORY_DOMAIN_UNIFIED, {0U, 0U, 0U, 100U})));
+  for (const runtime::MemoryAmounts budget :
+       {runtime::MemoryAmounts{100U, 0U, 0U, 100U}, {0U, 100U, 0U, 100U},
+        {0U, 0U, 1U, 100U}, {0U, 0U, 0U, 0U}}) {
+    EXPECT_THROW(static_cast<void>(construct(v1::MEMORY_DOMAIN_UNIFIED, budget)),
+                 std::invalid_argument);
+  }
 }
 
 TEST(BackendContractTest, RejectsOverflowAndUnaccountedPinnedMemory) {
