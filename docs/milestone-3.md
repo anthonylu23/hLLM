@@ -9,7 +9,8 @@ CPU and CUDA builds do not require MLX.
 ## Build and run
 
 Use Apple Silicon macOS with a Metal-enabled MLX C++ installation, plus the existing
-C++ Protobuf/gRPC dependencies. The tested version is MLX 0.32.2. CMake accepts its
+C++ Protobuf/gRPC dependencies. CMake requires exactly MLX 0.32.2 because allocator
+error translation is qualified against that release. CMake accepts its
 installed package prefix; see the [official build instructions](https://ml-explore.github.io/mlx/build/html/install.html).
 
 The official 0.32.2 Python wheels also bundle C++ headers, CMake metadata, the dynamic
@@ -69,8 +70,11 @@ BF16 execution, quantization, scaled RoPE, sliding attention, biases, MoE, and m
 models remain unsupported and fail validation.
 
 A serialized process-wide GPU stream is reused across stage loads and gRPC threads.
-Every MLX operation runs with that stream selected, restoring the caller's default
-stream/device afterward. This matches the one-request-per-worker runtime. Each layer
+Every MLX operation, including the startup probe, runs with that stream selected.
+The calling thread retains this shared GPU stream as its default; only the previous
+default device is restored afterward. Querying an uninitialized thread's previous
+GPU stream would create another permanent stream in MLX 0.32.2, so the backend never
+does that. This matches the one-request-per-worker runtime. Each layer
 explicitly evaluates its output and updated KV arrays, bounding lazy graph retention.
 Sequence allocation materializes its reserved cache before admission succeeds. Cache
 updates may copy storage; workspace admission does not assume in-place optimization.
@@ -109,15 +113,21 @@ transport storage in unified-stage workspace, as it already does for CPU host st
 `GetMemoryReport` reports model payloads and conservative reservations. The additive
 optional `GetMetrics().allocator` message reports process-wide MLX active, cached, and
 peak allocation bytes, tagged with the unified domain. These numbers are not added to
-payload totals: doing so would double-count live arrays. Older backends omit this
-optional field; the execution protocol is unchanged.
+payload totals: doing so would double-count live arrays. A metrics scrape attempts
+the device lock without waiting. If loading or execution holds it, the response
+still identifies the worker but omits allocator telemetry; callers should retry a
+later scrape rather than treating absence as zero. Older backends omit this optional
+field too; the execution protocol is unchanged.
 
 The worker also sets MLX's allocator guideline to the configured budget and caps its
 cache guideline at `min(budget / 8, 64 MiB)`. MLX memory limits are guidelines, not hard
 physical limits; runtime admission and system headroom remain necessary. Cached blocks
 may remain after unloading. Reusing one stream avoids accumulating a new stream per
 load. See [MLX memory management](https://ml-explore.github.io/mlx/build/html/python/memory_management.html)
-for the distinction between active and cached allocations.
+for the distinction between active and cached allocations. The fixed cache guideline
+is conservative for this milestone's fixtures; larger workloads may incur allocation
+churn. Profile cache reuse against real workspace sizes before changing it in measured
+placement work. Admission reservations alone do not establish a suitable cache cap.
 
 ## Qualification
 

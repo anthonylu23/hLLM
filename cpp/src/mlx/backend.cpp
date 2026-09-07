@@ -17,9 +17,11 @@ class MlxFactory final : public runtime::BackendFactory {
     }
     if (limit != 0U) {
       mx::set_memory_limit(limit);
+      // TODO(measured placement): profile cache reuse against full-checkpoint
+      // workspace before increasing this conservative tiny-model guideline.
       mx::set_cache_limit(std::min(limit / 8U, std::size_t{64U * 1024U * 1024U}));
     }
-    completed(mx::default_stream(mx::Device::gpu), [] {
+    completed(execution_stream(), [] {
       auto probe = mx::sum(mx::ones({2, 2}, mx::float32));
       if (probe.item<float>() != 4.0F) throw std::runtime_error("MLX GPU probe failed");
       return true;
@@ -33,7 +35,9 @@ class MlxFactory final : public runtime::BackendFactory {
             "MLX Metal runtime ready"};
   }
   std::optional<runtime::AllocatorMetrics> allocator_metrics() const override {
-    std::scoped_lock lock(device_mutex());
+    // Scrapes must not wait behind checkpoint I/O or a long execution step.
+    std::unique_lock lock(device_mutex(), std::try_to_lock);
+    if (!lock.owns_lock()) return std::nullopt;
     return runtime::AllocatorMetrics{mx::get_active_memory(), mx::get_cache_memory(),
                                      mx::get_peak_memory()};
   }

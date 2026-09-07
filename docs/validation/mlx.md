@@ -6,6 +6,47 @@ The native project used the Debug configuration, with builds limited to two jobs
 Tests use tiny deterministic models and local loopback transport. Existing applications
 were left running; these results do not establish performance under an idle machine.
 
+## Review revisions — 2026-09-07
+
+The review findings were checked against the pinned MLX 0.32.2
+[stream implementation](https://github.com/ml-explore/mlx/blob/v0.32.2/mlx/stream.cpp)
+and [Metal allocator](https://github.com/ml-explore/mlx/blob/v0.32.2/mlx/backend/metal/allocator.cpp).
+The resulting revisions are:
+
+- Avoid querying/restoring a handler thread's previous GPU stream, and run startup
+  through the same shared stream. The new fresh-thread test demonstrated eight extra
+  persistent streams before the fix and no growth afterward, across real
+  factory/load/execute/unload operations. The previous default device is still restored.
+- Require exactly MLX 0.32.2 and exercise the real Metal buffer-length rejection through
+  the allocator API. A deliberately unqualified 0.33.0 package, otherwise marked
+  compatible, was rejected by CMake before its configuration was loaded. The test
+  intentionally avoids a huge `zeros()` array, which may merely broadcast a scalar.
+- Reject missing host budgets and any unified budget for HOST/DEVICE backends, alongside
+  the existing unified-only constraints. Negative constructor tests failed before the
+  fix and now pass for both domains, with valid configurations still accepted.
+- Make allocator scrapes nonblocking: omit the optional sample while the device lock
+  is held, and clear a previously populated response field. A contention test failed
+  before the change and now proves prompt completion and later sampling recovery.
+- Retain the 64 MiB cache guideline and add a measured-placement profiling TODO. The
+  larger-workload allocation-churn concern merits measurement; it does not justify
+  changing the cache policy without a fresh performance/memory assessment.
+- Preserve the CPU-side budget supplied by the shared admission contract and explain
+  the MLX-specific 10 MiB override. The 8 MiB floor is per-request workspace; it prevents
+  the contract's one-token recovery at 100 KB, rather than preventing tiny-stage loading.
+
+Validation of these review revisions:
+
+| Check | Result |
+| --- | --- |
+| Full Mac MLX-enabled CTest | 49/49 entries, 255.53 seconds |
+| Focused Linux backend contracts and CUDA process smoke suite | 7/7 entries, 6.29 seconds |
+| Python tests, Ruff, Pyright, generated bindings, whitespace | 42 tests passed; all checks passed |
+| Compatible-but-unqualified MLX 0.33.0 configuration | Rejected before package loading |
+
+The initial full Linux 51-entry regression below is retained as prior evidence; the
+review refresh reran the shared constructor contracts and real CUDA worker smoke
+checks because CUDA execution and transport code did not change.
+
 ## PR refresh — 2026-09-07
 
 The Milestone 3 branch was rebased onto `main` at
@@ -98,8 +139,11 @@ stage and transport admission for both host and unified memory.
 The private completion-wrapper test submits real MLX asynchronous work, then injects
 known allocator exception messages, checking resource-exhaustion translation and
 subsequent stream usability. Unrelated execution and input errors preserve their class.
-This is controlled exception-path coverage, not induced physical OOM or a fatal Metal
-fault. No fault-injection switches are exposed through worker arguments or RPCs.
+The review revision also calls the real Metal allocator with a size above its maximum
+buffer length, which rejects before allocating, verifies `std::bad_alloc` translation,
+and then executes another GPU operation. This supplements the injected-message cases
+without inducing physical OOM or a fatal Metal fault. No fault-injection switches are
+exposed through worker arguments or RPCs.
 
 ## Memory observations
 

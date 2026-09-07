@@ -35,7 +35,9 @@ def test_fault_at_boundary(tmp_path: Path, mlx_first: bool, phase: int, fault: s
 def test_failure_contracts(tmp_path: Path, mlx_first: bool, scenario: str) -> None:
     def launch(root: Path, limit: int | tuple[int, int] = 128 * 1024 * 1024) -> Workers:
         if scenario == "admission" and not mlx_first:
-            limit = (16_000_000, 10 * 1024 * 1024)
+            # MLX has an 8 MiB per-request workspace floor. Preserve the CPU
+            # budget; 10 MiB permits recovery with one token but rejects 256.
+            limit = (limit[0] if isinstance(limit, tuple) else limit, 10 * 1024 * 1024)
         return mixed_workers(root, limit, mlx_first=mlx_first)
 
     cases = {

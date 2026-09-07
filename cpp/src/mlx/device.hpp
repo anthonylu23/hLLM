@@ -24,19 +24,18 @@ inline mx::Stream execution_stream() {
 class StreamScope {
  public:
   explicit StreamScope(mx::Stream stream)
-      : previous_device_(mx::default_device()),
-        previous_stream_(mx::default_stream(mx::Device::gpu)) {
+      : previous_device_(mx::default_device()) {
+    // Bind every calling thread to the worker's shared stream. Querying its
+    // previous default would lazily allocate a permanent stream per thread.
     mx::set_default_device(mx::Device::gpu);
     mx::set_default_stream(stream);
   }
   ~StreamScope() {
-    mx::set_default_stream(previous_stream_);
     mx::set_default_device(previous_device_);
   }
 
  private:
   mx::Device previous_device_;
-  mx::Stream previous_stream_;
 };
 template <class Function>
 auto completed(mx::Stream stream, Function&& function) {
