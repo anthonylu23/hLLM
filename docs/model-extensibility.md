@@ -43,7 +43,8 @@ boundary bytes or a sampled token. Embedding, layers, and sampling remain inside
 backend operation so GPU intermediates can stay on device. CPU reference inspection APIs
 are separate from that contract. Factories supply truthful execution capabilities and
 validate load-time allocations; runtime admission checks host, device and pinned-host
-reservations separately. Pinned memory also counts toward host memory. Backend state and
+reservations separately, with a single unified-memory budget for MLX including transport.
+Pinned memory also counts toward host memory. Backend state and
 pending device operations must finish safely before buffers can be released.
 
 ## Implementation order
@@ -52,6 +53,7 @@ Executable CPU stages and a two-process pipeline for tiny Llama and Qwen3 are co
 Use both as regression cases for every backend. The [CUDA implementation](milestone-2.md)
 shares validated dense checkpoint metadata with CPU and executes model operations through
 ATen. Tiny-model parity, single-worker generation, mixed CPU/CUDA execution in both
-stage orders, and failure/memory qualification are covered. MLX will implement the same
-stage contract. Select the next model family with the user before widening that contract.
+stage orders, and failure/memory qualification are covered. The [MLX worker](milestone-3.md)
+implements the same stage contract for Llama and Qwen3, with CPU/MLX qualification and
+unified-memory metrics. Select the next model family with the user before widening that contract.
 Full-checkpoint performance and measured placement remain later validation.

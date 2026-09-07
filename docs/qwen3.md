@@ -91,7 +91,8 @@ The existing Apple AddressSanitizer startup issue from the quality review remain
 unresolved toolchain limitation; this change does not claim sanitizer validation.
 
 Executable CPU loading and execution RPCs are now implemented and tested on tiny models
-in Milestone 1. CUDA tiny-model execution is now validated in Milestone 2. Next qualify
-mixed CPU/CUDA processes, then compare a full pinned checkpoint against Transformers.
-MLX remains later work. Measure actual memory, TTFT, and decode latency before promoting
-placement estimates to benchmark results.
+in Milestone 1. Milestone 2 qualifies CUDA and mixed CPU/CUDA execution;
+[Milestone 3](milestone-3.md) qualifies MLX-only and CPU/MLX execution. Next assess
+a full pinned checkpoint against physical memory and compare with Transformers, then
+qualify MLX/CUDA across machines. Measure actual memory, TTFT, and decode latency before
+promoting placement estimates to benchmark results.

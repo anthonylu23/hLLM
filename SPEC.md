@@ -959,6 +959,9 @@ implementations and common runtime responsibilities follow the
 
 ### Milestone 3 — MLX worker
 
+Implemented for tiny Llama/Qwen3 golden-suite qualification; see the
+[MLX implementation and build instructions](docs/milestone-3.md).
+
 - Implement equivalent MLX C++ stages.
 - Add explicit evaluation and unified-memory reporting.
 - Validate MLX full-model and split execution.
