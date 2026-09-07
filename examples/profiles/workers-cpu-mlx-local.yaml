@@ -1,0 +1,30 @@
+# Tiny fixture qualification estimates; not full-checkpoint measurements.
+# cpu-b is the logical peer ID and runs the MLX executable.
+workers:
+  - worker_id: cpu-a
+    endpoint: 127.0.0.1:50051
+    backend: cpu
+    primary_memory_domain: HOST
+    supported_architectures: [llama.v1, qwen3.v1]
+    supported_execution_dtypes: [F32]
+    memory_budgets:
+      - domain: HOST
+        capacity_bytes: 536870912
+        runtime_reserve_bytes: 67108864
+        safety_fraction: 0.1
+    fixed_workspace_bytes: 16777216
+    provenance: CONFIGURED
+  - worker_id: cpu-b
+    endpoint: 127.0.0.1:50053
+    backend: mlx
+    primary_memory_domain: UNIFIED
+    supported_architectures: [llama.v1, qwen3.v1]
+    supported_execution_dtypes: [F32]
+    memory_budgets:
+      - domain: UNIFIED
+        capacity_bytes: 134217728
+        runtime_reserve_bytes: 16777216
+        safety_fraction: 0.1
+    host_transport_buffer_bytes: 8388608
+    fixed_workspace_bytes: 41943040
+    provenance: CONFIGURED

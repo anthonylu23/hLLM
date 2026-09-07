@@ -53,6 +53,7 @@ include = [
   "tests/python",
   "tests/integration",
   "tests/cuda",
+  "tests/mlx",
   "tests/process_helpers.py",
   "tests/process_contracts.py",
 ]

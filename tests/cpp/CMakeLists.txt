@@ -89,3 +89,20 @@ if(HLLM_ENABLE_CUDA)
     TIMEOUT 120
     LABELS "cuda;hardware")
 endif()
+
+if(HLLM_ENABLE_MLX)
+  add_executable(hllm_mlx_tests mlx_stage_test.cpp mlx_lifecycle_test.cpp)
+  target_include_directories(hllm_mlx_tests PRIVATE "${PROJECT_SOURCE_DIR}/cpp/src/mlx")
+  target_link_libraries(hllm_mlx_tests PRIVATE mlx)
+  target_link_libraries(hllm_mlx_tests PRIVATE hllm::mlx_backend hllm::cpu_backend hllm::worker_runtime
+    nlohmann_json::nlohmann_json GTest::gtest_main hllm_project_options)
+  target_compile_definitions(hllm_mlx_tests PRIVATE HLLM_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures")
+  add_test(NAME MlxNumericalParity COMMAND hllm_mlx_tests)
+  set_tests_properties(MlxNumericalParity PROPERTIES TIMEOUT 180 LABELS "mlx;hardware")
+  add_test(NAME MlxPipelineIntegration
+    COMMAND ${CMAKE_COMMAND} -E env HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+      HLLM_MLX_WORKER=$<TARGET_FILE:hllm-worker-mlx>
+      ${HLLM_UV_EXECUTABLE} run pytest tests/mlx -q)
+  set_tests_properties(MlxPipelineIntegration PROPERTIES
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 600 LABELS "mlx;hardware")
+endif()
