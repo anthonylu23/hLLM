@@ -24,6 +24,7 @@ struct WorkerConfig {
   std::uint64_t host_memory_capacity_bytes;
   std::uint64_t device_memory_capacity_bytes{0U};
   std::uint64_t pinned_host_memory_capacity_bytes{0U};
+  std::uint64_t unified_memory_capacity_bytes{0U};
 };
 
 struct LoadedDeployment {

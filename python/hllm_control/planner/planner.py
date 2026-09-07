@@ -108,8 +108,8 @@ def _stage_memory(
     )
     activation_buffer_bytes = activation_payload * worker.activation_buffer_count
     workspace_bytes = worker.fixed_workspace_bytes
-    if worker.primary_memory_domain == MemoryDomain.HOST:
-        # Host-resident stages and transport staging share the same capacity.
+    if worker.primary_memory_domain in (MemoryDomain.HOST, MemoryDomain.UNIFIED):
+        # Host/unified stages and transport staging share the same capacity.
         workspace_bytes += worker.host_transport_buffer_bytes
     subtotal = weight_bytes + kv_cache_bytes + workspace_bytes + activation_buffer_bytes
     allocator_allowance_bytes = math.ceil(subtotal * worker.allocator_allowance_fraction)

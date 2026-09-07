@@ -107,22 +107,28 @@ ControlService::ControlService(WorkerConfig config,
     : config_(std::move(config)),
       factory_(std::move(factory)),
       capacity_{config_.host_memory_capacity_bytes, config_.device_memory_capacity_bytes,
-                config_.pinned_host_memory_capacity_bytes} {
+                config_.pinned_host_memory_capacity_bytes, config_.unified_memory_capacity_bytes} {
   if (config_.worker_id.empty() || config_.endpoint.empty() ||
       !std::filesystem::is_directory(config_.model_root) ||
-      config_.host_memory_capacity_bytes == 0U) {
+      (config_.host_memory_capacity_bytes == 0U && config_.unified_memory_capacity_bytes == 0U)) {
     throw std::invalid_argument("worker configuration is incomplete");
   }
   if (!factory_ || capacity_.pinned_host_bytes > capacity_.host_bytes) {
     throw std::invalid_argument("invalid backend factory or pinned host memory budget");
   }
-  if (capacity_.device_bytes > std::numeric_limits<std::size_t>::max() - capacity_.host_bytes) {
+  if (capacity_.device_bytes > std::numeric_limits<std::size_t>::max() - capacity_.host_bytes ||
+      capacity_.unified_bytes >
+          std::numeric_limits<std::size_t>::max() - capacity_.host_bytes - capacity_.device_bytes) {
     throw std::invalid_argument("combined memory capacity overflows accounting");
   }
   capabilities_ = factory_->capabilities();
   if (capabilities_.primary_memory_domain == v1::MEMORY_DOMAIN_DEVICE &&
       capacity_.device_bytes == 0U) {
     throw std::invalid_argument("device backend requires a device memory budget");
+  }
+  if (capabilities_.primary_memory_domain == v1::MEMORY_DOMAIN_UNIFIED &&
+      (capacity_.unified_bytes == 0U || capacity_.host_bytes != 0U || capacity_.device_bytes != 0U)) {
+    throw std::invalid_argument("unified backend requires one unified memory budget");
   }
   config_.model_root = std::filesystem::canonical(config_.model_root);
   reservation_reaper_ = std::jthread([this](std::stop_token stop) {
@@ -156,6 +162,7 @@ grpc::Status ControlService::GetCapabilities(grpc::ServerContext*, const v1::Emp
     value->set_domain(domain);
     value->set_capacity_bytes(bytes);
   };
+  budget(v1::MEMORY_DOMAIN_UNIFIED, capacity_.unified_bytes);
   budget(v1::MEMORY_DOMAIN_HOST, capacity_.host_bytes);
   budget(v1::MEMORY_DOMAIN_DEVICE, capacity_.device_bytes);
   budget(v1::MEMORY_DOMAIN_HOST_PINNED, capacity_.pinned_host_bytes);
@@ -369,16 +376,26 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
                 cache.device_bytes, workspace.device_bytes);
   report_domain(v1::MEMORY_DOMAIN_HOST_PINNED, capacity_.pinned_host_bytes,
                 weights.pinned_host_bytes, cache.pinned_host_bytes, workspace.pinned_host_bytes);
+  report_domain(v1::MEMORY_DOMAIN_UNIFIED, capacity_.unified_bytes, weights.unified_bytes,
+                cache.unified_bytes, workspace.unified_bytes);
   // Legacy totals count each byte once: pinned memory is already included in host.
-  response->set_loaded_weight_bytes(weights.host_bytes + weights.device_bytes);
-  response->set_reserved_cache_bytes(cache.host_bytes + cache.device_bytes);
-  response->set_reserved_workspace_bytes(workspace.host_bytes + workspace.device_bytes);
+  response->set_loaded_weight_bytes(weights.host_bytes + weights.device_bytes + weights.unified_bytes);
+  response->set_reserved_cache_bytes(cache.host_bytes + cache.device_bytes + cache.unified_bytes);
+  response->set_reserved_workspace_bytes(workspace.host_bytes + workspace.device_bytes +
+                                         workspace.unified_bytes);
   response->set_active_requests(active_ ? 1U : 0U);
   return grpc::Status::OK;
 }
 grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,
                                         v1::WorkerMetrics* response) {
   response->set_worker_id(config_.worker_id);
+  if (const auto metrics = factory_->allocator_metrics()) {
+    auto* allocator = response->mutable_allocator();
+    allocator->set_domain(capabilities_.primary_memory_domain);
+    allocator->set_active_bytes(metrics->active_bytes);
+    allocator->set_cached_bytes(metrics->cached_bytes);
+    allocator->set_peak_bytes(metrics->peak_bytes);
+  }
   return grpc::Status::OK;
 }
 grpc::Status ControlService::Health(grpc::ServerContext*, const v1::Empty*,
