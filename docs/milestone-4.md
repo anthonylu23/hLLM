@@ -151,11 +151,12 @@ are intentionally not installed by these scripts.
 ## Remaining work
 
 Milestone 5 adds measured placement and split selection. Account for allocator caches
-and framework/context overhead as well as model reservations. CUDA currently acquires
-a pooled stream per stage load; repeated assignments can retain substantial cached
-VRAM across the stream pool. Plan GPU sharing accordingly or restart an idle worker
-before allocating another large process. The qualification report records the actual
-coexistence OOM encountered and the successful isolated rerun.
+and framework/context overhead as well as model reservations. The initial qualification acquired
+a CUDA pooled stream per stage load, retaining substantial VRAM across the stream
+pool. [Milestone 5](milestone-5.md) adds stream reuse and allocator-aware reload
+measurements. Allocator caches and context overhead still require headroom when
+sharing a GPU. The qualification report preserves the earlier coexistence OOM and
+the successful isolated rerun.
 
 This milestone does not qualify the 4B checkpoint, long-context limits, quantization,
 BF16 execution, pinned MLX/CUDA transport, batching, optimized attention, application

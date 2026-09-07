@@ -1,0 +1,2486 @@
+{
+  "date": "2026-09-07",
+  "source_revision": "848b017",
+  "parent_qualification": "926a29d",
+  "model": "Qwen/Qwen3-0.6B",
+  "checkpoint_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+  "execution_dtype": "F16",
+  "prompt_tokens": 33,
+  "new_tokens": 16,
+  "maximum_total_tokens": 49,
+  "baseline_definition": "Same instrumented candidate using the original per-load getStreamFromPool CudaStage constructor from 926a29d. Allocator telemetry and shared startup probe were retained. The final unsupported-allocator guard does not affect these native-allocator measurements.",
+  "variants": {
+    "baseline": {
+      "before": [
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "cachedBytes": "2097152",
+              "peakBytes": "1024"
+            }
+          }
+        }
+      ],
+      "cycles": [
+        {
+          "cycle": 0,
+          "load_seconds": 3.0013125819386914,
+          "time_to_first_token_seconds": 0.41921330394688994,
+          "instrumented_generation_seconds": 0.6961284329881892,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1192114176",
+                  "cachedBytes": "5359616",
+                  "peakBytes": "1192114176"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206263808",
+                  "cachedBytes": "18472960",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "24102912",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1216217088",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 1342742528,
+            "cuda_process_bytes": 1423966208
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 1,
+          "load_seconds": 3.0514986700145528,
+          "time_to_first_token_seconds": 0.01833971799351275,
+          "instrumented_generation_seconds": 0.2668830470647663,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "1219479552",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1215077888",
+                  "cachedBytes": "1232298496",
+                  "peakBytes": "1216693248"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1209153536",
+                  "cachedBytes": "1238222848",
+                  "peakBytes": "1216693248"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "17039360",
+                  "cachedBytes": "2430337024",
+                  "peakBytes": "1216693248"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 1971036160,
+            "cuda_process_bytes": 2577399808
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 2,
+          "load_seconds": 2.9598867680178955,
+          "time_to_first_token_seconds": 0.019302250002510846,
+          "instrumented_generation_seconds": 0.2825077249435708,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1209153536",
+                  "cachedBytes": "2433599488",
+                  "peakBytes": "1216693248"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1223587328",
+                  "cachedBytes": "2446428672",
+                  "peakBytes": "1225212928"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1217673216",
+                  "cachedBytes": "2452342784",
+                  "peakBytes": "1225212928"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "25559040",
+                  "cachedBytes": "3644456960",
+                  "peakBytes": "1225212928"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2314506240,
+            "cuda_process_bytes": 3758096384
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 3,
+          "load_seconds": 2.994003104045987,
+          "time_to_first_token_seconds": 0.019126608036458492,
+          "instrumented_generation_seconds": 0.2719080690294504,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1217673216",
+                  "cachedBytes": "3647719424",
+                  "peakBytes": "1225212928"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1232125440",
+                  "cachedBytes": "3660530176",
+                  "peakBytes": "1233732608"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1226192896",
+                  "cachedBytes": "3666462720",
+                  "peakBytes": "1233732608"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "34078720",
+                  "cachedBytes": "4858576896",
+                  "peakBytes": "1233732608"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2346860544,
+            "cuda_process_bytes": 5091885056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        }
+      ],
+      "completed": true
+    },
+    "fixed": {
+      "before": [
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "cachedBytes": "2097152",
+              "peakBytes": "1024"
+            }
+          }
+        }
+      ],
+      "cycles": [
+        {
+          "cycle": 0,
+          "load_seconds": 3.022175613907166,
+          "time_to_first_token_seconds": 0.4158987969858572,
+          "instrumented_generation_seconds": 0.696333045954816,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1192114176",
+                  "cachedBytes": "3262464",
+                  "peakBytes": "1192114176"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206263808",
+                  "cachedBytes": "16375808",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 1406787584,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 1,
+          "load_seconds": 2.986853781971149,
+          "time_to_first_token_seconds": 0.018699992913752794,
+          "instrumented_generation_seconds": 0.2820330379763618,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206265856",
+                  "cachedBytes": "16373760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2095931392,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 2,
+          "load_seconds": 3.024362239986658,
+          "time_to_first_token_seconds": 0.01894005690701306,
+          "instrumented_generation_seconds": 0.28753358498215675,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206829056",
+                  "cachedBytes": "15810560",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 1997217792,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 3,
+          "load_seconds": 2.9950117390835658,
+          "time_to_first_token_seconds": 0.01981666695792228,
+          "instrumented_generation_seconds": 0.28718460991512984,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206829056",
+                  "cachedBytes": "15810560",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2334289920,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 4,
+          "load_seconds": 3.0137540929717943,
+          "time_to_first_token_seconds": 0.020040978910401464,
+          "instrumented_generation_seconds": 0.29251251299865544,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206546944",
+                  "cachedBytes": "16092672",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2359685120,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 5,
+          "load_seconds": 2.9728378639556468,
+          "time_to_first_token_seconds": 0.018933527055196464,
+          "instrumented_generation_seconds": 0.2769049380440265,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206273024",
+                  "cachedBytes": "16366592",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2138505216,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 6,
+          "load_seconds": 3.0064550160896033,
+          "time_to_first_token_seconds": 0.019418741925619543,
+          "instrumented_generation_seconds": 0.2873245619703084,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206560768",
+                  "cachedBytes": "16078848",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2073804800,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        },
+        {
+          "cycle": 7,
+          "load_seconds": 3.014310248894617,
+          "time_to_first_token_seconds": 0.019195918925106525,
+          "instrumented_generation_seconds": 0.28263333602808416,
+          "exact_reference_match": true,
+          "after_load": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "at_first_observed_token": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "reservedCacheBytes": "5619712",
+                "reservedWorkspaceBytes": "43133968",
+                "activeRequests": "1",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "reservedWorkspaceBytes": "367376"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840",
+                    "reservedCacheBytes": "5619712",
+                    "reservedWorkspaceBytes": "42766592"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1206279168",
+                  "cachedBytes": "16360448",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_request": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "loadedWeightBytes": "1192099840",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "1192099840"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "1200633856",
+                  "cachedBytes": "22005760",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "2147483648"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6442450944"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "1214119936",
+                  "peakBytes": "1208173568"
+                }
+              }
+            }
+          ],
+          "observed_process_peaks": {
+            "rss_bytes": 2384982016,
+            "cuda_process_bytes": 1421869056
+          },
+          "generated_token_sha256": "def90ccd1c23d9a0e1cbfad6447b5572f398aacf67c9c2c7e441e93b42d7ea41"
+        }
+      ],
+      "completed": true
+    }
+  },
+  "probes": {
+    "cuda-f16-vs-f32": {
+      "absolute_logit_limit": 0.25,
+      "allocator_after_unload": {
+        "active": 8519680,
+        "cached": 1212022784,
+        "peak": 1205876736
+      },
+      "cases": [
+        {
+          "prompt": "What is the capital of France? Answer in one sentence.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 0.07186651229858398,
+              "maximum_layer_relative_l2": 0.004032621463514118,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 6.608509063720703,
+              "relative_l2": 0.003671354602888817
+            },
+            {
+              "argmax": 6722,
+              "max_absolute": 0.03771781921386719,
+              "maximum_layer_relative_l2": 0.0024248706596040827,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 6722,
+              "reference_margin": 10.007932662963867,
+              "relative_l2": 0.0012873312309014877
+            },
+            {
+              "argmax": 315,
+              "max_absolute": 0.026604652404785156,
+              "maximum_layer_relative_l2": 0.0015689562471562506,
+              "passed": true,
+              "position": 25,
+              "reference_argmax": 315,
+              "reference_margin": 8.073986053466797,
+              "relative_l2": 0.0012252902227627071
+            }
+          ]
+        },
+        {
+          "prompt": "Calculate 17 plus 25. Give the result and a short explanation.",
+          "steps": [
+            {
+              "argmax": 16,
+              "max_absolute": 0.03394126892089844,
+              "maximum_layer_relative_l2": 0.002070738113389419,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 16,
+              "reference_margin": 2.429567337036133,
+              "relative_l2": 0.0015042534777145384
+            },
+            {
+              "argmax": 22,
+              "max_absolute": 0.036464691162109375,
+              "maximum_layer_relative_l2": 0.0020776363348497555,
+              "passed": true,
+              "position": 29,
+              "reference_argmax": 22,
+              "reference_margin": 13.20834732055664,
+              "relative_l2": 0.0009482939758098738
+            },
+            {
+              "argmax": 5519,
+              "max_absolute": 0.034323692321777344,
+              "maximum_layer_relative_l2": 0.0022391057529832004,
+              "passed": true,
+              "position": 30,
+              "reference_argmax": 5519,
+              "reference_margin": 0.27923583984375,
+              "relative_l2": 0.0012314965786792112
+            }
+          ]
+        },
+        {
+          "prompt": "Explain why the sky appears blue in simple language.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 0.03237295150756836,
+              "maximum_layer_relative_l2": 0.001838755854050408,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 3.7398929595947266,
+              "relative_l2": 0.0016623748046567352
+            },
+            {
+              "argmax": 12884,
+              "max_absolute": 0.025549888610839844,
+              "maximum_layer_relative_l2": 0.0014109618301358445,
+              "passed": true,
+              "position": 23,
+              "reference_argmax": 12884,
+              "reference_margin": 6.670692443847656,
+              "relative_l2": 0.0008692918046019352
+            },
+            {
+              "argmax": 7952,
+              "max_absolute": 0.0267791748046875,
+              "maximum_layer_relative_l2": 0.0016695929376628277,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 7952,
+              "reference_margin": 3.893697738647461,
+              "relative_l2": 0.0007786872526173777
+            }
+          ]
+        }
+      ],
+      "dtype": "F16",
+      "passed": true,
+      "relative_logit_limit": 0.01,
+      "resident_weights": {
+        "device": 1192099840,
+        "host": 0,
+        "unified": 0
+      }
+    },
+    "cuda-f32-vs-f32": {
+      "absolute_logit_limit": 0.01,
+      "allocator_after_unload": {
+        "active": 8519680,
+        "cached": 2409496576,
+        "peak": 2403379200
+      },
+      "cases": [
+        {
+          "prompt": "What is the capital of France? Answer in one sentence.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 3.075599670410156e-05,
+              "maximum_layer_relative_l2": 1.8511371729768946e-06,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 6.608509063720703,
+              "relative_l2": 1.2825539337891536e-06
+            },
+            {
+              "argmax": 6722,
+              "max_absolute": 2.002716064453125e-05,
+              "maximum_layer_relative_l2": 1.208387384688124e-06,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 6722,
+              "reference_margin": 10.007932662963867,
+              "relative_l2": 8.865194179156048e-07
+            },
+            {
+              "argmax": 315,
+              "max_absolute": 1.4781951904296875e-05,
+              "maximum_layer_relative_l2": 8.365403163578594e-07,
+              "passed": true,
+              "position": 25,
+              "reference_argmax": 315,
+              "reference_margin": 8.073986053466797,
+              "relative_l2": 7.2669311595797e-07
+            }
+          ]
+        },
+        {
+          "prompt": "Calculate 17 plus 25. Give the result and a short explanation.",
+          "steps": [
+            {
+              "argmax": 16,
+              "max_absolute": 2.8133392333984375e-05,
+              "maximum_layer_relative_l2": 2.183588159137061e-06,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 16,
+              "reference_margin": 2.429567337036133,
+              "relative_l2": 1.288377222718933e-06
+            },
+            {
+              "argmax": 22,
+              "max_absolute": 2.4318695068359375e-05,
+              "maximum_layer_relative_l2": 1.3358934846784229e-06,
+              "passed": true,
+              "position": 29,
+              "reference_argmax": 22,
+              "reference_margin": 13.20834732055664,
+              "relative_l2": 6.687413241818062e-07
+            },
+            {
+              "argmax": 5519,
+              "max_absolute": 1.71661376953125e-05,
+              "maximum_layer_relative_l2": 8.85579454461884e-07,
+              "passed": true,
+              "position": 30,
+              "reference_argmax": 5519,
+              "reference_margin": 0.27923583984375,
+              "relative_l2": 6.118078956478729e-07
+            }
+          ]
+        },
+        {
+          "prompt": "Explain why the sky appears blue in simple language.",
+          "steps": [
+            {
+              "argmax": 785,
+              "max_absolute": 2.7179718017578125e-05,
+              "maximum_layer_relative_l2": 1.3310256528283058e-06,
+              "passed": true,
+              "position": 0,
+              "reference_argmax": 785,
+              "reference_margin": 3.7398929595947266,
+              "relative_l2": 9.670348488949045e-07
+            },
+            {
+              "argmax": 12884,
+              "max_absolute": 1.6689300537109375e-05,
+              "maximum_layer_relative_l2": 8.380769947928347e-07,
+              "passed": true,
+              "position": 23,
+              "reference_argmax": 12884,
+              "reference_margin": 6.670692443847656,
+              "relative_l2": 4.874402678611982e-07
+            },
+            {
+              "argmax": 7952,
+              "max_absolute": 1.9073486328125e-05,
+              "maximum_layer_relative_l2": 8.981501121929872e-07,
+              "passed": true,
+              "position": 24,
+              "reference_argmax": 7952,
+              "reference_margin": 3.893697738647461,
+              "relative_l2": 5.143465015760739e-07
+            }
+          ]
+        }
+      ],
+      "dtype": "F32",
+      "passed": true,
+      "relative_logit_limit": 0.001,
+      "resident_weights": {
+        "device": 2384199680,
+        "host": 0,
+        "unified": 0
+      }
+    }
+  },
+  "cross_machine": {
+    "mlx-cuda-direct": {
+      "reference_common_prefix": 256,
+      "seconds": 27.184096875134856,
+      "after_unload": [
+        {
+          "worker": "mlx",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED",
+                "capacityBytes": "4294967296"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "mlx",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "cachedBytes": "67465275",
+              "peakBytes": "933494784"
+            }
+          }
+        },
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "activeBytes": "8519680",
+              "cachedBytes": "788398080",
+              "peakBytes": "781646848"
+            }
+          }
+        }
+      ],
+      "generated_token_sha256": "0ad9f0897c1e019bf6bd5152ce306cf2d13ef7e0cb67d1f78ceabf1c80ae7089"
+    },
+    "cuda-mlx-direct": {
+      "reference_common_prefix": 256,
+      "seconds": 26.69650233304128,
+      "after_unload": [
+        {
+          "worker": "cuda",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST",
+                "capacityBytes": "2147483648"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE",
+                "capacityBytes": "6442450944"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_HOST"
+              },
+              {
+                "domain": "MEMORY_DOMAIN_DEVICE"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "cuda",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_DEVICE",
+              "activeBytes": "8519680",
+              "cachedBytes": "788398080",
+              "peakBytes": "782431232"
+            }
+          }
+        },
+        {
+          "worker": "mlx",
+          "memory": {
+            "budgets": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED",
+                "capacityBytes": "4294967296"
+              }
+            ],
+            "domainUsage": [
+              {
+                "domain": "MEMORY_DOMAIN_UNIFIED"
+              }
+            ]
+          },
+          "metrics": {
+            "workerId": "mlx",
+            "allocator": {
+              "domain": "MEMORY_DOMAIN_UNIFIED",
+              "cachedBytes": "67599689",
+              "peakBytes": "933494784"
+            }
+          }
+        }
+      ],
+      "generated_token_sha256": "0ad9f0897c1e019bf6bd5152ce306cf2d13ef7e0cb67d1f78ceabf1c80ae7089"
+    }
+  },
+  "paths": {
+    "direct-before": [
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 59ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 51ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 62ms"
+    ],
+    "direct-after": [
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 53ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 63ms",
+      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 47ms"
+    ]
+  },
+  "native_regression": {
+    "before": [
+      "Running main() from /home/conda/feedstock_root/build_artifacts/bld/rattler-build_gtest_1786419392/work/googletest/src/gtest_main.cc",
+      "Note: Google Test filter = CudaLifecycleTest.RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarmup",
+      "[==========] Running 1 test from 1 test suite.",
+      "[----------] Global test environment set-up.",
+      "[----------] 1 test from CudaLifecycleTest",
+      "[ RUN      ] CudaLifecycleTest.RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarmup",
+      "/home/anthonylu/Projects/experiments/hllm-cuda-memory-pr-20260907/tests/cpp/cuda_lifecycle_test.cpp:127: Failure",
+      "Expected equality of these values:",
+      "  range(&test::MemorySnapshot::allocated)",
+      "    Which is: 76677120",
+      "  0",
+      "",
+      "/home/anthonylu/Projects/experiments/hllm-cuda-memory-pr-20260907/tests/cpp/cuda_lifecycle_test.cpp:128: Failure",
+      "Expected: (range(&test::MemorySnapshot::reserved)) <= (2 * 1024 * 1024), actual: 207618048 vs 2097152",
+      "",
+      "lifecycle pinned=0 cuda_first=0 payload=3264 pinned_active=0 allocated_after_unload=102236160 reserved=278921216 peak_allocated=102253568 rss=972787712 rss_range=86016 reserved_range=207618048",
+      "/home/anthonylu/Projects/experiments/hllm-cuda-memory-pr-20260907/tests/cpp/cuda_lifecycle_test.cpp:127: Failure",
+      "Expected equality of these values:",
+      "  range(&test::MemorySnapshot::allocated)",
+      "    Which is: 76677120",
+      "  0",
+      "",
+      "/home/anthonylu/Projects/experiments/hllm-cuda-memory-pr-20260907/tests/cpp/cuda_lifecycle_test.cpp:128: Failure",
+      "Expected: (range(&test::MemorySnapshot::reserved)) <= (2 * 1024 * 1024), actual: 207618048 vs 2097152",
+      "",
+      "lifecycle pinned=0 cuda_first=1 payload=3240 pinned_active=0 allocated_after_unload=204472320 reserved=555745280 peak_allocated=204489216 rss=973025280 rss_range=8192 reserved_range=207618048",
+      "/home/anthonylu/Projects/experiments/hllm-cuda-memory-pr-20260907/tests/cpp/cuda_lifecycle_test.cpp:127: Failure",
+      "Expected equality of these values:",
+      "  range(&test::MemorySnapshot::allocated)",
+      "    Which is: 42598400",
+      "  0",
+      "",
+      "/home/anthonylu/Projects/experiments/hllm-cuda-memory-pr-20260907/tests/cpp/cuda_lifecycle_test.cpp:128: Failure",
+      "Expected: (range(&test::MemorySnapshot::reserved)) <= (2 * 1024 * 1024), actual: 113246208 vs 2097152",
+      "",
+      "lifecycle pinned=1 cuda_first=0 payload=3264 pinned_active=192 allocated_after_unload=272629760 reserved=738197504 peak_allocated=272647168 rss=973033472 rss_range=4096 reserved_range=113246208",
+      "lifecycle pinned=1 cuda_first=1 payload=3240 pinned_active=192 allocated_after_unload=272629760 reserved=738197504 peak_allocated=272646656 rss=973037568 rss_range=4096 reserved_range=0",
+      "[  FAILED  ] CudaLifecycleTest.RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarmup (830 ms)",
+      "[----------] 1 test from CudaLifecycleTest (830 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 1 test from 1 test suite ran. (830 ms total)",
+      "[  PASSED  ] 0 tests.",
+      "[  FAILED  ] 1 test, listed below:",
+      "[  FAILED  ] CudaLifecycleTest.RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarmup",
+      "",
+      " 1 FAILED TEST"
+    ],
+    "after": [
+      "Running main() from /home/conda/feedstock_root/build_artifacts/bld/rattler-build_gtest_1786419392/work/googletest/src/gtest_main.cc",
+      "Note: Google Test filter = CudaLifecycleTest.*",
+      "[==========] Running 3 tests from 1 test suite.",
+      "[----------] Global test environment set-up.",
+      "[----------] 3 tests from CudaLifecycleTest",
+      "[ RUN      ] CudaLifecycleTest.AllocationFailureAfterRealSequenceAllocationRollsBackAndRecovers",
+      "[       OK ] CudaLifecycleTest.AllocationFailureAfterRealSequenceAllocationRollsBackAndRecovers (474 ms)",
+      "[ RUN      ] CudaLifecycleTest.RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarmup",
+      "lifecycle pinned=0 cuda_first=0 payload=3264 pinned_active=0 allocated_after_unload=17039360 reserved=23068672 peak_allocated=17056768 rss=1012404224 rss_range=0 reserved_range=0",
+      "lifecycle pinned=0 cuda_first=1 payload=3240 pinned_active=0 allocated_after_unload=17039360 reserved=23068672 peak_allocated=17056256 rss=1012404224 rss_range=0 reserved_range=0",
+      "lifecycle pinned=1 cuda_first=0 payload=3264 pinned_active=192 allocated_after_unload=17039360 reserved=23068672 peak_allocated=17056768 rss=1012404224 rss_range=0 reserved_range=0",
+      "lifecycle pinned=1 cuda_first=1 payload=3240 pinned_active=192 allocated_after_unload=17039360 reserved=23068672 peak_allocated=17056256 rss=1012404224 rss_range=0 reserved_range=0",
+      "[       OK ] CudaLifecycleTest.RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarmup (286 ms)",
+      "[ RUN      ] CudaLifecycleTest.ReportsAllocatorResidencySeparatelyFromModelReservations",
+      "[       OK ] CudaLifecycleTest.ReportsAllocatorResidencySeparatelyFromModelReservations (20 ms)",
+      "[----------] 3 tests from CudaLifecycleTest (782 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 3 tests from 1 test suite ran. (782 ms total)",
+      "[  PASSED  ] 3 tests."
+    ]
+  },
+  "validation": {
+    "cuda_ctest_entries": 53,
+    "cuda_ctest_seconds": 325.75,
+    "final_native_and_smoke_ctest_entries": 2,
+    "final_native_and_smoke_seconds": 8.75,
+    "python_tests": 42,
+    "lint_types_generated_bindings_whitespace": "passed"
+  },
+  "limitations": [
+    "Allocator counters exclude CUDA context and other allocations; configured budgets are not physical caps.",
+    "Host RSS remained variable and reached roughly 2.22 GiB; this change does not bound host allocator retention.",
+    "The four baseline and first four fixed cycles are directly compared; only the fixed variant continued through eight cycles.",
+    "Timings include telemetry sampling and reflect application load; these are not stage compute benchmarks.",
+    "This measurement does not qualify 4B, other contexts, automatic placement, or concurrent external GPU allocations."
+  ]
+}

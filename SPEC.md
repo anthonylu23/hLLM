@@ -986,6 +986,10 @@ Qwen3-4B-Base still requires its own physical-fit and inference qualification.
 
 ### Milestone 5 — measured automatic placement
 
+Started with CUDA allocator telemetry, stream reuse, and repeated-assignment memory
+measurements; see [implementation status](docs/milestone-5.md). Automatic split
+selection from measured profiles remains unfinished.
+
 - Add backend dry-load memory measurements.
 - Profile layer compute, conversion, and link transfer.
 - Select stage order and split automatically.
