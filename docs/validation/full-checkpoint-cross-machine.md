@@ -220,3 +220,22 @@ The 4B checkpoint, full model context, pinned cross-machine mode, quantization,
 batching, application mTLS, and automatic measured placement remain outside this
 qualification. These results establish the tested 0.6B workload and actual direct/
 DERP execution paths, not arbitrary-model or maximum-context feasibility.
+
+## PR review follow-up
+
+The final review moved tied-head payload comparison after load admission, reused the
+raw embedding buffer, and budgeted up to 1 MiB of comparison scratch. Metadata remains
+validated before payload reads. Regressions cover mixed storage types, corruption,
+over-budget rejection before payload verification, and the scratch admission boundary.
+
+[Review validation](pr12-review.json) records 51 passing Mac and 54 passing CUDA CTest
+entries, 45 Python tests, and passing full-checkpoint MLX/CUDA F16 probes. Ruff, Pyright
+(including the reference script in its isolated Torch/Transformers environment),
+generated bindings and whitespace checks passed. Regenerating the reference preserved
+all layer/logit snapshots, all nine sampled decisions, and all 256 generated tokens.
+The probe now records its layer-relative threshold explicitly.
+
+Published network evidence is redacted, retaining transport types, latency and packet
+counters. The sampler tolerates missing/transient NVIDIA measurements and process
+exit races. Probe budgets and fault timing/context are configurable, with their
+workload coupling documented in the reproduction instructions.
