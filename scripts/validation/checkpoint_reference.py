@@ -9,6 +9,7 @@ import argparse
 import json
 import time
 from pathlib import Path
+from typing import cast
 
 import torch  # pyright: ignore[reportMissingImports] -- isolated reference environment
 import transformers  # pyright: ignore[reportMissingImports]
@@ -32,11 +33,14 @@ def main() -> None:
     torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
     tokenizer = AutoTokenizer.from_pretrained(args.model, local_files_only=True)
     model = (
-        AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch.float32 if args.dtype == "f32" else torch.float16,
-            attn_implementation="eager",
-            local_files_only=True,
+        cast(
+            torch.nn.Module,  # AutoModel returns a Module; its generated typing is loose.
+            AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch.float32 if args.dtype == "f32" else torch.float16,
+                attn_implementation="eager",
+                local_files_only=True,
+            ),
         )
         .eval()
         .to("cuda")
@@ -62,7 +66,10 @@ def main() -> None:
         hidden = output[0] if isinstance(output, tuple) else output
         layer_rows.append(hidden[0, -1].float().cpu().tolist())
 
-    handles = [layer.register_forward_hook(capture) for layer in model.model.layers]
+    handles = [
+        layer.register_forward_hook(capture)
+        for layer in model.get_submodule("model.layers").children()
+    ]
     result = {
         "producer": {
             "torch": torch.__version__,
