@@ -6,8 +6,10 @@
 #include <atomic>
 #include <cmath>
 
+#include "hllm/model/dense_loader.hpp"
 #include "hllm/runtime/error.hpp"
 #include "hllm/runtime/half.hpp"
+#include "hllm/runtime/safetensors.hpp"
 #include "model_fixture.hpp"
 
 namespace hllm::cpu {
@@ -95,6 +97,72 @@ TEST(CpuStageTest, DoesNotReadUnassignedWeights) {
     }
   }
   EXPECT_NO_THROW(static_cast<void>(load_stage(request, fixture.root, 1'000'000U)));
+}
+
+TEST(CpuStageTest, RedundantTiedHeadMustMatchWithoutDuplicateResidency) {
+  for (const auto* storage : {"F32", "F16", "BF16"}) {
+    const test::ModelFixture baseline(true, true, storage);
+    const test::ModelFixture duplicate(true, true, storage, true);
+    const auto source = model::inspect_dense_stage(duplicate.load(0U, false), duplicate.root);
+    const auto without_verification = source.float32_weight_bytes + source.largest_payload_bytes + 65536U;
+    try {
+      static_cast<void>(load_stage(duplicate.load(0U, false), duplicate.root, without_verification));
+      FAIL() << "verification scratch was not included in load admission";
+    } catch (const runtime::Error& error) {
+      EXPECT_EQ(error.code(), runtime::ErrorCode::kResourceExhausted);
+    }
+    EXPECT_NO_THROW(static_cast<void>(load_stage(duplicate.load(0U, false), duplicate.root,
+        without_verification + source.verification_workspace_bytes)));
+    for (const auto index : {0U, 1U, 2U}) {
+      const auto request = duplicate.load(index == 2U ? 0U : index, index != 2U);
+      const auto reference = baseline.load(index == 2U ? 0U : index, index != 2U);
+      auto stage = load_stage(request, duplicate.root, 1'000'000U);
+      auto expected = load_stage(reference, baseline.root, 1'000'000U);
+      EXPECT_EQ(stage->weight_memory().host_bytes, expected->weight_memory().host_bytes);
+    }
+    const runtime::SafetensorsFile file(duplicate.root / "model.safetensors");
+    const auto& head = file.tensor("lm_head.weight");
+    {
+      std::fstream output(file.path(), std::ios::binary | std::ios::in | std::ios::out);
+      const auto offset = static_cast<std::streamoff>(
+          file.header_size() + head.data_offset + head.byte_length - 1U);
+      output.seekg(offset);
+      const auto original = output.get();
+      output.seekp(offset);
+      output.put(static_cast<char>(original ^ 1));
+    }
+    for (const auto& request : {duplicate.load(1U), duplicate.load(0U, false)}) {
+      try {
+        static_cast<void>(load_stage(request, duplicate.root, 1'000'000U));
+        FAIL() << "corrupt tied head was accepted";
+      } catch (const runtime::Error& error) {
+        EXPECT_EQ(error.code(), runtime::ErrorCode::kIncompatibleWorker);
+      }
+    }
+    // An over-budget load must reject before reading the corrupted payload.
+    try {
+      static_cast<void>(load_stage(duplicate.load(1U), duplicate.root, 1U));
+      FAIL() << "over-budget load was accepted";
+    } catch (const runtime::Error& error) {
+      EXPECT_EQ(error.code(), runtime::ErrorCode::kResourceExhausted);
+    }
+    // The first stage does not own or read the unused head tensor.
+    EXPECT_NO_THROW(static_cast<void>(load_stage(duplicate.load(0U), duplicate.root, 1'000'000U)));
+  }
+}
+
+TEST(CpuStageTest, RedundantTiedHeadRejectsDifferentStorageMetadata) {
+  const test::ModelFixture fixture(true, true, "BF16", true, "F16");
+  for (const auto& request : {fixture.load(1U), fixture.load(0U, false)}) {
+    try {
+      static_cast<void>(load_stage(request, fixture.root, 1'000'000U));
+      FAIL() << "mixed-dtype tied head was accepted";
+    } catch (const runtime::Error& error) {
+      EXPECT_EQ(error.code(), runtime::ErrorCode::kIncompatibleWorker);
+      EXPECT_NE(std::string(error.what()).find("match embedding storage metadata"), std::string::npos);
+    }
+  }
+  EXPECT_NO_THROW(static_cast<void>(load_stage(fixture.load(0U), fixture.root, 1'000'000U)));
 }
 
 }  // namespace

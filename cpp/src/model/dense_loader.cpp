@@ -142,9 +142,14 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
       throw runtime::Error::incompatible_worker("duplicate tensor in manifest");
     }
   }
+  const bool redundant_tied_head = source.tied_head && records.contains("lm_head.weight");
+  if (redundant_tied_head) {
+    expected.emplace("lm_head.weight",
+                     ExpectedTensor{{source.vocabulary_size, h}, v1::TENSOR_ROLE_LM_HEAD});
+  }
   for (const auto& [name, record] : records) {
-    // Tied checkpoints may still ship an lm_head.weight copy; the embedding is
-    // authoritative for the head, so that record is neither read nor budgeted.
+    // The embedding is authoritative for a tied head. An optional serialized
+    // head is validated separately below, without duplicate resident storage.
     const bool selected =
         (record->role() == v1::TENSOR_ROLE_TRANSFORMER_LAYER && record->has_layer_index() &&
          record->layer_index() >= assignment.layer_start() &&
@@ -194,6 +199,9 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
       throw runtime::Error::incompatible_worker(
           "Safetensors metadata mismatch or unsupported dtype: " + name);
     }
+    if (redundant_tied_head && name == "lm_head.weight") {
+      continue;  // Payload is verified when the admitted loader reads the embedding.
+    }
     std::size_t elements = 1U;
     for (const auto dim : spec.shape) {
       elements = multiply(elements, dim);
@@ -204,6 +212,19 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
     source.largest_float32_tensor_bytes =
         std::max(source.largest_float32_tensor_bytes, multiply(elements, sizeof(float)));
     source.tensors.emplace(name, TensorSource{record.file(), spec.shape, tensor.dtype});
+  }
+  if (redundant_tied_head) {
+    const auto& embedding = files.at(records.at("model.embed_tokens.weight")->file())
+                                .tensor("model.embed_tokens.weight");
+    const auto& head_record = *records.at("lm_head.weight");
+    const auto& head = files.at(head_record.file()).tensor("lm_head.weight");
+    if (embedding.dtype != head.dtype || embedding.shape != head.shape ||
+        embedding.byte_length != head.byte_length) {
+      throw runtime::Error::incompatible_worker(
+          "redundant tied head must match embedding storage metadata");
+    }
+    source.redundant_head_file = head_record.file();
+    source.verification_workspace_bytes = std::min(head.byte_length, std::size_t{1024U * 1024U});
   }
   return source;
 }

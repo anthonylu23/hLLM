@@ -19,7 +19,8 @@ class ModelFixture {
   v1::ModelManifest manifest;
   nlohmann::json oracle;
 
-  explicit ModelFixture(bool qwen = true, bool tied = true, const std::string& dtype = "F32") {
+  explicit ModelFixture(bool qwen = true, bool tied = true, const std::string& dtype = "F32",
+                        bool redundant_tied_head = false, const std::string& head_dtype = "") {
     static std::atomic<unsigned> counter{0U};
     root = std::filesystem::temp_directory_path() /
            ("hllm-stage-" +
@@ -53,29 +54,33 @@ class ModelFixture {
     config->set_tied_embeddings(tied);
     nlohmann::json header = nlohmann::json::object();
     std::string payload;
+    if (redundant_tied_head) {
+      oracle["weights"]["lm_head.weight"] = oracle["weights"]["model.embed_tokens.weight"];
+    }
     for (const auto& [name, tensor] : oracle.at("weights").items()) {
-      if ((tied && name == "lm_head.weight") ||
+      if ((tied && name == "lm_head.weight" && !redundant_tied_head) ||
           (!qwen && (name.ends_with("q_norm.weight") || name.ends_with("k_norm.weight")))) {
         continue;
       }
+      const auto& storage = name == "lm_head.weight" && !head_dtype.empty() ? head_dtype : dtype;
       const auto start = payload.size();
       for (const float value : tensor.at("values").get<std::vector<float>>()) {
         const auto bits =
-            dtype == "F16"    ? static_cast<std::uint32_t>(runtime::float_to_float16(value))
-            : dtype == "BF16" ? static_cast<std::uint32_t>(runtime::float_to_bfloat16(value))
+            storage == "F16"    ? static_cast<std::uint32_t>(runtime::float_to_float16(value))
+            : storage == "BF16" ? static_cast<std::uint32_t>(runtime::float_to_bfloat16(value))
                               : std::bit_cast<std::uint32_t>(value);
-        for (std::size_t b = 0U; b < (dtype == "F32" ? 4U : 2U); ++b) {
+        for (std::size_t b = 0U; b < (storage == "F32" ? 4U : 2U); ++b) {
           payload.push_back(static_cast<char>((bits >> (8U * b)) & 0xffU));
         }
       }
-      header[name] = {{"dtype", dtype},
+      header[name] = {{"dtype", storage},
                       {"shape", tensor.at("shape")},
                       {"data_offsets", {start, payload.size()}}};
       auto* record = manifest.add_tensors();
       record->set_name(name);
       record->set_file("model.safetensors");
-      record->set_dtype(dtype == "F16"    ? v1::DATA_TYPE_F16
-                        : dtype == "BF16" ? v1::DATA_TYPE_BF16
+      record->set_dtype(storage == "F16"    ? v1::DATA_TYPE_F16
+                        : storage == "BF16" ? v1::DATA_TYPE_BF16
                                           : v1::DATA_TYPE_F32);
       for (auto dim : tensor.at("shape")) {
         record->add_shape(dim.get<std::uint64_t>());

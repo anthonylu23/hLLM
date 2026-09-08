@@ -15,8 +15,10 @@ boundaries, lifecycle faults and memory cleanup. See the
 [mixed qualification report](docs/validation/mixed-cpu-cuda.md).
 Milestone 3 adds an optional Apple Silicon MLX C++ worker with F32/F16 Llama/Qwen3
 execution, unified-memory admission, allocator telemetry, and CPU/MLX qualification.
-See [MLX build and usage](docs/milestone-3.md). Full-checkpoint fit assessment and
-MLX/CUDA cross-machine qualification remain next.
+See [MLX build and usage](docs/milestone-3.md). [Milestone 4](docs/milestone-4.md)
+qualifies the full Qwen3-0.6B checkpoint across MLX/CUDA in both stage orders over
+direct and DERP Tailscale connections, with 256-token generation and cleanup checks.
+The 4B target and measured automatic placement remain unqualified.
 
 See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
 [the model/backend extension boundaries](docs/model-extensibility.md).
@@ -104,6 +106,7 @@ See [the code quality review](docs/code-quality-review.md) for historical fixes,
 follow-up audit of the worker services, planner gates, and test harness.
 
 [Qwen3 support and validation](docs/qwen3.md) describes the pinned model, supported
-semantics, independent CPU reference tests, and estimated placement. It is not yet a
-full-checkpoint inference benchmark. Tiny-model CPU pipeline validation is documented
-in the Milestone 1 notes.
+semantics, independent CPU reference tests, and estimated placement. The
+[full-checkpoint report](docs/validation/full-checkpoint-cross-machine.md) records
+Qwen3-0.6B parity, memory, and cross-machine measurements. Tiny-model CPU pipeline
+validation is documented in the Milestone 1 notes.

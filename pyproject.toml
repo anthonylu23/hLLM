@@ -56,6 +56,7 @@ include = [
   "tests/mlx",
   "tests/process_helpers.py",
   "tests/process_contracts.py",
+  "scripts/validation",
 ]
 exclude = ["python/hllm_control/proto"]
 strict = ["python"]

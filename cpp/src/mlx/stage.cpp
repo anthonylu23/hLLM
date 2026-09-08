@@ -71,7 +71,7 @@ class MlxStage final : public ReferenceStage {
     // Source bytes, decoded floats, MLX copied F32 input and conversion can
     // coexist. All are charged to the same physical-memory domain.
     runtime::require_memory({0U, 0U, 0U,
-                             add(bytes_, add(add(source.largest_payload_bytes,
+                             add(bytes_, add(add(add(source.largest_payload_bytes, source.verification_workspace_bytes),
                                                  mul(source.largest_float32_tensor_bytes, 3U)),
                                              65536U))},
                             capacity);

@@ -59,7 +59,7 @@ def _stage_weight_bytes(
         elif tensor.role == TensorRole.FINAL_NORM:
             include = is_final
         elif tensor.role == TensorRole.LM_HEAD:
-            # Workers never read a redundant lm_head copy from a tied checkpoint.
+            # Workers verify redundant tied heads but retain no second resident copy.
             include = is_final and not tied
         elif tensor.role == TensorRole.ARCHITECTURE_STATE:
             include = True

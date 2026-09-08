@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -41,9 +42,14 @@ struct DenseSource {
   std::size_t float32_weight_bytes{};
   std::size_t largest_payload_bytes{};
   std::size_t largest_float32_tensor_bytes{};
+  // Bounded tied-head comparison scratch, included in peak load admission.
+  std::size_t verification_workspace_bytes{};
+  std::optional<std::string> redundant_head_file;
   std::map<std::string, TensorSource> tensors;
   std::map<std::string, runtime::SafetensorsFile> files;
 
+  // Call only after admitting load memory. Reading an embedding also verifies
+  // any redundant tied head against its raw buffer before conversion.
   [[nodiscard]] std::vector<float> read_float32(const std::string& name) const;
 };
 

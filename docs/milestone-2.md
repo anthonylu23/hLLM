@@ -4,7 +4,7 @@ The optional Linux CUDA worker now executes dense Llama and Qwen3 stages with Li
 Tiny-model numerical and single-worker process tests establish the initial execution path.
 Mixed CPU/CUDA loopback correctness now passes in both orders and all tiny-fixture splits.
 Opt-in bounded pinned transfers and failure/memory qualification are implemented.
-Full-checkpoint inference remains next.
+Full Qwen3-0.6B inference is qualified separately in [Milestone 4](milestone-4.md).
 See the [mixed validation report](validation/mixed-cpu-cuda.md). The initial CUDA PRs established backend selection, memory domains and model execution;
 the qualification PRs build on those interfaces.
 
@@ -154,8 +154,9 @@ CPU process cases plus seven CUDA native tests and five CUDA process cases (45 C
 entries). Ruff, Pyright, generated-binding reproducibility and whitespace checks passed.
 
 For subsequent mixed-process, fault and sanitizer results, see the
-[mixed qualification report](validation/mixed-cpu-cuda.md). Full-checkpoint
-parity/performance and asynchronous transfer overlap remain unverified.
+[mixed qualification report](validation/mixed-cpu-cuda.md). Full-checkpoint Qwen3-0.6B
+parity and cross-machine measurements are recorded in [Milestone 4](milestone-4.md).
+Asynchronous transfer overlap remains unverified.
 
 ## Next steps
 
@@ -163,8 +164,9 @@ See the [mixed CPU/CUDA qualification plan](milestone-2-qualification-plan.md) f
 three-PR sequence, constraints and acceptance criteria.
 
 The [CUDA stack review](code-quality-review-cuda.md) records correctness fixes and
-quality findings for PRs 5–9. Next, assess a full-checkpoint
-workload against available physical memory before scheduling inference. Account for
+quality findings for PRs 5–9. [Milestone 4](milestone-4.md) records the full Qwen3-0.6B
+assessment and MLX/CUDA qualification. Assess larger workloads against available
+physical memory before scheduling inference. Account for
 CPU F32 resident weights, global F32 compute/KV in mixed plans, dense attention
 workspace, and measured framework/context overhead. Qwen3-4B-Base is still the
 project target; choose a smaller compatible checkpoint or shorter context if needed.

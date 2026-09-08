@@ -188,7 +188,7 @@ remain unverified.
 
 See [the Milestone 2 integration status and PR sequence](milestone-2.md).
 Milestone 2 qualifies CUDA and mixed CPU/CUDA execution, transfers, and failure cleanup.
-[Milestone 3](milestone-3.md) adds qualified MLX-only and CPU/MLX paths. Next assess
-a full-checkpoint workload and qualify cross-machine MLX/CUDA execution in Milestone 4.
+[Milestone 3](milestone-3.md) adds qualified MLX-only and CPU/MLX paths.
+[Milestone 4](milestone-4.md) qualifies full Qwen3-0.6B across MLX/CUDA machines.
 Milestone 5 measures memory and placement performance. Choose the next model family with
 the user before expanding state, partition or modality contracts.
