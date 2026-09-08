@@ -165,7 +165,7 @@ std::unique_ptr<ReferenceStage> load_stage(const v1::LoadStageRequest& request,
   if (source.execution_dtype != runtime::DataType::kF32) {
     throw runtime::Error::incompatible_worker("CPU execution requires F32");
   }
-  if (add(add(source.float32_weight_bytes, source.largest_payload_bytes), 65536U) > memory_limit) {
+  if (add(add(source.float32_weight_bytes, add(source.largest_payload_bytes, source.verification_workspace_bytes)), 65536U) > memory_limit) {
     throw runtime::Error::resource_exhausted("stage loading exceeds host memory budget");
   }
   auto stage = std::make_unique<DenseStage>();

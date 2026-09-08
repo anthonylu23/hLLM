@@ -106,7 +106,7 @@ class CudaStage final : public ReferenceStage {
     // Reserve the source payload plus conversion/upload temporaries in each
     // domain. Uploads block; no full-model CPU replica is retained.
     runtime::require_memory(
-        {add(add(source.largest_payload_bytes, mul(source.largest_float32_tensor_bytes, 2U)),
+        {add(add(add(source.largest_payload_bytes, source.verification_workspace_bytes), mul(source.largest_float32_tensor_bytes, 2U)),
              65536U),
          add(bytes_, source.largest_float32_tensor_bytes), 0U},
         capacity);
