@@ -66,3 +66,14 @@ They do not qualify 4B, arbitrary contexts, concurrent GPU workloads or automati
 placement. Profiling timings include telemetry overhead. Numerical/transport
 limitations from Milestone 4, including historical CUDA-only F16 long-continuation
 drift, remain applicable.
+
+## Review integration
+
+The shared-loader review fixes from PR #12 are included: tied-head payloads are
+verified after admission using the embedding buffer, with bounded comparison scratch
+in the load budget. Published network evidence is redacted.
+[Final integration checks](pr13-review.json) record 10 passing focused CTest entries
+(CPU loading, CUDA numerical/lifecycle tests and CUDA process smoke), including the
+new metadata/admission regressions, plus a passing full-checkpoint CUDA F16 probe.
+The 45 Python tests, Ruff, expanded Pyright coverage, generated bindings and whitespace
+checks passed. The broader shared-loader checks are in [PR #12's report](pr12-review.json).
