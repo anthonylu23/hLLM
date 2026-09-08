@@ -4,26 +4,27 @@ hLLM Runtime is a heterogeneous inference system designed to split one decoder-o
 language model across different accelerator platforms. The first target is an Apple MLX
 worker and an NVIDIA CUDA worker connected through Tailscale.
 
-The repository implements model preparation and placement planning (Milestone 0) and a
-native CPU pipeline (Milestone 1). Dense Llama and Qwen3 stages load assigned Safetensors
-weights, run prefill and greedy decode across two native processes, and stream token IDs
-through a Python controller. Request admission, cancellation, deadlines, and cleanup are
-covered by numerical and process integration tests. Milestone 2 adds an optional Linux
-CUDA worker that executes Llama/Qwen3 with F32/F16 weights and caches on the GPU. Tiny-model
-numerical and mixed CPU/CUDA process tests cover both stage orders, pageable/pinned
-boundaries, lifecycle faults and memory cleanup. See the
-[mixed qualification report](docs/validation/mixed-cpu-cuda.md).
-Milestone 3 adds an optional Apple Silicon MLX C++ worker with F32/F16 Llama/Qwen3
-execution, unified-memory admission, allocator telemetry, and CPU/MLX qualification.
-See [MLX build and usage](docs/milestone-3.md). [Milestone 4](docs/milestone-4.md)
-qualifies the full Qwen3-0.6B checkpoint across MLX/CUDA in both stage orders over
-direct and DERP Tailscale connections, with 256-token generation and cleanup checks.
-The 4B target and measured automatic placement remain unqualified.
+Stages load assigned Safetensors weights, run prefill and greedy decode, and stream
+token IDs through a Python controller. Request admission, cancellation, deadlines, and
+cleanup are covered by numerical and process integration tests.
 
-See [the CPU pipeline implementation and runnable demo](docs/milestone-1.md) and
-[the model/backend extension boundaries](docs/model-extensibility.md).
-See [the CUDA integration status and build instructions](docs/milestone-2.md) for
-Milestone 2 implementation details and remaining work.
+## Milestone status
+
+| Milestone | Scope | Status | Notes |
+| --- | --- | --- | --- |
+| 0 | Model preparation and placement planning | Complete | [docs/milestone-0.md](docs/milestone-0.md) |
+| 1 | Native CPU pipeline | Complete | [docs/milestone-1.md](docs/milestone-1.md) |
+| 2 | Linux CUDA worker (F32/F16, pinned transfers) | Complete | [docs/milestone-2.md](docs/milestone-2.md), [mixed qualification](docs/validation/mixed-cpu-cuda.md) |
+| 3 | Apple Silicon MLX worker (unified memory) | Complete | [docs/milestone-3.md](docs/milestone-3.md), [MLX qualification](docs/validation/mlx.md) |
+| 4 | Full Qwen3-0.6B checkpoint across MLX/CUDA over Tailscale | Complete | [docs/milestone-4.md](docs/milestone-4.md), [cross-machine report](docs/validation/full-checkpoint-cross-machine.md) |
+| 5 | Measured automatic placement | In progress | [docs/milestone-5.md](docs/milestone-5.md) |
+
+Milestone 5 has started with CUDA allocator telemetry, stream reuse, and
+allocator-aware reload measurements. Dry-load, compute, conversion, and
+payload-specific link profiles remain to be integrated into automatic placement.
+The Qwen3-4B-Base target still needs a physical-fit and inference assessment.
+Later milestones cover continuous batching (6) and ROCm with additional stages (7);
+see [the full project specification](SPEC.md).
 
 ## Development setup
 
@@ -93,21 +94,15 @@ uv run hllm plan \
 
 The checked-in memory budgets remain conservative configured estimates. Link RTT and
 effective directional throughput are point-in-time observations from the test pair;
-[Milestone 5](docs/milestone-5.md) has started with allocator-aware reload measurements
-and CUDA stream reuse. Dry-load, compute, conversion, and payload-specific link profiles
-remain to be integrated into automatic placement.
+[Milestone 5](docs/milestone-5.md) replaces them with measured profiles.
 
-See [the Milestone 0 implementation notes](docs/milestone-0.md) and [the full project
-specification](SPEC.md). The [validation report](docs/validation/milestone-0.md) records the
-pinned real-model and cross-platform checks.
+See [the model/backend extension boundaries](docs/model-extensibility.md),
+[Qwen3 support and validation](docs/qwen3.md), and
+[the Milestone 0 implementation notes](docs/milestone-0.md). The
+[validation report](docs/validation/milestone-0.md) records the pinned real-model and
+cross-platform checks.
 
-See [the code quality review](docs/code-quality-review.md) for historical fixes,
-[the CUDA PR review](docs/code-quality-review-cuda.md) for the audit of PRs 5–9, and
-[the runtime and controller review](docs/code-quality-review-runtime.md) for the
-follow-up audit of the worker services, planner gates, and test harness.
-
-[Qwen3 support and validation](docs/qwen3.md) describes the pinned model, supported
-semantics, independent CPU reference tests, and estimated placement. The
-[full-checkpoint report](docs/validation/full-checkpoint-cross-machine.md) records
-Qwen3-0.6B parity, memory, and cross-machine measurements. Tiny-model CPU pipeline
-validation is documented in the Milestone 1 notes.
+Historical code quality reviews: [general fixes](docs/code-quality-review.md),
+[the CUDA PR audit](docs/code-quality-review-cuda.md), and
+[the runtime and controller review](docs/code-quality-review-runtime.md).
+Tiny-model CPU pipeline validation is documented in the Milestone 1 notes.

@@ -50,10 +50,10 @@ test are recorded in [the Milestone 0 validation report](validation/milestone-0.
 
 ## Next steps
 
-[Milestone 1](milestone-1.md) now connects executable CPU loading, native stage execution,
-and Python token streaming. Next, implement and validate the CUDA backend (Milestone 2),
-then MLX (Milestone 3). Link qualification belongs with cross-machine integration, and
-full-checkpoint Qwen3 validation and measured placement follow backend implementation.
+[Milestone 1](milestone-1.md) connects executable CPU loading, native stage execution,
+and Python token streaming. Milestones 2–4 add the CUDA and MLX workers and the
+full-checkpoint cross-machine qualification; [Milestone 5](milestone-5.md) replaces
+these configured estimates with measured placement.
 
 Additional model families should follow the [extension boundaries](model-extensibility.md)
 and be selected with the user rather than delaying the working pipeline.

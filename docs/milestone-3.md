@@ -142,11 +142,11 @@ MLX tests with `ctest --test-dir build/native/mlx -L mlx --output-on-failure`.
 
 ## Next steps
 
-Milestone 4 will qualify MLX/CUDA across the two Tailscale machines in both stage
-orders, over direct and relayed connections, with at least 256 generated tokens
-while neither worker holds the complete model. First assess a concrete checkpoint
-and context against available physical memory and framework overhead.
-Qwen3-4B-Base remains the target. Tiny-model tests do not establish full-checkpoint
-fit, numerical tolerances or latency. Measured placement remains Milestone 5.
+[Milestone 4](milestone-4.md) qualified the full Qwen3-0.6B checkpoint across the two
+Tailscale machines in both stage orders, over direct and DERP connections, with 256
+generated tokens while neither worker held the complete model.
+[Milestone 5](milestone-5.md) adds measured placement. Qwen3-4B-Base remains the
+target and still needs its physical-fit and inference assessment; tiny-model tests do
+not establish full-checkpoint fit, numerical tolerances or latency.
 Profile before adding fused attention, compiled functions, asynchronous evaluation,
 transfer overlap or more model families.

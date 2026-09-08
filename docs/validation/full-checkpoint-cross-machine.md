@@ -9,8 +9,8 @@ independent F32 Transformers reference. Each worker held 14 of 28 layers.
 native diagnostic targets. [Recorded results](full-checkpoint-results.json) preserve
 the numeric summaries, token hashes, memory observations, and failure outcomes.
 Large reference tensors and raw logs remain in the ignored `build/cross-machine/`
-directory. Source was the uncommitted `codex/mlx-worker` working tree based on
-`32d43419c82a988aaa4357377fe362a5233ca9b5`.
+directory. Source was the working tree that became PRs #11 (Milestone 3) and
+#12 (Milestone 4), based on `32d43419c82a988aaa4357377fe362a5233ca9b5`.
 
 ## Refresh on merged Milestone 3 — 2026-09-07
 
