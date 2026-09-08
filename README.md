@@ -93,8 +93,9 @@ uv run hllm plan \
 
 The checked-in memory budgets remain conservative configured estimates. Link RTT and
 effective directional throughput are point-in-time observations from the test pair;
-Milestone 5 replaces them with dry-load, compute, conversion, and payload-specific link
-measurements.
+[Milestone 5](docs/milestone-5.md) has started with allocator-aware reload measurements
+and CUDA stream reuse. Dry-load, compute, conversion, and payload-specific link profiles
+remain to be integrated into automatic placement.
 
 See [the Milestone 0 implementation notes](docs/milestone-0.md) and [the full project
 specification](SPEC.md). The [validation report](docs/validation/milestone-0.md) records the

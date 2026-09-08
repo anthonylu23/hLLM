@@ -1,0 +1,133 @@
+{
+  "validation": {
+    "focused_ctest_passed": 10,
+    "focused_seconds": 9.13,
+    "python_tests_passed": 45,
+    "ruff_pyright_proto_whitespace": "passed",
+    "shared_loader_validation": "pr12-review.json"
+  },
+  "cuda_f16_probe": {
+    "absolute_logit_limit": 0.25,
+    "allocator_after_unload": {
+      "active": 8519680,
+      "cached": 1212022784,
+      "peak": 1205876736
+    },
+    "cases": [
+      {
+        "prompt": "What is the capital of France? Answer in one sentence.",
+        "steps": [
+          {
+            "argmax": 785,
+            "max_absolute": 0.07186651229858398,
+            "maximum_layer_relative_l2": 0.004032621463514118,
+            "passed": true,
+            "position": 0,
+            "reference_argmax": 785,
+            "reference_margin": 6.608509063720703,
+            "relative_l2": 0.003671354602888817
+          },
+          {
+            "argmax": 6722,
+            "max_absolute": 0.03771781921386719,
+            "maximum_layer_relative_l2": 0.0024248706596040827,
+            "passed": true,
+            "position": 24,
+            "reference_argmax": 6722,
+            "reference_margin": 10.007932662963867,
+            "relative_l2": 0.0012873312309014877
+          },
+          {
+            "argmax": 315,
+            "max_absolute": 0.026604652404785156,
+            "maximum_layer_relative_l2": 0.0015689562471562506,
+            "passed": true,
+            "position": 25,
+            "reference_argmax": 315,
+            "reference_margin": 8.073986053466797,
+            "relative_l2": 0.0012252902227627071
+          }
+        ]
+      },
+      {
+        "prompt": "Calculate 17 plus 25. Give the result and a short explanation.",
+        "steps": [
+          {
+            "argmax": 16,
+            "max_absolute": 0.03394126892089844,
+            "maximum_layer_relative_l2": 0.002070738113389419,
+            "passed": true,
+            "position": 0,
+            "reference_argmax": 16,
+            "reference_margin": 2.429567337036133,
+            "relative_l2": 0.0015042534777145384
+          },
+          {
+            "argmax": 22,
+            "max_absolute": 0.036464691162109375,
+            "maximum_layer_relative_l2": 0.0020776363348497555,
+            "passed": true,
+            "position": 29,
+            "reference_argmax": 22,
+            "reference_margin": 13.20834732055664,
+            "relative_l2": 0.0009482939758098738
+          },
+          {
+            "argmax": 5519,
+            "max_absolute": 0.034323692321777344,
+            "maximum_layer_relative_l2": 0.0022391057529832004,
+            "passed": true,
+            "position": 30,
+            "reference_argmax": 5519,
+            "reference_margin": 0.27923583984375,
+            "relative_l2": 0.0012314965786792112
+          }
+        ]
+      },
+      {
+        "prompt": "Explain why the sky appears blue in simple language.",
+        "steps": [
+          {
+            "argmax": 785,
+            "max_absolute": 0.03237295150756836,
+            "maximum_layer_relative_l2": 0.001838755854050408,
+            "passed": true,
+            "position": 0,
+            "reference_argmax": 785,
+            "reference_margin": 3.7398929595947266,
+            "relative_l2": 0.0016623748046567352
+          },
+          {
+            "argmax": 12884,
+            "max_absolute": 0.025549888610839844,
+            "maximum_layer_relative_l2": 0.0014109618301358445,
+            "passed": true,
+            "position": 23,
+            "reference_argmax": 12884,
+            "reference_margin": 6.670692443847656,
+            "relative_l2": 0.0008692918046019352
+          },
+          {
+            "argmax": 7952,
+            "max_absolute": 0.0267791748046875,
+            "maximum_layer_relative_l2": 0.0016695929376628277,
+            "passed": true,
+            "position": 24,
+            "reference_argmax": 7952,
+            "reference_margin": 3.893697738647461,
+            "relative_l2": 0.0007786872526173777
+          }
+        ]
+      }
+    ],
+    "dtype": "F16",
+    "layer_relative_limit": 0.015,
+    "passed": true,
+    "relative_logit_limit": 0.01,
+    "resident_weights": {
+      "device": 1192099840,
+      "host": 0,
+      "unified": 0
+    }
+  }
+}

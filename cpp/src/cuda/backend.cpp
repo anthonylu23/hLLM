@@ -19,6 +19,11 @@ class CudaFactory final : public runtime::BackendFactory {
             {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16},
             detail_};
   }
+  std::optional<runtime::AllocatorMetrics> allocator_metrics() const override {
+    const auto values = device_allocator_metrics(device_id_);
+    if (!values) return std::nullopt;
+    return runtime::AllocatorMetrics{(*values)[0], (*values)[1], (*values)[2]};
+  }
   std::unique_ptr<runtime::StageBackend> load(
       const v1::LoadStageRequest& request, const std::filesystem::path& root,
       const runtime::MemoryAmounts& capacity) const override {

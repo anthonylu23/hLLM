@@ -7,6 +7,8 @@ Opt-in bounded pinned transfers and failure/memory qualification are implemented
 Full Qwen3-0.6B inference is qualified separately in [Milestone 4](milestone-4.md).
 See the [mixed validation report](validation/mixed-cpu-cuda.md). The initial CUDA PRs established backend selection, memory domains and model execution;
 the qualification PRs build on those interfaces.
+[Milestone 5](milestone-5.md) adds CUDA allocator telemetry and one reusable stream
+per device to bound repeated-assignment cache growth.
 
 ## Backend and model boundaries
 

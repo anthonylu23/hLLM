@@ -16,6 +16,7 @@
 #include <stdexcept>
 
 #include "device.hpp"
+#include "execution_stream.hpp"
 #include "pinned_buffer.hpp"
 #include "hllm/runtime/checked_size.hpp"
 #include "hllm/runtime/error.hpp"
@@ -93,7 +94,7 @@ class CudaStage final : public ReferenceStage {
         tied_(source.tied_head),
         pinned_(pinned),
         dtype_(source.execution_dtype == runtime::DataType::kF16 ? at::kHalf : at::kFloat),
-        stream_(c10::cuda::getStreamFromPool(false, static_cast<c10::DeviceIndex>(device_id))) {
+        stream_(execution_stream(device_id)) {
     if (std::endian::native != std::endian::little) {
       throw runtime::Error::incompatible_worker(
           "CUDA boundary transfer requires a little-endian host");
