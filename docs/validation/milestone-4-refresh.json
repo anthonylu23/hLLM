@@ -913,50 +913,50 @@
   },
   "paths": {
     "direct-before": [
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 52ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 58ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 60ms"
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 52ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 58ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 60ms"
     ],
     "direct-after": [
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 55ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 55ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 47ms"
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 55ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 55ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 47ms"
     ],
     "relay-before": [
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 63ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 61ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 59ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 64ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 61ms"
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 63ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 61ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 59ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 64ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 61ms"
     ],
     "relay-after": [
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 60ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 63ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 61ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 67ms",
-      "pong from anthonypc (100.86.45.68) via DERP(dfw) in 60ms"
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 60ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 63ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 61ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 67ms",
+      "pong from peer (<IPv4 address>) via DERP(dfw) in 60ms"
     ],
     "relay-counters": [
       "table inet hllm_m4_relay_20260907 {",
       "\tchain output {",
       "\t\ttype filter hook output priority -200; policy accept;",
-      "\t\tip daddr 74.101.203.227 udp sport 41641 counter packets 49 bytes 7448 drop",
-      "\t\tip6 daddr 2600:4040:9261:700::/64 udp sport 41641 counter packets 148 bytes 25460 drop",
+      "\t\tip daddr <IPv4 address> udp sport 41641 counter packets 49 bytes 7448 drop",
+      "\t\tip6 daddr <IPv6 prefix/64> udp sport 41641 counter packets 148 bytes 25460 drop",
       "\t}",
       "",
       "\tchain input {",
       "\t\ttype filter hook input priority -200; policy accept;",
-      "\t\tip saddr 74.101.203.227 udp dport 41641 counter packets 117 bytes 17784 drop",
-      "\t\tip6 saddr 2600:4040:9261:700::/64 udp dport 41641 counter packets 66 bytes 11344 drop",
+      "\t\tip saddr <IPv4 address> udp dport 41641 counter packets 117 bytes 17784 drop",
+      "\t\tip6 saddr <IPv6 prefix/64> udp dport 41641 counter packets 66 bytes 11344 drop",
       "\t}",
       "}"
     ],
     "direct-restored": [
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 50ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 53ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 58ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 54ms",
-      "pong from anthonypc (100.86.45.68) via [2605:a601:aa9d:7300::b]:41641 in 57ms"
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 50ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 53ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 58ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 54ms",
+      "pong from peer (<IPv4 address>) via [<IPv6 address>]:41641 in 57ms"
     ]
   },
   "limitations": [

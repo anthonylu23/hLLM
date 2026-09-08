@@ -17,9 +17,11 @@ repeats the probes, both transport paths, and fault recovery. This qualifies the
 
 This real checkpoint serializes both the embedding and an identical `lm_head.weight`
 despite declaring tied embeddings. The shared dense loader now accepts that form
-only after checking both tensors' metadata and comparing their payloads in bounded
-chunks. The final stage uses the embedding array for projection and retains no
-second resident copy. Differing copies are rejected. The first stage does not read
+only after checking both tensors' metadata and comparing their payloads after load
+admission. Verification reuses the raw embedding buffer and streams the head in
+chunks of at most 1 MiB; this scratch space is included in the peak load budget. The final stage uses the embedding array for projection and retains no
+second resident copy. Different storage dtypes or payload bytes are rejected, even
+when converting the two tensors would produce equal numerical values. The first stage does not read
 the unowned head. CPU regression tests cover all supported checkpoint storage dtypes.
 
 ## Reproduce
@@ -64,7 +66,11 @@ TF32 and reduced-precision FP16 reduction, and never loads remote model code.
 
 For a standalone full-model numerical probe, generate a load specification with
 `checkpoint_run.py --workers mlx --probe-spec-only` (or `--workers cuda`, optionally
-`--dtype F32`). Then invoke the matching optional native target:
+`--dtype F32`). Probe budgets default to the tested 4 GiB unified / 2 GiB host +
+6 GiB device values; override them using `--budget-unified`, `--budget-host`, and
+`--budget-device` after assessing another checkpoint's fit. The reference positional
+argument is a placeholder in spec-only mode and need not exist. These flags only
+configure the manual probe, not running workers. Then invoke the matching native target:
 
 ```bash
 uv run python scripts/validation/checkpoint_run.py \
@@ -111,6 +117,29 @@ and checks cancellation after the first token, deadlines during decode, oversize
 request rejection, and fresh-request recovery in both orders. `memory_watch.py PID
 OUTPUT --cuda` samples one owned process's RSS and optional NVIDIA process memory;
 omit `--cuda` on the Mac. Set its duration long enough to cover the complete run.
+Missing/transient NVIDIA counters are recorded as null, not zero, and the sampler
+continues. Its process-status read tolerates the worker exiting between samples.
+
+Fault parameters are tied to the tested budgets and link. `--admission-tokens`
+defaults to the model context limit and must exceed available reservation capacity
+while remaining within the model's context limit. Larger worker budgets can admit
+that request, in which case this is not a valid admission-fault configuration.
+`--decode-deadline` defaults to 1.5 seconds: choose a deadline after prefill but
+before completion on the measured link. A deadline before the first token correctly
+fails the decode-fault qualification. Neither fault is guaranteed under arbitrary
+budgets or network latency.
+
+Before committing a report, redact network identifiers while retaining paths and
+packet counters:
+
+```bash
+uv run python scripts/validation/redact_report.py build/qualification/results.json \
+  docs/validation/results.json
+```
+
+Pyright includes the validation scripts. The independent reference's optional
+Torch/Transformers imports are supplied by its isolated environment; missing-import
+diagnostics for those three imports are suppressed in the main development environment.
 
 DERP qualification requires observing an actual relayed path for the entire run.
 An application proxy alone is not evidence of DERP. The recorded run temporarily

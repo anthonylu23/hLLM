@@ -91,14 +91,22 @@ def main() -> None:
     parser.add_argument("--dtype", choices=("F32", "F16"), default="F16")
     parser.add_argument("--timeout", type=float, default=180)
     parser.add_argument("--probe-spec-only", action="store_true")
-    parser.add_argument("--require-exact", action="store_true",
-                        help="Require exact agreement for the 256-token reference continuation")
+    parser.add_argument(
+        "--require-exact",
+        action="store_true",
+        help="Require exact agreement for the 256-token reference continuation",
+    )
+    parser.add_argument("--budget-unified", type=int, default=4 * 1024**3)
+    parser.add_argument("--budget-host", type=int, default=2 * 1024**3)
+    parser.add_argument("--budget-device", type=int, default=6 * 1024**3)
     args = parser.parse_args()
     manifest = ModelManifest.model_validate_json(args.manifest.read_text())
     plan = make_plan(manifest, args.workers, DType(args.dtype), args.split)
     endpoints = {"mlx": args.mlx_endpoint, "cuda": args.cuda_endpoint}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.probe_spec_only:
+        if min(args.budget_unified, args.budget_host, args.budget_device) <= 0:
+            parser.error("probe budgets must be positive byte counts")
         if len(args.workers) != 1:
             parser.error("a full-model numerical probe requires exactly one worker")
         load = control_pb2.LoadStageRequest(
@@ -111,9 +119,9 @@ def main() -> None:
                 {
                     "load_request": MessageToDict(load),
                     "budget": (
-                        {"unified": 4 * 1024**3}
+                        {"unified": args.budget_unified}
                         if args.workers == ["mlx"]
-                        else {"host": 2 * 1024**3, "device": 6 * 1024**3}
+                        else {"host": args.budget_host, "device": args.budget_device}
                     ),
                 },
                 indent=2,
@@ -122,6 +130,9 @@ def main() -> None:
         )
         return
     reference = json.loads(args.reference.read_text())
+    long = reference["long_generation"]
+    if len(long["generated_ids"]) != 256:
+        raise ValueError("reference long_generation.generated_ids must contain exactly 256 tokens")
     result = {
         "workers": args.workers,
         "plan": plan.model_dump(mode="json"),
@@ -131,7 +142,6 @@ def main() -> None:
     with DeploymentSession(manifest, plan, endpoints) as session:
         result["loaded_memory"] = [MessageToDict(r) for r in session.memory_reports()]
         prompts = [(case["prompt"], case["token_ids"], 16, None) for case in reference["cases"]]
-        long = reference["long_generation"]
         prompts.append((long["prompt"], long["token_ids"], 256, long["generated_ids"]))
         for prompt, ids, count, expected in prompts:
             start = time.perf_counter()
@@ -201,7 +211,8 @@ def main() -> None:
     result["completed"] = True
     result["exact_reference_match"] = all(
         item["reference_common_prefix"] == len(item["generated_ids"])
-        for item in result["runs"] if item["reference_common_prefix"] is not None
+        for item in result["runs"]
+        if item["reference_common_prefix"] is not None
     )
     result["finished_unix_time"] = time.time()
     args.output.write_text(json.dumps(result, indent=2) + "\n")

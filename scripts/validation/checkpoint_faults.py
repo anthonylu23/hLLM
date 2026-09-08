@@ -34,10 +34,25 @@ def main() -> None:
     parser.add_argument("--mlx-endpoint", required=True)
     parser.add_argument("--cuda-endpoint", required=True)
     parser.add_argument("--split", type=int, default=14)
+    parser.add_argument("--decode-deadline", type=float, default=1.5)
+    parser.add_argument(
+        "--admission-tokens",
+        type=int,
+        help="Total context to reserve; default is the model context limit",
+    )
     args = parser.parse_args()
     manifest = ModelManifest.model_validate_json(args.manifest.read_text())
     reference = json.loads(args.reference.read_text())["long_generation"]
     ids = reference["token_ids"]
+    admission_tokens = (
+        args.admission_tokens
+        if args.admission_tokens is not None
+        else manifest.config.maximum_sequence_length
+    )
+    if not len(ids) < admission_tokens <= manifest.config.maximum_sequence_length:
+        parser.error("admission-tokens must exceed the prompt and fit the model context")
+    if args.decode_deadline <= 0:
+        parser.error("decode-deadline must be positive")
     endpoints = {"mlx": args.mlx_endpoint, "cuda": args.cuda_endpoint}
     results = []
     for names in (["mlx", "cuda"], ["cuda", "mlx"]):
@@ -50,12 +65,10 @@ def main() -> None:
                 stream = session.generate(
                     ids,
                     maximum_new_tokens=(
-                        manifest.config.maximum_sequence_length - len(ids)
-                        if fault == "admission"
-                        else 256
+                        admission_tokens - len(ids) if fault == "admission" else 256
                     ),
                     stop_token_ids=[],
-                    timeout=1.5 if fault == "deadline" else 30,
+                    timeout=args.decode_deadline if fault == "deadline" else 30,
                 )
                 try:
                     for event in stream:

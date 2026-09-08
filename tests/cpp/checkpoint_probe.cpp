@@ -2,6 +2,10 @@
 #include <google/protobuf/json/json.h>
 
 #include <algorithm>
+#include <atomic>
+#include <string>
+#include <variant>
+#include <vector>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -69,9 +73,11 @@ int main(int argc, char** argv) {
     // Declared before measurement; applies to this explicit full-checkpoint probe.
     const double absolute_limit = half ? 0.25 : 0.01;
     const double relative_limit = half ? 0.01 : 0.001;
+    const double layer_relative_limit = half ? 0.015 : 0.001;
     json result{{"dtype", half ? "F16" : "F32"},
                 {"absolute_logit_limit", absolute_limit},
                 {"relative_logit_limit", relative_limit},
+                {"layer_relative_limit", layer_relative_limit},
                 {"cases", json::array()}};
     bool passed = true;
     std::atomic_bool cancelled{false};
@@ -119,7 +125,7 @@ int main(int argc, char** argv) {
         errors["maximum_layer_relative_l2"] = layer_relative;
         errors["passed"] = errors.at("max_absolute").get<double>() <= absolute_limit &&
                            errors.at("relative_l2").get<double>() <= relative_limit &&
-                           layer_relative <= (half ? 0.015 : 0.001) &&
+                           layer_relative <= layer_relative_limit &&
                            token == step.at("argmax").get<std::uint64_t>();
         passed = passed && errors.at("passed").get<bool>();
         measured["steps"].push_back(std::move(errors));

@@ -10,9 +10,12 @@ import json
 import time
 from pathlib import Path
 
-import torch
-import transformers
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch  # pyright: ignore[reportMissingImports] -- isolated reference environment
+import transformers  # pyright: ignore[reportMissingImports]
+from transformers import (  # pyright: ignore[reportMissingImports]
+    AutoModelForCausalLM,
+    AutoTokenizer,
+)
 
 
 def main() -> None:
