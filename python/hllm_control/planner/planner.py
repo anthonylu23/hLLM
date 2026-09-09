@@ -347,7 +347,14 @@ def create_plan(
             owns_sampling=True,
         ),
     )
-    duplicated_groups = ("token_embeddings",) if manifest.config.tied_embeddings else ()
+    # Duplicate embeddings in the plan only when the final stage must reload the
+    # token-embedding tensor as the LM head (tied config with no dedicated lm_head).
+    lm_head_present = any(item.role == TensorRole.LM_HEAD for item in manifest.tensors)
+    duplicated_groups = (
+        ("token_embeddings",)
+        if manifest.config.tied_embeddings and not lm_head_present
+        else ()
+    )
     unsigned_plan = {
         "planner_version": PLANNER_VERSION,
         "deployment_version": 1,

@@ -6,11 +6,13 @@ from pathlib import Path
 import pytest
 from conftest import tiny_config, tiny_tensors, write_safetensors
 from hllm_control.models import (
+    DTYPE_BYTES,
     Backend,
     DType,
     MemoryBudget,
     MemoryDomain,
     PlannerSettings,
+    TensorRole,
     WorkerProfile,
     WorkloadProfile,
     maximum_boundary_tokens,
@@ -99,6 +101,29 @@ def test_tied_embeddings_are_explicitly_duplicated(tmp_path: Path) -> None:
 
     assert report.plan is not None
     assert report.plan.duplicated_tensor_groups == ("token_embeddings",)
+    selected = next(
+        item for item in report.candidates if item.candidate_id == report.selected_candidate_id
+    )
+    embedding = next(item for item in manifest.tensors if item.name == "model.embed_tokens.weight")
+    embedding_bytes = embedding.num_elements * DTYPE_BYTES[DType.F16]
+    # Final stage weight bytes include the embedding once more as the LM head.
+    assert selected.stages[1].weight_bytes >= embedding_bytes
+
+
+def test_tied_config_with_explicit_lm_head_is_not_marked_duplicated(tmp_path: Path) -> None:
+    model_path = tmp_path / "tied-with-head"
+    model_path.mkdir()
+    (model_path / "config.json").write_text(json.dumps(tiny_config(tied=True)), encoding="utf-8")
+    # Checkpoint still materializes a dedicated lm_head tensor.
+    write_safetensors(model_path / "model.safetensors", tiny_tensors(tied=False))
+    manifest = prepare_model(model_path)
+    workers = (worker("mac", Backend.MLX, 10_000_000), worker("cuda", Backend.CUDA, 10_000_000))
+
+    report = create_plan(manifest, workers, (), workload())
+
+    assert report.plan is not None
+    assert report.plan.duplicated_tensor_groups == ()
+    assert any(item.role == TensorRole.LM_HEAD for item in manifest.tensors)
 
 
 def test_redundant_lm_head_in_tied_checkpoint_is_not_budgeted(tmp_path: Path) -> None:
