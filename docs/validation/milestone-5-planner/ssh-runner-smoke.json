@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "scope": "Tiny CPU-to-CPU cross-machine executor smoke, not full-checkpoint acceptance",
+  "selection_kind": "manually constructed test fixture",
+  "status": "passed",
+  "stage_hosts": [
+    "macOS",
+    "Linux via SSH"
+  ],
+  "prompt_tokens": 5,
+  "output_tokens": 1,
+  "warmups": 2,
+  "timed_requests": 1,
+  "exact_reference_tokens": true,
+  "fresh_memory_probes": 2,
+  "owned_pid_and_binary_checks": true,
+  "host_hardware_fingerprints": true,
+  "controller_remote_package_fingerprint": true,
+  "native_and_client_timestamps": true,
+  "sequence_and_model_cleanup": true,
+  "temporary_firewall_rule_removed": true,
+  "full_sweep_decision": "incomplete",
+  "raw_evidence_digest": "a8c3d8f1348030894c5520545b0211b3f5fdbe8f16125442e4e398b0b1d67cab"
+}

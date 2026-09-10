@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "required_preflight_bytes": 4375497932.8,
+  "attempts": [
+    {
+      "attempt": "profiles-01",
+      "observed_at": "2026-09-10T01:17:06.791931+00:00",
+      "admission_capacity": {
+        "device": 0,
+        "host": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "host_budget": {
+        "available_bytes": 3872210944,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 268435456,
+        "safety_fraction": 0.1
+      },
+      "status": "rejected",
+      "reasons": [
+        "host/unified: configured probe cap plus physical allowances exceeds availability"
+      ]
+    },
+    {
+      "attempt": "profiles-02",
+      "observed_at": "2026-09-10T01:19:30.306106+00:00",
+      "admission_capacity": {
+        "device": 0,
+        "host": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "host_budget": {
+        "available_bytes": 3807444992,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 268435456,
+        "safety_fraction": 0.1
+      },
+      "status": "rejected",
+      "reasons": [
+        "host/unified: configured probe cap plus physical allowances exceeds availability"
+      ]
+    },
+    {
+      "attempt": "profiles-03",
+      "observed_at": "2026-09-10T01:21:21.582432+00:00",
+      "admission_capacity": {
+        "device": 0,
+        "host": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "host_budget": {
+        "available_bytes": 4321509376,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 268435456,
+        "safety_fraction": 0.1
+      },
+      "status": "rejected",
+      "reasons": [
+        "host/unified: configured probe cap plus physical allowances exceeds availability"
+      ]
+    },
+    {
+      "attempt": "profiles-04",
+      "observed_at": "2026-09-10T01:49:09.464714+00:00",
+      "admission_capacity": {
+        "device": 0,
+        "host": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "host_budget": {
+        "available_bytes": 4005871616,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 268435456,
+        "safety_fraction": 0.1
+      },
+      "status": "rejected",
+      "reasons": [
+        "host/unified: configured probe cap plus physical allowances exceeds availability"
+      ]
+    }
+  ],
+  "later_successful_resume": "mac-resume-20260909.json"
+}

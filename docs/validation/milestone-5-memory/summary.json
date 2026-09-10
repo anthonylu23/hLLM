@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "model": "Qwen/Qwen3-0.6B",
+  "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+  "workload": {
+    "prompt_tokens": 512,
+    "output_tokens": 256,
+    "capacity_tokens": 768,
+    "concurrency": 1
+  },
+  "split_layer": 14,
+  "measured_cycles": 2,
+  "warmup_cycles": 0,
+  "execution": "isolated synthetic-shape execution of first/final assignments on each backend",
+  "cross_worker_inference_measured": false,
+  "performance_measured": false,
+  "profiles": [
+    {
+      "name": "mlx-first",
+      "profile_digest": "5e654b0d016f6382ab07fc23c06665d56c59e0ba8af99d7364a56cd8a803070c",
+      "peak_allocator_active_bytes": 954068536,
+      "rss_lifetime_peak_bytes": 1621114880,
+      "physical_fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3101137214,
+        "reasons": [],
+        "status": "safe"
+      },
+      "allocator_after_unload": [
+        {
+          "active_bytes": 0,
+          "cached_bytes": 67724788,
+          "peak_bytes": 751631360,
+          "peak_scope": "phase"
+        },
+        {
+          "active_bytes": 0,
+          "cached_bytes": 67737912,
+          "peak_bytes": 751631360,
+          "peak_scope": "phase"
+        }
+      ]
+    },
+    {
+      "name": "mlx-final",
+      "profile_digest": "3ba9a1f14f60de7f5bafb43f9b17d12f76c59128370fe7827a4c25813b2d55ae",
+      "peak_allocator_active_bytes": 956167736,
+      "rss_lifetime_peak_bytes": 1607581696,
+      "physical_fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3088559832,
+        "reasons": [],
+        "status": "safe"
+      },
+      "allocator_after_unload": [
+        {
+          "active_bytes": 0,
+          "cached_bytes": 68538816,
+          "peak_bytes": 751633408,
+          "peak_scope": "phase"
+        },
+        {
+          "active_bytes": 0,
+          "cached_bytes": 68515596,
+          "peak_bytes": 751633408,
+          "peak_scope": "phase"
+        }
+      ]
+    },
+    {
+      "name": "cuda-first",
+      "profile_digest": "ab26bb128580c6e56dc00ec279f994f996c9fca3318aa75c4b6e29d60fe5eaed",
+      "peak_allocator_active_bytes": 864892928,
+      "rss_lifetime_peak_bytes": 2271367168,
+      "physical_fit": {
+        "device_envelope_bytes": 1463392666,
+        "host_envelope_bytes": 2768466740,
+        "reasons": [],
+        "status": "safe"
+      },
+      "allocator_after_unload": [
+        {
+          "active_bytes": 8519680,
+          "cached_bytes": 878575616,
+          "peak_bytes": 760158208,
+          "peak_scope": "phase"
+        },
+        {
+          "active_bytes": 8519680,
+          "cached_bytes": 878575616,
+          "peak_bytes": 762124288,
+          "peak_scope": "phase"
+        }
+      ]
+    },
+    {
+      "name": "cuda-final",
+      "profile_digest": "588afca3955974a69ba2a1476d311b2e6bfc666926173d672b523b73a6b110a2",
+      "peak_allocator_active_bytes": 864894976,
+      "rss_lifetime_peak_bytes": 2292666368,
+      "physical_fit": {
+        "device_envelope_bytes": 1463392666,
+        "host_envelope_bytes": 2791828276,
+        "reasons": [],
+        "status": "safe"
+      },
+      "allocator_after_unload": [
+        {
+          "active_bytes": 8519680,
+          "cached_bytes": 878575616,
+          "peak_bytes": 760160256,
+          "peak_scope": "phase"
+        },
+        {
+          "active_bytes": 8519680,
+          "cached_bytes": 878575616,
+          "peak_bytes": 762126336,
+          "peak_scope": "phase"
+        }
+      ]
+    }
+  ]
+}

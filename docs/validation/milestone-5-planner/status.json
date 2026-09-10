@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "implementation": "M5.5 measured planner and M5.6 independent sweep runner",
+  "acceptance_status": "pending",
+  "selected_plan": null,
+  "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+  "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+  "candidate_count": 54,
+  "independently_timed_candidates": 0,
+  "qualified_request_setup_directions": 0,
+  "previous_profile_split": 14,
+  "reference_file": "reference-512-f32.json.gz",
+  "reference_uncompressed_sha256": "120767036fe523346bb572dcdb5b7a38bca03f80d644828857030f5c5e81cda4",
+  "prompt_tokens": 512,
+  "output_tokens": 256,
+  "cache_capacity": 768,
+  "concurrency": 1,
+  "reference_producer": {
+    "torch": "2.13.0+cu130",
+    "transformers": "4.57.6",
+    "dtype": "f32",
+    "attention": "eager",
+    "tf32": false
+  },
+  "generated_ids_digest": "713d51e3db0f8e9623e61ab390f6f8498bfc85451979cb6664ab40d32970afd5",
+  "correctness_policy": "exact-greedy-token-sequence",
+  "blockers": [
+    "Last 15 MLX assignments need memory and compute profiles; the last preflight observed 3675832320 available bytes against 4375497932.8 required.",
+    "Production setup calibration and refreshed directional links must precede frozen selection.",
+    "Full 54-candidate independent sweep not run"
+  ],
+  "regret": null,
+  "four_b_status": "not qualified; separate physical-fit gate pending",
+  "full_reference_source_sha256": "13c0fca588bc128648e6a2ad2eabbb1256c55f35a91b3e2f50c33c71b456d569",
+  "pilot_file": "pilot-512-256.json",
+  "pilot_exact_requests": 6,
+  "pilot_directions_passed": [
+    "mlx-cuda",
+    "cuda-mlx"
+  ],
+  "extreme_memory_file": "extreme-assignment-memory.json",
+  "updated_at": "2026-09-10T06:00:37.050959+00:00",
+  "profiling_progress": {
+    "mlx_completed_assignments": 39,
+    "mlx_total_assignments": 54,
+    "mlx_memory_profiles": 39,
+    "mlx_compute_profiles": 39,
+    "mlx_next_assignment": {
+      "stage_index": 1,
+      "layer_start": 20,
+      "layer_end": 28,
+      "next_profile": "memory"
+    },
+    "mlx_state": "last batch stopped at split-20 final memory preflight; restart pending fresh resource gate",
+    "cuda_completed_assignments": 54,
+    "cuda_total_assignments": 54,
+    "cuda_memory_profiles": 54,
+    "cuda_compute_profiles": 54,
+    "cuda_state": "complete; sealed artifacts audited and archive hash verified locally",
+    "scope": "one memory artifact and paired compute artifact per assignment",
+    "mlx_resume_evidence": "mac-resume-20260910.json"
+  },
+  "profile_coverage_file": "profile-coverage-20260910.json"
+}

@@ -986,9 +986,12 @@ Qwen3-4B-Base still requires its own physical-fit and inference qualification.
 
 ### Milestone 5 — measured automatic placement
 
-Started with CUDA allocator telemetry, stream reuse, and repeated-assignment memory
-measurements; see [implementation status](docs/milestone-5.md). Automatic split
-selection from measured profiles remains unfinished.
+M5.1–5.4 implement versioned measured profiles, isolated native memory and paired
+compute/conversion probes, directional gRPC profiling, and admission/physical-fit
+gates. M5.5 adds exact-scope measured selection and activation checks; M5.6 adds
+frozen, independent, resumable placement sweeps. See [implementation status](docs/milestone-5.md)
+and [validation/gates](docs/validation/milestone-5-planner.md). Full checkpoint
+acceptance remains pending complete coverage and a measured <=15% regret result.
 
 - Add backend dry-load memory measurements.
 - Profile layer compute, conversion, and link transfer.

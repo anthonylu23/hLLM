@@ -1,0 +1,64 @@
+{
+  "admission_capacity": {
+    "device": 0,
+    "host": 0,
+    "pinned": 0,
+    "unified": 2936012800
+  },
+  "device_budget": null,
+  "host_budget": {
+    "available_bytes": 3660136448,
+    "extra_overhead_bytes": 268435456,
+    "headroom_bytes": 268435456,
+    "safety_fraction": 0.1
+  },
+  "key": {
+    "assignment": {
+      "layer_end": 14,
+      "layer_start": 0,
+      "owns_final_norm": false,
+      "owns_lm_head": false,
+      "owns_sampling": false,
+      "owns_token_embedding": true,
+      "stage_index": 0,
+      "worker_id": "mlx"
+    },
+    "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+    "environment": {
+      "allocator": "pending",
+      "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 2936012800}}",
+      "backend": "mlx",
+      "backend_version": "pending",
+      "binary_digest": "260fa3e77797f796f222bc63973c440cd6683af1f7dbbfb82644f2bb176ff9ed",
+      "compiler": "pending",
+      "device_identity": "pending",
+      "device_name": "pending",
+      "driver_version": "pending",
+      "os": "macOS-26.5.1-arm64-arm-64bit;kernel=Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:06 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6030",
+      "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3"
+    },
+    "execution_dtype": "F16",
+    "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+    "input_kind": "synthetic-shape",
+    "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+    "transport_mode": "pageable",
+    "workload": {
+      "activation_dtype": "F16",
+      "concurrency": 1,
+      "kv_dtype": "F16",
+      "kv_overhead_factor": 1.1,
+      "output_tokens": 256,
+      "prompt_tokens": 512,
+      "schema_version": "1.0",
+      "total_cached_tokens": 768,
+      "workload_id": "milestone-5-512-256"
+    },
+    "workload_digest": "99b2cb44c09576465253366e0de039bd539ac61bbdefdc666072cdd8576f69ef"
+  },
+  "observed_at": "2026-09-08T21:44:35.248054+00:00",
+  "reasons": [
+    "host/unified: configured probe cap plus physical allowances exceeds availability"
+  ],
+  "schema_version": "1.0",
+  "status": "rejected"
+}

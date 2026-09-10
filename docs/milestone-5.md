@@ -1,9 +1,13 @@
 # Milestone 5 — measured placement
 
-The first implementation slice adds CUDA allocator telemetry, stable stream reuse,
-and a repeatable assignment-memory probe. Automatic placement still uses configured
-profiles. Layer compute, conversion and directional link profiling, measured split
-selection, and the 15% comparison against the best feasible split remain unfinished.
+M5.1–5.4 implement measured-profile contracts, isolated assignment-memory probes,
+paired native compute/conversion timing and directional gRPC qualification. See the
+[profiling workflow](milestone-5-profiling.md),
+[memory report](validation/milestone-5-memory.md), and
+[timing report](validation/milestone-5-timing.md). Measured split selection (5.5) and the independent sweep runner (5.6) are now
+implemented. The full 15% exhaustive acceptance comparison remains pending. See the
+[placement workflow](milestone-5-placement.md) and
+[current validation/gates](validation/milestone-5-planner.md).
 
 ## CUDA memory accounting
 
@@ -61,11 +65,23 @@ in the measurement report. Do not extrapolate 0.6B results to 4B or arbitrary co
 
 ## Next implementation steps
 
-1. Add measured profile provenance and compatibility checks (checkpoint digest,
-   backend/toolchain, dtype, context, stage ownership, and measurement conditions).
-2. Measure dry-load and per-context peaks for candidate assignments while accounting
-   separately for allocator residency and physical process overhead.
-3. Profile native prefill/decode, conversion and directional boundary transfer, then
-   feed those measurements into stage-order and split selection.
-4. Compare predictions against measured feasible splits and establish the milestone's
-   accuracy criterion. Assess the larger target's physical fit before running it.
+The [implementation plan](milestone-5-implementation-plan.md) breaks the remaining
+work into six reviewable slices:
+
+1. **Implemented:** versioned measured profiles, compatibility checks and workload fixtures.
+2. **Implemented:** assignment dry-load/context memory measurements and physical-fit checks.
+3. **Implemented:** paired native prefill/decode and conversion profiles.
+4. **Implemented:** payload-specific directional native transport profiles.
+5. **Implemented:** measured automatic selection, explanations and activation checks.
+6. **Runner implemented; acceptance pending:** independent exhaustive qualification against 15%.
+
+The agreed initial workload is 512 prompt + 256 generated tokens at concurrency 1,
+with 768-token capacity. The existing 32K cache-capacity example remains a separate
+qualification target. Develop and qualify the profiling pipeline on 0.6B, then assess
+the larger target's physical fit before attempting its qualification. The proposed
+acceptance objective and detailed validation gates are recorded in the plan.
+
+Next: collect production setup calibration and compatible current-build profiles for
+all splits, freeze the automatic selection, then execute the 54-candidate 0.6B sweep
+when conservative Mac headroom permits. The separate 4B fit gate and 32K-capacity
+qualification remain pending; neither is implied by the tiny runner smoke test.

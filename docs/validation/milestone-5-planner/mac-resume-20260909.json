@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-10T01:50:10.563206+00:00",
+  "assignment": {
+    "stage_index": 1,
+    "worker_id": "mlx",
+    "layer_start": 2,
+    "layer_end": 28,
+    "owns_token_embedding": false,
+    "owns_final_norm": true,
+    "owns_lm_head": true,
+    "owns_sampling": true
+  },
+  "artifact_digest": "4aba2b61c34ff77314cf498eb66b385e9c359d1491a85ccc74a311b49cd7e3b6",
+  "admission_capacity": {
+    "device": 0,
+    "host": 0,
+    "pinned": 0,
+    "unified": 3489660928
+  },
+  "host_budget": {
+    "available_bytes": 5646876672,
+    "extra_overhead_bytes": 268435456,
+    "headroom_bytes": 268435456,
+    "safety_fraction": 0.1
+  },
+  "preflight_status": "accepted",
+  "fit": {
+    "device_envelope_bytes": null,
+    "host_envelope_bytes": 3533593713,
+    "reasons": [],
+    "status": "safe"
+  },
+  "state": "memory passed; all-split compute collection resumed"
+}

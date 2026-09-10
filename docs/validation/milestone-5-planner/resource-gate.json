@@ -1,0 +1,12 @@
+{
+  "observed_at": "2026-09-09T16:10:58.857293+00:00",
+  "available_host_bytes": 3509518336,
+  "split14_admission_bytes": 2936012800,
+  "safety_fraction": 0.1,
+  "headroom_bytes": 268435456,
+  "extra_overhead_bytes": 268435456,
+  "active_user_workload": "League of Legends observed during resource inspection",
+  "status": "qualification pending",
+  "required_preflight_bytes": 3766484992,
+  "preflight_passed": false
+}

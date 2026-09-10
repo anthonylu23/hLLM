@@ -19,10 +19,17 @@ cleanup are covered by numerical and process integration tests.
 | 4 | Full Qwen3-0.6B checkpoint across MLX/CUDA over Tailscale | Complete | [docs/milestone-4.md](docs/milestone-4.md), [cross-machine report](docs/validation/full-checkpoint-cross-machine.md) |
 | 5 | Measured automatic placement | In progress | [docs/milestone-5.md](docs/milestone-5.md) |
 
-Milestone 5 has started with CUDA allocator telemetry, stream reuse, and
-allocator-aware reload measurements. Dry-load, compute, conversion, and
-payload-specific link profiles remain to be integrated into automatic placement.
-The Qwen3-4B-Base target still needs a physical-fit and inference assessment.
+Milestone 5.1–5.4 add versioned measured profiles, isolated native memory and
+compute/conversion probes, directional native gRPC profiling, and admission/fit
+checks. See the [profiling workflow](docs/milestone-5-profiling.md),
+[memory qualification](docs/validation/milestone-5-memory.md), and
+[timing qualification](docs/validation/milestone-5-timing.md). Measured planner
+integration (5.5) and the independent sweep runner (5.6) are implemented; the full
+54-candidate acceptance run remains pending. See the [placement workflow](docs/milestone-5-placement.md)
+and [current validation/gates](docs/validation/milestone-5-planner.md).
+Qwen3-4B-Base is blocked by the current Mac load preflight and remains unqualified.
+The [Milestone 5 implementation plan](docs/milestone-5-implementation-plan.md) defines
+the remaining slices and the initial 512-prompt/256-output, concurrency-1 workload.
 Later milestones cover continuous batching (6) and ROCm with additional stages (7);
 see [the full project specification](SPEC.md).
 

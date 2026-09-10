@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-10T05:42:38.341203+00:00",
+  "assignment": {
+    "layer_end": 28,
+    "layer_start": 15,
+    "owns_final_norm": true,
+    "owns_lm_head": true,
+    "owns_sampling": true,
+    "owns_token_embedding": false,
+    "stage_index": 1,
+    "worker_id": "mlx"
+  },
+  "profile_kind": "compute-run",
+  "admission_capacity": {
+    "device": 0,
+    "host": 0,
+    "pinned": 0,
+    "unified": 3489660928
+  },
+  "host_budget": {
+    "available_bytes": 5229068288,
+    "extra_overhead_bytes": 268435456,
+    "headroom_bytes": 268435456,
+    "safety_fraction": 0.1
+  },
+  "preflight_status": "accepted",
+  "state": "collection running; completion not yet established",
+  "competing_game_observed": false
+}
