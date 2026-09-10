@@ -104,6 +104,8 @@ def main() -> None:
                 add_generation_prompt=True,
                 enable_thinking=False,
             )
+            if continuation:
+                ids = continuation["token_ids"]
             entry = {"prompt": prompt, "token_ids": ids, "steps": []}
             if continuation:
                 entry["warmup"] = []
@@ -132,13 +134,13 @@ def main() -> None:
                             "position": position,
                             "logits": logits.cpu().tolist(),
                             "layers": list(layer_rows),
-                            "argmax": int(best.indices[0]),
+                            "argmax": int(logits.argmax()),
                             "top2_margin": float(best.values[0] - best.values[1]),
                         }
                     )
                 cache = output.past_key_values
                 position += len(ids)
-                ids = [int(best.indices[0])]
+                ids = [int(logits.argmax())]
             result["cases"].append(entry)
         for handle in handles:
             handle.remove()
