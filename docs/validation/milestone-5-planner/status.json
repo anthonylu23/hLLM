@@ -25,8 +25,9 @@
   "generated_ids_digest": "713d51e3db0f8e9623e61ab390f6f8498bfc85451979cb6664ab40d32970afd5",
   "correctness_policy": "exact-greedy-token-sequence",
   "blockers": [
-    "Mixed-boundary controls localize token divergence to accumulated F16 MLX prefix numerical differences; strict correctness still fails.",
-    "Precision investigation remains; full sweep and statistical acceptance are incomplete."
+    "SiLU production fix passes 58 native tests and three exact256 serving requests at split25; changed MLX profiles still required.",
+    "New profiling preflight lacks about50MB of required Mac headroom; preserve caps and resume in a new directory when availability improves.",
+    "New frozen selection and full independent sweep remain pending."
   ],
   "regret": null,
   "four_b_status": "not qualified; separate physical-fit gate pending",
@@ -38,7 +39,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-10T12:18:30.464682+00:00",
+  "updated_at": "2026-09-10T17:16:39.733461+00:00",
   "profiling_progress": {
     "mlx_completed_assignments": 54,
     "mlx_total_assignments": 54,
@@ -67,5 +68,6 @@
   "sweep_successful_jobs": 11,
   "sweep_failed_jobs": 1,
   "failure_file": "sweep-01-failure.json",
-  "boundary_diagnostic_file": "boundary-trace-01.json"
+  "boundary_diagnostic_file": "boundary-trace-01.json",
+  "precision_experiment_file": "silu-precision-experiment.json"
 }

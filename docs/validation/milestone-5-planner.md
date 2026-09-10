@@ -196,3 +196,17 @@ Increasing only the native CUDA suffix to F32 does not restore the reference tok
 This localizes the decisive difference to prefix numerical values for this history;
 it does not establish a faulty individual MLX operation. An F32 MLX-prefix diagnostic
 was rejected by the unchanged admission cap. No acceptance margins were relaxed.
+
+A [SiLU precision experiment](milestone-5-planner/silu-precision-experiment.json)
+restores all 256 reference outputs in the split-25 boundary replay. MLX previously
+rounded sigmoid to F16 before multiplying by its input; computing SiLU in F32 and
+rounding the activation once removes that avoidable rounding. A control that rounds
+only model weights through F16 also retains the correct token. The correction is
+being validated in a separate production build; original binaries and sweep evidence
+remain intact. Changed-kernel profiles and a new sweep are required for acceptance.
+
+The production fix passes all 58 native tests and the targeted serving regression:
+two warmups plus one timed request, each matching all 256 reference tokens, followed
+by clean unload. New MLX profile collection stopped before its first native run because
+available Mac memory was about 50 MB below the unchanged physical preflight threshold.
+Changed-binary profiles, fresh selection and full independent acceptance remain pending.

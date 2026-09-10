@@ -1,0 +1,37 @@
+{
+  "status": "promising precision fix; acceptance not rerun",
+  "method": "F32 SiLU evaluation followed by one cast to execution dtype, leaving F16 weights/KV/boundary unchanged. Separate diagnostic binary and exact teacher-forced mixed split25 replay.",
+  "split": 25,
+  "token_count": 256,
+  "exact_reference_match": true,
+  "weight_rounding_control": "Independent F32 arithmetic with parameters rounded through F16 still chooses the reference token; replayed rounded-weight prefix with native CUDA F16 also correct.",
+  "old_first_divergence_index": 145,
+  "new_first_divergence_index": null,
+  "production_build": "separate m5-silu build; original binaries preserved",
+  "artifact_sha256": {
+    "silu-full-01/history.json": "c96fbebe004ee6ebec18d5c621c7731408060391abb1d3cc96d51e6cb5f18a54",
+    "silu-full-01/mlx.json": "d04b610ae618274a2862cfd9986cc9f32c95c1638f754c2c9b191411b3f4c54e",
+    "silu-full-01/cuda.json": "442275913fbdae124fd23794199ed64be6b8a055df2d612ac8e1da42fa37a0c1",
+    "silu-diagnostic-01/stage.cpp": "a0b9f59d70a6b693bdb0e94e8f8bbb855b7cc9c5a2f88123ad741cbefad52dfc",
+    "silu-diagnostic-01/hllm-boundary-trace-mlx-silu": "ac41460b83c733430d4f8a78d75a0015100075820d90be577cf51bde65a22fea",
+    "boundary-trace-01/rounded-weights-boundary.json": "34fcdb855b983b756a1b6607da0303f89e7ace332183b6022e3180fc74e593cd",
+    "boundary-trace-01/rounded-weights-cuda-f16.json": "5ab93e98c844064c9b9ca673afc573d98a251e017c2258af388d23be0da80586"
+  },
+  "remaining": "Production serving regression, broader correctness, new MLX profiles/setup as needed, fresh frozen selection and independent sweep. No old performance evidence certifies changed kernel.",
+  "production_tests": {
+    "passed": 58,
+    "total": 58,
+    "seconds": 198.73,
+    "includes": "MLX numerical parity, mixed CPU/MLX integration, memory/compute profiling and measured planner integration"
+  },
+  "production_commit": "e7b028f",
+  "production_serving_regression": {
+    "status": "measured",
+    "exact_requests": 3,
+    "output_tokens_per_request": 256,
+    "cleanup_passed": true,
+    "evidence_digest": "564a5215f0d94c17f212f59fe1b32a8c1a9638dd7922281fa37534013e5e46a2",
+    "firewall_cleanup_returncode": 0
+  },
+  "reprofiling_state": "first new MLX memory preflight rejected: 4325163008 available vs 4375497932.8 required; no completed new profiles"
+}
