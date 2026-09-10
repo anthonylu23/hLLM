@@ -27,6 +27,7 @@ class DenseStage final : public ReferenceStage {
   LlamaConfig config{};
   std::size_t vocab{};
   std::size_t bytes{};
+  std::size_t layer_start{};
   std::vector<LayerWeights> layers;
   Matrix embedding{0U, 0U};
   Matrix head{0U, 0U};
@@ -86,13 +87,20 @@ class DenseStage final : public ReferenceStage {
   }
   HostActivation forward(HostActivation input, std::size_t position, runtime::SequenceState& opaque,
                          const std::atomic_bool& cancelled) const override {
+    return forward_profiled(std::move(input), position, opaque, cancelled, nullptr);
+  }
+  HostActivation forward_profiled(HostActivation input, std::size_t position,
+      runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming* timing) const {
     auto& state = dynamic_cast<CpuSequence&>(opaque);
     Matrix hidden(input.tokens, input.width, std::move(input.values));
+    runtime::PhaseTimer timer(timing, [] {});
     for (std::size_t i = 0U; i < layers.size(); ++i) {
       if (cancelled.load()) {
         throw std::runtime_error("request cancelled");
       }
       hidden = transformer_layer(hidden, layers[i], config, position, state.caches.at(i));
+      timer.mark("layer", layer_start + i);
     }
     return {hidden.rows(), hidden.columns(),
             std::vector<float>(hidden.values().begin(), hidden.values().end())};
@@ -100,6 +108,18 @@ class DenseStage final : public ReferenceStage {
   runtime::StageOutput execute(runtime::StageInput input, std::size_t position,
                                runtime::SequenceState& state,
                                const std::atomic_bool& cancelled) const override {
+    return run(std::move(input), position, state, cancelled, nullptr);
+  }
+  runtime::StageOutput execute_profiled(runtime::StageInput input, std::size_t position,
+      runtime::SequenceState& state, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming& timing) const override {
+    timing = {};
+    return run(std::move(input), position, state, cancelled, &timing);
+  }
+  runtime::StageOutput run(runtime::StageInput input, std::size_t position,
+      runtime::SequenceState& state, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming* timing) const {
+    runtime::PhaseTimer timer(timing, [] {});
     HostActivation hidden;
     if (const auto* tokens = std::get_if<runtime::TokenInput>(&input)) {
       if (!first_stage) {
@@ -127,9 +147,21 @@ class DenseStage final : public ReferenceStage {
         }
       }
     }
-    hidden = forward(std::move(hidden), position, state, cancelled);
+    timer.mark(first_stage ? "embedding" : "from-wire");
+    hidden = forward_profiled(std::move(hidden), position, state, cancelled, timing);
+    timer.restart();
     if (final_stage) {
-      return runtime::SampledToken{sample(hidden)};
+      if (!timing) return runtime::SampledToken{sample(hidden)};
+      Matrix last(1U, hidden.width);
+      std::copy_n(hidden.values.end() - static_cast<std::ptrdiff_t>(hidden.width), hidden.width,
+                  last.values().begin());
+      auto normalized = rms_norm(last, norm, config.rms_norm_epsilon);
+      timer.mark("final_norm");
+      auto logits = linear(normalized, tied_head ? embedding : head);
+      timer.mark("lm_head");
+      const auto token = greedy_sample_last(logits);
+      timer.mark("sampling");
+      return runtime::SampledToken{token};
     }
     runtime::BoundaryActivation output{hidden.tokens, hidden.width,
                                        std::vector<std::byte>(multiply(hidden.values.size(), 2U))};
@@ -141,6 +173,7 @@ class DenseStage final : public ReferenceStage {
       output.payload[2U * i] = static_cast<std::byte>(bits & 0xffU);
       output.payload[2U * i + 1U] = static_cast<std::byte>(bits >> 8U);
     }
+    timer.mark("to-wire");
     return output;
   }
   std::uint64_t sample(const HostActivation& hidden) const override {
@@ -170,6 +203,7 @@ std::unique_ptr<ReferenceStage> load_stage(const v1::LoadStageRequest& request,
   }
   auto stage = std::make_unique<DenseStage>();
   stage->config = source.config;
+  stage->layer_start = source.layer_start;
   stage->vocab = source.vocabulary_size;
   stage->first_stage = source.first;
   stage->final_stage = source.final;

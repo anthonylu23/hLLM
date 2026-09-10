@@ -63,6 +63,9 @@ message LinkProfile {
   double receiver_conversion_ms = 8;
   Provenance provenance = 9;
   string observed_at = 10;
+  // QualifyLink sets this field. Legacy latency/bandwidth/conversion scalars
+  // are unmeasured and MUST NOT be consumed as zero-valued measurements.
+  optional LinkQualificationResult qualification = 11;
 }
 
 message WorkloadProfile {
@@ -77,3 +80,43 @@ message WorkloadProfile {
   DataType activation_dtype = 9;
 }
 
+
+message LinkProbeIdentity {
+  string worker_id = 1;
+  string binary_digest = 2;
+  string source_revision = 3;
+  string compiler = 4;
+  string grpc_version = 5;
+  string protobuf_version = 6;
+  string host = 7;
+  string os = 8;
+  string endpoint = 9;
+}
+message LinkTiming {
+  uint32 cycle = 1;
+  uint32 step = 2;
+  uint64 payload_bytes = 3;
+  uint64 message_bytes = 4;
+  uint64 feedback_bytes = 5;
+  double sender_encode_ms = 6;
+  // Includes native gRPC serialization, receiver decode/validation and feedback.
+  // Excludes sender encode (above), model compute and GPU boundary conversion.
+  double round_trip_ms = 7;
+}
+message LinkStreamTiming {
+  uint32 cycle = 1;
+  double setup_ms = 2; // SequenceOpen through receiver initial metadata.
+  double teardown_ms = 3;
+}
+message LinkQualificationResult {
+  LinkProbeIdentity source = 1;
+  LinkProbeIdentity target = 2;
+  double channel_ready_ms = 3;
+  repeated LinkStreamTiming streams = 4;
+  repeated LinkTiming samples = 5;
+  uint32 prompt_tokens = 6;
+  uint32 hidden_size = 7;
+  uint32 output_tokens = 8;
+  uint32 warmup_cycles = 9;
+  uint32 measured_cycles = 10;
+}

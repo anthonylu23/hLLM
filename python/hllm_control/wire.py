@@ -259,6 +259,8 @@ def deployment_plan_to_proto(plan: models.DeploymentPlan) -> placement_pb2.Deplo
         selected_candidate_id=plan.selected_candidate_id,
         duplicated_tensor_groups=plan.duplicated_tensor_groups,
         deployment_version=plan.deployment_version,
+        workload_digest=plan.workload_digest or "",
+        profile_bundle_digest=plan.profile_bundle_digest or "",
     )
 
 
@@ -293,4 +295,6 @@ def deployment_plan_from_proto(message: placement_pb2.DeploymentPlan) -> models.
         duplicated_tensor_groups=tuple(message.duplicated_tensor_groups),
         selected_candidate_id=message.selected_candidate_id,
         deployment_version=message.deployment_version,
+        workload_digest=message.workload_digest or None,
+        profile_bundle_digest=message.profile_bundle_digest or None,
     )

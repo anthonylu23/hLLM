@@ -2,6 +2,7 @@
 
 #include <mlx/backend/metal/metal.h>
 #include <mlx/memory.h>
+#include <mlx/version.h>
 
 #include "device.hpp"
 #include "hllm/model/dense_loader.hpp"
@@ -40,6 +41,16 @@ class MlxFactory final : public runtime::BackendFactory {
     if (!lock.owns_lock()) return std::nullopt;
     return runtime::AllocatorMetrics{mx::get_active_memory(), mx::get_cache_memory(),
                                      mx::get_peak_memory()};
+  }
+  bool profiling_reset_peak() const override {
+    std::scoped_lock lock(device_mutex());
+    mx::synchronize(execution_stream());
+    mx::reset_peak_memory();
+    return true;
+  }
+  runtime::ProfilingDeviceInfo profiling_device_info() const override {
+    return {"metal-default", "Apple Metal", mx::version(), "os-bundled", "mlx-metal",
+            std::nullopt};
   }
   std::unique_ptr<runtime::StageBackend> load(
       const v1::LoadStageRequest& request, const std::filesystem::path& root,

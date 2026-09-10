@@ -4,10 +4,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <variant>
 #include <vector>
 
 #include "hllm/runtime/memory.hpp"
+#include "hllm/runtime/timing.hpp"
 
 namespace hllm::runtime {
 
@@ -48,6 +50,11 @@ class StageBackend {
   [[nodiscard]] virtual StageOutput execute(StageInput input, std::size_t first_position,
                                             SequenceState& state,
                                             const std::atomic_bool& cancelled) const = 0;
+  // Opt-in diagnostics for dedicated profiling processes. Serving uses execute().
+  [[nodiscard]] virtual StageOutput execute_profiled(StageInput, std::size_t,
+      SequenceState&, const std::atomic_bool&, ExecutionTiming&) const {
+    throw std::logic_error("backend does not implement compute profiling");
+  }
 };
 
 }  // namespace hllm::runtime

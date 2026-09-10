@@ -28,6 +28,8 @@ from hllm_control.models import (
     WorkloadProfile,
     maximum_boundary_tokens,
 )
+from hllm_control.planner.measured import ProfileBundle, evaluate
+from hllm_control.profiling.models import digest
 from hllm_control.serialization import canonical_json_bytes
 
 
@@ -198,6 +200,16 @@ def _candidate_score(
     if performance is None:
         raise PlanningError("estimated planning requires a directional link profile")
     weights = settings.objective_weights
+    if settings.mode == PlanningMode.MEASURED:
+        assert performance.ttft_ms is not None
+        average_itl = (
+            sum(performance.decode_ms) / len(performance.decode_ms) if performance.decode_ms else 0
+        )
+        return (
+            weights.ttft * performance.ttft_ms
+            + (weights.itl + weights.pipeline_period) * average_itl
+            + weights.memory_pressure * maximum_pressure**2
+        )
     boundary_score = (
         weights.ttft * performance.boundary_prefill_ms
         + weights.itl * performance.boundary_decode_ms
@@ -232,9 +244,23 @@ def create_plan(
     links: Sequence[LinkProfile],
     workload: WorkloadProfile,
     settings: PlannerSettings | None = None,
+    *,
+    profile_bundle: ProfileBundle | None = None,
 ) -> PlanningReport:
     settings = settings or PlannerSettings()
+    version = "0.2.0" if settings.mode == PlanningMode.MEASURED else PLANNER_VERSION
     _validate_workers(manifest, workers, settings)
+    if settings.mode == PlanningMode.MEASURED:
+        if profile_bundle is None:
+            raise PlanningError("measured planning requires a profile bundle")
+        if {w.worker_id: w for w in workers} != {
+            w.worker.worker_id: w.worker for w in profile_bundle.workers
+        }:
+            raise PlanningError("worker configuration differs from frozen bundle")
+        if settings.execution_dtype != workload.kv_dtype:
+            raise PlanningError("measured execution and KV dtypes must agree")
+    elif profile_bundle is not None:
+        raise PlanningError("profile bundle requires measured mode")
     # Every two-stage candidate ships the whole prompt across one boundary message.
     boundary_limit = maximum_boundary_tokens(manifest.config.hidden_size, workload.activation_dtype)
     raw_candidates: list[PlanCandidate] = []
@@ -286,6 +312,20 @@ def create_plan(
             if settings.mode == PlanningMode.ESTIMATED and link is None:
                 reasons.append(f"MISSING_LINK_PROFILE:{first.worker_id}->{final.worker_id}")
             performance = _boundary_estimate(manifest, workload, link) if link else None
+            measurement_status = None
+            if settings.mode == PlanningMode.MEASURED:
+                assert profile_bundle is not None
+                measurement_status, measured_reasons, performance = evaluate(
+                    profile_bundle,
+                    manifest,
+                    workload,
+                    assignments_for(
+                        first.worker_id, final.worker_id, split, manifest.config.num_layers
+                    ),
+                )
+                if reasons:
+                    measurement_status = "infeasible"
+                reasons.extend(measured_reasons)
             feasible = not reasons
             score = _candidate_score(stages, performance, settings, link) if feasible else None
             candidate_id = f"{first.worker_id}--{final.worker_id}-m{split:03d}"
@@ -297,6 +337,7 @@ def create_plan(
                     split_layer=split,
                     stages=stages,
                     feasible=feasible,
+                    measurement_status=measurement_status,
                     rejection_reasons=tuple(reasons),
                     performance=performance,
                     score=score,
@@ -314,13 +355,15 @@ def create_plan(
     )
     if not feasible_candidates:
         return PlanningReport(
+            planner_version=version,
+            settings=settings if settings.mode == PlanningMode.MEASURED else None,
             manifest_digest=manifest.manifest_digest,
             workload_id=workload.workload_id,
             mode=settings.mode,
             selected_candidate_id=None,
             candidates=candidates,
             plan=None,
-            notes=("No memory-feasible two-worker placement was found.",),
+            notes=("No fully qualified feasible two-worker placement was found.",),
         )
 
     selected_id = feasible_candidates[0].candidate_id
@@ -349,7 +392,7 @@ def create_plan(
     )
     duplicated_groups = ("token_embeddings",) if manifest.config.tied_embeddings else ()
     unsigned_plan = {
-        "planner_version": PLANNER_VERSION,
+        "planner_version": version,
         "deployment_version": 1,
         "manifest_digest": manifest.manifest_digest,
         "workload_id": workload.workload_id,
@@ -361,9 +404,19 @@ def create_plan(
         "duplicated_tensor_groups": duplicated_groups,
         "selected_candidate_id": selected.candidate_id,
     }
+    measured_fields = {}
+    if settings.mode == PlanningMode.MEASURED:
+        assert profile_bundle is not None
+        measured_fields = {
+            "schema_version": "1.1",
+            "workload_digest": digest(workload),
+            "profile_bundle_digest": profile_bundle.bundle_digest,
+        }
+        unsigned_plan.update(measured_fields)
     plan_digest = hashlib.sha256(canonical_json_bytes(unsigned_plan)).hexdigest()
     plan = DeploymentPlan(
-        planner_version=PLANNER_VERSION,
+        **measured_fields,
+        planner_version=version,
         plan_id=f"plan-{plan_digest[:16]}",
         deployment_version=1,
         plan_digest=plan_digest,
@@ -378,7 +431,11 @@ def create_plan(
         selected_candidate_id=selected.candidate_id,
     )
     notes = (
-        "Feasibility mode ranks maximum memory pressure before imbalance."
+        "Measured mode uses exact assignments, whole-stage timings including conversion, "
+        "per-context decode, allocation, request setup and directional encode plus RTT. "
+        "Unknown candidates are unranked. Equal scores use candidate ID."
+        if settings.mode == PlanningMode.MEASURED
+        else "Feasibility mode ranks maximum memory pressure before imbalance."
         if settings.mode == PlanningMode.FEASIBILITY
         else (
             "Estimated mode currently scores boundary transfer and memory pressure; "
@@ -386,6 +443,8 @@ def create_plan(
         ),
     )
     return PlanningReport(
+        planner_version=version,
+        settings=settings if settings.mode == PlanningMode.MEASURED else None,
         manifest_digest=manifest.manifest_digest,
         workload_id=workload.workload_id,
         mode=settings.mode,
@@ -393,4 +452,31 @@ def create_plan(
         candidates=candidates,
         plan=plan,
         notes=notes,
+    )
+
+
+def assignments_for(
+    first: str, final: str, split: int, layers: int
+) -> tuple[StageAssignment, StageAssignment]:
+    return (
+        StageAssignment(
+            stage_index=0,
+            worker_id=first,
+            layer_start=0,
+            layer_end=split,
+            owns_token_embedding=True,
+            owns_final_norm=False,
+            owns_lm_head=False,
+            owns_sampling=False,
+        ),
+        StageAssignment(
+            stage_index=1,
+            worker_id=final,
+            layer_start=split,
+            layer_end=layers,
+            owns_token_embedding=False,
+            owns_final_norm=True,
+            owns_lm_head=True,
+            owns_sampling=True,
+        ),
     )

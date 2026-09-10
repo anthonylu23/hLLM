@@ -5,11 +5,14 @@
 #include <c10/cuda/CUDACachingAllocator.h>
 #include <c10/cuda/CUDAGuard.h>
 #include <cuda_runtime_api.h>
+#include <torch/version.h>
 
 #include <limits>
 #include <map>
 #include <mutex>
 #include <stdexcept>
+#include <iomanip>
+#include <sstream>
 
 #include "execution_stream.hpp"
 
@@ -76,5 +79,30 @@ std::string probe_device(int device_id) {
   }
   return "CUDA runtime ready on device " + std::to_string(device_id) + " (" + properties.name +
          "); dense Llama/Qwen3 F32/F16 execution ready";
+}
+
+bool reset_device_peak(int device_id) {
+  const c10::cuda::CUDAGuard guard(static_cast<c10::DeviceIndex>(device_id));
+  execution_stream(device_id).synchronize();
+  if (c10::cuda::CUDACachingAllocator::name() != "native") return false;
+  c10::cuda::CUDACachingAllocator::resetPeakStats(static_cast<c10::DeviceIndex>(device_id));
+  return true;
+}
+
+runtime::ProfilingDeviceInfo profiling_device_info(int device_id) {
+  const c10::cuda::CUDAGuard guard(static_cast<c10::DeviceIndex>(device_id));
+  cudaDeviceProp properties{};
+  check(cudaGetDeviceProperties(&properties, device_id));
+  int driver = 0;
+  check(cudaDriverGetVersion(&driver));
+  std::size_t available = 0U, total = 0U;
+  check(cudaMemGetInfo(&available, &total));
+  std::ostringstream identity;
+  identity << std::hex << std::setfill('0');
+  for (const auto byte : properties.uuid.bytes) {
+    identity << std::setw(2) << static_cast<unsigned int>(static_cast<unsigned char>(byte));
+  }
+  return {identity.str(), properties.name, TORCH_VERSION, std::to_string(driver),
+          c10::cuda::CUDACachingAllocator::name(), available};
 }
 }  // namespace hllm::cuda

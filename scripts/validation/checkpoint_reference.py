@@ -6,6 +6,7 @@ Run in an isolated torch/transformers environment. Never loads remote Python cod
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -23,11 +24,24 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("model", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--prompt-tokens", type=int)
+    parser.add_argument("--output-tokens", type=int, default=256)
     parser.add_argument("--dtype", choices=("f32", "f16"), default="f32")
     parser.add_argument("--teacher-reference", type=Path)
     parser.add_argument("--continuation-reference", type=Path)
     parser.add_argument("--at-index", type=int, default=177)
     args = parser.parse_args()
+    if args.output.exists():
+        parser.error("refusing to overwrite an independent reference")
+    if args.output_tokens <= 0 or (args.prompt_tokens is not None and args.prompt_tokens <= 0):
+        parser.error("prompt/output token counts must be positive")
+    checkpoint_files = {}
+    for path in [args.model / "config.json", *sorted(args.model.glob("*.safetensors"))]:
+        with path.open("rb") as stream:
+            checkpoint_files[path.name] = hashlib.file_digest(stream, "sha256").hexdigest()
+    checkpoint_digest = hashlib.sha256(
+        json.dumps(checkpoint_files, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
     torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
@@ -71,6 +85,8 @@ def main() -> None:
         for layer in model.get_submodule("model.layers").children()
     ]
     result = {
+        "checkpoint_digest": checkpoint_digest,
+        "checkpoint_files": checkpoint_files,
         "producer": {
             "torch": torch.__version__,
             "transformers": transformers.__version__,
@@ -142,12 +158,18 @@ def main() -> None:
             add_generation_prompt=True,
             enable_thinking=False,
         )
+        if args.prompt_tokens is not None:
+            # Exact token IDs are authoritative. Repetition is deterministic and
+            # avoids tokenizer-dependent string padding or approximate lengths.
+            ids = (ids * ((args.prompt_tokens + len(ids) - 1) // len(ids)))[: args.prompt_tokens]
+        if len(ids) + args.output_tokens > model.config.max_position_embeddings:
+            parser.error("reference workload exceeds model context")
         initial = ids
         cache = None
         generated = []
         torch.cuda.synchronize()
         start = time.perf_counter()
-        for _ in range(256):
+        for _ in range(args.output_tokens):
             output = model(
                 input_ids=torch.tensor([ids], device="cuda"),
                 past_key_values=cache,

@@ -16,11 +16,51 @@ class Capabilities(_message.Message):
     worker: _profile_pb2.WorkerProfile
     def __init__(self, worker: _Optional[_Union[_profile_pb2.WorkerProfile, _Mapping]] = ...) -> None: ...
 
+class QualificationState(_message.Message):
+    __slots__ = ("available_host_bytes", "available_device_bytes", "backend_version", "driver_version", "allocator", "binary_digest", "device_identity", "process_id", "boundary_transport_mode", "pytorch_alloc_conf", "pytorch_cuda_alloc_conf", "device_fingerprint")
+    AVAILABLE_HOST_BYTES_FIELD_NUMBER: _ClassVar[int]
+    AVAILABLE_DEVICE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    BACKEND_VERSION_FIELD_NUMBER: _ClassVar[int]
+    DRIVER_VERSION_FIELD_NUMBER: _ClassVar[int]
+    ALLOCATOR_FIELD_NUMBER: _ClassVar[int]
+    BINARY_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    DEVICE_IDENTITY_FIELD_NUMBER: _ClassVar[int]
+    PROCESS_ID_FIELD_NUMBER: _ClassVar[int]
+    BOUNDARY_TRANSPORT_MODE_FIELD_NUMBER: _ClassVar[int]
+    PYTORCH_ALLOC_CONF_FIELD_NUMBER: _ClassVar[int]
+    PYTORCH_CUDA_ALLOC_CONF_FIELD_NUMBER: _ClassVar[int]
+    DEVICE_FINGERPRINT_FIELD_NUMBER: _ClassVar[int]
+    available_host_bytes: int
+    available_device_bytes: int
+    backend_version: str
+    driver_version: str
+    allocator: str
+    binary_digest: str
+    device_identity: str
+    process_id: int
+    boundary_transport_mode: str
+    pytorch_alloc_conf: str
+    pytorch_cuda_alloc_conf: str
+    device_fingerprint: str
+    def __init__(self, available_host_bytes: _Optional[int] = ..., available_device_bytes: _Optional[int] = ..., backend_version: _Optional[str] = ..., driver_version: _Optional[str] = ..., allocator: _Optional[str] = ..., binary_digest: _Optional[str] = ..., device_identity: _Optional[str] = ..., process_id: _Optional[int] = ..., boundary_transport_mode: _Optional[str] = ..., pytorch_alloc_conf: _Optional[str] = ..., pytorch_cuda_alloc_conf: _Optional[str] = ..., device_fingerprint: _Optional[str] = ...) -> None: ...
+
 class LinkQualificationRequest(_message.Message):
-    __slots__ = ("target_worker_id",)
+    __slots__ = ("target_worker_id", "prompt_tokens", "hidden_size", "output_tokens", "warmup_cycles", "measured_cycles", "timeout_ms")
     TARGET_WORKER_ID_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    HIDDEN_SIZE_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    WARMUP_CYCLES_FIELD_NUMBER: _ClassVar[int]
+    MEASURED_CYCLES_FIELD_NUMBER: _ClassVar[int]
+    TIMEOUT_MS_FIELD_NUMBER: _ClassVar[int]
     target_worker_id: str
-    def __init__(self, target_worker_id: _Optional[str] = ...) -> None: ...
+    prompt_tokens: int
+    hidden_size: int
+    output_tokens: int
+    warmup_cycles: int
+    measured_cycles: int
+    timeout_ms: int
+    def __init__(self, target_worker_id: _Optional[str] = ..., prompt_tokens: _Optional[int] = ..., hidden_size: _Optional[int] = ..., output_tokens: _Optional[int] = ..., warmup_cycles: _Optional[int] = ..., measured_cycles: _Optional[int] = ..., timeout_ms: _Optional[int] = ...) -> None: ...
 
 class StageEndpoint(_message.Message):
     __slots__ = ("stage_index", "worker_id", "endpoint")

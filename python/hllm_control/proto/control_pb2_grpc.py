@@ -41,6 +41,16 @@ class WorkerControlStub:
                 request_serializer=common__pb2.Empty.SerializeToString,
                 response_deserializer=control__pb2.Capabilities.FromString,
                 _registered_method=True)
+        self.GetQualificationState = channel.unary_unary(
+                '/hllm.v1.WorkerControl/GetQualificationState',
+                request_serializer=common__pb2.Empty.SerializeToString,
+                response_deserializer=control__pb2.QualificationState.FromString,
+                _registered_method=True)
+        self.GetLinkProbeInfo = channel.unary_unary(
+                '/hllm.v1.WorkerControl/GetLinkProbeInfo',
+                request_serializer=common__pb2.Empty.SerializeToString,
+                response_deserializer=profile__pb2.LinkProbeIdentity.FromString,
+                _registered_method=True)
         self.QualifyLink = channel.unary_unary(
                 '/hllm.v1.WorkerControl/QualifyLink',
                 request_serializer=control__pb2.LinkQualificationRequest.SerializeToString,
@@ -87,6 +97,18 @@ class WorkerControlServicer:
     """Missing associated documentation comment in .proto file."""
 
     def GetCapabilities(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetQualificationState(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetLinkProbeInfo(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -147,6 +169,16 @@ def add_WorkerControlServicer_to_server(servicer, server):
                     servicer.GetCapabilities,
                     request_deserializer=common__pb2.Empty.FromString,
                     response_serializer=control__pb2.Capabilities.SerializeToString,
+            ),
+            'GetQualificationState': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetQualificationState,
+                    request_deserializer=common__pb2.Empty.FromString,
+                    response_serializer=control__pb2.QualificationState.SerializeToString,
+            ),
+            'GetLinkProbeInfo': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLinkProbeInfo,
+                    request_deserializer=common__pb2.Empty.FromString,
+                    response_serializer=profile__pb2.LinkProbeIdentity.SerializeToString,
             ),
             'QualifyLink': grpc.unary_unary_rpc_method_handler(
                     servicer.QualifyLink,
@@ -216,6 +248,60 @@ class WorkerControl:
             '/hllm.v1.WorkerControl/GetCapabilities',
             common__pb2.Empty.SerializeToString,
             control__pb2.Capabilities.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetQualificationState(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/hllm.v1.WorkerControl/GetQualificationState',
+            common__pb2.Empty.SerializeToString,
+            control__pb2.QualificationState.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetLinkProbeInfo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/hllm.v1.WorkerControl/GetLinkProbeInfo',
+            common__pb2.Empty.SerializeToString,
+            profile__pb2.LinkProbeIdentity.FromString,
             options,
             channel_credentials,
             insecure,

@@ -54,6 +54,7 @@ include = [
   "tests/integration",
   "tests/cuda",
   "tests/mlx",
+  "tests/profiling",
   "tests/process_helpers.py",
   "tests/process_contracts.py",
   "scripts/validation",

@@ -12,6 +12,7 @@
 #include "hllm/runtime/safetensors.hpp"
 #include "hllm/worker/control_service.hpp"
 #include "model_fixture.hpp"
+#include "profiling_contract.hpp"
 
 namespace hllm::mlx {
 namespace {
@@ -29,6 +30,19 @@ std::vector<float> oracle_rows(const nlohmann::json& tensor, std::size_t positio
   const auto values = tensor.at("values").get<std::vector<float>>();
   return {values.begin() + static_cast<std::ptrdiff_t>(position * width),
           values.begin() + static_cast<std::ptrdiff_t>((position + count) * width)};
+}
+
+TEST(MlxStageTest, ProfilingPreservesNonzeroBoundaryAndDecodeOutputs) {
+  const test::ModelFixture fixture;
+  auto factory = make_backend_factory();
+  for (const auto dtype : {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16}) {
+    auto a = fixture.load(0U); auto b = fixture.load(1U);
+    a.mutable_plan()->set_execution_dtype(dtype);
+    b.mutable_plan()->set_execution_dtype(dtype);
+    auto first = factory->load(a, fixture.root, kBudget);
+    auto last = factory->load(b, fixture.root, kBudget);
+    test::paired_timing_contract(*first, *last);
+  }
 }
 
 TEST(MlxStageTest, QwenPrefillDecodeLayersCachesAndLogitsMatchIndependentOracle) {

@@ -12,8 +12,11 @@ from hllm_control.models import (
     MAXIMUM_RPC_BYTES,
     DeploymentPlan,
     ModelManifest,
+    PlanningMode,
     maximum_boundary_tokens,
 )
+from hllm_control.planner.activation import validate_activation
+from hllm_control.planner.measured import ProfileBundle
 from hllm_control.proto import (
     common_pb2,
     control_pb2,
@@ -37,12 +40,20 @@ class DeploymentSession:
     """
 
     def __init__(
-        self, manifest: ModelManifest, plan: DeploymentPlan, endpoints: Mapping[str, str]
+        self,
+        manifest: ModelManifest,
+        plan: DeploymentPlan,
+        endpoints: Mapping[str, str],
+        *,
+        profile_bundle: ProfileBundle | None = None,
     ) -> None:
         if plan.manifest_digest != manifest.manifest_digest:
             raise ValueError("plan and manifest do not match")
         if any(stage.worker_id not in endpoints for stage in plan.stages):
             raise ValueError("missing worker endpoint")
+        if plan.planning_mode == PlanningMode.MEASURED and profile_bundle is None:
+            raise ValueError("measured activation requires its profile bundle")
+        self.profile_bundle = profile_bundle
         self.manifest = manifest
         self.plan = plan
         self.endpoints = dict(endpoints)
@@ -72,17 +83,25 @@ class DeploymentSession:
             for stage in self.plan.stages
         ]
         try:
+            if self.profile_bundle is not None:
+                validate_activation(self.manifest, self.plan, self.profile_bundle, self._controls)
             # Downstream is ready before the driver can accept generation.
             for index in reversed(range(len(self._controls))):
-                response = self._controls[index].LoadStage(
-                    control_pb2.LoadStageRequest(
-                        plan=wire_plan,
-                        manifest=wire_manifest,
-                        stage_index=index,
-                        stage_endpoints=endpoints,
-                    ),
-                    timeout=60,
-                )
+                try:
+                    response = self._controls[index].LoadStage(
+                        control_pb2.LoadStageRequest(
+                            plan=wire_plan,
+                            manifest=wire_manifest,
+                            stage_index=index,
+                            stage_endpoints=endpoints,
+                        ),
+                        timeout=60,
+                    )
+                except grpc.RpcError:
+                    # A lost response can conceal a successful load. Retire this
+                    # plan identity as well as the stages already acknowledged.
+                    self._loaded.append(index)
+                    raise
                 if not response.accepted:
                     raise RuntimeError(f"worker {index} rejected load: {response.detail}")
                 self._loaded.append(index)
@@ -99,6 +118,7 @@ class DeploymentSession:
         stop_token_ids: Sequence[int] | None = None,
         timeout: float = 60.0,
         request_id: str | None = None,
+        capture_timing: bool = False,
     ) -> Generator[execution_pb2.GenerationEvent, None, None]:
         if not token_ids or maximum_new_tokens <= 0 or not 0 < timeout <= 3600:
             raise ValueError("prompt, output length and timeout must be positive and bounded")
@@ -108,6 +128,11 @@ class DeploymentSession:
             self.manifest.config.hidden_size, self.plan.activation_dtype
         ):
             raise ValueError("prompt exceeds the stage boundary transport limit")
+        if self.profile_bundle is not None and (len(token_ids), maximum_new_tokens) != (
+            self.profile_bundle.workload.prompt_tokens,
+            self.profile_bundle.workload.output_tokens,
+        ):
+            raise ValueError("request differs from measured workload")
         stops = self.manifest.config.eos_token_ids if stop_token_ids is None else stop_token_ids
         if any(
             token < 0 or token >= self.manifest.config.vocabulary_size
@@ -120,6 +145,7 @@ class DeploymentSession:
         self._requests.add(identifier)
         call = execution_pb2_grpc.GenerationStub(self._channels[0]).Generate(
             execution_pb2.GenerationRequest(
+                capture_timing=capture_timing,
                 deployment_id=self.plan.plan_id,
                 deployment_version=self.plan.deployment_version,
                 request_id=identifier,

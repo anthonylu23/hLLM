@@ -1,0 +1,1 @@
+"""Independent, resumable placement qualification."""

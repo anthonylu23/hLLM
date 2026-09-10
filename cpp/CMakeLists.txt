@@ -55,7 +55,8 @@ target_link_libraries(hllm_cpu_backend PUBLIC hllm_dense_loader hllm_project_opt
 
 add_library(hllm::cpu_backend ALIAS hllm_cpu_backend)
 
-add_library(hllm_worker_runtime src/worker/control_service.cpp src/worker/execution_service.cpp)
+find_package(OpenSSL REQUIRED)
+add_library(hllm_worker_runtime src/worker/control_service.cpp src/worker/execution_service.cpp src/worker/boundary_codec.cpp)
 target_include_directories(
   hllm_worker_runtime
   PUBLIC
@@ -67,6 +68,7 @@ target_link_libraries(
   PUBLIC hllm::proto hllm::runtime_common hllm_project_options
 )
 
+target_link_libraries(hllm_worker_runtime PRIVATE OpenSSL::Crypto nlohmann_json::nlohmann_json)
 add_library(hllm::worker_runtime ALIAS hllm_worker_runtime)
 
 add_executable(hllm-worker-cpu src/worker/main.cpp)
@@ -122,3 +124,32 @@ if(HLLM_ENABLE_MLX)
   target_compile_definitions(hllm-worker-mlx PRIVATE HLLM_WORKER_MLX=1)
   target_link_libraries(hllm-worker-mlx PRIVATE hllm::mlx_backend hllm::worker_runtime)
 endif()
+
+# Opt-in process tools reuse production loading; no worker RPC can reset peaks.
+foreach(backend IN ITEMS cpu mlx cuda)
+  string(TOUPPER "${backend}" backend_upper)
+  if(backend STREQUAL "cpu" OR HLLM_ENABLE_${backend_upper})
+    add_executable(hllm-profile-memory-${backend} src/profiling/memory_probe.cpp)
+    target_link_libraries(hllm-profile-memory-${backend} PRIVATE hllm::${backend}_backend
+      nlohmann_json::nlohmann_json hllm_project_options)
+    if(NOT backend STREQUAL "cpu")
+      target_compile_definitions(hllm-profile-memory-${backend} PRIVATE HLLM_WORKER_${backend_upper}=1)
+    endif()
+  endif()
+endforeach()
+
+foreach(backend IN ITEMS cpu mlx cuda)
+  if(TARGET hllm-profile-memory-${backend})
+    add_executable(hllm-profile-compute-${backend} src/profiling/memory_probe.cpp)
+    target_link_libraries(hllm-profile-compute-${backend} PRIVATE hllm::${backend}_backend
+      nlohmann_json::nlohmann_json hllm_project_options)
+    if(NOT backend STREQUAL "cpu")
+      string(TOUPPER "${backend}" backend_upper)
+      target_compile_definitions(hllm-profile-compute-${backend} PRIVATE HLLM_WORKER_${backend_upper}=1)
+    endif()
+  endif()
+endforeach()
+
+add_executable(hllm-profile-link src/profiling/link_probe.cpp)
+target_link_libraries(hllm-profile-link PRIVATE hllm::worker_runtime
+  nlohmann_json::nlohmann_json hllm_project_options)

@@ -147,6 +147,12 @@ class MlxStage final : public ReferenceStage {
                                const std::atomic_bool& cancelled) const override {
     return run(std::move(input), position, state, cancelled, nullptr);
   }
+  runtime::StageOutput execute_profiled(runtime::StageInput input, std::size_t position,
+      runtime::SequenceState& state, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming& timing) const override {
+    timing = {};
+    return run(std::move(input), position, state, cancelled, nullptr, &timing);
+  }
   runtime::StageOutput execute_traced(runtime::StageInput input, std::size_t position,
                                       runtime::SequenceState& state,
                                       const std::atomic_bool& cancelled,
@@ -235,7 +241,7 @@ class MlxStage final : public ReferenceStage {
   }
   runtime::StageOutput run(runtime::StageInput input, std::size_t position,
                            runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
-                           ExecutionTrace* trace) const {
+                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr) const {
     std::scoped_lock lock(device_mutex());
     auto* state = dynamic_cast<MlxSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
@@ -250,6 +256,7 @@ class MlxStage final : public ReferenceStage {
     running(cancelled);
     try {
       return completed(stream_, [&]() -> runtime::StageOutput {
+        runtime::PhaseTimer timer(timing, [&] { mx::synchronize(stream_); });
         auto hidden = [&]() -> mx::array {
           if (tokens) {
             std::vector<std::int32_t> ids;
@@ -280,10 +287,13 @@ class MlxStage final : public ReferenceStage {
           return mx::astype(mx::array(values.begin(), {dimension(count), dimension(hidden_size())}),
                             dtype_);
         }();
+        if (timing) mx::eval(hidden);
+        timer.mark(tokens ? "embedding" : "from-wire");
         for (auto index = start_; index < end_; ++index) {
           running(cancelled);
           auto& cache = state->caches.at(index - start_);
           hidden = layer(std::move(hidden), index, position, cache);
+          timer.mark("layer", index);
           if (trace) {
             trace->layers.push_back(snapshot(hidden));
             trace->keys.push_back(
@@ -294,15 +304,20 @@ class MlxStage final : public ReferenceStage {
         }
         finite(hidden);
         running(cancelled);
+        timer.mark("validation");
         runtime::StageOutput result;
         if (final_) {
           auto last = norm(slice_axis(hidden, 0, hidden.shape(0) - 1, hidden.shape(0)),
                            weight("model.norm.weight"));
+          if (timing) mx::eval(last);
+          timer.mark("final_norm");
           auto logits = mx::matmul(
               last, mx::transpose(weight(tied_ ? "model.embed_tokens.weight" : "lm_head.weight")));
           finite(logits);
+          timer.mark("lm_head");
           if (trace) trace->last_logits = snapshot(logits);
           result = runtime::SampledToken{mx::argmax(logits, -1).item<std::uint32_t>()};
+          timer.mark("sampling");
         } else {
           auto boundary = mx::contiguous(mx::astype(hidden, mx::float16));
           finite(boundary);
@@ -311,6 +326,7 @@ class MlxStage final : public ReferenceStage {
               count, hidden_size(), std::vector<std::byte>(mul(mul(count, hidden_size()), 2U))};
           std::memcpy(output.payload.data(), boundary.data<mx::float16_t>(), output.payload.size());
           result = std::move(output);
+          timer.mark("to-wire");
         }
         running(cancelled);
         state->length += count;

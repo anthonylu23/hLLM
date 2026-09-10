@@ -106,6 +106,7 @@ class ConnectionType(StrEnum):
 class PlanningMode(StrEnum):
     FEASIBILITY = "feasibility"
     ESTIMATED = "estimated"
+    MEASURED = "measured"
 
 
 class SourceDescriptor(StrictModel):
@@ -301,6 +302,13 @@ class PerformanceEstimate(StrictModel):
     boundary_prefill_ms: Annotated[float, Field(ge=0.0)]
     boundary_decode_ms: Annotated[float, Field(ge=0.0)]
     confidence: str
+    ttft_ms: float | None = None
+    decode_ms: tuple[float, ...] = ()
+    generation_ms: float | None = None
+    components_ms: dict[str, float] = Field(default_factory=dict)
+    profile_digests: tuple[str, ...] = ()
+    host_envelope_bytes: dict[str, int] = Field(default_factory=dict)
+    device_envelope_bytes: dict[str, int] = Field(default_factory=dict)
 
 
 class PlanCandidate(StrictModel):
@@ -310,6 +318,7 @@ class PlanCandidate(StrictModel):
     split_layer: PositiveInt
     stages: tuple[StageMemory, StageMemory]
     feasible: bool
+    measurement_status: str | None = None
     rejection_reasons: tuple[str, ...] = ()
     performance: PerformanceEstimate | None = None
     score: float | None = None
@@ -339,10 +348,22 @@ class DeploymentPlan(StrictModel):
     execution_dtype: DType
     activation_dtype: DType
     split_layer: NonNegativeInt
+    workload_digest: str | None = None
+    profile_bundle_digest: str | None = None
     stages: Annotated[tuple[StageAssignment, ...], Field(min_length=1, max_length=2)]
 
     @model_validator(mode="after")
     def validate_partition(self) -> DeploymentPlan:
+        if self.planning_mode == PlanningMode.MEASURED:
+            import re
+
+            if self.schema_version != "1.1" or not all(
+                re.fullmatch(r"[0-9a-f]{64}", value or "")
+                for value in (self.workload_digest, self.profile_bundle_digest)
+            ):
+                raise ValueError("measured plans require schema 1.1 and workload/bundle digests")
+        elif self.workload_digest is not None or self.profile_bundle_digest is not None:
+            raise ValueError("legacy plans cannot carry measured identities")
         end = 0
         workers: set[str] = set()
         for index, stage in enumerate(self.stages):
@@ -370,6 +391,7 @@ class DeploymentPlan(StrictModel):
 
 
 class PlanningReport(StrictModel):
+    settings: PlannerSettings | None = None
     schema_version: str = PLAN_SCHEMA_VERSION
     planner_version: str = PLANNER_VERSION
     manifest_digest: str

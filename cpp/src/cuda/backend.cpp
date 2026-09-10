@@ -24,6 +24,11 @@ class CudaFactory final : public runtime::BackendFactory {
     if (!values) return std::nullopt;
     return runtime::AllocatorMetrics{(*values)[0], (*values)[1], (*values)[2]};
   }
+  std::string boundary_transport_mode() const override { return pinned_ ? "pinned" : "pageable"; }
+  bool profiling_reset_peak() const override { return reset_device_peak(device_id_); }
+  runtime::ProfilingDeviceInfo profiling_device_info() const override {
+    return cuda::profiling_device_info(device_id_);
+  }
   std::unique_ptr<runtime::StageBackend> load(
       const v1::LoadStageRequest& request, const std::filesystem::path& root,
       const runtime::MemoryAmounts& capacity) const override {

@@ -189,6 +189,12 @@ class CudaStage final : public ReferenceStage {
                                const std::atomic_bool& cancelled) const override {
     return run(std::move(input), position, state, cancelled, nullptr);
   }
+  runtime::StageOutput execute_profiled(runtime::StageInput input, std::size_t position,
+      runtime::SequenceState& state, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming& timing) const override {
+    timing = {};
+    return run(std::move(input), position, state, cancelled, nullptr, &timing);
+  }
   runtime::StageOutput execute_traced(runtime::StageInput input, std::size_t position,
                                       runtime::SequenceState& state,
                                       const std::atomic_bool& cancelled,
@@ -274,7 +280,7 @@ class CudaStage final : public ReferenceStage {
   }
   runtime::StageOutput run(runtime::StageInput input, std::size_t position,
                            runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
-                           ExecutionTrace* trace) const {
+                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr) const {
     std::scoped_lock lock(mutex_);
     auto* state = dynamic_cast<CudaSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
@@ -290,6 +296,7 @@ class CudaStage final : public ReferenceStage {
     running(cancelled);
     try {
       return completed(stream_, [&]() -> runtime::StageOutput {
+        runtime::PhaseTimer timer(timing, [&] { stream_.synchronize(); });
         at::Tensor hidden;
         if (tokens) {
           std::vector<std::int64_t> ids;
@@ -323,9 +330,11 @@ class CudaStage final : public ReferenceStage {
           }
           finite(hidden);
         }
+        timer.mark(tokens ? "embedding" : "from-wire");
         for (auto index = start_; index < end_; ++index) {
           running(cancelled);
           hidden = layer(std::move(hidden), index, position, state->caches.at(index - start_));
+          timer.mark("layer", index);
           if (trace) {
             trace->layers.push_back(snapshot(hidden));
             trace->keys.push_back(snapshot(
@@ -336,17 +345,21 @@ class CudaStage final : public ReferenceStage {
         }
         finite(hidden);
         running(cancelled);
+        timer.mark("validation");
         runtime::StageOutput result;
         if (final_) {
           auto last = norm(hidden.slice(0, hidden.size(0) - 1), weight("model.norm.weight"));
+          timer.mark("final_norm");
           auto logits =
               at::matmul(last, weight(tied_ ? "model.embed_tokens.weight" : "lm_head.weight").t());
           finite(logits);
+          timer.mark("lm_head");
           if (trace) {
             trace->last_logits = snapshot(logits);
           }
           result = runtime::SampledToken{
               static_cast<std::uint64_t>(logits.argmax(-1).item<std::int64_t>())};
+          timer.mark("sampling");
         } else {
           auto boundary = hidden.to(at::kHalf);
           finite(boundary);
@@ -361,6 +374,7 @@ class CudaStage final : public ReferenceStage {
             std::memcpy(output.payload.data(), host.const_data_ptr(), output.payload.size());
           }
           result = std::move(output);
+          timer.mark("to-wire");
         }
         running(cancelled);
         state->length += count;
