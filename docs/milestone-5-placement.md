@@ -168,3 +168,13 @@ The reader validates all referenced evidence once and validates each artifact ag
 when used, including its declared assignment. Planning loads only the profiles for
 the current assignment. This bounds profile residency by candidate size instead of
 the full collection; diagnostic records and all evidence gates remain intact.
+
+For an isolated mixed-backend numerical investigation, build the opt-in
+`hllm-boundary-trace-mlx` and `hllm-boundary-trace-cuda` targets. Invoke each as
+`MODEL_ROOT LOAD_SPEC HISTORY OUTPUT`. A first-stage history contains `steps` with
+`input_ids` and `position`; its output preserves each real F16 boundary payload and
+can be replayed as the final-stage history. Both stages trace only the last step,
+report last-row layer activations, and the final stage reports logits and sampled
+IDs. The tool enforces the load specification's memory capacity and refuses existing
+outputs. These diagnostics do not replace independent serving correctness, timing,
+or fresh memory qualification, and are never registered as ordinary tests.

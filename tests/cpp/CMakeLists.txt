@@ -120,6 +120,18 @@ foreach(backend IN ITEMS mlx cuda)
   endif()
 endforeach()
 
+# Separate opt-in diagnostic; never changes the serving worker binary.
+foreach(backend IN ITEMS mlx cuda)
+  if(TARGET hllm-checkpoint-${backend})
+    add_executable(hllm-boundary-trace-${backend} boundary_trace.cpp)
+    target_link_libraries(hllm-boundary-trace-${backend} PRIVATE hllm::${backend}_backend
+      nlohmann_json::nlohmann_json hllm_project_options)
+    if(backend STREQUAL "mlx")
+      target_compile_definitions(hllm-boundary-trace-${backend} PRIVATE HLLM_PROBE_MLX=1)
+    endif()
+  endif()
+endforeach()
+
 foreach(backend IN ITEMS cpu mlx cuda)
   if(TARGET hllm-profile-memory-${backend})
     add_test(NAME MemoryProfile-${backend}
