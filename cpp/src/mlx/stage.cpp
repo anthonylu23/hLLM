@@ -232,7 +232,11 @@ class MlxStage final : public ReferenceStage {
     hidden = hidden + project(attended, "self_attn.o_proj");
     auto post = norm(hidden, weight(prefix + "post_attention_layernorm.weight"));
     auto gate = project(post, "mlp.gate_proj");
-    auto gated = (gate * mx::sigmoid(gate)) * project(post, "mlp.up_proj");
+    // Round SiLU once, matching a fused activation. Rounding sigmoid to F16
+    // before multiplying accumulates avoidable error across decoder layers.
+    auto gate32 = mx::astype(gate, mx::float32);
+    auto silu = mx::astype(gate32 * mx::sigmoid(gate32), dtype_);
+    auto gated = silu * project(post, "mlp.up_proj");
     hidden = hidden + project(gated, "mlp.down_proj");
     // Bound lazy graph lifetime to a layer, including cache updates. This also
     // provides a cancellation checkpoint after actual device completion.
