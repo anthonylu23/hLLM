@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 
 from hllm_control.models import DeploymentPlan, ModelManifest, PlanningMode
-from hllm_control.planner.measured import ProfileBundle, evaluate
+from hllm_control.planner.measured import DiskProfileBundle, ProfileBundle, evaluate
 from hllm_control.profiling.memory import assess_fit
 from hllm_control.profiling.models import MemoryAmounts, digest
 from hllm_control.proto import common_pb2, control_pb2_grpc, profile_pb2
@@ -19,7 +19,7 @@ from hllm_control.proto import common_pb2, control_pb2_grpc, profile_pb2
 def validate_activation(
     manifest: ModelManifest,
     plan: DeploymentPlan,
-    bundle: ProfileBundle,
+    bundle: ProfileBundle | DiskProfileBundle,
     controls: Sequence[control_pb2_grpc.WorkerControlStub],
 ) -> None:
     if (

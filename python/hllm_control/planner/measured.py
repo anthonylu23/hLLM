@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from datetime import datetime
+from pathlib import Path
 from statistics import median
 from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, PrivateAttr, model_validator
 
 from hllm_control.models import (
     ModelManifest,
@@ -112,13 +114,12 @@ class DirectionEvidence(ProfileModel):
         return self
 
 
-class BundleContent(ProfileModel):
+class BundleMetadata(ProfileModel):
     schema_version: Literal["1.0"] = "1.0"
     manifest_digest: Digest
     checkpoint_digest: Digest
     workload: WorkloadProfile
     workers: Annotated[tuple[WorkerEvidence, ...], Field(min_length=2, max_length=2)]
-    profiles: tuple[ProfileArtifact, ...]
     links: tuple[LinkArtifact, ...]
     directions: tuple[DirectionEvidence, ...]
     evaluated_at: AwareDatetime
@@ -132,7 +133,7 @@ class BundleContent(ProfileModel):
     def unique(self) -> Self:
         if len({w.worker.worker_id for w in self.workers}) != 2:
             raise ValueError("bundle needs two distinct workers")
-        for items in (self.profiles, self.links):
+        for items in (self.links,):
             if len({a.artifact_digest for a in items}) != len(items):
                 raise ValueError("duplicate artifact")
         if len({(d.source_worker_id, d.target_worker_id) for d in self.directions}) != len(
@@ -142,8 +143,21 @@ class BundleContent(ProfileModel):
         return self
 
 
+class BundleContent(BundleMetadata):
+    profiles: tuple[ProfileArtifact, ...]
+
+    @model_validator(mode="after")
+    def unique_profiles(self) -> Self:
+        if len({p.artifact_digest for p in self.profiles}) != len(self.profiles):
+            raise ValueError("duplicate artifact")
+        return self
+
+
 class ProfileBundle(BundleContent):
     bundle_digest: Digest
+
+    def profiles_for(self, assignment: StageAssignment) -> Iterator[ProfileArtifact]:
+        return (p for p in self.profiles if p.key.assignment == assignment)
 
     @model_validator(mode="after")
     def seal(self) -> Self:
@@ -157,12 +171,89 @@ def seal_bundle(content: BundleContent) -> ProfileBundle:
     return ProfileBundle.model_validate({**data, "bundle_digest": digest(data)})
 
 
+class ProfileReference(ProfileModel):
+    artifact_digest: Digest
+    assignment: StageAssignment
+
+
+class DiskBundleContent(BundleMetadata):
+    storage: Literal["content-addressed-profiles-v1"] = "content-addressed-profiles-v1"
+    profile_references: tuple[ProfileReference, ...]
+
+    @model_validator(mode="after")
+    def unique_references(self) -> Self:
+        refs = self.profile_references
+        if len({r.artifact_digest for r in refs}) != len(refs):
+            raise ValueError("duplicate artifact")
+        return self
+
+
+class DiskProfileBundle(DiskBundleContent):
+    """Sealed index; adjacent profiles are validated individually on every access."""
+
+    bundle_digest: Digest
+    _directory: Path | None = PrivateAttr(default=None)
+
+    @model_validator(mode="after")
+    def seal(self) -> Self:
+        if self.bundle_digest != digest(self.model_dump(mode="json", exclude={"bundle_digest"})):
+            raise ValueError("profile bundle digest mismatch")
+        return self
+
+    def bind_directory(self, directory: Path) -> None:
+        self._directory = directory
+        # Validate even unused evidence; release each artifact immediately.
+        for ref in self.profile_references:
+            self._load(ref)
+
+    def _load(self, ref: ProfileReference) -> ProfileArtifact:
+        if self._directory is None:
+            raise ValueError("disk bundle must be opened with read_profile_bundle")
+        path = self._directory / "profiles" / (ref.artifact_digest + ".json")
+        profile = ProfileArtifact.model_validate_json(path.read_bytes())
+        if (
+            profile.artifact_digest != ref.artifact_digest
+            or profile.key.assignment != ref.assignment
+        ):
+            raise ValueError("profile reference mismatch")
+        return profile
+
+    @property
+    def profiles(self) -> Iterator[ProfileArtifact]:
+        return (self._load(ref) for ref in self.profile_references)
+
+    def profiles_for(self, assignment: StageAssignment) -> Iterator[ProfileArtifact]:
+        return (self._load(ref) for ref in self.profile_references if ref.assignment == assignment)
+
+
+def read_profile_bundle(path: Path) -> ProfileBundle | DiskProfileBundle:
+    import json
+
+    data = json.loads(path.read_bytes())
+    if "storage" not in data:
+        return ProfileBundle.model_validate(data)
+    bundle = DiskProfileBundle.model_validate(data)
+    bundle.bind_directory(path.parent)
+    return bundle
+
+
+def seal_disk_bundle(content: DiskBundleContent, path: Path) -> DiskProfileBundle:
+    """Publish an index only after all adjacent content-addressed artifacts validate."""
+    bundle = DiskProfileBundle.model_validate(
+        {**content.model_dump(mode="json"), "bundle_digest": digest(content)}
+    )
+    bundle.bind_directory(path.parent)
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(bundle.model_dump_json(indent=2) + "\n")
+    return bundle
+
+
 def _fresh(at: datetime, now: datetime, limit: float) -> bool:
     return 0 <= (now - at).total_seconds() <= limit
 
 
 def evaluate(
-    bundle: ProfileBundle,
+    bundle: ProfileBundle | DiskProfileBundle,
     manifest: ModelManifest,
     workload: WorkloadProfile,
     assignments: tuple[StageAssignment, StageAssignment],
@@ -188,7 +279,7 @@ def evaluate(
         ):
             matches = [
                 p
-                for p in bundle.profiles
+                for p in bundle.profiles_for(assignment)
                 if (
                     p.measurement.kind == kind
                     and p.key.assignment == assignment

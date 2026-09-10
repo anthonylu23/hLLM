@@ -153,3 +153,18 @@ universal guarantee across changing machine load. TTFT, mean ITL, generation lat
 and conservative memory-envelope prediction errors are reported separately when
 predictions exist. Raw results remain private; publish redacted summaries and digest
 references without editing the sealed input/evidence used for resume.
+
+Large collections can use a content-addressed disk bundle. `DiskBundleContent`
+contains the same workload, workers, links, directions and freshness policy as an
+inline bundle, plus `profile_references` (artifact digest and exact assignment).
+Store each original sealed artifact at `profiles/<artifact_digest>.json` beside the
+index, then call `seal_disk_bundle(content, index_path)`. It validates every artifact
+before publishing the index. `read_profile_bundle` accepts both formats; planning,
+activation and `freeze-sweep` use this reader. The disk bundle digest seals the index,
+whose artifact digests transitively bind all raw measurements. It intentionally
+uses a different bundle identity from the inline representation.
+
+The reader validates all referenced evidence once and validates each artifact again
+when used, including its declared assignment. Planning loads only the profiles for
+the current assignment. This bounds profile residency by candidate size instead of
+the full collection; diagnostic records and all evidence gates remain intact.

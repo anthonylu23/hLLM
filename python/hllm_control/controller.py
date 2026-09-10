@@ -16,7 +16,7 @@ from hllm_control.models import (
     maximum_boundary_tokens,
 )
 from hllm_control.planner.activation import validate_activation
-from hllm_control.planner.measured import ProfileBundle
+from hllm_control.planner.measured import DiskProfileBundle, ProfileBundle
 from hllm_control.proto import (
     common_pb2,
     control_pb2,
@@ -45,7 +45,7 @@ class DeploymentSession:
         plan: DeploymentPlan,
         endpoints: Mapping[str, str],
         *,
-        profile_bundle: ProfileBundle | None = None,
+        profile_bundle: ProfileBundle | DiskProfileBundle | None = None,
     ) -> None:
         if plan.manifest_digest != manifest.manifest_digest:
             raise ValueError("plan and manifest do not match")

@@ -28,7 +28,7 @@ from hllm_control.models import (
     WorkloadProfile,
     maximum_boundary_tokens,
 )
-from hllm_control.planner.measured import ProfileBundle, evaluate
+from hllm_control.planner.measured import DiskProfileBundle, ProfileBundle, evaluate
 from hllm_control.profiling.models import digest
 from hllm_control.serialization import canonical_json_bytes
 
@@ -245,7 +245,7 @@ def create_plan(
     workload: WorkloadProfile,
     settings: PlannerSettings | None = None,
     *,
-    profile_bundle: ProfileBundle | None = None,
+    profile_bundle: ProfileBundle | DiskProfileBundle | None = None,
 ) -> PlanningReport:
     settings = settings or PlannerSettings()
     version = "0.2.0" if settings.mode == PlanningMode.MEASURED else PLANNER_VERSION

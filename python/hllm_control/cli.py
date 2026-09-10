@@ -12,7 +12,7 @@ from hllm_control.controller import DeploymentSession
 from hllm_control.models import Backend, DeploymentPlan, ModelManifest, PlanningMode, PlanningReport
 from hllm_control.planner.config import load_links, load_settings, load_workers, load_workload
 from hllm_control.planner.explain import explain_report
-from hllm_control.planner.measured import ProfileBundle
+from hllm_control.planner.measured import read_profile_bundle
 from hllm_control.planner.planner import create_plan
 from hllm_control.prepare.manifest import HashMode, prepare_model
 from hllm_control.serialization import read_artifact, write_artifact
@@ -73,7 +73,7 @@ def plan_command(
         load_links(links_path) if links_path else (),
         load_workload(workload_path),
         settings,
-        profile_bundle=read_artifact(profile_bundle_path, ProfileBundle)
+        profile_bundle=read_profile_bundle(profile_bundle_path)
         if profile_bundle_path
         else None,
     )
@@ -120,7 +120,7 @@ def generate_command(
         manifest,
         plan,
         {w.worker_id: w.endpoint for w in workers},
-        profile_bundle=read_artifact(profile_bundle_path, ProfileBundle)
+        profile_bundle=read_profile_bundle(profile_bundle_path)
         if profile_bundle_path
         else None,
     ) as session:
@@ -394,7 +394,7 @@ def freeze_sweep_command(
     from hllm_control.serialization import sha256_file
 
     report = read_artifact(report_path, PlanningReport)
-    bundle = read_artifact(bundle_path, ProfileBundle)
+    bundle = read_profile_bundle(bundle_path)
     manifest = read_artifact(manifest_path, ModelManifest)
     executor = read_artifact(executor_path, NativeExecutor)
     raw = json.loads(reference_path.read_text())

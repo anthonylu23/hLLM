@@ -426,3 +426,61 @@ def test_failed_load_unwinds_only_acknowledged_or_uncertain_stages(
         with session:
             raise AssertionError("failed setup must not enter session")
     assert unloaded == ([0, 1] if lost_reply else [1])
+
+
+def test_disk_bundle_equivalence_and_integrity(tmp_path, key):
+    from hllm_control.planner.measured import (
+        DiskBundleContent,
+        ProfileReference,
+        read_profile_bundle,
+        seal_disk_bundle,
+    )
+
+    manifest, bundle = bundle_fixture(tmp_path, key)
+    folder = tmp_path / "profiles"
+    folder.mkdir()
+    refs = []
+    for profile in bundle.profiles:
+        (folder / (profile.artifact_digest + ".json")).write_text(profile.model_dump_json())
+        refs.append(
+            ProfileReference(
+                artifact_digest=profile.artifact_digest, assignment=profile.key.assignment
+            )
+        )
+    content = DiskBundleContent.model_validate(
+        {
+            **bundle.model_dump(mode="json", exclude={"profiles", "bundle_digest"}),
+            "profile_references": refs,
+        }
+    )
+    path = tmp_path / "bundle.json"
+    disk = seal_disk_bundle(content, path)
+    loaded = read_profile_bundle(path)
+    before, after = report_for(manifest, bundle), report_for(manifest, loaded)
+    assert before.candidates == after.candidates
+    assert before.selected_candidate_id == after.selected_candidate_id
+    assert after.plan is not None
+    assert after.plan.profile_bundle_digest == disk.bundle_digest
+    artifact = folder / (refs[0].artifact_digest + ".json")
+    original = artifact.read_text()
+    artifact.write_text("{}")
+    with pytest.raises(ValueError):
+        read_profile_bundle(path)
+    # A bundle opened before tampering must also fail closed on subsequent access.
+    with pytest.raises(ValueError):
+        list(loaded.profiles_for(refs[0].assignment))
+    artifact.write_text(original)
+    wrong = content.model_copy(
+        update={
+            "profile_references": (
+                refs[0].model_copy(update={"assignment": refs[-1].assignment}),
+                *refs[1:],
+            )
+        }
+    )
+    with pytest.raises(ValueError, match="reference mismatch"):
+        seal_disk_bundle(wrong, tmp_path / "wrong.json")
+    assert not (tmp_path / "wrong.json").exists()
+    path.write_text(path.read_text().replace(disk.bundle_digest, "0" * 64))
+    with pytest.raises(ValueError, match="bundle digest mismatch"):
+        read_profile_bundle(path)
