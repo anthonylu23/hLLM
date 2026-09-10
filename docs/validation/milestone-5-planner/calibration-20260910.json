@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.0",
+  "scope": "separate pre-selection calibration; not acceptance sweep",
+  "setup": {
+    "completed": true,
+    "directions": {
+      "cuda-mlx": [
+        {
+          "evidence_digest": "25be23a62511bed7f5984ee6d3d877b5c8f66c863a08a811b8844a8577c3ccee",
+          "job": "cuda-mlx-00",
+          "measured_at": "2026-09-10T07:02:17.441488+00:00",
+          "raw": {
+            "client_ttft_ms": 762.5360419042408,
+            "native_setup_ms": 115.670677,
+            "native_ttft_ms": 706.829132
+          },
+          "residual_ms": 171.37758690424084
+        },
+        {
+          "evidence_digest": "6a9933446e2203484d338a5ea8e733137e7875f8b8f58c0351042146b5eef02b",
+          "job": "cuda-mlx-01",
+          "measured_at": "2026-09-10T07:05:34.898220+00:00",
+          "raw": {
+            "client_ttft_ms": 942.1822498552501,
+            "native_setup_ms": 109.411356,
+            "native_ttft_ms": 885.285997
+          },
+          "residual_ms": 166.30760885525024
+        },
+        {
+          "evidence_digest": "672920593d8e8ed4dc0cf3fead19b7b8a9b83a189bf8c184a4b9c2c0ad339688",
+          "job": "cuda-mlx-02",
+          "measured_at": "2026-09-10T07:08:51.708217+00:00",
+          "raw": {
+            "client_ttft_ms": 731.0427082702518,
+            "native_setup_ms": 109.339535,
+            "native_ttft_ms": 676.745313
+          },
+          "residual_ms": 163.6369302702517
+        },
+        {
+          "evidence_digest": "0070cf3f3541aac8a949a10c0cb733b60fb0ddfb76819ca83ca0e6f211d412b7",
+          "job": "cuda-mlx-03",
+          "measured_at": "2026-09-10T07:12:10.699985+00:00",
+          "raw": {
+            "client_ttft_ms": 1203.7154999561608,
+            "native_setup_ms": 109.054514,
+            "native_ttft_ms": 1098.714953
+          },
+          "residual_ms": 214.0550609561608
+        },
+        {
+          "evidence_digest": "7049abc54264dbaa135aa55f0bb6205b78aa81f6242c691690a52e63f6b2967c",
+          "job": "cuda-mlx-04",
+          "measured_at": "2026-09-10T07:15:33.043317+00:00",
+          "raw": {
+            "client_ttft_ms": 734.4997497275472,
+            "native_setup_ms": 107.445805,
+            "native_ttft_ms": 677.921725
+          },
+          "residual_ms": 164.02382972754708
+        }
+      ],
+      "mlx-cuda": [
+        {
+          "evidence_digest": "7b33f2f3665cad183493b9c146e531af712546ea9355f6f883e2948223a8badc",
+          "job": "mlx-cuda-00",
+          "measured_at": "2026-09-10T07:00:38.734607+00:00",
+          "raw": {
+            "client_ttft_ms": 889.6407498978078,
+            "native_setup_ms": 110.536666,
+            "native_ttft_ms": 888.725958
+          },
+          "residual_ms": 111.45145789780781
+        },
+        {
+          "evidence_digest": "bd7f0110d7f372d240146828b9e02c60675b8a1e32e0bcb559afce1fa580e4d8",
+          "job": "mlx-cuda-01",
+          "measured_at": "2026-09-10T07:03:55.576502+00:00",
+          "raw": {
+            "client_ttft_ms": 785.5302919633687,
+            "native_setup_ms": 103.5675,
+            "native_ttft_ms": 783.375334
+          },
+          "residual_ms": 105.7224579633687
+        },
+        {
+          "evidence_digest": "a0762d8b4fc4b342ef265c20557bffeaa5b03aba55b9177c935a6c28e872699e",
+          "job": "mlx-cuda-02",
+          "measured_at": "2026-09-10T07:07:13.023795+00:00",
+          "raw": {
+            "client_ttft_ms": 767.6312918774784,
+            "native_setup_ms": 105.053666,
+            "native_ttft_ms": 765.50975
+          },
+          "residual_ms": 107.17520787747833
+        },
+        {
+          "evidence_digest": "b90e119833b25c73370488238b366ea0eacff29ebf93698792d2eefd0c4325e8",
+          "job": "mlx-cuda-03",
+          "measured_at": "2026-09-10T07:10:27.895652+00:00",
+          "raw": {
+            "client_ttft_ms": 736.9040832854807,
+            "native_setup_ms": 100.478084,
+            "native_ttft_ms": 734.904
+          },
+          "residual_ms": 102.47816728548071
+        },
+        {
+          "evidence_digest": "3c9372edd63274e399e9404f1944283d7831d1f6e76f5aca52997ccaee1f983f",
+          "job": "mlx-cuda-04",
+          "measured_at": "2026-09-10T07:13:53.344238+00:00",
+          "raw": {
+            "client_ttft_ms": 731.6452921368182,
+            "native_setup_ms": 112.577625,
+            "native_ttft_ms": 730.019209
+          },
+          "residual_ms": 114.20370813681814
+        }
+      ]
+    },
+    "method": "native_setup + client_TTFT - native_TTFT; retain only the third request after two warmups in each fresh reference-checked job"
+  },
+  "links": [
+    {
+      "direction": "mlx-cuda",
+      "digest": "8d42a9ea24eac3348620fe99675bd2d2220a4a08caedbd3d005ed95173e88e40",
+      "warmup_cycles": 2,
+      "measured_cycles": 3,
+      "path_observations": 136,
+      "route": "direct",
+      "summary": {
+        "profile_digest": "8d42a9ea24eac3348620fe99675bd2d2220a4a08caedbd3d005ed95173e88e40",
+        "qualified": true,
+        "error": null,
+        "buckets": [
+          {
+            "phase": "prefill",
+            "payload_bytes": 1048576,
+            "count": 3,
+            "round_trip_median_ms": 236.745583,
+            "round_trip_min_ms": 225.128875,
+            "round_trip_max_ms": 363.036625,
+            "sender_encode_median_ms": 0.833875,
+            "exchange_median_ms": 237.580792
+          },
+          {
+            "phase": "decode",
+            "payload_bytes": 2048,
+            "count": 765,
+            "round_trip_median_ms": 53.374125,
+            "round_trip_min_ms": 46.434625,
+            "round_trip_max_ms": 171.070583,
+            "sender_encode_median_ms": 0.001917,
+            "exchange_median_ms": 53.376458
+          }
+        ],
+        "attribution": "Exchange = sender encode + native RPC round trip including feedback. GPU conversion and model compute are excluded. Never halve RTT or add feedback again.",
+        "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval."
+      }
+    },
+    {
+      "direction": "cuda-mlx",
+      "digest": "f3aee02b6c56fb74a9f9375a8f05b51a628f27344b19852ba5310d00efda82f9",
+      "warmup_cycles": 2,
+      "measured_cycles": 3,
+      "path_observations": 148,
+      "route": "direct",
+      "summary": {
+        "profile_digest": "f3aee02b6c56fb74a9f9375a8f05b51a628f27344b19852ba5310d00efda82f9",
+        "qualified": true,
+        "error": null,
+        "buckets": [
+          {
+            "phase": "prefill",
+            "payload_bytes": 1048576,
+            "count": 3,
+            "round_trip_median_ms": 302.356362,
+            "round_trip_min_ms": 299.335499,
+            "round_trip_max_ms": 349.6719,
+            "sender_encode_median_ms": 0.487805,
+            "exchange_median_ms": 302.84416699999997
+          },
+          {
+            "phase": "decode",
+            "payload_bytes": 2048,
+            "count": 765,
+            "round_trip_median_ms": 53.857784,
+            "round_trip_min_ms": 47.217687,
+            "round_trip_max_ms": 305.680542,
+            "sender_encode_median_ms": 0.0009,
+            "exchange_median_ms": 53.860233
+          }
+        ],
+        "attribution": "Exchange = sender encode + native RPC round trip including feedback. GPU conversion and model compute are excluded. Never halve RTT or add feedback again.",
+        "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval."
+      }
+    }
+  ],
+  "link_cycle_rationale": "Two warmup streams plus three measured streams per direction keep the five 256-exchange streams inside the fixed 120-second native deadline. Independent sweep repetitions are unchanged.",
+  "setup_requests_exact": 30,
+  "cleanup_verified": true
+}

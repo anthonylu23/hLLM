@@ -130,6 +130,15 @@ compute artifacts. CUDA remains complete. The remaining 15 MLX assignments,
 setup/link calibration and the independent sweep are still pending. The user has
 authorized pushing the current work to a branch and continuing qualification with
 30-minute checks; no acceptance result is implied by that checkpoint commit.
+
+The 02:57 local heartbeat on September 10 found both profile batches complete.
+The [complete profile audit](milestone-5-planner/all-profile-coverage.json) verifies
+all 216 memory/compute artifacts, unique assignment coverage and consistent scope
+and environment identities. Production request-setup calibration is now running:
+five fresh measured jobs per direction, each preceded by two reference-checked
+warmups, with independent memory probes and unload checks. Directional links,
+fresh physical/path snapshots, frozen selection and the independent sweep remain
+pending. Calibration is separate from acceptance timing.
 Private run logs and the exact restart instructions are in
 `build/m5-acceptance/README.md`. Pilot workers were retired and the temporary
 source-specific firewall rule was removed. No acceptance sweep has been frozen
@@ -154,3 +163,19 @@ and run all 54 candidates once resource headroom permits. Publish the complete
 coverage, correctness, drift, cleanup, uncertainty and prediction-error report before
 claiming M5 acceptance. 4B and the separate 32K capacity workload require their own
 physical-fit and inference qualification.
+
+Production setup calibration and both directional link profiles now pass; the
+[calibration audit](milestone-5-planner/calibration-20260910.json) records five setup
+samples per direction and 30 exact-reference requests including warmups. The first
+full planner attempt exhausted its 5 GiB address-space cap while serializing the
+216-profile collection. Disk-backed bundle support preserves all raw evidence and
+validation while loading profiles by assignment. The real bundle indexed at about
+215 MiB peak RSS; measured selection and independent acceptance remain pending.
+
+The disk planner completed all 54 candidates with measured evidence and no unknown
+or infeasible candidates. It selected `mlx--cuda-m001` (MLX → CUDA, split after layer
+1), using a peak RSS of 248,880 KiB (243 MiB) across assembly and evaluation. The
+selection, bundle, reference and executor are frozen and the independent sweep has
+started. The first reference job passed fresh memory probes and entered inference.
+Acceptance is still pending the complete sweep, correctness/health checks, drift and
+bootstrap regret gates. The 30-minute monitor tracks progress and preserves failures.
