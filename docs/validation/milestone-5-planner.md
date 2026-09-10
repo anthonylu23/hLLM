@@ -188,3 +188,11 @@ and owned processes/firewall rules were cleaned up. The
 F32 logit margin at that position and a tie after F16 rounding. Mixed-backend tracing
 is still required to establish the cause. This is a failed correctness gate, with
 full acceptance and statistical comparison incomplete.
+
+[Mixed-boundary controls](milestone-5-planner/boundary-trace-01.json) reproduce the
+failure with exported native F16 payloads. The same CUDA suffix chooses the correct
+token when given the independent F32 prefix rounded to the same F16 wire format.
+Increasing only the native CUDA suffix to F32 does not restore the reference token.
+This localizes the decisive difference to prefix numerical values for this history;
+it does not establish a faulty individual MLX operation. An F32 MLX-prefix diagnostic
+was rejected by the unchanged admission cap. No acceptance margins were relaxed.
