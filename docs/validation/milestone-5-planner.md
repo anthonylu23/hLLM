@@ -179,3 +179,12 @@ selection, bundle, reference and executor are frozen and the independent sweep h
 started. The first reference job passed fresh memory probes and entered inference.
 Acceptance is still pending the complete sweep, correctness/health checks, drift and
 bootstrap regret gates. The 30-minute monitor tracks progress and preserves failures.
+
+The first sweep stopped on an exact-token correctness failure at MLX → CUDA split
+25, in the first warmup of its twelfth job. Eleven jobs succeeded beforehand. The
+first mismatch is output token 146; failed evidence and frozen selection are retained,
+and owned processes/firewall rules were cleaned up. The
+[failure audit](milestone-5-planner/sweep-01-failure.json) records a small independent
+F32 logit margin at that position and a tie after F16 rounding. Mixed-backend tracing
+is still required to establish the cause. This is a failed correctness gate, with
+full acceptance and statistical comparison incomplete.
