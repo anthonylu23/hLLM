@@ -234,11 +234,21 @@ A replay of the exact boundary history reproduces the mismatch. A separate
 [F32 final-projection control](milestone-5-planner/head-f32-control.json) also chooses
 4034, with unchanged last-layer activations. Final-logit rounding alone therefore does
 not explain this failure. No additional production kernel or acceptance-policy change
-has been made. A diagnostic matrix is checking all 54 placements against all 256
-teacher-forced reference steps to establish the scope of the numerical differences.
+has been made. The [completed diagnostic matrix](milestone-5-planner/correctness-matrix-01.json)
+checked all 54 placements against all 256 teacher-forced reference steps: 51 were
+exact, with one mismatch each at reverse split 1 and forward splits 17 and 19.
 These diagnostics do not count as independent serving or timing acceptance.
 
 Next, use that matrix to guide a numerical fix or identify a precision-policy decision.
 Any implementation change needs broad correctness validation and refreshed affected
 measurements before a new frozen sweep. Full coverage, health checks, drift and
 statistical regret acceptance remain outstanding; 4B and 32K remain unqualified.
+
+The [independent oracle controls](milestone-5-planner/oracle-matrix-control.json)
+match all 256 tokens in both F32 and F16. The two affected positions have F32
+winning margins of about 0.005796 and 0.001921; both become ties in the F16 oracle.
+Replaying [F32 oracle prefixes rounded to F16 boundaries](milestone-5-planner/oracle-boundary-matrix-01.json)
+through the three failing suffixes recovers all 256 exact tokens in each case.
+This localizes sensitivity to the prefix inputs, without proving a specific kernel
+bug. Next, compare prefix intermediate values at these positions with the oracle
+before selecting any further precision change. Strict acceptance remains unchanged.

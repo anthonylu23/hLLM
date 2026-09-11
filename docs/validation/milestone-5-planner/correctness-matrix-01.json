@@ -1,0 +1,356 @@
+{
+  "audited_at": "2026-09-11T09:41:05.348975+00:00",
+  "mode": "teacher-forced diagnostic, not acceptance timing or serving",
+  "placements": 54,
+  "outputs_per_placement": 256,
+  "exact_placements": 51,
+  "matching_outputs": 13821,
+  "total_outputs": 13824,
+  "all_saved_raw_hashes_verified": true,
+  "all_plan_pairs_verified": true,
+  "results": [
+    {
+      "candidate": "cuda--mlx-m001",
+      "exact": false,
+      "mismatches": [
+        {
+          "index": 145,
+          "expected": 2487,
+          "actual": 4034
+        }
+      ],
+      "audit_sha256": "784342c39d9c51fc942542af6530467e53213a7a8d26a5d83767940f4a72d9a5"
+    },
+    {
+      "candidate": "cuda--mlx-m002",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "b66c1981cc35da1abec62af4f63463aa8ea2c42c0e74f7cf161d4e12794a2d71"
+    },
+    {
+      "candidate": "cuda--mlx-m003",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "0600531603f1340425d6a88d49cc9eec79c2acc1ef11db3187c1a497c78b6c9a"
+    },
+    {
+      "candidate": "cuda--mlx-m004",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "71f01c7e34d0251826593e023d95ca3783e1015eee9e0de54719da8b27f0f8ee"
+    },
+    {
+      "candidate": "cuda--mlx-m005",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "5d3b9ad8a80d6d425753178ad15084067dafd62744cb5a16b1146356749b4bf2"
+    },
+    {
+      "candidate": "cuda--mlx-m006",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "f443ff491d27529e812c9ea7ffc039df668f045f3015887f007b2f403c3bfd7c"
+    },
+    {
+      "candidate": "cuda--mlx-m007",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "7e5718aae4edd24e3a0e23921f4476ea2f717ea64a2305ffbafc94ebd2742cc1"
+    },
+    {
+      "candidate": "cuda--mlx-m008",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "7e184e15e85620e8826c48f11467a6a907baae37e8639a7bb896a63f7d6c9d1c"
+    },
+    {
+      "candidate": "cuda--mlx-m009",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "15e7f291dc7ce6dfc34a396e4fb6bfefe175922311d2132bbbfdb953ed7da5e1"
+    },
+    {
+      "candidate": "cuda--mlx-m010",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "2414ca633c448f066d0fa34c7236b7201c8a35909dfb8b65e6319b24710123e0"
+    },
+    {
+      "candidate": "cuda--mlx-m011",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "ee687f1d454f18b19229450599a1ac9176489ed2b9029240db05d0a0ce4034c4"
+    },
+    {
+      "candidate": "cuda--mlx-m012",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "1cfa613194c78d85b7a98bc83829a2353c55b55d76e0ba0ee2d00973414a6d3a"
+    },
+    {
+      "candidate": "cuda--mlx-m013",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "3ce5ee9ecf9d54248680472478804a398dc29bfcb5d9bbdfb02860be57313852"
+    },
+    {
+      "candidate": "cuda--mlx-m014",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "45c0170e17e46e75187e4398ad603b6e0ea36006af9a063bda07002605fc5680"
+    },
+    {
+      "candidate": "cuda--mlx-m015",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "4be0b7edd82b11ff0fff82b0b217dd570e56b1232707811b91c220898099296a"
+    },
+    {
+      "candidate": "cuda--mlx-m016",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "ac4f09b49ca5a5a146dec5bafc33ee0107d2f04c7126a1581827e6b1a09ce9e2"
+    },
+    {
+      "candidate": "cuda--mlx-m017",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "2528e3322cc1379847c7373fec339bc442b89055571491fb0ecc9fe07c747c82"
+    },
+    {
+      "candidate": "cuda--mlx-m018",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "5b27737d2edb7193d6eef421556e96d3f5f899c0e9eaee8832647edac3779cf9"
+    },
+    {
+      "candidate": "cuda--mlx-m019",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "a8630b81fcd0b174c5fe3bba484efa7315738c4a2e091b47428204337dd80bc5"
+    },
+    {
+      "candidate": "cuda--mlx-m020",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "614122b871aff6507f711090e69cb39c32f0ee73eb6887ac0b520fe6028514e6"
+    },
+    {
+      "candidate": "cuda--mlx-m021",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "a38f91a124b58b1b936cc8ad27872a98be6c159c51a72f70a571bb1bec86cfe1"
+    },
+    {
+      "candidate": "cuda--mlx-m022",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "a240ac014d0ae3954da3a5cf616891c2618e8956612de3a7a5de97a38f12874f"
+    },
+    {
+      "candidate": "cuda--mlx-m023",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "1f6a0c36cfb3f150193be28ac13f857d1f5e0ce0d57b0604175a61e687cd8905"
+    },
+    {
+      "candidate": "cuda--mlx-m024",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "4524a96fb2957f35cd652fbf7db7fb3883f6683c8c72fca5e0e85a5a9abe740a"
+    },
+    {
+      "candidate": "cuda--mlx-m025",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "60c156672c26795b0217ad256c284df2a297d17d2f8d7c586326d9af9043249b"
+    },
+    {
+      "candidate": "cuda--mlx-m026",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "aff9e213342fefe4640a75c1913f45d6695aa72b9b0f953ea0f81ae6f3580334"
+    },
+    {
+      "candidate": "cuda--mlx-m027",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "2cf8be7c753badea04eec53a490b80d57ded172b16ea70755345d61a3795948d"
+    },
+    {
+      "candidate": "mlx--cuda-m001",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "9fd03ba063a184932337af1e66b3c47e3e9ac838a1f46f6dd13514bac5ed721f"
+    },
+    {
+      "candidate": "mlx--cuda-m002",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "72cf5229844b33f803d3a241af4c8135dfd48e486d3f0014da680376ec9b7e04"
+    },
+    {
+      "candidate": "mlx--cuda-m003",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "b6f139daabbd7f54834609a30bbcb4c9e70b34a1636705605e618d5821ed74f7"
+    },
+    {
+      "candidate": "mlx--cuda-m004",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "8e3200d002074c8749842238939f41ab835332f6cd20fd05d009303aaea9dd5e"
+    },
+    {
+      "candidate": "mlx--cuda-m005",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "b9f61df38c7298bf678f889495f221805821261206102e788feb76b9f27a6e8f"
+    },
+    {
+      "candidate": "mlx--cuda-m006",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "4e8749aefc2d15df7de435cb9e7aac53ad1ac9cf8fb1582ab42f9dcc181e559f"
+    },
+    {
+      "candidate": "mlx--cuda-m007",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "2a68ef41ab0dc4d88745a92a4ca083feeb9d3a56d0064807fb8616e17ff97ba4"
+    },
+    {
+      "candidate": "mlx--cuda-m008",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "eeb853e58242e6df266efaeb83fb4dead84163133c5b2aa7fb209a2e8d17db9c"
+    },
+    {
+      "candidate": "mlx--cuda-m009",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "58949eb9f80254a9cf19796b37a3b6b917c5d236f867fe8ec0278492a997bb6d"
+    },
+    {
+      "candidate": "mlx--cuda-m010",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "fe1b4d1cc9b74c2635103de1591fa97d7fe4db54940c2867ed653606687a932c"
+    },
+    {
+      "candidate": "mlx--cuda-m011",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "b3622536512c485f41392caca65e1926783d9f18a16d59f9f5cbd9ea10f905a5"
+    },
+    {
+      "candidate": "mlx--cuda-m012",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "6f4e3b9a4c029bec8dc3722522198c5249404d9483071bf69e41f6b90fb374c3"
+    },
+    {
+      "candidate": "mlx--cuda-m013",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "49827931eafc90aa7355d45245e84cb6d0737769889b2fece3fe2486523d2991"
+    },
+    {
+      "candidate": "mlx--cuda-m014",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "58597dcca6766d17e0676d6798f141eddfa98e1880ee46e43d6c9ef038391403"
+    },
+    {
+      "candidate": "mlx--cuda-m015",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "3e88636bd5200f634543ab2ee476d266038ad118d170e32a0f00fbdc0023b15f"
+    },
+    {
+      "candidate": "mlx--cuda-m016",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "3fac6219133ce692d60aadc8ab0346938694229db8c6be6e0294c575685643cd"
+    },
+    {
+      "candidate": "mlx--cuda-m017",
+      "exact": false,
+      "mismatches": [
+        {
+          "index": 200,
+          "expected": 2525,
+          "actual": 3055
+        }
+      ],
+      "audit_sha256": "07b1adf1d79a7026c92a4017bc980364da8d91fc0f1fcd6c6776484d91a31900"
+    },
+    {
+      "candidate": "mlx--cuda-m018",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "c0bc140fa0037acc47905b989fd2f969b9b3d3966f560ac88c4bbbfd95026e85"
+    },
+    {
+      "candidate": "mlx--cuda-m019",
+      "exact": false,
+      "mismatches": [
+        {
+          "index": 200,
+          "expected": 2525,
+          "actual": 3055
+        }
+      ],
+      "audit_sha256": "75e77803326f1cc7ba7d9821e8db36a999685e0a4b297220d413d24d67ad8875"
+    },
+    {
+      "candidate": "mlx--cuda-m020",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "d1a1d7f97b6a39cc94dab552365b69135f5bc950605115d8bbc1cf580e85e754"
+    },
+    {
+      "candidate": "mlx--cuda-m021",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "fdc8df131069fd60b1ec3a7581c0ad312725ef8dad774167c3fe4ecdcbc276a8"
+    },
+    {
+      "candidate": "mlx--cuda-m022",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "7c9055575dde422b197eab8ef15819b77bf416dc25b282c0e41e752bb2daefb1"
+    },
+    {
+      "candidate": "mlx--cuda-m023",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "2b9817ac5ebfea61eb5c94d1a41d0d3ac10f0f453c8abb3d4c77e0c4dec532a3"
+    },
+    {
+      "candidate": "mlx--cuda-m024",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "25bfa270007134e05c6b62fff9232a3f4a0bd22fc8dea8b92d43ca19ca631914"
+    },
+    {
+      "candidate": "mlx--cuda-m025",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "b6309ddb1b5fa587ef6755f64cb6302d1abad7128f75a913fe694889421ac2fb"
+    },
+    {
+      "candidate": "mlx--cuda-m026",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "fcbc9bab7dfb7c90505e6d995276a55932739d47fb546ad4cbe05cf6d01a6f41"
+    },
+    {
+      "candidate": "mlx--cuda-m027",
+      "exact": true,
+      "mismatches": [],
+      "audit_sha256": "fcdff50482299d1ae1ffabb1f1fe1cf5d8329a517dfc2f24b6b0fe4e98dce69f"
+    }
+  ],
+  "interpretation": "Three placements differ at one reference-history step each. Teacher forcing prevents downstream divergence; this does not establish free-running acceptance. No candidate is excluded and strict acceptance remains failed."
+}
