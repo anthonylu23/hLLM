@@ -1,0 +1,18 @@
+{
+  "audited_at": "2026-09-11T09:08:26.098651+00:00",
+  "candidate": "cuda--mlx-m001",
+  "control": "Copied MLX stage with only final LM-head input and weights cast to F32 for matmul; production binary unchanged. Same F16 boundary history, same caps.",
+  "steps": 146,
+  "first_mismatch_index": 145,
+  "expected": 2487,
+  "actual": 4034,
+  "expected_logit": 18.066640853881836,
+  "actual_logit": 18.071147918701172,
+  "last_layer_rows_identical_to_production": true,
+  "sha256": {
+    "stage.cpp": "0356b71bac7dfdb550a49e96675371c1e7f153f993e01fabc2deff81d5d4cd0c",
+    "hllm-boundary-trace-mlx-head-f32": "f96a7c91da98a2749ae8d5b9321f63319d95186c78c684c6db58677fbade0989",
+    "result.json": "824621f2bb9adf95a70d0bc9cefd204f00065e24659b28dba5f1e005e6dd8e16"
+  },
+  "conclusion": "Higher precision final projection alone does not recover the reference token. Investigate upstream numerical differences across placements before further production changes."
+}

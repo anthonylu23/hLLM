@@ -3,8 +3,8 @@
 Measured planning and the independent sweep runner are implemented and tested.
 **Full checkpoint M5 acceptance is pending.** There is no qualified automatic
 0.6B selection or <=15% regret result yet. The 4B target remains unqualified.
-The [machine-readable status](milestone-5-planner/status.json) deliberately records
-zero independently timed full-checkpoint candidates and a null selected plan/regret.
+The [machine-readable status](milestone-5-planner/status.json) records the latest
+measured selection and partial sweep coverage; regret remains unqualified.
 
 ## Implemented behavior
 
@@ -217,3 +217,28 @@ Corrected MLX and refreshed CUDA profile collection is complete. The
 consistent scope identities. Production setup calibration with the corrected binary
 is running five fresh jobs per direction. New link/snapshot evidence, measured
 selection and the independent sweep are still required; the failed sweep is preserved.
+
+## Corrected sweep and numerical follow-up — 2026-09-11
+
+Refreshed profiling covers all 216 artifacts. The [new calibration audit](milestone-5-planner/calibration-silu-20260911.json)
+records 30 exact setup requests and qualified links in both directions. A new measured
+plan selected MLX → CUDA after layer 3 and was frozen before independent timing.
+
+The [corrected sweep](milestone-5-planner/sweep-silu-02-failure.json) stopped after
+seven successful jobs (one selected reference and six candidates). CUDA → MLX after
+layer 1 failed its first warmup at output index 145: expected 2487, observed 4034.
+Owned processes exited and the firewall rule was removed; normal unload was not proven
+for the failed job. Both failed sweeps and their original evidence remain intact.
+
+A replay of the exact boundary history reproduces the mismatch. A separate
+[F32 final-projection control](milestone-5-planner/head-f32-control.json) also chooses
+4034, with unchanged last-layer activations. Final-logit rounding alone therefore does
+not explain this failure. No additional production kernel or acceptance-policy change
+has been made. A diagnostic matrix is checking all 54 placements against all 256
+teacher-forced reference steps to establish the scope of the numerical differences.
+These diagnostics do not count as independent serving or timing acceptance.
+
+Next, use that matrix to guide a numerical fix or identify a precision-policy decision.
+Any implementation change needs broad correctness validation and refreshed affected
+measurements before a new frozen sweep. Full coverage, health checks, drift and
+statistical regret acceptance remain outstanding; 4B and 32K remain unqualified.

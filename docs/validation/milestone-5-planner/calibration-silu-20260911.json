@@ -1,0 +1,142 @@
+{
+  "audited_at": "2026-09-11T05:54:29.499427+00:00",
+  "exact_requests": 30,
+  "setup_jobs_per_direction": 5,
+  "warmup_requests_per_job": 2,
+  "setup_summary_sha256": "118534d15e9f0bae4b03f721e9f781d806d3b925a7e181995c3d121a2f816fe4",
+  "setup_method": "native_setup + client_TTFT - native_TTFT; retain only the third request after two warmups in each fresh reference-checked job",
+  "setup_samples": {
+    "cuda-mlx": [
+      {
+        "evidence_digest": "1d66d0881e286b25f4c4231feee0d2f52ff3ee60d12e87f62d31c82861825ca0",
+        "job": "cuda-mlx-00",
+        "measured_at": "2026-09-11T05:22:33.323040+00:00",
+        "raw": {
+          "client_ttft_ms": 824.7377499938011,
+          "native_setup_ms": 114.225782,
+          "native_ttft_ms": 772.269531
+        },
+        "residual_ms": 166.69400099380107
+      },
+      {
+        "evidence_digest": "59fca5cc68185de11d7986ce94f1107d48c6867da69d806f33f5496fe927845e",
+        "job": "cuda-mlx-01",
+        "measured_at": "2026-09-11T05:25:48.119487+00:00",
+        "raw": {
+          "client_ttft_ms": 752.6362920179963,
+          "native_setup_ms": 105.643063,
+          "native_ttft_ms": 692.255493
+        },
+        "residual_ms": 166.0238620179963
+      },
+      {
+        "evidence_digest": "7ae79ed75f36e9478e045eb6785281183c8169380fb6a4eb57b7357c9c9eb67f",
+        "job": "cuda-mlx-02",
+        "measured_at": "2026-09-11T05:29:06.146862+00:00",
+        "raw": {
+          "client_ttft_ms": 755.1199998706579,
+          "native_setup_ms": 114.97564,
+          "native_ttft_ms": 704.196552
+        },
+        "residual_ms": 165.89908787065792
+      },
+      {
+        "evidence_digest": "4f41fe2d515a27a83ceb7fe5a329d8da43f77bceb83f797103d091178e9356e5",
+        "job": "cuda-mlx-03",
+        "measured_at": "2026-09-11T05:32:26.640985+00:00",
+        "raw": {
+          "client_ttft_ms": 768.5178332030773,
+          "native_setup_ms": 109.566554,
+          "native_ttft_ms": 712.107006
+        },
+        "residual_ms": 165.97738120307736
+      },
+      {
+        "evidence_digest": "5f9fd71185bfd76d9179b58ddacff427641eabd6a0382be879b95045d013fba5",
+        "job": "cuda-mlx-04",
+        "measured_at": "2026-09-11T05:35:51.944030+00:00",
+        "raw": {
+          "client_ttft_ms": 742.7066252566874,
+          "native_setup_ms": 110.401465,
+          "native_ttft_ms": 684.012547
+        },
+        "residual_ms": 169.0955432566874
+      }
+    ],
+    "mlx-cuda": [
+      {
+        "evidence_digest": "d05b8ba0fa450701cf413ef1d79f0c02a4b1ebcec210d3d3ec5d1a588cba8238",
+        "job": "mlx-cuda-00",
+        "measured_at": "2026-09-11T05:20:51.135686+00:00",
+        "raw": {
+          "client_ttft_ms": 717.6855420693755,
+          "native_setup_ms": 100.451834,
+          "native_ttft_ms": 715.710292
+        },
+        "residual_ms": 102.4270840693755
+      },
+      {
+        "evidence_digest": "1670a947496c64a4d027903c6947559af18a45b677286d0be45f1ed35b7deb07",
+        "job": "mlx-cuda-01",
+        "measured_at": "2026-09-11T05:24:10.720854+00:00",
+        "raw": {
+          "client_ttft_ms": 757.4197500944138,
+          "native_setup_ms": 99.345417,
+          "native_ttft_ms": 755.319958
+        },
+        "residual_ms": 101.44520909441371
+      },
+      {
+        "evidence_digest": "4a6ab4f202c14b4e9a5e0e734708fb69249644bb09742a029cdf1b7d0acdb165",
+        "job": "mlx-cuda-02",
+        "measured_at": "2026-09-11T05:27:26.931013+00:00",
+        "raw": {
+          "client_ttft_ms": 746.6493751853704,
+          "native_setup_ms": 113.229583,
+          "native_ttft_ms": 744.426458
+        },
+        "residual_ms": 115.45250018537047
+      },
+      {
+        "evidence_digest": "0108cc86e40aa62b1263573ff28a6838bbb46b125102ce4708d41c3b46b54ce2",
+        "job": "mlx-cuda-03",
+        "measured_at": "2026-09-11T05:30:44.447233+00:00",
+        "raw": {
+          "client_ttft_ms": 746.3424587622285,
+          "native_setup_ms": 107.807375,
+          "native_ttft_ms": 744.95675
+        },
+        "residual_ms": 109.19308376222841
+      },
+      {
+        "evidence_digest": "46f4d4fbb9e832ac7b54056d0d7651734f77387d7cec23f273431a48d00c43f2",
+        "job": "mlx-cuda-04",
+        "measured_at": "2026-09-11T05:34:10.080482+00:00",
+        "raw": {
+          "client_ttft_ms": 792.3126253299415,
+          "native_setup_ms": 103.455583,
+          "native_ttft_ms": 790.289709
+        },
+        "residual_ms": 105.47849932994154
+      }
+    ]
+  },
+  "links": {
+    "mlx-cuda": {
+      "artifact_digest": "4b1705972a69b533cf76cce512bc3df2000d93f4255971d2594578d4d2d60b28",
+      "raw_sha256": "685554cd10adffcfca16d5b12889eb1f76c1e06713b629cffc1763ef49093e35",
+      "qualified": true,
+      "warmup_cycles": 2,
+      "measured_cycles": 3
+    },
+    "cuda-mlx": {
+      "artifact_digest": "7e5940d3d3a2032cae4fe49c28baf7668ceaeb883b379caa9df32cbe6288b90a",
+      "raw_sha256": "b587ffc9f04f2e54bb1f303e0a2498208c5ce1a161f9be1d0deda6aec45fc08d",
+      "qualified": true,
+      "warmup_cycles": 2,
+      "measured_cycles": 3
+    }
+  },
+  "setup_and_link_firewall_cleanup_verified": true,
+  "scope": "corrected MLX, 512 prompt +256 generated tokens, concurrency1"
+}
