@@ -303,3 +303,11 @@ and recovers all 256 tokens. Cache allocation and memory accounting both use fou
 bytes per element under the same caps. This establishes a contribution from suffix
 cache quantization for this case; F32 KV does not qualify the F16 target. Next,
 isolate key versus value quantization before considering F16-preserving changes.
+
+Separate [key and value controls](milestone-5-planner/cuda-key-value-controls.json)
+each restore all 256 exact tokens at forward split 4. Both correctly account for
+six bytes per key/value element pair under unchanged caps. This does not uniquely
+identify one cache as faulty. A full F32-KV diagnostic matrix is prepared with
+four-byte cache allocation and accounting on both backends. Its purpose is to
+establish whether cache precision resolves the remaining sensitivity; it cannot
+qualify the F16-KV target or be adopted without an explicit precision decision.
