@@ -79,8 +79,11 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Matching CUDA internal-F32 diagnostic prepared; full matrix with both higher-precision controls sequenced after build. Exact-token gate unchanged.",
+  "next_step": "Finish last3 when Macheadroom permits; isolate key versus value cache quantization and engineer F16-preserving improvements. F32KV diagnostic notadopted.",
   "internal_precision_matrix_state": "complete54 across3 attempts,51exact; reverse27exact, forward16/18/21fail",
   "internal_precision_resource_file": "internal-f32-resource-stop.json",
-  "internal_precision_matrix_file": "correctness-internal-complete.json"
+  "internal_precision_matrix_file": "correctness-internal-complete.json",
+  "both_internal_matrix_state": "51complete44exact7mismatch; final3pendingresources",
+  "both_internal_matrix_file": "both-internal-progress.json",
+  "cuda_kv_control_file": "cuda-kv-control.json"
 }

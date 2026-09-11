@@ -1,0 +1,10 @@
+{
+  "scope": "Identical saved forward4 boundary from both-internal control; CUDA suffix alone usesF32KV instead ofF16. All other arithmetic unchanged.",
+  "memory": "Cache allocatedF32 and accounted4bytes/element; configuredcaps unchanged.",
+  "exact": true,
+  "mismatches": [],
+  "steps": 256,
+  "raw_sha256": "0e5d1ef597566830ea7a16b49a4fde8cd1d61729ea08fd851b5959ffa0610eaf",
+  "diagnostic_only": true,
+  "interpretation": "This control changes cacheprecision and cannot qualify the F16KV target. It tests whether suffixcachequantization contributes to the observed error; does not isolate prefixcache or wire rounding."
+}

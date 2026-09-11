@@ -294,3 +294,12 @@ CUDA → MLX split is exact, while MLX → CUDA splits 16, 18 and 21 diverge.
 This variant remains unadopted. A matching isolated CUDA precision control is being
 built for a new comparison with F32 intermediates on both stages; weights, KV storage,
 wire format, memory caps and exact-token acceptance remain unchanged.
+
+The [combined precision matrix](milestone-5-planner/both-internal-progress.json)
+completed 51 placements before a resource stop, with seven index-200 mismatches.
+The remaining three are prepared. A [CUDA KV-cache control](milestone-5-planner/cuda-kv-control.json)
+replays the identical failing forward-split-4 boundary with F32 suffix KV storage
+and recovers all 256 tokens. Cache allocation and memory accounting both use four
+bytes per element under the same caps. This establishes a contribution from suffix
+cache quantization for this case; F32 KV does not qualify the F16 target. Next,
+isolate key versus value quantization before considering F16-preserving changes.
