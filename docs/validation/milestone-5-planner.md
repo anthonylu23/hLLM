@@ -281,8 +281,8 @@ production; broad correctness, execution-contract review and fresh affected memo
 compute, calibration and serving evidence are required before acceptance.
 
 Further sweeps of unchanged production cannot pass the current correctness gate.
-The next decision is whether to continue precision engineering toward exact F32
-reference tokens for every placement, or design a numerical acceptance policy for
-cross-backend F16 execution. The latter would require explicit approval of concrete
-bounds and validation evidence before adoption; no tolerance is currently approved.
+The user confirmed continued engineering toward exact F32-reference tokens for
+every placement. Numerical tolerances remain unapproved. An isolated control with
+F32 layer intermediates and F16 stored weights, KV cache and wire boundaries is
+being investigated; it is not a production change or an acceptance result.
 The timing, memory, coverage, health and regret requirements remain unchanged.
