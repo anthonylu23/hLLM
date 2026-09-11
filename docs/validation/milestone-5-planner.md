@@ -311,3 +311,11 @@ identify one cache as faulty. A full F32-KV diagnostic matrix is prepared with
 four-byte cache allocation and accounting on both backends. Its purpose is to
 establish whether cache precision resolves the remaining sensitivity; it cannot
 qualify the F16-KV target or be adopted without an explicit precision decision.
+
+The [completed F16-KV/internal-F32 matrix](milestone-5-planner/both-internal-complete.json)
+is 47/54 exact and remains unadopted. The [F32-KV matrix](milestone-5-planner/kv-f32-progress.json)
+has 23/23 exact placements so far, with all raw hashes verified. It stopped at the
+Mac resource guard; 31 remaining placements are prepared for a fresh continuation
+without overwriting the first attempt. Full diagnostic coverage is still required,
+and even a complete pass would require an explicit precision-contract decision
+before implementation and fresh acceptance qualification.
