@@ -269,3 +269,11 @@ At the two split boundaries, errors are about 0.147% and 0.135%, versus 0.182%
 and 0.175% for the F16 oracle. This does not establish a kernel fault or satisfy
 exact-token acceptance. Any further precision experiment must demonstrate numerical
 improvement and broad correctness, rather than merely fitting the three token choices.
+
+An isolated [F32 residual control](milestone-5-planner/residual-f32-control.json)
+retains F16 weights, KV, projection outputs and boundaries while keeping residual
+sums in F32. It recovers all 256 tokens at reverse split 1 and lowers prefix error
+at splits 17 and 19 from 0.147%/0.135% to 0.095%/0.098% at index 200.
+The 54-placement diagnostic matrix is running. The control is not adopted in
+production; broad correctness, execution-contract review and fresh affected memory,
+compute, calibration and serving evidence are required before acceptance.

@@ -1,0 +1,27 @@
+{
+  "audited_at": "2026-09-11T11:25:01.787081+00:00",
+  "change": "Isolated copied MLX stage casts initial hidden state to F32, retaining residual sums across layers in F32. Normalization/projection outputs, weights, KV and wire boundaries remain F16. Production unchanged.",
+  "reverse_split1_exact_tokens": 256,
+  "prefix_relative_l2_at_index200": [
+    {
+      "split": 17,
+      "original_relative_l2": 0.001466216887867774,
+      "residual_f32_relative_l2": 0.0009537671821553535
+    },
+    {
+      "split": 19,
+      "original_relative_l2": 0.0013524384988451968,
+      "residual_f32_relative_l2": 0.0009796894695343393
+    }
+  ],
+  "same_configured_memory_caps": true,
+  "memory_limitation": "Existing workspace estimate accounts in F32 bytes, but this diagnostic does not replace fresh independent native memory and serving qualification.",
+  "sha256": {
+    "stage.cpp": "f268500f331b5112bbae3a7bdb395dd78c7b11ef3578590878b73d9c12bab963",
+    "hllm-boundary-trace-mlx-residual-f32": "3db347ba8c7d611c22619d91e620a3b9284b071e56987dd65117701bca9e1f78",
+    "cuda--mlx-m001.json": "21de0b723d6ddd56402f1ce4fe82d806bf9fcce4e4f085738f95e9264bf55161",
+    "layers-17.json": "f2e46dfcd36d7a85c2cccaacd2ee1f5213762b2b632300618a3e83edc2875974",
+    "layers-19.json": "5fe10bee4d272b506f1d0bb5afca0e22af690b13b7373456dfe369f96eeb19c1"
+  },
+  "status": "Full54-placement diagnostic matrix running; no production adoption or acceptance pass."
+}
