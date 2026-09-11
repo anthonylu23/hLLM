@@ -79,5 +79,7 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Continue engineering for exact tokens, explicitly confirmed by user. Isolated internal-F32 arithmetic control under investigation; no production or acceptance-policy change."
+  "next_step": "Continue engineering for exact tokens, explicitly confirmed by user. Isolated internal-F32 arithmetic control under investigation; no production or acceptance-policy change.",
+  "internal_precision_matrix_state": "2/54 exact; remaining52 waiting for Mac physical headroom",
+  "internal_precision_resource_file": "internal-f32-resource-stop.json"
 }

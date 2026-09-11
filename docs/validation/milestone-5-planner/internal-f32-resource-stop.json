@@ -1,0 +1,14 @@
+{
+  "state": "stopped at resource gate; completed results audited",
+  "completed_exact_candidates": [
+    "cuda--mlx-m001",
+    "mlx--cuda-m017"
+  ],
+  "remaining": 52,
+  "failure": {
+    "type": "RuntimeError",
+    "detail": "Mac physical headroom unavailable: 4520689664"
+  },
+  "required_mac_launch_headroom_bytes": 4600000000,
+  "next": "Run remaining52 under new correctness-internal-02 only after sufficient resources. Keep original attempt immutable. Combine audited coverage across both attempts."
+}
