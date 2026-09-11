@@ -1,0 +1,406 @@
+{
+  "variant": "MLX F32 intermediates, unchanged CUDA",
+  "placements": 54,
+  "exact_placements": 51,
+  "all_raw_hashes_verified": true,
+  "mac_binary_sha256": "e33cbc3584ee9d5ef61d559187034f97fc371782ae3945895068299385b1e417",
+  "results": [
+    {
+      "candidate": "cuda--mlx-m001",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-01",
+      "audit_sha256": "103663bfa5168cf8fd0cc662080d629000b9ca71cfb525099a19a03fecc1ad6c"
+    },
+    {
+      "candidate": "cuda--mlx-m002",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "e44e86aec3fc188173c2acbfb00aa7916c817a020ce87d5b19a1f8ab0eb6d3b0"
+    },
+    {
+      "candidate": "cuda--mlx-m003",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "3514c156444ff76e24d079665720812c744a15f74a683de5da8cc3c15501953c"
+    },
+    {
+      "candidate": "cuda--mlx-m004",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "fbfc166d7c155d1c548684fe62ec959ba5e9815611a2b2d26b1234ac014eb81e"
+    },
+    {
+      "candidate": "cuda--mlx-m005",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "63e03a47907ef595635931f4d542223c1bceab602269c2298ed537ba6af3ebcb"
+    },
+    {
+      "candidate": "cuda--mlx-m006",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "8b299622253ccc55e6b05efd2f33b1a3706c532340a7b23f34a397f9321f555f"
+    },
+    {
+      "candidate": "cuda--mlx-m007",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "568aefc600ce764bf27e27038d23e58984dbc4e40c61209fd1fc32fe1429e760"
+    },
+    {
+      "candidate": "cuda--mlx-m008",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "16fe34bfa4bbf87b6f7dd31a0842c434f4438c1ed2372de1998150de2af31923"
+    },
+    {
+      "candidate": "cuda--mlx-m009",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "fd55dfbaed28eb150b393796d80639cf955d06fe298546d4fc7d31b7640bc249"
+    },
+    {
+      "candidate": "cuda--mlx-m010",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "7b1999e9ab6c0dab0e939c1fc0dc9136a9c87ecb2c5eeb6679a8a833c9c91fca"
+    },
+    {
+      "candidate": "cuda--mlx-m011",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "f2af4420a0b8ef402462bf7aff4bbe97601f71f56dbc0d34d6aac4439d071484"
+    },
+    {
+      "candidate": "cuda--mlx-m012",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "333073587111d703077b74ffc76e5c2ebccae2a4e46dbcef5d9adeafd82864de"
+    },
+    {
+      "candidate": "cuda--mlx-m013",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "429314496d5ebd0bab4a143c370bf4652cccfe116a8fa77e0bbc869b1e361545"
+    },
+    {
+      "candidate": "cuda--mlx-m014",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "20a8905b8bb694b12bf279532c117d0b99f76d449a72160420e28b8a6b41df2e"
+    },
+    {
+      "candidate": "cuda--mlx-m015",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "74a6eddf5da3078876806f0d6f498046b55c4485311fe3a7a0061ca19636ce27"
+    },
+    {
+      "candidate": "cuda--mlx-m016",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "2f649540e39c63834359899aaa4625f20d5f1199d9efd6992cd9347df01f39b1"
+    },
+    {
+      "candidate": "cuda--mlx-m017",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "b5e76d0f74ddfa4e5079a9274aa514a81954818dfa702ce1cfd4eeffcd219cc2"
+    },
+    {
+      "candidate": "cuda--mlx-m018",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "9da724b42686bc1f55a2669282bc0784ceb0c44648524183a34921e09eab5507"
+    },
+    {
+      "candidate": "cuda--mlx-m019",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "66425076e9a2bb0a9b7480e655786171e2806bb551064ec28bc86ba44af0df91"
+    },
+    {
+      "candidate": "cuda--mlx-m020",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "26c0d9b3e839891686b95d2f57fa4f8ca29d2a04ca919b23e2b28160eca7cef6"
+    },
+    {
+      "candidate": "cuda--mlx-m021",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "14c2eff9fec1c41e9080e5b97e4fccbc4ae40925e76bf184b8f7dc5ccbb278e9"
+    },
+    {
+      "candidate": "cuda--mlx-m022",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "63788472e6d9e331052482866ef4fccff6c69d4d7b0d67fda42ce986e7db43eb"
+    },
+    {
+      "candidate": "cuda--mlx-m023",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "d60bf808e48cf05e19c1832d3c7d6d72df804740965abf6ab97a3d9206fa9720"
+    },
+    {
+      "candidate": "cuda--mlx-m024",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "02b061e1d89dd6bfbf3e30d8d7c0b32ef52ac6d74e7ba208eaf3dcd976ccdf20"
+    },
+    {
+      "candidate": "cuda--mlx-m025",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "0bb3ebddf0903b96a9ba41198e3db234b9cb606df4068dcfcf0571ca4d809108"
+    },
+    {
+      "candidate": "cuda--mlx-m026",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "26cad816445dcf057e4dd3849ef327f5959166b09170bc3c9356a6c11cc24798"
+    },
+    {
+      "candidate": "cuda--mlx-m027",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "016beda7ab65c5a4bd91e23dde49b5d905fdb2c5c81b3c9767d6df2843a10c68"
+    },
+    {
+      "candidate": "mlx--cuda-m001",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "0bb4c3667ab0bfeb35e67dcc9fefb7ae88d2e59156726e1daf0b925f3334c68f"
+    },
+    {
+      "candidate": "mlx--cuda-m002",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "e1fe4c0cb3e59c31611f3ba53afe8c0a62b7db0a9d4413965e1a6ce382eac321"
+    },
+    {
+      "candidate": "mlx--cuda-m003",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "aa4caf9ab21c26261fa30bb14d2d40d2bfab896918ef879a4faeb757ad353f57"
+    },
+    {
+      "candidate": "mlx--cuda-m004",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "36ca8b09c7505b2929b1caa8be4c243be1bccd277d65c078dc64df0741e374ec"
+    },
+    {
+      "candidate": "mlx--cuda-m005",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "8f8d61878110707e7d419d319c46da4874e3eb8406c939318ef4d1498ad89fbc"
+    },
+    {
+      "candidate": "mlx--cuda-m006",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "51b917d42f9050fb096ab48d4373d0c6d055449b337d3fe7cf486d15e137e665"
+    },
+    {
+      "candidate": "mlx--cuda-m007",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "1c6ece3f0415245a256756d12060fd50e53eadd9e5349b0ef9e88a969f8f7cb8"
+    },
+    {
+      "candidate": "mlx--cuda-m008",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "c1346b2ff48f2751038dddd0b6127a90762035acbc488e53a26cb182e5771b2d"
+    },
+    {
+      "candidate": "mlx--cuda-m009",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "025436a4e2aef48ad24c5eb3e1cdaa17197362af96e4988406bd25ce8f1b7380"
+    },
+    {
+      "candidate": "mlx--cuda-m010",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "0989133aa60f738cf7e0d87bca41b588a08007fad9df3ec046e6c3f1d3d02ab5"
+    },
+    {
+      "candidate": "mlx--cuda-m011",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "da6d1b07c5a87e689209a5b11f961481923446630f70c999dfa0bd413afc46b3"
+    },
+    {
+      "candidate": "mlx--cuda-m012",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "04ba402adc53292fc932401dba2241217d0139bbd6cf3e12cb40587ab31bc6a5"
+    },
+    {
+      "candidate": "mlx--cuda-m013",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "76e14e0db5f0acb24346f2907c99faebc299dd391245a238186af4fb7a68ba93"
+    },
+    {
+      "candidate": "mlx--cuda-m014",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "34cc490d97e670e154bb4305af0f20871857ca4c9755c7dfd03e600a0e9fcbda"
+    },
+    {
+      "candidate": "mlx--cuda-m015",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "4ba52b24ebc329d42f9e6892a78588f0bb0ccf1c2aa5769e56f3a1b080440c27"
+    },
+    {
+      "candidate": "mlx--cuda-m016",
+      "exact": false,
+      "mismatches": [
+        {
+          "index": 200,
+          "expected": 2525,
+          "actual": 3055
+        }
+      ],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "b701658cebde43e731a6cb7a760db03c51bfdd7d641568a1c893202629227847"
+    },
+    {
+      "candidate": "mlx--cuda-m017",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-01",
+      "audit_sha256": "d9f7d74da49a6dc139a990d5584e66738c50ed6fb0e8a208fba9435a63ee5182"
+    },
+    {
+      "candidate": "mlx--cuda-m018",
+      "exact": false,
+      "mismatches": [
+        {
+          "index": 200,
+          "expected": 2525,
+          "actual": 3055
+        }
+      ],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "3b5776aac5dca149eed864cbc4abd6ec35ce5bdeb563c4ab5ed679aa79691386"
+    },
+    {
+      "candidate": "mlx--cuda-m019",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "20a95e76ba4dbd043e41ed9b2c00f6ce45dd0692ead8e726c7b64583138c08a4"
+    },
+    {
+      "candidate": "mlx--cuda-m020",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "e44fd58b64eacda3a6cf801a0e6a928353b7b438bd0b4452f52539f7c90a4dcd"
+    },
+    {
+      "candidate": "mlx--cuda-m021",
+      "exact": false,
+      "mismatches": [
+        {
+          "index": 145,
+          "expected": 2487,
+          "actual": 4034
+        }
+      ],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "63b4cb4ad7a6d2b17b3acfa9b51d4dfe48661a78f1da4b9e7cb86b3befaae6ac"
+    },
+    {
+      "candidate": "mlx--cuda-m022",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "c26c83f2a9ad63d191a02333f865cd2d1175b65b86ad1a9d042a9dddadbd5343"
+    },
+    {
+      "candidate": "mlx--cuda-m023",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-03",
+      "audit_sha256": "62944c79c75c36957fe41fcc4234ce6579d85775312b142ca01784c56cc7a5cb"
+    },
+    {
+      "candidate": "mlx--cuda-m024",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-03",
+      "audit_sha256": "608ffe0ad64891efe45fe77884ab54f88b78da34d4dfe7113d7be23a527fa8ef"
+    },
+    {
+      "candidate": "mlx--cuda-m025",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-02",
+      "audit_sha256": "f5a288a4d0274b89684ec4efcfe4ba8f2b35143e7398e79ba487807f90fa26ef"
+    },
+    {
+      "candidate": "mlx--cuda-m026",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-03",
+      "audit_sha256": "3fcae826e6d23a1695a421c159f87b581ea0f0264a6c9869b56e1915fb1d7581"
+    },
+    {
+      "candidate": "mlx--cuda-m027",
+      "exact": true,
+      "mismatches": [],
+      "attempt": "correctness-internal-03",
+      "audit_sha256": "9d95580a57614f68b5f8407ae557243e7c17f61a7b9a03f26e0c6ec60fa5aa8d"
+    }
+  ],
+  "decision": "Not ready for adoption: all27 CUDA-to-MLX placements exact, but MLX-to-CUDA16/18/21 fail. Next isolate matching internal precision in CUDA. No production or gate change."
+}

@@ -286,3 +286,11 @@ every placement. Numerical tolerances remain unapproved. An isolated control wit
 F32 layer intermediates and F16 stored weights, KV cache and wire boundaries is
 being investigated; it is not a production change or an acceptance result.
 The timing, memory, coverage, health and regret requirements remain unchanged.
+
+The [complete internal-precision matrix](milestone-5-planner/correctness-internal-complete.json)
+combines 54 unique placements across three preserved attempts, with all raw hashes
+and the shared MLX binary identity verified. It yields 51 exact placements: every
+CUDA → MLX split is exact, while MLX → CUDA splits 16, 18 and 21 diverge.
+This variant remains unadopted. A matching isolated CUDA precision control is being
+built for a new comparison with F32 intermediates on both stages; weights, KV storage,
+wire format, memory caps and exact-token acceptance remain unchanged.
