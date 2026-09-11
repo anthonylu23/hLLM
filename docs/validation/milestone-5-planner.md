@@ -274,6 +274,15 @@ An isolated [F32 residual control](milestone-5-planner/residual-f32-control.json
 retains F16 weights, KV, projection outputs and boundaries while keeping residual
 sums in F32. It recovers all 256 tokens at reverse split 1 and lowers prefix error
 at splits 17 and 19 from 0.147%/0.135% to 0.095%/0.098% at index 200.
-The 54-placement diagnostic matrix is running. The control is not adopted in
+The [completed 54-placement matrix](milestone-5-planner/correctness-residual-01.json)
+rejects this control: only 44 placements are exact, with ten regressions despite
+repairing the original three failures. The control is not adopted in
 production; broad correctness, execution-contract review and fresh affected memory,
 compute, calibration and serving evidence are required before acceptance.
+
+Further sweeps of unchanged production cannot pass the current correctness gate.
+The next decision is whether to continue precision engineering toward exact F32
+reference tokens for every placement, or design a numerical acceptance policy for
+cross-backend F16 execution. The latter would require explicit approval of concrete
+bounds and validation evidence before adoption; no tolerance is currently approved.
+The timing, memory, coverage, health and regret requirements remain unchanged.

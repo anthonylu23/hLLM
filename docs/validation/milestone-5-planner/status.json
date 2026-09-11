@@ -38,7 +38,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-11T11:25:01.787081+00:00",
+  "updated_at": "2026-09-11T11:56:46.923976+00:00",
   "profiling_progress": {
     "mlx_completed_assignments": 54,
     "mlx_total_assignments": 54,
@@ -77,5 +77,7 @@
   "prefix_precision_control_file": "prefix-precision-01.json",
   "mlx_layer_control_file": "mlx-layer-control-01.json",
   "residual_control_file": "residual-f32-control.json",
-  "residual_matrix_state": "running: isolated F32 residual variant, diagnostic only"
+  "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
+  "residual_matrix_file": "correctness-residual-01.json",
+  "next_step": "User direction needed: continue strict precision engineering or design a revised numerical acceptance policy. Current policy remains exact."
 }
