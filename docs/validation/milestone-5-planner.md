@@ -210,3 +210,10 @@ two warmups plus one timed request, each matching all 256 reference tokens, foll
 by clean unload. New MLX profile collection stopped before its first native run because
 available Mac memory was about 50 MB below the unchanged physical preflight threshold.
 Changed-binary profiles, fresh selection and full independent acceptance remain pending.
+
+Corrected MLX and refreshed CUDA profile collection is complete. The
+[new coverage audit](milestone-5-planner/all-profile-coverage-silu.json) verifies all
+216 assignment/kind artifacts, including safe independent memory assessments and
+consistent scope identities. Production setup calibration with the corrected binary
+is running five fresh jobs per direction. New link/snapshot evidence, measured
+selection and the independent sweep are still required; the failed sweep is preserved.
