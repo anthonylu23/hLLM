@@ -252,3 +252,11 @@ through the three failing suffixes recovers all 256 exact tokens in each case.
 This localizes sensitivity to the prefix inputs, without proving a specific kernel
 bug. Next, compare prefix intermediate values at these positions with the oracle
 before selecting any further precision change. Strict acceptance remains unchanged.
+
+The [first-layer rounding control](milestone-5-planner/prefix-precision-01.json)
+reproduces all 256 native CUDA boundaries byte-for-byte. Separately applying the
+F16 oracle's rotary or attention rounding restores exact suffix tokens, while each
+variant slightly increases relative boundary error against F32 at the affected step.
+This is evidence of rounding-path sensitivity, not a demonstrated faulty operation;
+no production change was adopted. The next diagnostic compares MLX prefix layers
+with oracle intermediates at output index 200 for splits 17 and 19.
