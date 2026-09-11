@@ -1,0 +1,134 @@
+{
+  "audited_at": "2026-09-11T10:51:37.541405+00:00",
+  "output_index": 200,
+  "position": 711,
+  "layers_checked": 19,
+  "shared_prefix_rows_identical": true,
+  "all_boundary_steps_match_original_matrix": true,
+  "mlx_closer_to_f32_than_oracle_f16_in_every_checked_layer": true,
+  "relative_l2_errors": [
+    {
+      "layer": 0,
+      "mlx_to_f32": 0.0005370433119876413,
+      "oracle_f16_to_f32": 0.0008819324517612158,
+      "mlx_to_f16": 0.0008885657358613412
+    },
+    {
+      "layer": 1,
+      "mlx_to_f32": 0.000705660841101227,
+      "oracle_f16_to_f32": 0.0010198480980213157,
+      "mlx_to_f16": 0.0013417060536160264
+    },
+    {
+      "layer": 2,
+      "mlx_to_f32": 0.0007281429775187303,
+      "oracle_f16_to_f32": 0.0009877988042299403,
+      "mlx_to_f16": 0.0012708917808785152
+    },
+    {
+      "layer": 3,
+      "mlx_to_f32": 0.000789901399597377,
+      "oracle_f16_to_f32": 0.0011585954495944072,
+      "mlx_to_f16": 0.0014125300649394333
+    },
+    {
+      "layer": 4,
+      "mlx_to_f32": 0.0008875867053480254,
+      "oracle_f16_to_f32": 0.001149664658412353,
+      "mlx_to_f16": 0.0013382683427317695
+    },
+    {
+      "layer": 5,
+      "mlx_to_f32": 0.0008885474100843419,
+      "oracle_f16_to_f32": 0.0013523031050687825,
+      "mlx_to_f16": 0.0015911341988365183
+    },
+    {
+      "layer": 6,
+      "mlx_to_f32": 0.0009807253652560374,
+      "oracle_f16_to_f32": 0.0013431347531537522,
+      "mlx_to_f16": 0.0015933608209065682
+    },
+    {
+      "layer": 7,
+      "mlx_to_f32": 0.0010090074021789311,
+      "oracle_f16_to_f32": 0.0014081258965283976,
+      "mlx_to_f16": 0.0015841767775261726
+    },
+    {
+      "layer": 8,
+      "mlx_to_f32": 0.001072030185304424,
+      "oracle_f16_to_f32": 0.0014412242556342176,
+      "mlx_to_f16": 0.001600941884762528
+    },
+    {
+      "layer": 9,
+      "mlx_to_f32": 0.0011894366786890749,
+      "oracle_f16_to_f32": 0.001367065427663645,
+      "mlx_to_f16": 0.001603264157833981
+    },
+    {
+      "layer": 10,
+      "mlx_to_f32": 0.001203685349903377,
+      "oracle_f16_to_f32": 0.0013487948621432172,
+      "mlx_to_f16": 0.001721284447763389
+    },
+    {
+      "layer": 11,
+      "mlx_to_f32": 0.001117315015250553,
+      "oracle_f16_to_f32": 0.0012790452905463152,
+      "mlx_to_f16": 0.0016410942434978346
+    },
+    {
+      "layer": 12,
+      "mlx_to_f32": 0.001121020293763876,
+      "oracle_f16_to_f32": 0.001306818923706234,
+      "mlx_to_f16": 0.0017024837083277327
+    },
+    {
+      "layer": 13,
+      "mlx_to_f32": 0.0012123748322908409,
+      "oracle_f16_to_f32": 0.001431408952563776,
+      "mlx_to_f16": 0.001952097754054576
+    },
+    {
+      "layer": 14,
+      "mlx_to_f32": 0.0012979333630040604,
+      "oracle_f16_to_f32": 0.0016432017598246567,
+      "mlx_to_f16": 0.002203152786513525
+    },
+    {
+      "layer": 15,
+      "mlx_to_f32": 0.0013932456465172588,
+      "oracle_f16_to_f32": 0.0017045701630606339,
+      "mlx_to_f16": 0.002195651660716561
+    },
+    {
+      "layer": 16,
+      "mlx_to_f32": 0.001466216887867774,
+      "oracle_f16_to_f32": 0.0018150022539845728,
+      "mlx_to_f16": 0.0022519214386326385
+    },
+    {
+      "layer": 17,
+      "mlx_to_f32": 0.0013687294553743265,
+      "oracle_f16_to_f32": 0.0017904995167573204,
+      "mlx_to_f16": 0.0021046769996213408
+    },
+    {
+      "layer": 18,
+      "mlx_to_f32": 0.0013524384988451968,
+      "oracle_f16_to_f32": 0.0017482806114833768,
+      "mlx_to_f16": 0.0021159482624714776
+    }
+  ],
+  "sha256": {
+    "oracle-layers-f32.json": "d5d6046210cd3aff880296c5166e3ecc7451612603ea17297c49b8e46890d956",
+    "mlx-19.json": "ee573660a8f0608658ed8bac9094d05ed086bb29b34c6756873fac75d3ecb751",
+    "errors.json": "aca23dc9ac446da83a7a5ee9a7946f8b2f34bb0b6ad4b7e004ac5860ab42ef57",
+    "history.json": "360059f49e7f6c853bdcff8f3e26facf74b1f5e0e724689d774aa10973d3a7de",
+    "oracle-layers-f16.json": "e2c2fb693a435ca7fc50c45ab294de0fac5bdfb72182aed535252c810923aaa4",
+    "mlx-17.json": "c69d22ea6e98837bde8555e15a413ab07eafc681a43449f9c296ce6ee7476787"
+  },
+  "interpretation": "No split-dependent change in shared prefixes. Native MLX is closer to independent F32 than the F16 oracle at each checked layer, yet the narrow-margin token differs after suffix execution. This supports rounding sensitivity without proving an implementation bug. Exact-token acceptance remains failed; no production or policy change."
+}

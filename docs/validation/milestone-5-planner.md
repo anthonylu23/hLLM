@@ -260,3 +260,12 @@ variant slightly increases relative boundary error against F32 at the affected s
 This is evidence of rounding-path sensitivity, not a demonstrated faulty operation;
 no production change was adopted. The next diagnostic compares MLX prefix layers
 with oracle intermediates at output index 200 for splits 17 and 19.
+
+The [MLX layer comparison](milestone-5-planner/mlx-layer-control-01.json) checks
+layers 0–18 at output index 200. All shared prefix rows match between splits 17
+and 19, and exported boundaries match the original matrix. At every checked layer,
+MLX has lower relative L2 error against F32 than the independent F16 oracle does.
+At the two split boundaries, errors are about 0.147% and 0.135%, versus 0.182%
+and 0.175% for the F16 oracle. This does not establish a kernel fault or satisfy
+exact-token acceptance. Any further precision experiment must demonstrate numerical
+improvement and broad correctness, rather than merely fitting the three token choices.

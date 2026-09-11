@@ -38,7 +38,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-11T10:18:28.760900+00:00",
+  "updated_at": "2026-09-11T10:51:37.541405+00:00",
   "profiling_progress": {
     "mlx_completed_assignments": 54,
     "mlx_total_assignments": 54,
@@ -74,5 +74,6 @@
   "correctness_matrix_file": "correctness-matrix-01.json",
   "oracle_matrix_file": "oracle-matrix-control.json",
   "oracle_boundary_matrix_file": "oracle-boundary-matrix-01.json",
-  "prefix_precision_control_file": "prefix-precision-01.json"
+  "prefix_precision_control_file": "prefix-precision-01.json",
+  "mlx_layer_control_file": "mlx-layer-control-01.json"
 }
