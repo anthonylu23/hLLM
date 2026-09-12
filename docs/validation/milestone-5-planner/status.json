@@ -79,7 +79,7 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Resume prepared continuation03 whenMacheadroom is sustained, preferably>=4.9GB to absorb startup; runtime4.6GBguard unchanged.",
+  "next_step": "Await approval of explicitF16residentweights/F32execution+KV/F16wire mode; then implement, refreshqualification, fullacceptancesweep and separateM5audit beforecompletion/PR.",
   "internal_precision_matrix_state": "complete54 across3 attempts,51exact; reverse27exact, forward16/18/21fail",
   "internal_precision_resource_file": "internal-f32-resource-stop.json",
   "internal_precision_matrix_file": "correctness-internal-complete.json",
@@ -87,7 +87,8 @@
   "both_internal_matrix_file": "both-internal-complete.json",
   "cuda_kv_control_file": "cuda-kv-control.json",
   "key_value_controls_file": "cuda-key-value-controls.json",
-  "kv_f32_matrix_state": "23exact retained; continuation02 stopped at initial resource guard with0newresults; remaining31waiting",
-  "kv_f32_matrix_file": "kv-f32-progress.json",
-  "kv_prefix_preparation_file": "kv-remote-prefix-preparation.json"
+  "kv_f32_matrix_state": "complete54/54exact diagnostic; productionacceptance pending precisiondecision",
+  "kv_f32_matrix_file": "kv-f32-complete.json",
+  "kv_prefix_preparation_file": "kv-remote-prefix-preparation.json",
+  "precision_proposal_file": "../../milestone-5-precision-proposal.md"
 }

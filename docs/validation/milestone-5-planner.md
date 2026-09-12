@@ -332,3 +332,17 @@ The continuation launch immediately stopped at its resource guard (4.32 GB), bef
 any new placement completed. The 23 exact results and nine prepared prefixes remain
 intact. The next continuation is prepared; prefer 4.9 GB available at launch to absorb
 startup fluctuations while retaining the existing 4.6 GB runtime guard.
+
+## Complete precision diagnostic — 2026-09-12
+
+The [audited F32-KV matrix](milestone-5-planner/kv-f32-complete.json) passes all
+54 placements and 13,824 teacher-forced outputs. Coverage, raw hashes, plan pairs,
+input history, configured caps and nine reused prefixes were verified. These
+copied-stage diagnostics override the load specifications' F16 arithmetic/cache
+semantics; they are not production acceptance evidence for the existing target.
+
+The [precision proposal](../milestone-5-precision-proposal.md) requests approval for
+explicit F16 resident weights, F32 execution/KV and F16 wire activations, keeping
+exact tokens and all other gates unchanged. Production implementation, fresh memory
+and performance qualification, the acceptance sweep, and the user's separate final
+M5 audit remain required before marking complete or creating the PR.
