@@ -38,16 +38,17 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T06:49:44.366552+00:00",
+  "updated_at": "2026-09-12T07:38:24.511563+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
-    "full_mixed_profile_collection": "running on both hosts",
-    "mlx_memory_profiles": 6,
-    "mlx_compute_profiles": 5,
-    "cuda_memory_profiles": 14,
-    "cuda_compute_profiles": 13,
-    "total_profiles_required": 216
+    "full_mixed_profile_collection": "CUDA complete; Mac running",
+    "mlx_memory_profiles": 23,
+    "mlx_compute_profiles": 22,
+    "cuda_memory_profiles": 54,
+    "cuda_compute_profiles": 54,
+    "total_profiles_required": 216,
+    "cuda_state": "complete and audited"
   },
   "profile_coverage_file": "all-profile-coverage-silu.json",
   "setup_calibration_state": "complete and audited: 30 exact requests",
@@ -99,5 +100,6 @@
   "historical_evidence_note": "Existing pilot, F16 selection/sweep and diagnostic fields are historical; none qualify the approved mixed production target. The pre-change status is preserved in legacy_f16_status_file.",
   "mixed_extreme_memory_file": "mixed-extreme-memory.json",
   "mixed_setup_calibration_file": "mixed-setup-calibration.json",
-  "mixed_setup_exact_requests": 30
+  "mixed_setup_exact_requests": 30,
+  "mixed_cuda_profile_audit_file": "mixed-cuda-profiles.json"
 }

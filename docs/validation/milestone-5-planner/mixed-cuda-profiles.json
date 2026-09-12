@@ -1,0 +1,1003 @@
+{
+  "worker": "cuda",
+  "complete": true,
+  "memory_profiles": 54,
+  "compute_profiles": 54,
+  "source_revision": "sources-sha256:6407b91fa24fc7ae94cb27fb99c8cdc8e12012e53365ab4a30f7e7feda37116d",
+  "binaries": {
+    "memory": "489f77b51fcad8f4d6df8330f4b2c9716a82e34ea69a69cbd3a302e36327ff1e",
+    "compute": "f787f684aec92dce721e5bfb90b0bfd44c622f3628b01c5a0db7a2d9e5289459"
+  },
+  "workload": {
+    "schema_version": "1.0",
+    "workload_id": "milestone-5-mixed-512-256",
+    "prompt_tokens": 512,
+    "output_tokens": 256,
+    "concurrency": 1,
+    "total_cached_tokens": 768,
+    "kv_overhead_factor": 1.1,
+    "kv_dtype": "F32",
+    "activation_dtype": "F16"
+  },
+  "precision": {
+    "weights": "F16",
+    "execution": "F32",
+    "kv": "F32",
+    "wire": "F16"
+  },
+  "records": [
+    {
+      "file": "cuda-first-m001-memory.json",
+      "artifact_digest": "c9e8d4cb33041763bb5599862084ab3966d082a3e5d20055815fe724d5ac5bd6",
+      "raw_sha256": "9c74398b704e5d8574ddd613be8446fb00c28beaff1b5baec491447e69278f9a",
+      "measured_at": "2026-09-12T06:37:23.357709+00:00",
+      "fit": {
+        "device_envelope_bytes": 985871156,
+        "host_envelope_bytes": 1922661991,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m001-compute.json",
+      "artifact_digest": "b1734380f21fdee948c0bf7d115c7173f3c96ba4d55949d28d307d14ee977c46",
+      "raw_sha256": "bc8621b7752dd2d181f79931aa4d7adfdaa88578cdae4c4218887c16616ca6a5",
+      "measured_at": "2026-09-12T06:37:26.746631+00:00"
+    },
+    {
+      "file": "cuda-final-m001-memory.json",
+      "artifact_digest": "f1aa11b909e7698cdeabbea6e7b8fb8a6b6ed3b50bd07206ab44c3a2648535ae",
+      "raw_sha256": "18fd07ae862440a9fdb6cc2907704363b5751bdbf242f0c835199a8c36627674",
+      "measured_at": "2026-09-12T06:37:33.052696+00:00",
+      "fit": {
+        "device_envelope_bytes": 2755238298,
+        "host_envelope_bytes": 1923797402,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m001-compute.json",
+      "artifact_digest": "e9de07df8f29cbf9d884fbfa6e93440277d3873c83c744d02f100254eedf9c5f",
+      "raw_sha256": "9675879658b70977dde917a971e20ae9cbb6e5c562d2f5a59ac4b9a3567bbe4d",
+      "measured_at": "2026-09-12T06:37:43.630702+00:00"
+    },
+    {
+      "file": "cuda-first-m002-memory.json",
+      "artifact_digest": "cb4a6447cba2c99ad7fe6d91e5abfc932b0006c24b7eba056d5587ac5f0d87aa",
+      "raw_sha256": "402795b2f697de91792299bfc2b2da22bc2a3addbded86575eccccc5f995c288",
+      "measured_at": "2026-09-12T06:39:11.727352+00:00",
+      "fit": {
+        "device_envelope_bytes": 1032008500,
+        "host_envelope_bytes": 1922621440,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m002-compute.json",
+      "artifact_digest": "26cabe00a38140174f3cb7aa315c84c04520439089576a517917d20db0c7562e",
+      "raw_sha256": "24d3e9ec32d73c79068987bf561123fb87ca18a0cfc54567e43e50339486c41a",
+      "measured_at": "2026-09-12T06:39:15.344133+00:00"
+    },
+    {
+      "file": "cuda-final-m002-memory.json",
+      "artifact_digest": "03186b943e0384fbac305cb529c3d73a6cfbeff0edfa4768d8abb92c0d528d21",
+      "raw_sha256": "87b7a081922bd1fca50f02a61b6bd9708fca70f1800fac1970593e4d7b720d8a",
+      "measured_at": "2026-09-12T06:39:24.178238+00:00",
+      "fit": {
+        "device_envelope_bytes": 2709100954,
+        "host_envelope_bytes": 1922684519,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m002-compute.json",
+      "artifact_digest": "f19ae5659b983cf90f473771a27a61386b57186010f2436fb04f00c792bd1342",
+      "raw_sha256": "53618a4a6387a4564883322cb38c01add6ee1ab71d7b46cc7138e7f99ecb5a22",
+      "measured_at": "2026-09-12T06:39:34.424425+00:00"
+    },
+    {
+      "file": "cuda-first-m003-memory.json",
+      "artifact_digest": "61de77feb36f6f4de69e7b1db8526c0c29d2e862b2f68cb4f573013cc4ee3042",
+      "raw_sha256": "8236dc7844f8ddfc3bad0d10182b6e9b530eb654c37f93c31745d033a65a4017",
+      "measured_at": "2026-09-12T06:40:59.770413+00:00",
+      "fit": {
+        "device_envelope_bytes": 1078145844,
+        "host_envelope_bytes": 1922634957,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m003-compute.json",
+      "artifact_digest": "23dc7c5d2a50f9ce56177c9cc7b2b057f6bc7d27b4247ba61c0cced79cb087cd",
+      "raw_sha256": "b22866c083dbfdc2e660f1b432c9d6e5bd6ca5cd436acdc54403f36bc2dc39ec",
+      "measured_at": "2026-09-12T06:41:03.419102+00:00"
+    },
+    {
+      "file": "cuda-final-m003-memory.json",
+      "artifact_digest": "ef45872a82d893d615db5f558a65e291ce11a872c790a684fa1106ddeca51be0",
+      "raw_sha256": "aa8d10e70507bfcaea4df90aa6a1d5f81e3ff7217cfbdb9382672bdcfb30d523",
+      "measured_at": "2026-09-12T06:41:15.030675+00:00",
+      "fit": {
+        "device_envelope_bytes": 2667577344,
+        "host_envelope_bytes": 1922297037,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m003-compute.json",
+      "artifact_digest": "ae0d4dd4446648d591485d6f642daee5f0efd542dc82582719044b3163e867d9",
+      "raw_sha256": "a8a0c262446926bb51c25e5114161b99635f9e2cb34d9024f0ec1546bb6c3d78",
+      "measured_at": "2026-09-12T06:41:25.017504+00:00"
+    },
+    {
+      "file": "cuda-first-m004-memory.json",
+      "artifact_digest": "36d09e9792d136c32510067495e34c36f0733c64756e0174877b9911825f598e",
+      "raw_sha256": "75cc291d401c77f0503c6fe156b8ee8476cc3308e50c88a2dda8d78202aaaf26",
+      "measured_at": "2026-09-12T06:42:47.747455+00:00",
+      "fit": {
+        "device_envelope_bytes": 1105828250,
+        "host_envelope_bytes": 1922634957,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m004-compute.json",
+      "artifact_digest": "c52a018d72aec120770f84f24450a698cc497e31101c5acbec4c2fce14ba9a8e",
+      "raw_sha256": "94682f371fb469802ebe51a9278f4ac4affe36df7d991396dbfdd713fc0739da",
+      "measured_at": "2026-09-12T06:42:51.659789+00:00"
+    },
+    {
+      "file": "cuda-final-m004-memory.json",
+      "artifact_digest": "e294f3ce3e7ef8f433cc5bcfb0add8e1113c6484bfea3d3353bd4bdfd4fec54a",
+      "raw_sha256": "49edaddfd6ef233c72b01b17a01c430cc3fa956d118b55df3ad06668e463b7d1",
+      "measured_at": "2026-09-12T06:43:05.804011+00:00",
+      "fit": {
+        "device_envelope_bytes": 2635281204,
+        "host_envelope_bytes": 1922405172,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m004-compute.json",
+      "artifact_digest": "717747adeb2948de771ed390c7619393c813d35eca31829a502ff18a4b3bdee4",
+      "raw_sha256": "b2414beddc729ea8630cd30222c76a3629572fdb513759e50a632d668effc613",
+      "measured_at": "2026-09-12T06:43:15.790648+00:00"
+    },
+    {
+      "file": "cuda-first-m005-memory.json",
+      "artifact_digest": "618f65bd6bf4e5588869c13f432a59ad4a1d8e468863e745cf046fd99cb1a879",
+      "raw_sha256": "40010e6c223cfb0d3591623f44a1e098a0368c83f88a25f283961fbba0780001",
+      "measured_at": "2026-09-12T06:44:36.236153+00:00",
+      "fit": {
+        "device_envelope_bytes": 1147351860,
+        "host_envelope_bytes": 1921796916,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m005-compute.json",
+      "artifact_digest": "4873338559c0e978b6c252fd952e28d4fa384843fcd90307f4192d6f2e3a8b12",
+      "raw_sha256": "e13f850d5f36ffc633a2b9319833360b2565d6b900151d2d8c17b470e7113827",
+      "measured_at": "2026-09-12T06:44:40.431012+00:00"
+    },
+    {
+      "file": "cuda-final-m005-memory.json",
+      "artifact_digest": "23b0344e55b9ed59f83ae030a251a690148a3e03ed37890074346258deaecf67",
+      "raw_sha256": "b1126c49a04426b31de13556bb2fe03ff46d5885ba605f4c3d5c7ede4c1dfbc3",
+      "measured_at": "2026-09-12T06:44:57.115739+00:00",
+      "fit": {
+        "device_envelope_bytes": 2593757594,
+        "host_envelope_bytes": 1922810676,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m005-compute.json",
+      "artifact_digest": "612ca4c05ad87ac29bd68b1f46c22019d12beae89c4051d27818a0ac3e13e8ba",
+      "raw_sha256": "fd35841319e2a0580867fe6b8c10803dc3b09e9ef46906a5c8efa59edad95607",
+      "measured_at": "2026-09-12T06:45:06.538407+00:00"
+    },
+    {
+      "file": "cuda-first-m006-memory.json",
+      "artifact_digest": "398622c9ee0da9911ebc59e1d5d5296a37d275f93a680c810d13cde60112350f",
+      "raw_sha256": "85690ed0c0ce5402c418352942781ba4c40db3a0f7b1113569c2c1ae64435d93",
+      "measured_at": "2026-09-12T06:46:24.456793+00:00",
+      "fit": {
+        "device_envelope_bytes": 1193489204,
+        "host_envelope_bytes": 1922567373,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m006-compute.json",
+      "artifact_digest": "e7664c1d2c79fa1e6bf6b19a952d7f28a8d39921b9ab0cbd72b13a8a5bae27a0",
+      "raw_sha256": "5e8bde7e3a13eb052224ac55a9d5f878382b6c4e095e6cd1363a19aa94869858",
+      "measured_at": "2026-09-12T06:46:28.927619+00:00"
+    },
+    {
+      "file": "cuda-final-m006-memory.json",
+      "artifact_digest": "675f26ce71c71c08012533cc56b7dff7a28cf074e1664d34711428d44825e970",
+      "raw_sha256": "3a809f7384c9a1d6cc5efa2ffb70225bf42bb1629c7a10a467b49b25b21534ad",
+      "measured_at": "2026-09-12T06:46:48.398270+00:00",
+      "fit": {
+        "device_envelope_bytes": 2547620250,
+        "host_envelope_bytes": 1922463744,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m006-compute.json",
+      "artifact_digest": "ad611a90cd5f9326addc15f79d45073be33c9fdd44a5626b90560095052ceda2",
+      "raw_sha256": "db5e907de544e2d77d68c5067d1159a6862c0fae0f96ea1a2fc3f6210f471eeb",
+      "measured_at": "2026-09-12T06:46:57.945131+00:00"
+    },
+    {
+      "file": "cuda-first-m007-memory.json",
+      "artifact_digest": "fb1dc45053ebb2a189f0c373582dcabf709ad470209a58527e9bce333311a19e",
+      "raw_sha256": "af1c2803d2208180d897a760afee78576cd021594a832410eece72ff7f6f0e91",
+      "measured_at": "2026-09-12T06:48:13.072934+00:00",
+      "fit": {
+        "device_envelope_bytes": 1239626548,
+        "host_envelope_bytes": 1922598912,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m007-compute.json",
+      "artifact_digest": "422558349dcd93cc0046fbda71b069973627c35d06f98cca7df4a4daaf9796fc",
+      "raw_sha256": "c7f62972f7df8d3b1c9eb60cc5047f0561fa0c2cbbc64418238fd60707864706",
+      "measured_at": "2026-09-12T06:48:17.811839+00:00"
+    },
+    {
+      "file": "cuda-final-m007-memory.json",
+      "artifact_digest": "6b8be217137c9287f19a649042be7a708763359ed760849a6aa0eb0e032e12a6",
+      "raw_sha256": "4bbb1fe56624c29279fc4bd72783ae552bfba79d55b2557dc07e857601543738",
+      "measured_at": "2026-09-12T06:48:39.830108+00:00",
+      "fit": {
+        "device_envelope_bytes": 2501482906,
+        "host_envelope_bytes": 1922589901,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m007-compute.json",
+      "artifact_digest": "f68774fc7f812d79e49b981ace341e1ce3429ea5d5b7628d4e209f5fcdbe8b5b",
+      "raw_sha256": "17fe62a5966bbbb87c0f8c39212d836649ac226851935ab59586257a81fb3a6f",
+      "measured_at": "2026-09-12T06:48:48.995964+00:00"
+    },
+    {
+      "file": "cuda-first-m008-memory.json",
+      "artifact_digest": "30816e5635319f91d73e2e9aa32a1331fb39904cac51aa70c80d6749f702fe99",
+      "raw_sha256": "d7135647f1dd775dda99b9ac4187caca3f52c95018e99add4671628d9aafd76c",
+      "measured_at": "2026-09-12T06:50:01.598804+00:00",
+      "fit": {
+        "device_envelope_bytes": 1285763892,
+        "host_envelope_bytes": 1922774631,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m008-compute.json",
+      "artifact_digest": "c974fa431f197779801901e6fbf84ed2d68d16ffa953709ee7ed826569c689d1",
+      "raw_sha256": "ac24614ac170c63f1ea146944364aed7e017c2589dfb2f502203fab18864cc1e",
+      "measured_at": "2026-09-12T06:50:06.599391+00:00"
+    },
+    {
+      "file": "cuda-final-m008-memory.json",
+      "artifact_digest": "df04757e6707d13ba2660eda09a04ee257b1bcef76b77fb197d5d2dc3816057f",
+      "raw_sha256": "6d257e1e8f65c488ce14551531c9ec1f6d1a013d48735e4148c1efb622b1f5c7",
+      "measured_at": "2026-09-12T06:50:31.385169+00:00",
+      "fit": {
+        "device_envelope_bytes": 2455345562,
+        "host_envelope_bytes": 1922711552,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m008-compute.json",
+      "artifact_digest": "4329ce8edd9408749180b50e7702e97c4fabbd47e91689f884f0a1aea2d0fa3c",
+      "raw_sha256": "465f8076df5e510fc1d6db0c4d797cf05667c8b944f1ee3f4706610e8ef4196b",
+      "measured_at": "2026-09-12T06:50:40.276442+00:00"
+    },
+    {
+      "file": "cuda-first-m009-memory.json",
+      "artifact_digest": "fdb33a5787be69e5a7da23b573c9876d3a9912221710f2453c98a27a30098003",
+      "raw_sha256": "d5c9a7e9acba9fddd9dbb24d90263f04e7926bb601dbcda88a054cec6d532fe6",
+      "measured_at": "2026-09-12T06:51:50.365096+00:00",
+      "fit": {
+        "device_envelope_bytes": 1313446298,
+        "host_envelope_bytes": 1922657485,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m009-compute.json",
+      "artifact_digest": "26ff3bc44612d1c97bd85d4fac00a14852282f8722b791c8aea7157327ab25c4",
+      "raw_sha256": "d164f300b8efa8445e0cd5b2317ad8b13ac9bca60130e79b21168ce915866ec2",
+      "measured_at": "2026-09-12T06:51:55.719670+00:00"
+    },
+    {
+      "file": "cuda-final-m009-memory.json",
+      "artifact_digest": "30d707c03f9c2a144e5ae56cdddbd2c84788377b63a5f09dfcec92247d9b414e",
+      "raw_sha256": "86601397218a3429e87b3c70e4ae72e6ff6f4093e2d11569ea5007a0ce21908f",
+      "measured_at": "2026-09-12T06:52:22.807277+00:00",
+      "fit": {
+        "device_envelope_bytes": 2413821952,
+        "host_envelope_bytes": 1922788148,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m009-compute.json",
+      "artifact_digest": "b97384a026c2f4b02020a4aa48ede64b5240168710ddb5a7f4877ec50837af3a",
+      "raw_sha256": "aca226bc1411f034d343734c7c083ac68c1a4eebbed9a68cb2a035d7cb9ec20e",
+      "measured_at": "2026-09-12T06:52:31.410347+00:00"
+    },
+    {
+      "file": "cuda-first-m010-memory.json",
+      "artifact_digest": "95291d8bb6abdfcfabfb36ef0428bdbf44011574667050661c8541c11157c415",
+      "raw_sha256": "937311213ab5dd977e7fa82b5dfcc2520ec95a70e8d63ddd59fbaa59a6d0c9dd",
+      "measured_at": "2026-09-12T06:53:38.956365+00:00",
+      "fit": {
+        "device_envelope_bytes": 1354969908,
+        "host_envelope_bytes": 1922634957,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m010-compute.json",
+      "artifact_digest": "273a3aaa5a45c514e553df422a0f0911586b8878d4a4f9fa16fdff0ff9b4d7a8",
+      "raw_sha256": "e5ba1e216159cd5e577d51df9bc132ddab74b3fbec273ad138953b13990bff56",
+      "measured_at": "2026-09-12T06:53:44.554190+00:00"
+    },
+    {
+      "file": "cuda-final-m010-memory.json",
+      "artifact_digest": "cfd14ff06e1789b81d4f946c7ff0330b1d874b44c4591ab5a1d593845fe4d35a",
+      "raw_sha256": "58280f62c1f226792586a5e25d67a60a57ec00460133235342156deb02da0e74",
+      "measured_at": "2026-09-12T06:54:14.411552+00:00",
+      "fit": {
+        "device_envelope_bytes": 2367684608,
+        "host_envelope_bytes": 1922598912,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m010-compute.json",
+      "artifact_digest": "55c62297780399ac99a92e4495f1aeb7353fa2e651e5a0e2ff58a5912a023f71",
+      "raw_sha256": "865f83f09d73a1b48cec08db98e09a50ede9b7c821412f38bf32b93ed457990b",
+      "measured_at": "2026-09-12T06:54:23.031330+00:00"
+    },
+    {
+      "file": "cuda-first-m011-memory.json",
+      "artifact_digest": "7082327c87821c41bd5c7a1fefdad2a3d9e2aed624bf4be67aa72f7d214c2614",
+      "raw_sha256": "9e400972ed2f18b6c2ac2455caa2fbe741fe302b04290ba15aa060865e65cf28",
+      "measured_at": "2026-09-12T06:55:28.005252+00:00",
+      "fit": {
+        "device_envelope_bytes": 1401107252,
+        "host_envelope_bytes": 1921233716,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m011-compute.json",
+      "artifact_digest": "8e52e3d00a086aac6020edefda901eac2d9e9d78efcc5bb252399ba31b54e464",
+      "raw_sha256": "ac486b09388b4fcdd1aac85fcebef8d52172b50c0d1e5a8d184d5b0574d3d6b1",
+      "measured_at": "2026-09-12T06:55:33.844565+00:00"
+    },
+    {
+      "file": "cuda-final-m011-memory.json",
+      "artifact_digest": "080126498ddbb82f082a3dc9a56afcd177b1623eae866d0e28392ffad6db69e4",
+      "raw_sha256": "88689269e93a5e0191fc2be309b88eb05e13d3e1cb5b190d8dc6ce216c6e0737",
+      "measured_at": "2026-09-12T06:56:06.751405+00:00",
+      "fit": {
+        "device_envelope_bytes": 2340002202,
+        "host_envelope_bytes": 1922283520,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m011-compute.json",
+      "artifact_digest": "dd3ef8ea498cc48e27dd8e9a43b9cddc40e4e9b45f42baf344b1b02e94795e78",
+      "raw_sha256": "e9401c9ec1f0486b95436d4a4724f04de5b98f968e09db28abef361ce88953fc",
+      "measured_at": "2026-09-12T06:56:15.172679+00:00"
+    },
+    {
+      "file": "cuda-first-m012-memory.json",
+      "artifact_digest": "a6bdda1ff3cdb81ea5f3de0e02345531adf9c9ccbf92a324ccbaef0fecc8fd66",
+      "raw_sha256": "38a4e7ab1e3dd42ba922990ba16a9e607719a1b4d25f898c95036ac9e9055bd4",
+      "measured_at": "2026-09-12T06:57:17.615644+00:00",
+      "fit": {
+        "device_envelope_bytes": 1442630861,
+        "host_envelope_bytes": 1922725069,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m012-compute.json",
+      "artifact_digest": "7577aa5e57dc3a78be88d9c80079ff3b9f8139fcc6116ba1de0aa57abaa6731c",
+      "raw_sha256": "290a082b25967e1f21a0b87996151f81ab1069173fd37d2ef44fb46b292a6824",
+      "measured_at": "2026-09-12T06:57:23.752642+00:00"
+    },
+    {
+      "file": "cuda-final-m012-memory.json",
+      "artifact_digest": "2eb8b4e1cc56f7e05bc98c187ddb8486102d44e4fd86ca4bbd00584e63118322",
+      "raw_sha256": "27682157cccf2263601f62b862648b62fccd089022f52bae1485d0223f2dead1",
+      "measured_at": "2026-09-12T06:57:58.956470+00:00",
+      "fit": {
+        "device_envelope_bytes": 2293864858,
+        "host_envelope_bytes": 1922891776,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m012-compute.json",
+      "artifact_digest": "e8ffe26d06ba794576a21656ad98692187c721ad95a04458e08897840318a1ad",
+      "raw_sha256": "433761bab571f80c7ee8ef65a5e9b5758b01e18576827674bf49a13c87016d02",
+      "measured_at": "2026-09-12T06:58:07.113831+00:00"
+    },
+    {
+      "file": "cuda-first-m013-memory.json",
+      "artifact_digest": "c685a33ac965263e4768153cfd5d04326a3bef766fdc2a6581cc2fd3622b8c9f",
+      "raw_sha256": "564e24d0e891f9660abdb3c95516db4f82b4dbc5274fd6087fe332bcc5ad3e86",
+      "measured_at": "2026-09-12T06:59:06.794132+00:00",
+      "fit": {
+        "device_envelope_bytes": 1488768205,
+        "host_envelope_bytes": 1922657485,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m013-compute.json",
+      "artifact_digest": "457cfbe85b3e38e047add4b543502ad8ef0a2ea9bf230a2c0d6a871bbefe054d",
+      "raw_sha256": "83ff25dbfbc2ceab7ae6af645d132fe7e8f5cca87431d98d9683b5a9fa45c2ea",
+      "measured_at": "2026-09-12T06:59:12.925798+00:00"
+    },
+    {
+      "file": "cuda-final-m013-memory.json",
+      "artifact_digest": "c964c46c7afa45a634b6ce19ee0e94cc2eee41961eeaca5ec7d6e6a48c0e6396",
+      "raw_sha256": "746db0c1155dce30b29d21af9d8273fcfa24f18fc80a20315565bbaafc1de13f",
+      "measured_at": "2026-09-12T06:59:50.645692+00:00",
+      "fit": {
+        "device_envelope_bytes": 2247727514,
+        "host_envelope_bytes": 1922324071,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m013-compute.json",
+      "artifact_digest": "af8b03b8b009fe912f491cdba743d95b8d6e646a0f61bbf6f2ce1d357d953d48",
+      "raw_sha256": "3f51109778522ccbb58893fbc70373a8d03532c893a630537ab55c9426990494",
+      "measured_at": "2026-09-12T06:59:58.432564+00:00"
+    },
+    {
+      "file": "cuda-first-m014-memory.json",
+      "artifact_digest": "1274289e01b59a87c3a64cd32a1aa9815de8da4283750df6c52ee1f404717ba3",
+      "raw_sha256": "488ba76b4faa53f0b9c39be0ada1967f43b94c68ce17f75ad1f085edb05e71c4",
+      "measured_at": "2026-09-12T07:00:55.551279+00:00",
+      "fit": {
+        "device_envelope_bytes": 1521064346,
+        "host_envelope_bytes": 1921179648,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m014-compute.json",
+      "artifact_digest": "517fbedb84a7ecda31b785b6e5bd46dda26437e27a83a4bdda3556b832698388",
+      "raw_sha256": "3160a61caa573ab7d56e371114261848570903aeba0f50029125e262fb157875",
+      "measured_at": "2026-09-12T07:01:01.943883+00:00"
+    },
+    {
+      "file": "cuda-final-m014-memory.json",
+      "artifact_digest": "15048fcf11ea7b5d96b846d796850d4c52aa6f2feb036de67821a4febb2b3661",
+      "raw_sha256": "ec6299859646fbf4b82c32f3e6b2f719b595762936c826b8a81d9277f12708e2",
+      "measured_at": "2026-09-12T07:01:42.207661+00:00",
+      "fit": {
+        "device_envelope_bytes": 2206203904,
+        "host_envelope_bytes": 1922369127,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m014-compute.json",
+      "artifact_digest": "87b2238e2143a2dc6df34cdef2f46a407969662c501b0d77bab4549060e9d413",
+      "raw_sha256": "86fb203c917306a9592d3ab6dc2898d88b8599e038661a84a82cc625031f0c4c",
+      "measured_at": "2026-09-12T07:01:49.746923+00:00"
+    },
+    {
+      "file": "cuda-first-m015-memory.json",
+      "artifact_digest": "9136d3d8c1de4626f6bafa88a418df9887cc25a6635d0d1222c9921e94a55258",
+      "raw_sha256": "56885007fe3f8d8aaf689ef56007762510483122e51db3494921a6c2595f6789",
+      "measured_at": "2026-09-12T07:02:44.328826+00:00",
+      "fit": {
+        "device_envelope_bytes": 1562587956,
+        "host_envelope_bytes": 1922652980,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m015-compute.json",
+      "artifact_digest": "7bb2743b0af8b8c26a4ac0b8dc6ab252f3e19063a9d7a1652edc522861e1d896",
+      "raw_sha256": "670397321ab9b4e0615522e5668ccc697987715808e1b18addef9a463c55fe13",
+      "measured_at": "2026-09-12T07:02:51.021876+00:00"
+    },
+    {
+      "file": "cuda-final-m015-memory.json",
+      "artifact_digest": "c6c9f70df72b4b9e48d9ce568365c7e939d539eb49ca3a695931b80ebdfce95f",
+      "raw_sha256": "444bf6df4f2dc52d66beeb5807144d343d37b25f85497cf9920f7ce26cf8a2d6",
+      "measured_at": "2026-09-12T07:03:33.807341+00:00",
+      "fit": {
+        "device_envelope_bytes": 2173907764,
+        "host_envelope_bytes": 1922828698,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m015-compute.json",
+      "artifact_digest": "22bdf7ddce6efe61a2a93b7bf7d21611cea2d1c34b247628df37bf438303dff5",
+      "raw_sha256": "ccc5138c126c9618e64633e667d1ace08815d2642b2cafa5388a127f8a966a4a",
+      "measured_at": "2026-09-12T07:03:41.098429+00:00"
+    },
+    {
+      "file": "cuda-first-m016-memory.json",
+      "artifact_digest": "e950ca1cd8b82dfcfb7e1c1e123be2af2a639bb70bd7354a513a3c8878e14f42",
+      "raw_sha256": "575e76fdee0c774a7d6a584e1d3730057b130f52b41fae172238a624bc05a8b2",
+      "measured_at": "2026-09-12T07:04:33.141243+00:00",
+      "fit": {
+        "device_envelope_bytes": 1608725300,
+        "host_envelope_bytes": 1922671002,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m016-compute.json",
+      "artifact_digest": "3f1e139d890e5800da5e3047b856ebbe9d9149531627a25fba76c8c1f6759015",
+      "raw_sha256": "4f61c03f7c8af226abfa98ac0656641fe6d07dbd86e0144fffa1eb9b7d634c88",
+      "measured_at": "2026-09-12T07:04:40.077530+00:00"
+    },
+    {
+      "file": "cuda-final-m016-memory.json",
+      "artifact_digest": "54ec72bcea78cde261f595e0f7f8f110d16be489c5f767901a76246a57fbd9e0",
+      "raw_sha256": "65217bcc85fe09239746c940147441f614ad2ff37f0574f15bc024e0cdff7d43",
+      "measured_at": "2026-09-12T07:05:25.890427+00:00",
+      "fit": {
+        "device_envelope_bytes": 2127770420,
+        "host_envelope_bytes": 1922522317,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m016-compute.json",
+      "artifact_digest": "8a703694334c0b52dcbc5e668f5d7a2e207ef027c3fa661e9211e0090d9d1f11",
+      "raw_sha256": "023bf8f7714a772159498b1e1f4e8eed9d1bf0bdf64432bb9c5bf31515629acb",
+      "measured_at": "2026-09-12T07:05:32.854307+00:00"
+    },
+    {
+      "file": "cuda-first-m017-memory.json",
+      "artifact_digest": "99d37c01eefd4ae970c9616e8821d7d3a0fcccb190b5bcfca4a82952580a89c8",
+      "raw_sha256": "346910bcae547adce791d899b249a35e6728ae90c3f9623c7d031f5532aba4c1",
+      "measured_at": "2026-09-12T07:06:22.115355+00:00",
+      "fit": {
+        "device_envelope_bytes": 1654862644,
+        "host_envelope_bytes": 1922630452,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m017-compute.json",
+      "artifact_digest": "029ab25e65308df1747e0e8525eb9500588cfed477d65ec18f5cacf8b6c61f7b",
+      "raw_sha256": "088a84345259d2e91ff624ec0f8ef85609e06dcc154897af2544aa316e0a0e00",
+      "measured_at": "2026-09-12T07:06:29.323764+00:00"
+    },
+    {
+      "file": "cuda-final-m017-memory.json",
+      "artifact_digest": "a2e32425de00851d0ccf3677ff2022f01b2fc1713643f318e2f1e7c4c3fb5373",
+      "raw_sha256": "8e899ff07129e24f73e169fcb881c96b5b0dd8893918365a84d0841e37f44c05",
+      "measured_at": "2026-09-12T07:07:17.446020+00:00",
+      "fit": {
+        "device_envelope_bytes": 2086246810,
+        "host_envelope_bytes": 1922414183,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m017-compute.json",
+      "artifact_digest": "7d7053055efed8d58b32d4a551dcbc950958547eafd84dafcae5b90127de80db",
+      "raw_sha256": "2ab943d4331a5ce4b6dc0078b74be5218656211691e9a9ea460a1966441fc33c",
+      "measured_at": "2026-09-12T07:07:24.158301+00:00"
+    },
+    {
+      "file": "cuda-first-m018-memory.json",
+      "artifact_digest": "9940b4415206de4398bcbd598691e649f91365b033f18ecb4fa2fb15b9dde499",
+      "raw_sha256": "9a7364600f78f15c940707d8ff6415bf6b5f6efba74c57666694a7b7cd6f7656",
+      "measured_at": "2026-09-12T07:08:10.879117+00:00",
+      "fit": {
+        "device_envelope_bytes": 1682545050,
+        "host_envelope_bytes": 1920927335,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m018-compute.json",
+      "artifact_digest": "527585712f7e66fd90cb9a268d80ac26e7c0a8b40c51a031255efc2533277f2f",
+      "raw_sha256": "d9bb10525c6320c1adf536a4bb46cf133ed3c8922dadc8726ede5995ff80d0f8",
+      "measured_at": "2026-09-12T07:08:18.360966+00:00"
+    },
+    {
+      "file": "cuda-final-m018-memory.json",
+      "artifact_digest": "40cdfe8d7429cada2f38e505736b50e5edeed9bb6a0f4b3b8c1c59a5e5dd4462",
+      "raw_sha256": "21a9d71e5311ce68cd52abc4165b0436d7d194d50ae920cb02aad44b7bd9e242",
+      "measured_at": "2026-09-12T07:09:09.254880+00:00",
+      "fit": {
+        "device_envelope_bytes": 2040109466,
+        "host_envelope_bytes": 1922698036,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m018-compute.json",
+      "artifact_digest": "92d44fb5bc4af94e4db7627255f34aba73ed77c8264b6dfd92ced6b5af794674",
+      "raw_sha256": "b93ee685a5207906fcce5e5d2870c65f69a48fac221c0f3d8563facee4107a00",
+      "measured_at": "2026-09-12T07:09:15.971672+00:00"
+    },
+    {
+      "file": "cuda-first-m019-memory.json",
+      "artifact_digest": "7a5e773409896cd6ae6002637bb703e1df3054a0f7be6c9acada90b5fdb63ddb",
+      "raw_sha256": "8e084caa052cdbc4152f87fc2b9556e3cd4ec501017440bedde7fbf68a1282df",
+      "measured_at": "2026-09-12T07:10:00.168855+00:00",
+      "fit": {
+        "device_envelope_bytes": 1728682394,
+        "host_envelope_bytes": 1921458996,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m019-compute.json",
+      "artifact_digest": "6bd8d124059f7971bcc4dcc5bf54398cae631e97c6321e13d40b19d26ded9266",
+      "raw_sha256": "05df122010661495715759365338479fb69206c4a9614f6bad2c7777f0082554",
+      "measured_at": "2026-09-12T07:10:07.956956+00:00"
+    },
+    {
+      "file": "cuda-final-m019-memory.json",
+      "artifact_digest": "5dd1d6d90ba1c2f9dce16b8b95e2a549e82810f64f919c13525511fef71245c6",
+      "raw_sha256": "edbafd39d1f5c47c960efd3e975d9d97ac12749e008c34a47590b5ae9392eb24",
+      "measured_at": "2026-09-12T07:11:00.907994+00:00",
+      "fit": {
+        "device_envelope_bytes": 1998585856,
+        "host_envelope_bytes": 1922450228,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m019-compute.json",
+      "artifact_digest": "870cabea70846dbdfbf0d8908ca568e97e0c6fb5ed2733f86e8fa9b1e721a941",
+      "raw_sha256": "9a056e26bcefc2837277af9f5c6526eeddb17d6c88a16053dd621a088ed519c0",
+      "measured_at": "2026-09-12T07:11:07.340628+00:00"
+    },
+    {
+      "file": "cuda-first-m020-memory.json",
+      "artifact_digest": "ef94bae7e4831856ce6b61aa650823cf6fe56e2dbcfec24dd863a220f99406f1",
+      "raw_sha256": "0623bc4f8fe0742d6cb044ceb69d33e70b2b2e395b8bd026779ec7e7fd1b1782",
+      "measured_at": "2026-09-12T07:11:48.978158+00:00",
+      "fit": {
+        "device_envelope_bytes": 1770206004,
+        "host_envelope_bytes": 1922598912,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m020-compute.json",
+      "artifact_digest": "86d77a17e46e4993bf79f9a58fb5ba33f4a8d07f73b1897906ab004ff82c5a67",
+      "raw_sha256": "9ee85f9989010dd91c419965738a6d9f0b5d95a54391ded76d8845f9aa216945",
+      "measured_at": "2026-09-12T07:11:56.754340+00:00"
+    },
+    {
+      "file": "cuda-final-m020-memory.json",
+      "artifact_digest": "765a6d0897177935ebb86ac49a1c88d248d406fed5529c93d67304d1662dd2f0",
+      "raw_sha256": "087f5dc62c01929259bd9130f817674418d2e27b46e8092952446e5789222384",
+      "measured_at": "2026-09-12T07:12:52.462062+00:00",
+      "fit": {
+        "device_envelope_bytes": 1970903450,
+        "host_envelope_bytes": 1922824192,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m020-compute.json",
+      "artifact_digest": "a23248a0059519a5f821af36555fbfafb53e51bc7dc17d0b5da82230d22d23e3",
+      "raw_sha256": "4ac529c47c671fb09d3ca81cdbc8d45eb3ed52ce1cde37728ace1d709d64f7fc",
+      "measured_at": "2026-09-12T07:12:58.640653+00:00"
+    },
+    {
+      "file": "cuda-first-m021-memory.json",
+      "artifact_digest": "484c3a05e2fe990a7b3ed9a598303eefc272b43194a6619eb9d7e67c3762ecbe",
+      "raw_sha256": "9df058c6c845ac9329b8b9d508766f188627393693a71a45617fa146b5f7b08d",
+      "measured_at": "2026-09-12T07:13:37.515308+00:00",
+      "fit": {
+        "device_envelope_bytes": 1816343348,
+        "host_envelope_bytes": 1922621440,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m021-compute.json",
+      "artifact_digest": "31b7b571c64661876d1421d95d24d1a71ff7e40b0f227f4d107e2cb7a73e4eed",
+      "raw_sha256": "0af35c5faee35cc85c868846b48e8552047a24786f311e866fd5545c44c1c9ec",
+      "measured_at": "2026-09-12T07:13:45.557749+00:00"
+    },
+    {
+      "file": "cuda-final-m021-memory.json",
+      "artifact_digest": "a874785ef080a831a6b019e9ea6ea508d3af18d5381d7bdc943c76670a0a7f8d",
+      "raw_sha256": "51fd0e3116d4d1f0d57a38020f58f55dee3a532fcc649d9b3a9d7a6e6d5d2e12",
+      "measured_at": "2026-09-12T07:14:44.306237+00:00",
+      "fit": {
+        "device_envelope_bytes": 1924766106,
+        "host_envelope_bytes": 1922418688,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m021-compute.json",
+      "artifact_digest": "6f6982c56b379280fa3914188e35832f53c5cc3dea801cb68c9df0a526188b99",
+      "raw_sha256": "92271ca592fe9382d877fa51f3562cd4b0998dac256aec5bb8344f14245670b6",
+      "measured_at": "2026-09-12T07:14:50.157741+00:00"
+    },
+    {
+      "file": "cuda-first-m022-memory.json",
+      "artifact_digest": "d0f664160c569e2a63f8bbe374839ff3a0ac709fd685fb1f8b01f1d8972910a4",
+      "raw_sha256": "3abfd4f7a9125f9306264f846ba3a357edba95c2ddae68a94f2097caf9a1cfd3",
+      "measured_at": "2026-09-12T07:15:26.511766+00:00",
+      "fit": {
+        "device_envelope_bytes": 1862480692,
+        "host_envelope_bytes": 1921215693,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m022-compute.json",
+      "artifact_digest": "7b36a5f8fb8260f2be5b0c2416fb434c8d81e83496686d8ab1d2b252ffb29835",
+      "raw_sha256": "775d31d96e88594419d00e03ddd0a460ce977943b4166613c39bc1436dac6af4",
+      "measured_at": "2026-09-12T07:15:34.840304+00:00"
+    },
+    {
+      "file": "cuda-final-m022-memory.json",
+      "artifact_digest": "6bbf19621b079b02cfcf515f7024577bb4c30a538f5402571dba727b2d1e41bf",
+      "raw_sha256": "6e9df102a7e29a1d1f450ed52542b7606496c0b391afdfa4aab796d2794881ab",
+      "measured_at": "2026-09-12T07:16:36.130667+00:00",
+      "fit": {
+        "device_envelope_bytes": 1878628762,
+        "host_envelope_bytes": 1922765620,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m022-compute.json",
+      "artifact_digest": "515d83009cb014b536947a82abff7cb307294e390f2be75606ecaa0be2b431e7",
+      "raw_sha256": "6c43c638fe119769c161961f8a23f296ee6d3d332d5b5842179f9d30068b6d67",
+      "measured_at": "2026-09-12T07:16:41.708934+00:00"
+    },
+    {
+      "file": "cuda-first-m023-memory.json",
+      "artifact_digest": "3d4386fa20ca23a7ceb19b9edcdeeb04a4040976d1ff4e6c1087a04fca901068",
+      "raw_sha256": "4bc5cb2cd060bcec519bd41d8c74e72107fccfb513f8ba56b346942448a19d85",
+      "measured_at": "2026-09-12T07:17:15.482556+00:00",
+      "fit": {
+        "device_envelope_bytes": 1908618036,
+        "host_envelope_bytes": 1921319322,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m023-compute.json",
+      "artifact_digest": "b3a2a51e48064f5c450e3f2c5693dcfd6ec3c0608e2a9208d8b9b2539826f480",
+      "raw_sha256": "d9ee90626a129bb242f7c9abb27a735fbee64b55833b06727520a6aa5754218c",
+      "measured_at": "2026-09-12T07:17:24.074139+00:00"
+    },
+    {
+      "file": "cuda-final-m023-memory.json",
+      "artifact_digest": "f561cb8902130656ac81eb5558a273e21547c4a26e0e3d90415959f5dea94ba3",
+      "raw_sha256": "0f2aa731ddfc3dd8f0c9061438ee31ae51b4b22ca01704349b3cd126a660c603",
+      "measured_at": "2026-09-12T07:18:27.426839+00:00",
+      "fit": {
+        "device_envelope_bytes": 1832491418,
+        "host_envelope_bytes": 1922571879,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m023-compute.json",
+      "artifact_digest": "f6e9a28643069db380594ca75f1e06be50b7e94aa99868937e7e2887f47facfe",
+      "raw_sha256": "a358a5170d15faaccaac91c2a83ab4b22e6bf86e1fb34d3c6769d531746d21a3",
+      "measured_at": "2026-09-12T07:18:32.742973+00:00"
+    },
+    {
+      "file": "cuda-first-m024-memory.json",
+      "artifact_digest": "f0db35bde767c83ac914a17024a7b108795795e567e59843a1b8cad67bf4c4ac",
+      "raw_sha256": "85b31cb6785a5fccca20f71927c56467ddab8e8121657b21d002f76078d533de",
+      "measured_at": "2026-09-12T07:19:03.988822+00:00",
+      "fit": {
+        "device_envelope_bytes": 1950141645,
+        "host_envelope_bytes": 1922711552,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m024-compute.json",
+      "artifact_digest": "59a5e3bf813a8885a9ce10aed8f54c8289bcb71139c13427b400850c2ea1e261",
+      "raw_sha256": "7de5ad91fcde43ad8bca291b0938dda93f3dea1ca9f3752433caedd659fa981f",
+      "measured_at": "2026-09-12T07:19:12.898675+00:00"
+    },
+    {
+      "file": "cuda-final-m024-memory.json",
+      "artifact_digest": "c09859c6a6d704e7eb1620a0f3a06cea6326db3b7587c8f709be3fb8dd86eaed",
+      "raw_sha256": "816621a69ad502db8ed8f9f3f620bcc71512f4fb5c721aef0ed7a59a4be7428d",
+      "measured_at": "2026-09-12T07:20:19.037318+00:00",
+      "fit": {
+        "device_envelope_bytes": 1790967808,
+        "host_envelope_bytes": 1922342093,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m024-compute.json",
+      "artifact_digest": "85c3243d2b1a790bec52b7dab4d7520b1b854c6778a658e47f79dc517872474f",
+      "raw_sha256": "5e547fda34f9065b5d4b871363caaac445aeca928b8bbdfd63e23f93cd3927cb",
+      "measured_at": "2026-09-12T07:20:24.074090+00:00"
+    },
+    {
+      "file": "cuda-first-m025-memory.json",
+      "artifact_digest": "18dd416c10217340b4049b05bcc148905c147ec217cf647401edf1435d7d9f17",
+      "raw_sha256": "a4907888d4965712a7d1cd43c26bbaca02dc28998ed5453094ec8f08fbf5a0a8",
+      "measured_at": "2026-09-12T07:20:52.545366+00:00",
+      "fit": {
+        "device_envelope_bytes": 1982437786,
+        "host_envelope_bytes": 1922680013,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m025-compute.json",
+      "artifact_digest": "15ebc56ef5dbd64e3488f202a219cd69dd3c3b0585b23979f91cf37a47e12892",
+      "raw_sha256": "e19d23bad2f8eb3563a0e35b01d3b539a8e2a2724227f9b328f21f6443f8a8f1",
+      "measured_at": "2026-09-12T07:21:01.413591+00:00"
+    },
+    {
+      "file": "cuda-final-m025-memory.json",
+      "artifact_digest": "65fb65e0213dc60d336fe39698b4419708dee6b840aeb1824889b7ac0eabc8d6",
+      "raw_sha256": "1807c2b36cb8ba0018aa0a1dbc2f8f7842f4b0ca2dbffdfe24b44bf8af02537c",
+      "measured_at": "2026-09-12T07:22:10.060254+00:00",
+      "fit": {
+        "device_envelope_bytes": 1763285402,
+        "host_envelope_bytes": 1922324071,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m025-compute.json",
+      "artifact_digest": "5bff615f9fdb8f3164860faeff72756c8ffa809749aa7dff26e22c2a010903ab",
+      "raw_sha256": "b5055d1aecfd2935a740d9e4abbc60635aa16d6fa7e0ac66f9fb48295e7a3c2a",
+      "measured_at": "2026-09-12T07:22:14.825695+00:00"
+    },
+    {
+      "file": "cuda-first-m026-memory.json",
+      "artifact_digest": "e8c665cd42ae3ad05fe20d698bdde12e6aa83566cf3a8cf927324d83940e0960",
+      "raw_sha256": "1a583c66a201c8e2174bbc7178061563017fab0996c9941d69fbc5ab3691f179",
+      "measured_at": "2026-09-12T07:22:40.760048+00:00",
+      "fit": {
+        "device_envelope_bytes": 2023961396,
+        "host_envelope_bytes": 1921652736,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m026-compute.json",
+      "artifact_digest": "adfe002c0cf44720bb5a56409020de86622c555b5fc86ed2335e47b3be715726",
+      "raw_sha256": "1ffec183d9722fba298863fccd99cb4575a1f9a2194fed365a939c0f56e67619",
+      "measured_at": "2026-09-12T07:22:49.915086+00:00"
+    },
+    {
+      "file": "cuda-final-m026-memory.json",
+      "artifact_digest": "093f6a0b88bf7263e6f0e659ca599244506cb794f56cc9ee0395a53eaf4e950e",
+      "raw_sha256": "0a39f6496dd1dc7c62eb3be3015f49471aadf4fbac1827ab5981db589da58dec",
+      "measured_at": "2026-09-12T07:24:01.096809+00:00",
+      "fit": {
+        "device_envelope_bytes": 1717148058,
+        "host_envelope_bytes": 1922517812,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m026-compute.json",
+      "artifact_digest": "fc1ea3c9a4a42ae2f7ca30f9c64c4260cbc6e20217907d088eb2a2b7de668c1b",
+      "raw_sha256": "2f3bbcc70caa4d665f170b8b3f113eaab67e4b72fa0cc93a59e926363f87b199",
+      "measured_at": "2026-09-12T07:24:05.588385+00:00"
+    },
+    {
+      "file": "cuda-first-m027-memory.json",
+      "artifact_digest": "1dc3d42cc701978206ca1693e211585b80fa7f6a957a6761834ae112928e1dc1",
+      "raw_sha256": "9cee1941e355ce1bcfa2b0d5e9dbd9c07f0c3d7229c8327efbb96a73c32fb232",
+      "measured_at": "2026-09-12T07:24:28.975030+00:00",
+      "fit": {
+        "device_envelope_bytes": 2070098740,
+        "host_envelope_bytes": 1921729332,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-first-m027-compute.json",
+      "artifact_digest": "6a809c2e0053d9dc4e9305d707997aceb1d358cd75509baab24868ef90cfa807",
+      "raw_sha256": "7979b1622d094d471b94daafe9de609c26eb96754f84b6cea2d483bbc4cef355",
+      "measured_at": "2026-09-12T07:24:38.400049+00:00"
+    },
+    {
+      "file": "cuda-final-m027-memory.json",
+      "artifact_digest": "b10c3c7cf56075fc9ac4da54bb5b3d33cbfc1cc057e1cc4221fed8a2a8e755ba",
+      "raw_sha256": "ca2fbf83ace1e50ea59de4d8acf99304d95624edc918d53773d64eb55977028f",
+      "measured_at": "2026-09-12T07:25:52.142834+00:00",
+      "fit": {
+        "device_envelope_bytes": 1671010714,
+        "host_envelope_bytes": 1922432205,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "cuda-final-m027-compute.json",
+      "artifact_digest": "36d686dbe6162d657d7ccefc3191a30708849855c472225bc325d5caa2907e9f",
+      "raw_sha256": "65c2129b4617db120cba23a10c4106d3e952421dd1e162224f91358f9ecac508",
+      "measured_at": "2026-09-12T07:25:56.373044+00:00"
+    }
+  ],
+  "scope": "Completed CUDA profile collection only; not full M5 acceptance"
+}

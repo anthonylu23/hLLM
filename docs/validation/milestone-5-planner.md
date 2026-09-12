@@ -385,3 +385,10 @@ and temporary firewall cleanup were audited. Median request-setup estimates are
 113.02 ms for MLX→CUDA and 161.16 ms for CUDA→MLX. These are calibration estimates,
 not placement regret or full-workload latency claims. Both hosts are collecting
 new all-assignment memory and compute profiles; selection and acceptance remain pending.
+
+The [CUDA mixed-precision profile collection](milestone-5-planner/mixed-cuda-profiles.json)
+completed all 54 memory and 54 compute profiles. An artifact-by-artifact audit
+verified all assignments, hashes, workload/precision and executable identities,
+measurement conditions, and recomputed all 54 safe memory-fit assessments.
+Mac collection remains in progress; the completed CUDA profiles do not establish
+an automatic selection or acceptance result.
