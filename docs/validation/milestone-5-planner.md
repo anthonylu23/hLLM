@@ -499,3 +499,11 @@ workload coverage, source/executable identities, measurement conditions and seal
 artifact hashes. All 54 independent memory fits recompute as safe. Mac collection
 is still running (46/108 artifacts at this checkpoint), with no resource pauses
 or failures observed. The CUDA audit alone does not qualify selection or regret.
+
+The [new-build MLX profile audit](milestone-5-planner/deadline-mlx-profiles.json)
+also passed all 108 artifacts, including all 54 safe memory fits. Both collection
+processes exited successfully: **216/216 profiles are complete and audited** for
+the deadline-fixed binaries. Fresh production request-setup calibration is now
+running five jobs per stage order, each with two exact-reference warmups and one
+timed request. Link/environment refresh, new measured selection, timing stability,
+independent acceptance and the final audit remain pending.
