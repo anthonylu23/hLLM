@@ -346,3 +346,31 @@ explicit F16 resident weights, F32 execution/KV and F16 wire activations, keepin
 exact tokens and all other gates unchanged. Production implementation, fresh memory
 and performance qualification, the acceptance sweep, and the user's separate final
 M5 audit remain required before marking complete or creating the PR.
+
+
+## Approved mixed-precision implementation — 2026-09-12
+
+The user approved the [explicit precision target](../milestone-5-precision-proposal.md):
+F16 resident weights, F32 execution and KV, F16 wire. This replaces the execution/KV
+precision for the new qualification while preserving all exact-token, workload,
+resource, timing, and audit requirements.
+
+Schema 1.2 now carries resident weight precision through settings, plans, native
+capabilities, canonical hashes, profiles, measured selection, activation and sweep
+placements. Legacy serialization and profile identities remain unchanged when the
+new field is absent. CPU workers and unsupported precision pairs reject the mode.
+Both GPU backends retain F16 weights, cast to F32 for computation, and account for
+F32 KV plus transient weight-cast workspace. Independent memory evidence must match
+the requested resident and execution dtypes, including any sweep exclusion.
+
+Initial verification: 88 Python tests pass; Ruff, Pyright and protobuf freshness
+checks pass. The CPU/MLX 59-test CTest suite passes, with affected serving, profile,
+measured-plan and numerical checks rerun after final changes. CUDA production build and its 62-test CTest suite
+pass; affected numerical, serving and profile checks are rerun after final changes. Fresh full-checkpoint evidence is
+being collected; the earlier 54/54 diagnostic does not satisfy production acceptance.
+
+Both extreme assignments on each backend passed fresh full-checkpoint memory
+qualification under the fixed caps. The [compact evidence](milestone-5-planner/mixed-extreme-memory.json)
+records schema/precision, executable and artifact identities, accounted memory and
+physical envelopes. These four memory checks do not establish exact-token serving,
+all-placement coverage, selection quality, or M5 acceptance.

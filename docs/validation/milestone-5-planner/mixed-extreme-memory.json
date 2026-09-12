@@ -1,0 +1,147 @@
+{
+  "purpose": "Fresh production mixed-precision extreme-assignment memory qualification; not full milestone acceptance",
+  "mlx": [
+    {
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "artifact_digest": "329da24576719cf2c881a402810a9672feacf776f1d41d6bc6aa3ce3e628ff4f",
+      "source_revision": "sources-sha256:6407b91fa24fc7ae94cb27fb99c8cdc8e12012e53365ab4a30f7e7feda37116d",
+      "binary_digest": "15259267cbe4b8c0f471c2b2406c05bbcb83c292d208e80af843f290fcb2d4a0",
+      "profile_schema": "1.2",
+      "weight_dtype": "F16",
+      "execution_dtype": "F32",
+      "kv_dtype": "F32",
+      "completed": true,
+      "admission_capacity": {
+        "host": 0,
+        "device": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 4189000932,
+        "reasons": [],
+        "status": "safe"
+      },
+      "maximum_accounted_weights": 1160637952,
+      "maximum_accounted_cache": 169869312,
+      "maximum_accounted_workspace": 1418883072
+    },
+    {
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "artifact_digest": "5c1fb5eb4e5838238ef835052a97661865cb37510baf133862b1f08f4f947c56",
+      "source_revision": "sources-sha256:6407b91fa24fc7ae94cb27fb99c8cdc8e12012e53365ab4a30f7e7feda37116d",
+      "binary_digest": "15259267cbe4b8c0f471c2b2406c05bbcb83c292d208e80af843f290fcb2d4a0",
+      "profile_schema": "1.2",
+      "weight_dtype": "F16",
+      "execution_dtype": "F32",
+      "kv_dtype": "F32",
+      "completed": true,
+      "admission_capacity": {
+        "host": 0,
+        "device": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3725998040,
+        "reasons": [],
+        "status": "safe"
+      },
+      "maximum_accounted_weights": 1160635904,
+      "maximum_accounted_cache": 169869312,
+      "maximum_accounted_workspace": 859472896
+    }
+  ],
+  "cuda": [
+    {
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "artifact_digest": "89fd0e805a047e8eb36efc15f03e5f56b38e8b38ab51912b84bcaa85f9f07b7c",
+      "source_revision": "sources-sha256:6407b91fa24fc7ae94cb27fb99c8cdc8e12012e53365ab4a30f7e7feda37116d",
+      "binary_digest": "489f77b51fcad8f4d6df8330f4b2c9716a82e34ea69a69cbd3a302e36327ff1e",
+      "profile_schema": "1.2",
+      "weight_dtype": "F16",
+      "execution_dtype": "F32",
+      "kv_dtype": "F32",
+      "completed": true,
+      "admission_capacity": {
+        "host": 2147483648,
+        "device": 3221225472,
+        "pinned": 0,
+        "unified": 0
+      },
+      "fit": {
+        "device_envelope_bytes": 2755238298,
+        "host_envelope_bytes": 1919030477,
+        "reasons": [],
+        "status": "safe"
+      },
+      "maximum_accounted_weights": 1160637952,
+      "maximum_accounted_cache": 169869312,
+      "maximum_accounted_workspace": 1239564288
+    },
+    {
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "artifact_digest": "61dc5c3c6f92b1ab515e6f4b56eb26b034d5835903b71d45e7f0ca7cabcd152b",
+      "source_revision": "sources-sha256:6407b91fa24fc7ae94cb27fb99c8cdc8e12012e53365ab4a30f7e7feda37116d",
+      "binary_digest": "489f77b51fcad8f4d6df8330f4b2c9716a82e34ea69a69cbd3a302e36327ff1e",
+      "profile_schema": "1.2",
+      "weight_dtype": "F16",
+      "execution_dtype": "F32",
+      "kv_dtype": "F32",
+      "completed": true,
+      "admission_capacity": {
+        "host": 2147483648,
+        "device": 3221225472,
+        "pinned": 0,
+        "unified": 0
+      },
+      "fit": {
+        "device_envelope_bytes": 2070098740,
+        "host_envelope_bytes": 1921936589,
+        "reasons": [],
+        "status": "safe"
+      },
+      "maximum_accounted_weights": 1160635904,
+      "maximum_accounted_cache": 169869312,
+      "maximum_accounted_workspace": 680154112
+    }
+  ]
+}
