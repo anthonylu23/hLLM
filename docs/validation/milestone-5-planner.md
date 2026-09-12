@@ -507,3 +507,13 @@ the deadline-fixed binaries. Fresh production request-setup calibration is now
 running five jobs per stage order, each with two exact-reference warmups and one
 timed request. Link/environment refresh, new measured selection, timing stability,
 independent acceptance and the final audit remain pending.
+
+[New-build setup calibration](milestone-5-planner/deadline-setup-calibration.json)
+passed all ten fresh jobs, five per stage order at split 14. All **30 full requests**
+matched the independent reference, with verified unload. Raw evidence hashes,
+worker identities, memory-profile scope and setup timing triples were audited;
+setup residuals were independently recomputed. Median setup estimates are
+107.04 ms for MLX→CUDA and 164.67 ms for CUDA→MLX. The owned firewall rule was
+removed. Fresh directional links are running, with measured selection and exact
+activation queued only after link success and cleanup. No regret or timing-drift
+acceptance is implied by this calibration checkpoint.

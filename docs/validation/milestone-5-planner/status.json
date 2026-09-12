@@ -39,7 +39,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T18:04:08.124056+00:00",
+  "updated_at": "2026-09-12T18:38:05.552509+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
@@ -77,7 +77,7 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Finish and audit new-build setup calibration, refresh links/environment and measured selection, check timing stability, then freeze a new independent sweep before final audit and PR.",
+  "next_step": "Finish fresh directional links, run guarded measured selection and exact activation, check timing stability, then freeze a new independent sweep before final audit and PR.",
   "internal_precision_matrix_state": "complete54 across3 attempts,51exact; reverse27exact, forward16/18/21fail",
   "internal_precision_resource_file": "internal-f32-resource-stop.json",
   "internal_precision_matrix_file": "correctness-internal-complete.json",
@@ -119,5 +119,6 @@
   "deadline_profile_collection_state": "complete and audited: 216/216 artifacts",
   "deadline_cuda_profile_audit_file": "deadline-cuda-profiles.json",
   "deadline_mlx_profile_audit_file": "deadline-mlx-profiles.json",
-  "deadline_setup_calibration_state": "running five fresh jobs per direction"
+  "deadline_setup_calibration_state": "complete and audited: 10 jobs, 30 exact requests",
+  "deadline_setup_calibration_file": "deadline-setup-calibration.json"
 }
