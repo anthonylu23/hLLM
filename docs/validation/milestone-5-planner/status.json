@@ -7,7 +7,7 @@
   "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
   "candidate_count": 54,
   "independently_timed_candidates": 0,
-  "qualified_request_setup_directions": 0,
+  "qualified_request_setup_directions": 2,
   "previous_profile_split": 14,
   "reference_file": "reference-512-f32.json.gz",
   "reference_uncompressed_sha256": "120767036fe523346bb572dcdb5b7a38bca03f80d644828857030f5c5e81cda4",
@@ -25,7 +25,7 @@
   "generated_ids_digest": "713d51e3db0f8e9623e61ab390f6f8498bfc85451979cb6664ab40d32970afd5",
   "correctness_policy": "exact-greedy-token-sequence",
   "blockers": [
-    "Fresh production mixed-precision profiles, setup calibration, link/environment snapshots and measured selection pending.",
+    "Full mixed-precision profile collection is running; fresh link/environment snapshots and measured selection remain pending.",
     "Independent exact-token all-placement sweep, timing/statistical gates and separate final M5 audit pending."
   ],
   "regret": null,
@@ -38,11 +38,16 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T06:09:03.005309+00:00",
+  "updated_at": "2026-09-12T06:49:44.366552+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
-    "full_mixed_profile_collection": "pending"
+    "full_mixed_profile_collection": "running on both hosts",
+    "mlx_memory_profiles": 6,
+    "mlx_compute_profiles": 5,
+    "cuda_memory_profiles": 14,
+    "cuda_compute_profiles": 13,
+    "total_profiles_required": 216
   },
   "profile_coverage_file": "all-profile-coverage-silu.json",
   "setup_calibration_state": "complete and audited: 30 exact requests",
@@ -92,5 +97,7 @@
     "profile_schema": "1.2"
   },
   "historical_evidence_note": "Existing pilot, F16 selection/sweep and diagnostic fields are historical; none qualify the approved mixed production target. The pre-change status is preserved in legacy_f16_status_file.",
-  "mixed_extreme_memory_file": "mixed-extreme-memory.json"
+  "mixed_extreme_memory_file": "mixed-extreme-memory.json",
+  "mixed_setup_calibration_file": "mixed-setup-calibration.json",
+  "mixed_setup_exact_requests": 30
 }

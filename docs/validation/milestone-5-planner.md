@@ -374,3 +374,14 @@ qualification under the fixed caps. The [compact evidence](milestone-5-planner/m
 records schema/precision, executable and artifact identities, accounted memory and
 physical envelopes. These four memory checks do not establish exact-token serving,
 all-placement coverage, selection quality, or M5 acceptance.
+
+
+The [mixed-precision setup calibration](milestone-5-planner/mixed-setup-calibration.json)
+passed all ten fresh jobs at split 14, five in each direction. Each job used two
+warmups and one timed request: all 30 requests matched all 256 independent reference
+tokens (7,680 generated tokens), with memory qualification and clean unload. The
+raw evidence hashes, profile precision and executable identities, timing triples,
+and temporary firewall cleanup were audited. Median request-setup estimates are
+113.02 ms for MLX→CUDA and 161.16 ms for CUDA→MLX. These are calibration estimates,
+not placement regret or full-workload latency claims. Both hosts are collecting
+new all-assignment memory and compute profiles; selection and acceptance remain pending.
