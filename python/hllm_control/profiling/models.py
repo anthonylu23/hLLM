@@ -55,6 +55,7 @@ class ProfileKey(ProfileModel):
     workload: WorkloadProfile
     workload_digest: Digest
     execution_dtype: DType
+    weight_dtype: DType | None = Field(default=None, exclude_if=lambda v: v is None)
     transport_mode: Literal["pageable", "pinned"]
     input_kind: Literal["synthetic-shape", "reference"]
     input_digest: Digest
@@ -62,6 +63,12 @@ class ProfileKey(ProfileModel):
     @model_validator(mode="after")
     def supported_workload(self) -> Self:
         w = self.workload
+        if self.weight_dtype is not None and (
+            self.environment.backend == Backend.CPU
+            or self.weight_dtype != DType.F16
+            or self.execution_dtype != DType.F32
+        ):
+            raise ValueError("unsupported mixed precision profile")
         if self.workload_digest != digest(w):
             raise ValueError("workload digest mismatch")
         if w.concurrency != 1:
@@ -241,7 +248,7 @@ Measurement = Annotated[
 
 
 class ProfileArtifact(ProfileModel):
-    schema_version: Literal["1.0", "1.1"] = "1.0"
+    schema_version: Literal["1.0", "1.1", "1.2"] = "1.0"
     profiler_version: Literal["0.1.0", "0.2.0"] = "0.1.0"
     key: ProfileKey
     conditions: Conditions
@@ -250,6 +257,8 @@ class ProfileArtifact(ProfileModel):
 
     @model_validator(mode="after")
     def verify(self) -> Self:
+        if (self.key.weight_dtype is not None) != (self.schema_version == "1.2"):
+            raise ValueError("mixed precision requires profile schema 1.2")
         if self.artifact_digest != digest(
             self.model_dump(mode="json", exclude={"artifact_digest"})
         ):
@@ -273,7 +282,7 @@ class ProfileArtifact(ProfileModel):
             elif not m.error:
                 raise ValueError("incomplete measurement requires an error")
         elif isinstance(m, ComputeRunMeasurement):
-            if self.schema_version != "1.1":
+            if self.schema_version != ("1.2" if self.key.weight_dtype else "1.1"):
                 raise ValueError("compute runs require measured profile schema 1.1")
             if m.completed:
                 validate_compute_run(self.key, self.conditions, m)
@@ -288,7 +297,11 @@ def make_artifact(
     key: ProfileKey, conditions: Conditions, measurement: Measurement
 ) -> ProfileArtifact:
     unsigned: dict[str, object] = {
-        "schema_version": "1.1" if isinstance(measurement, ComputeRunMeasurement) else "1.0",
+        "schema_version": "1.2"
+        if key.weight_dtype
+        else "1.1"
+        if isinstance(measurement, ComputeRunMeasurement)
+        else "1.0",
         "profiler_version": "0.2.0" if isinstance(measurement, ComputeRunMeasurement) else "0.1.0",
         "key": key.model_dump(mode="json"),
         "conditions": conditions.model_dump(mode="json"),

@@ -223,6 +223,7 @@ def run_memory_profile(
         workload=workload,
         workload_digest=digest(workload),
         execution_dtype=plan.execution_dtype,
+        weight_dtype=plan.weight_dtype,
         transport_mode=transport_mode,
         input_kind="synthetic-shape",
         input_digest=digest({"generator": "zero-token-or-zero-f16-boundary-v1"}),

@@ -39,7 +39,11 @@ def validate_activation(
     if len(plan.stages) != 2:
         raise ValueError("measured activation requires two stages")
     status, reasons, _ = evaluate(
-        bundle, manifest, bundle.workload, (plan.stages[0], plan.stages[1])
+        bundle,
+        manifest,
+        bundle.workload,
+        (plan.stages[0], plan.stages[1]),
+        weight_dtype=plan.weight_dtype,
     )
     if status != "measured":
         raise ValueError("selected assignment is not qualified: " + "; ".join(reasons))
@@ -59,7 +63,8 @@ def validate_activation(
         c = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
         q = control.GetQualificationState(common_pb2.Empty(), timeout=5)
         if (
-            c.worker_id != assignment.worker_id
+            (plan.weight_dtype is not None and not c.supports_mixed_precision)
+            or c.worker_id != assignment.worker_id
             or c.endpoint != b.worker.endpoint
             or c.backend != profile_pb2.Backend.Value(f"BACKEND_{b.worker.backend.value.upper()}")
             or manifest.architecture.architecture_id not in c.supported_architectures

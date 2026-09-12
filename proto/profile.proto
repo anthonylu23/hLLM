@@ -42,6 +42,8 @@ message WorkerProfile {
   MemoryDomain primary_memory_domain = 5;
   repeated string supported_architectures = 6;
   repeated DataType supported_execution_dtypes = 7;
+  // Supports schema 1.2 F16 resident weights / F32 execution and KV / F16 wire.
+  bool supports_mixed_precision = 16;
   repeated MemoryBudget memory_budgets = 8;
   uint64 fixed_workspace_bytes = 9;
   uint32 activation_buffer_count = 10;

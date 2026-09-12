@@ -16,14 +16,21 @@ BINARY = os.environ.get("HLLM_MEMORY_PROFILER")
 pytestmark = pytest.mark.skipif(BINARY is None, reason="native profiling binary not configured")
 
 
+@pytest.mark.parametrize("mixed", [False, True])
 @pytest.mark.parametrize("stage_index", [0, 1])
-def test_native_phases_reload_and_cleanup(tmp_path: Path, stage_index: int) -> None:
+def test_native_phases_reload_and_cleanup(tmp_path: Path, stage_index: int, mixed: bool) -> None:
     assert BINARY is not None
     backend = Backend(os.environ["HLLM_PROFILE_BACKEND"])
+    if mixed and backend == Backend.CPU:
+        pytest.skip("CPU does not support mixed precision")
     manifest = write_model(tmp_path / "model", redundant_head=True)
     deployment = plan(manifest)
-    dtype = DType.F32 if backend == Backend.CPU else DType.F16
+    dtype = DType.F32 if backend == Backend.CPU or mixed else DType.F16
     deployment = deployment.model_copy(update={"execution_dtype": dtype})
+    if mixed:
+        deployment = deployment.model_copy(
+            update={"schema_version": "1.2", "weight_dtype": DType.F16}
+        )
     w = WorkloadProfile(
         workload_id="native-memory",
         prompt_tokens=8,
@@ -51,6 +58,8 @@ def test_native_phases_reload_and_cleanup(tmp_path: Path, stage_index: int) -> N
     )
     assert isinstance(a.measurement, MemoryMeasurement)
     assert a.measurement.completed
+    assert a.key.weight_dtype == (DType.F16 if mixed else None)
+    assert a.schema_version == ("1.2" if mixed else "1.0")
     assert ProfileArtifact.model_validate_json(output.read_text()) == a
     assert len(a.measurement.samples) == 21
     loads = [s for s in a.measurement.samples if s.phase == "load"]

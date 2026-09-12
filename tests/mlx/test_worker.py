@@ -5,15 +5,19 @@ from pathlib import Path
 import pytest
 from hllm_control.controller import DeploymentSession
 from hllm_control.models import DType
+from hllm_control.profiling.models import digest
 from hllm_control.proto import common_pb2, control_pb2, profile_pb2
+from hllm_control.wire import deployment_plan_to_proto, model_manifest_to_proto
 
 from tests.mlx.helpers import MLX_BINARY
 from tests.process_helpers import Workers, plan, tokens, wait_clean, write_model
 
 
-@pytest.mark.parametrize("dtype", [DType.F32, DType.F16])
+@pytest.mark.parametrize("dtype,mixed", [(DType.F32, False), (DType.F16, False), (DType.F32, True)])
 @pytest.mark.parametrize("family", ["llama", "qwen3"])
-def test_mlx_only_generation_and_metrics(tmp_path: Path, dtype: DType, family: str) -> None:
+def test_mlx_only_generation_and_metrics(
+    tmp_path: Path, dtype: DType, family: str, mixed: bool
+) -> None:
     manifest = write_model(tmp_path, family)
     with Workers(tmp_path) as reference:
         with DeploymentSession(
@@ -23,6 +27,7 @@ def test_mlx_only_generation_and_metrics(tmp_path: Path, dtype: DType, family: s
     with Workers(tmp_path, limit=128 * 1024 * 1024, binaries=(MLX_BINARY, MLX_BINARY)) as workers:
         control = workers.controls[0]
         caps = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
+        assert caps.supports_mixed_precision
         assert caps.backend == profile_pb2.BACKEND_MLX
         assert caps.primary_memory_domain == profile_pb2.MEMORY_DOMAIN_UNIFIED
         assert set(caps.supported_architectures) == {"llama.v1", "qwen3.v1"}
@@ -35,6 +40,27 @@ def test_mlx_only_generation_and_metrics(tmp_path: Path, dtype: DType, family: s
         }
         assert control.Health(common_pb2.Empty(), timeout=5).serving
         configured = plan(manifest, split=None).model_copy(update={"execution_dtype": dtype})
+        if mixed:
+            configured = configured.model_copy(
+                update={"schema_version": "1.2", "weight_dtype": DType.F16}
+            )
+            d = digest(configured.model_dump(mode="json", exclude={"plan_id", "plan_digest"}))
+            configured = configured.model_copy(
+                update={"plan_id": "plan-" + d[:16], "plan_digest": d}
+            )
+        if mixed:
+            tampered = deployment_plan_to_proto(configured)
+            tampered.selected_candidate_id = "tampered"
+            rejected = control.LoadStage(
+                control_pb2.LoadStageRequest(
+                    plan=tampered,
+                    manifest=model_manifest_to_proto(manifest),
+                    stage_index=0,
+                ),
+                timeout=5,
+            )
+            assert not rejected.accepted
+            assert "hash mismatch" in rejected.detail
         samples = []
         for cycle in range(12):
             with DeploymentSession(manifest, configured, workers.endpoints) as session:

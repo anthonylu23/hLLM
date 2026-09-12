@@ -130,7 +130,10 @@ class NativeExecutor(ProfileModel):
                 artifact = ProfileArtifact.model_validate(result["artifact"])
                 raw[w.worker_id + ".memory"] = result
                 if (
-                    artifact.key.assignment != assignment
+                    artifact.key.weight_dtype != plan.weight_dtype
+                    or artifact.key.execution_dtype != plan.execution_dtype
+                    or artifact.key.manifest_digest != spec.manifest.manifest_digest
+                    or artifact.key.assignment != assignment
                     or artifact.key.workload != spec.workload
                     or artifact.key.checkpoint_digest != spec.reference.checkpoint_digest
                 ):

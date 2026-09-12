@@ -241,6 +241,7 @@ def deployment_plan_to_proto(plan: models.DeploymentPlan) -> placement_pb2.Deplo
         workload_id=plan.workload_id,
         planning_mode=plan.planning_mode.value,
         execution_dtype=f"DATA_TYPE_{plan.execution_dtype.value}",
+        weight_dtype=f"DATA_TYPE_{plan.weight_dtype.value}" if plan.weight_dtype else None,
         activation_dtype=f"DATA_TYPE_{plan.activation_dtype.value}",
         split_layer=plan.split_layer,
         stages=(
@@ -289,6 +290,9 @@ def deployment_plan_from_proto(message: placement_pb2.DeploymentPlan) -> models.
         workload_id=message.workload_id,
         planning_mode=models.PlanningMode(message.planning_mode),
         execution_dtype=_required_dtype(message.execution_dtype),
+        weight_dtype=_required_dtype(message.weight_dtype)
+        if message.HasField("weight_dtype")
+        else None,
         activation_dtype=_required_dtype(message.activation_dtype),
         split_layer=message.split_layer,
         stages=stages,

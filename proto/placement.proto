@@ -48,4 +48,6 @@ message DeploymentPlan {
   uint64 deployment_version = 14;
   string workload_digest = 15;
   string profile_bundle_digest = 16;
+  // Schema 1.2: F16 resident weights with F32 execution/KV. Absent preserves legacy residency.
+  optional DataType weight_dtype = 17;
 }

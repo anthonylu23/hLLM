@@ -34,7 +34,7 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
   const auto& plan = request.plan();
   const auto& manifest = request.manifest();
   if (!request.has_plan() || !request.has_manifest() || plan.schema_version().major() != 1U ||
-      plan.schema_version().minor() > 1U || manifest.schema_version().major() != 1U ||
+      plan.schema_version().minor() > 2U || manifest.schema_version().major() != 1U ||
       manifest.schema_version().minor() > 1U || plan.plan_id().empty() ||
       plan.plan_digest().empty() || plan.deployment_version() == 0U ||
       manifest.manifest_digest().empty() || plan.manifest_digest() != manifest.manifest_digest()) {
@@ -44,32 +44,47 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
   const auto digest = [](const std::string& value) {
     return value.size() == 64U && value.find_first_not_of("0123456789abcdef") == std::string::npos;
   };
-  if (plan.planning_mode() == "measured") {
-    if (plan.schema_version().minor() != 1U || !digest(plan.workload_digest()) ||
-        !digest(plan.profile_bundle_digest()) || !digest(plan.plan_digest())) {
-      throw std::invalid_argument("measured plan requires versioned workload/profile identities");
-    }
+  const bool mixed = plan.has_weight_dtype();
+  if (mixed != (plan.schema_version().minor() == 2U) ||
+      (mixed && (!capabilities.supports_mixed_precision ||
+                 plan.weight_dtype() != v1::DATA_TYPE_F16 ||
+                 plan.execution_dtype() != v1::DATA_TYPE_F32))) {
+    throw runtime::Error::incompatible_worker("unsupported resident/execution precision contract");
+  }
+  const bool measured = plan.planning_mode() == "measured";
+  if (measured && (plan.schema_version().minor() != (mixed ? 2U : 1U) ||
+                  !digest(plan.workload_digest()) || !digest(plan.profile_bundle_digest()))) {
+    throw std::invalid_argument("measured plan requires versioned workload/profile identities");
+  }
+  if (!measured && ((!mixed && plan.schema_version().minor() != 0U) ||
+                    !plan.workload_digest().empty() || !plan.profile_bundle_digest().empty())) {
+    throw std::invalid_argument("feasibility plan cannot carry measured identities");
+  }
+  if (measured || mixed) {
     nlohmann::json stages = nlohmann::json::array();
     for (const auto& s : plan.stages()) stages.push_back({
       {"stage_index", s.stage_index()}, {"worker_id", s.worker_id()},
       {"layer_start", s.layer_start()}, {"layer_end", s.layer_end()},
       {"owns_token_embedding", s.owns_token_embedding()}, {"owns_final_norm", s.owns_final_norm()},
       {"owns_lm_head", s.owns_lm_head()}, {"owns_sampling", s.owns_sampling()}});
-    const nlohmann::json unsigned_plan = {
-      {"schema_version", "1.1"}, {"planner_version", plan.planner_version()},
+    nlohmann::json unsigned_plan = {
+      {"schema_version", mixed ? "1.2" : "1.1"}, {"planner_version", plan.planner_version()},
       {"deployment_version", plan.deployment_version()}, {"manifest_digest", plan.manifest_digest()},
-      {"workload_id", plan.workload_id()}, {"planning_mode", "measured"},
+      {"workload_id", plan.workload_id()}, {"planning_mode", plan.planning_mode()},
       {"execution_dtype", v1::DataType_Name(plan.execution_dtype()).substr(10)},
       {"activation_dtype", v1::DataType_Name(plan.activation_dtype()).substr(10)},
       {"split_layer", plan.split_layer()}, {"stages", stages},
       {"duplicated_tensor_groups", std::vector<std::string>(plan.duplicated_tensor_groups().begin(), plan.duplicated_tensor_groups().end())},
       {"selected_candidate_id", plan.selected_candidate_id()},
       {"workload_digest", plan.workload_digest()}, {"profile_bundle_digest", plan.profile_bundle_digest()}};
-    if (text_digest(unsigned_plan.dump()) != plan.plan_digest() || plan.plan_id() != "plan-" + plan.plan_digest().substr(0, 16)) {
-      throw std::invalid_argument("measured plan hash mismatch");
+    if (mixed) unsigned_plan["weight_dtype"] = "F16";
+    if (!measured) {
+      unsigned_plan["workload_digest"] = nullptr;
+      unsigned_plan["profile_bundle_digest"] = nullptr;
     }
-  } else if (plan.schema_version().minor() != 0U || !plan.workload_digest().empty() || !plan.profile_bundle_digest().empty()) {
-    throw std::invalid_argument("legacy plan cannot carry measured identities");
+    if (text_digest(unsigned_plan.dump()) != plan.plan_digest() || plan.plan_id() != "plan-" + plan.plan_digest().substr(0, 16)) {
+      throw std::invalid_argument("versioned plan hash mismatch");
+    }
   }
   if (std::find(capabilities.architectures.begin(), capabilities.architectures.end(),
                 manifest.architecture().architecture_id()) == capabilities.architectures.end() ||
@@ -185,6 +200,7 @@ grpc::Status ControlService::GetCapabilities(grpc::ServerContext*, const v1::Emp
   profile->set_worker_id(config_.worker_id);
   profile->set_endpoint(config_.endpoint);
   profile->set_backend(capabilities_.kind);
+  profile->set_supports_mixed_precision(capabilities_.supports_mixed_precision);
   profile->set_primary_memory_domain(capabilities_.primary_memory_domain);
   for (const auto& architecture : capabilities_.architectures) {
     profile->add_supported_architectures(architecture);

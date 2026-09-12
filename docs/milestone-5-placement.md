@@ -12,6 +12,24 @@ plan hashes. Legacy feasibility/estimated plans retain schema 1.0 and their exis
 plan hashing. Measured plans use schema 1.1 and hash the full workload digest and
 profile-bundle digest. Python and native workers reject altered measured plans.
 
+The approved M5 target uses opt-in schema 1.2: `weight_dtype: F16`,
+`execution_dtype: F32`, workload `kv_dtype: F32`, and F16 wire activations.
+Use `examples/profiles/milestone-5-mixed-objective.yaml` with
+`examples/workloads/milestone-5-mixed.yaml`. Both workers must advertise
+`supports_mixed_precision: true`; CPU workers reject this mode. With `weight_dtype`
+absent, resident weights retain the execution dtype and legacy hashes are unchanged.
+Schema 1.2 plans (including feasibility plans) bind the explicit precision in their
+canonical digest and use `plan-<first 16 digest characters>` identifiers. Matching
+memory and compute artifacts use schema 1.2 and include the resident weight dtype.
+Legacy profiles cannot qualify the new target.
+
+Native MLX/CUDA loaders keep F16 weights, cast selected weights for F32 computation,
+and allocate F32 KV caches. Admission includes transient F32 weight casts, bounded
+by the largest evaluated layer or output-head group. Embedding lookup casts only
+its selected rows. The fixed memory caps still apply. Fresh profiles, selection,
+independent acceptance sweep, and the separate final audit remain required; the
+54-placement diagnostic is not production acceptance.
+
 `GetQualificationState` reports fresh physical availability, executable SHA-256,
 PID, a host/hardware fingerprint, backend/device/driver API identity, allocator configuration, and boundary
 transfer mode. It does not reset allocator peaks. Measured activation refreshes

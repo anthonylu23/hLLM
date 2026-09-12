@@ -18,6 +18,7 @@ struct BackendCapabilities {
   std::vector<std::string> architectures;
   std::vector<v1::DataType> execution_dtypes;
   std::string detail;
+  bool supports_mixed_precision{false};
 };
 
 struct AllocatorMetrics {

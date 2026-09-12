@@ -195,7 +195,8 @@ std::unique_ptr<ReferenceStage> load_stage(const v1::LoadStageRequest& request,
                                            const std::filesystem::path& root,
                                            std::size_t memory_limit) {
   auto source = model::inspect_dense_stage(request, root);
-  if (source.execution_dtype != runtime::DataType::kF32) {
+  if (source.execution_dtype != runtime::DataType::kF32 ||
+      source.weight_dtype != runtime::DataType::kF32) {
     throw runtime::Error::incompatible_worker("CPU execution requires F32");
   }
   if (add(add(source.float32_weight_bytes, add(source.largest_payload_bytes, source.verification_workspace_bytes)), 65536U) > memory_limit) {

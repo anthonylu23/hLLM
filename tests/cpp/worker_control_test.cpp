@@ -14,6 +14,24 @@
 namespace hllm::worker {
 namespace {
 
+TEST(WorkerControlTest, CpuRejectsMixedPrecisionBeforeLoading) {
+  const test::ModelFixture model;
+  auto factory = cpu::make_backend_factory();
+  EXPECT_FALSE(factory->capabilities().supports_mixed_precision);
+  auto request = model.load();
+  request.mutable_plan()->mutable_schema_version()->set_minor(2U);
+  request.mutable_plan()->set_weight_dtype(v1::DATA_TYPE_F16);
+  EXPECT_THROW(static_cast<void>(factory->load(request, model.root, {1'000'000U, 0U, 0U})), std::exception);
+  ControlService service({.worker_id = "cpu-a", .endpoint = "127.0.0.1:50051",
+                          .model_root = model.root, .host_memory_capacity_bytes = 1'000'000U},
+                         std::move(factory));
+  grpc::ServerContext context;
+  v1::LoadStageResponse rejected;
+  ASSERT_TRUE(service.LoadStage(&context, &request, &rejected).ok());
+  EXPECT_FALSE(rejected.accepted());
+  EXPECT_EQ(rejected.error().code(), v1::ERROR_CODE_INCOMPATIBLE_WORKER);
+}
+
 TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
   const test::ModelFixture model;
   ControlService service(

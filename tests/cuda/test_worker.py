@@ -14,6 +14,7 @@ import pytest
 from hllm_control.controller import DeploymentSession
 from hllm_control.models import DeploymentPlan, DType, PlanningMode, StageAssignment
 from hllm_control.prepare.manifest import prepare_model
+from hllm_control.profiling.models import digest
 from hllm_control.proto import (
     common_pb2,
     control_pb2,
@@ -74,6 +75,7 @@ def test_cuda_capabilities_memory_and_unsupported_model(
 ) -> None:
     _, control = cuda_worker
     caps = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
+    assert caps.supports_mixed_precision
     assert caps.backend == profile_pb2.BACKEND_CUDA
     assert caps.primary_memory_domain == profile_pb2.MEMORY_DOMAIN_DEVICE
     assert set(caps.supported_architectures) == {"llama.v1", "qwen3.v1"}
@@ -112,7 +114,8 @@ def test_cuda_capabilities_memory_and_unsupported_model(
 
 
 def test_cuda_omits_metrics_for_unsupported_allocator(
-    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+    request: pytest.FixtureRequest,
 ) -> None:
     monkeypatch.delenv("PYTORCH_ALLOC_CONF", raising=False)
     monkeypatch.setenv("PYTORCH_CUDA_ALLOC_CONF", "backend:cudaMallocAsync")
@@ -122,11 +125,12 @@ def test_cuda_omits_metrics_for_unsupported_allocator(
     assert not metrics.HasField("allocator")
 
 
-@pytest.mark.parametrize("dtype", [DType.F32, DType.F16])
+@pytest.mark.parametrize("dtype,mixed", [(DType.F32, False), (DType.F16, False), (DType.F32, True)])
 def test_cuda_generation_reservations_and_reload(
     tmp_path: Path,
     cuda_worker: tuple[str, control_pb2_grpc.WorkerControlStub],
     dtype: DType,
+    mixed: bool,
 ) -> None:
     address, control = cuda_worker
     subprocess.run(
@@ -156,6 +160,10 @@ def test_cuda_generation_reservations_and_reload(
             ),
         ),
     )
+    if mixed:
+        plan = plan.model_copy(update={"schema_version": "1.2", "weight_dtype": DType.F16})
+        d = digest(plan.model_dump(mode="json", exclude={"plan_id", "plan_digest"}))
+        plan = plan.model_copy(update={"plan_id": "plan-" + d[:16], "plan_digest": d})
     previous = None
     for _ in range(2):
         with DeploymentSession(manifest, plan, {"cuda-a": address}) as session:

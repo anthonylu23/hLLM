@@ -11,6 +11,7 @@ from typing import Annotated, Literal, Self
 from pydantic import AwareDatetime, Field, PrivateAttr, model_validator
 
 from hllm_control.models import (
+    DType,
     ModelManifest,
     PerformanceEstimate,
     StageAssignment,
@@ -257,6 +258,7 @@ def evaluate(
     manifest: ModelManifest,
     workload: WorkloadProfile,
     assignments: tuple[StageAssignment, StageAssignment],
+    weight_dtype: DType | None = None,
 ) -> tuple[str, tuple[str, ...], PerformanceEstimate | None]:
     """Return measured, unknown, or infeasible; no interpolation or layer summation."""
     if bundle.manifest_digest != manifest.manifest_digest or bundle.workload != workload:
@@ -290,6 +292,7 @@ def evaluate(
                     and p.key.checkpoint_digest == bundle.checkpoint_digest
                     and p.key.workload == workload
                     and p.key.execution_dtype == workload.kv_dtype
+                    and p.key.weight_dtype == weight_dtype
                     and p.key.transport_mode == binding.transport_mode
                     and p.conditions.concurrent_load == bundle.concurrent_load
                     and _fresh(

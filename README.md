@@ -8,6 +8,10 @@ Stages load assigned Safetensors weights, run prefill and greedy decode, and str
 token IDs through a Python controller. Request admission, cancellation, deadlines, and
 cleanup are covered by numerical and process integration tests.
 
+The approved M5 qualification target uses F16 resident weights, F32 execution/KV,
+and F16 wire transfers. Production acceptance and the final audit remain pending;
+see the [precision target](docs/milestone-5-precision-proposal.md).
+
 ## Milestone status
 
 | Milestone | Scope | Status | Notes |

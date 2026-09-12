@@ -1,0 +1,9 @@
+# Fixed-workload generation latency: TTFT + 255 mean decode intervals.
+mode: measured
+execution_dtype: F32
+weight_dtype: F16
+objective_weights:
+  ttft: 1.0
+  itl: 255.0
+  pipeline_period: 0.0
+  memory_pressure: 0.0

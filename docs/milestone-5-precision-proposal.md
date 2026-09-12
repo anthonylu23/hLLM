@@ -1,4 +1,4 @@
-# M5 precision proposal — awaiting approval
+# M5 precision target — approved for implementation
 
 The isolated diagnostic now matches all 256 reference tokens at all 54 placements
 (13,824 teacher-forced outputs). The [evidence audit](validation/milestone-5-planner/kv-f32-complete.json)
@@ -6,9 +6,9 @@ verifies coverage, raw hashes, shared inputs, cached prefixes and configured cap
 It does **not** establish production acceptance. Current production remains at
 51/54 exact placements in the diagnostic matrix.
 
-## Proposed target
+## Approved target
 
-Approve an explicit mixed-precision mode for the Qwen3-0.6B M5 qualification:
+The user approved an explicit mixed-precision mode for the Qwen3-0.6B M5 qualification:
 
 | Component | Current target | Proposed target |
 |---|---|---|
@@ -38,7 +38,7 @@ workspace and bandwidth. F32 arithmetic may materially reduce throughput. Neithe
 its performance nor its physical peak memory is qualified yet. All configured
 caps stay fixed; the implementation must reject configurations that cannot fit.
 
-## Implementation required after approval
+## Implementation and qualification work
 
 1. Represent resident weight precision independently of execution precision.
    Add an explicit `weight_dtype` to settings, plans and profile identities;
@@ -64,7 +64,7 @@ caps stay fixed; the implementation must reject configurations that cannot fit.
 
 ## Acceptance and final audit
 
-A diagnostic pass is only permission to consider the implementation above. The
+The diagnostic pass supports the approved implementation target. The
 production acceptance run must still establish all 54 placements, exact tokens,
 fresh independent memory qualification, two warmups per job, shuffled repeated
 timings, selected cancellation/deadline/cleanup/recovery checks, reference drift
@@ -79,7 +79,7 @@ remaining risks. Mark M5 complete and create the PR only after that audit passes
 
 ## Decision
 
-Approval authorizes implementing and qualifying this explicit mixed-precision
-target. It does not approve milestone completion, a PR before the final audit,
-increased memory caps, or any correctness relaxation. Until approved, production
-and the existing acceptance contract remain unchanged.
+The user’s “Proceed with the proposed target” authorizes implementing and
+qualifying this explicit mixed-precision target. It does not approve milestone completion, a PR before the final audit,
+increased memory caps, or any correctness relaxation. Production acceptance remains
+pending until fresh qualification and the separate audit pass.

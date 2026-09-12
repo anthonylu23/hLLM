@@ -33,7 +33,7 @@ class MlxFactory final : public runtime::BackendFactory {
             v1::MEMORY_DOMAIN_UNIFIED,
             {"llama.v1", "qwen3.v1"},
             {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16},
-            "MLX Metal runtime ready"};
+            "MLX Metal runtime ready", true};
   }
   std::optional<runtime::AllocatorMetrics> allocator_metrics() const override {
     // Scrapes must not wait behind checkpoint I/O or a long execution step.

@@ -90,7 +90,7 @@ def _stage_memory(
         end=end,
         is_first=is_first,
         is_final=is_final,
-        execution_dtype=settings.execution_dtype,
+        execution_dtype=settings.weight_dtype or settings.execution_dtype,
     )
     layer_count = end - start
     kv_per_layer_token = (
@@ -232,6 +232,8 @@ def _validate_workers(
                 f"worker {worker.worker_id} does not support "
                 f"{manifest.architecture.architecture_id}"
             )
+        if settings.weight_dtype and not worker.supports_mixed_precision:
+            raise PlanningError(f"worker {worker.worker_id} does not support mixed precision")
         if settings.execution_dtype not in worker.supported_execution_dtypes:
             raise PlanningError(
                 f"worker {worker.worker_id} does not support {settings.execution_dtype.value}"
@@ -250,6 +252,8 @@ def create_plan(
     settings = settings or PlannerSettings()
     version = "0.2.0" if settings.mode == PlanningMode.MEASURED else PLANNER_VERSION
     _validate_workers(manifest, workers, settings)
+    if settings.weight_dtype and workload.kv_dtype != settings.execution_dtype:
+        raise PlanningError("mixed execution and KV dtypes must agree")
     if settings.mode == PlanningMode.MEASURED:
         if profile_bundle is None:
             raise PlanningError("measured planning requires a profile bundle")
@@ -322,6 +326,7 @@ def create_plan(
                     assignments_for(
                         first.worker_id, final.worker_id, split, manifest.config.num_layers
                     ),
+                    weight_dtype=settings.weight_dtype,
                 )
                 if reasons:
                     measurement_status = "infeasible"
@@ -391,7 +396,7 @@ def create_plan(
         ),
     )
     duplicated_groups = ("token_embeddings",) if manifest.config.tied_embeddings else ()
-    unsigned_plan = {
+    unsigned_plan: dict[str, object] = {
         "planner_version": version,
         "deployment_version": 1,
         "manifest_digest": manifest.manifest_digest,
@@ -413,6 +418,14 @@ def create_plan(
             "profile_bundle_digest": profile_bundle.bundle_digest,
         }
         unsigned_plan.update(measured_fields)
+    if settings.weight_dtype:
+        measured_fields.update(schema_version="1.2")
+        unsigned_plan.update(
+            schema_version="1.2",
+            weight_dtype=settings.weight_dtype.value,
+            workload_digest=measured_fields.get("workload_digest"),
+            profile_bundle_digest=measured_fields.get("profile_bundle_digest"),
+        )
     plan_digest = hashlib.sha256(canonical_json_bytes(unsigned_plan)).hexdigest()
     plan = DeploymentPlan(
         **measured_fields,
@@ -424,6 +437,7 @@ def create_plan(
         workload_id=workload.workload_id,
         planning_mode=settings.mode,
         execution_dtype=settings.execution_dtype,
+        weight_dtype=settings.weight_dtype,
         activation_dtype=workload.activation_dtype,
         split_layer=selected.split_layer,
         stages=assignments,

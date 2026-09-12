@@ -17,7 +17,7 @@ class CudaFactory final : public runtime::BackendFactory {
             v1::MEMORY_DOMAIN_DEVICE,
             {"llama.v1", "qwen3.v1"},
             {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16},
-            detail_};
+            detail_, true};
   }
   std::optional<runtime::AllocatorMetrics> allocator_metrics() const override {
     const auto values = device_allocator_metrics(device_id_);

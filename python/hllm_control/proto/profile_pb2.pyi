@@ -58,7 +58,7 @@ class MemoryBudget(_message.Message):
     def __init__(self, domain: _Optional[_Union[MemoryDomain, str]] = ..., capacity_bytes: _Optional[int] = ..., runtime_reserve_bytes: _Optional[int] = ..., safety_fraction: _Optional[float] = ...) -> None: ...
 
 class WorkerProfile(_message.Message):
-    __slots__ = ("schema_version", "worker_id", "endpoint", "backend", "primary_memory_domain", "supported_architectures", "supported_execution_dtypes", "memory_budgets", "fixed_workspace_bytes", "activation_buffer_count", "allocator_allowance_fraction", "host_transport_buffer_bytes", "provenance", "observed_available_host_bytes", "observed_at")
+    __slots__ = ("schema_version", "worker_id", "endpoint", "backend", "primary_memory_domain", "supported_architectures", "supported_execution_dtypes", "supports_mixed_precision", "memory_budgets", "fixed_workspace_bytes", "activation_buffer_count", "allocator_allowance_fraction", "host_transport_buffer_bytes", "provenance", "observed_available_host_bytes", "observed_at")
     SCHEMA_VERSION_FIELD_NUMBER: _ClassVar[int]
     WORKER_ID_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
@@ -66,6 +66,7 @@ class WorkerProfile(_message.Message):
     PRIMARY_MEMORY_DOMAIN_FIELD_NUMBER: _ClassVar[int]
     SUPPORTED_ARCHITECTURES_FIELD_NUMBER: _ClassVar[int]
     SUPPORTED_EXECUTION_DTYPES_FIELD_NUMBER: _ClassVar[int]
+    SUPPORTS_MIXED_PRECISION_FIELD_NUMBER: _ClassVar[int]
     MEMORY_BUDGETS_FIELD_NUMBER: _ClassVar[int]
     FIXED_WORKSPACE_BYTES_FIELD_NUMBER: _ClassVar[int]
     ACTIVATION_BUFFER_COUNT_FIELD_NUMBER: _ClassVar[int]
@@ -81,6 +82,7 @@ class WorkerProfile(_message.Message):
     primary_memory_domain: MemoryDomain
     supported_architectures: _containers.RepeatedScalarFieldContainer[str]
     supported_execution_dtypes: _containers.RepeatedScalarFieldContainer[_common_pb2.DataType]
+    supports_mixed_precision: bool
     memory_budgets: _containers.RepeatedCompositeFieldContainer[MemoryBudget]
     fixed_workspace_bytes: int
     activation_buffer_count: int
@@ -89,7 +91,7 @@ class WorkerProfile(_message.Message):
     provenance: _common_pb2.Provenance
     observed_available_host_bytes: int
     observed_at: str
-    def __init__(self, schema_version: _Optional[_Union[_common_pb2.ArtifactVersion, _Mapping]] = ..., worker_id: _Optional[str] = ..., endpoint: _Optional[str] = ..., backend: _Optional[_Union[Backend, str]] = ..., primary_memory_domain: _Optional[_Union[MemoryDomain, str]] = ..., supported_architectures: _Optional[_Iterable[str]] = ..., supported_execution_dtypes: _Optional[_Iterable[_Union[_common_pb2.DataType, str]]] = ..., memory_budgets: _Optional[_Iterable[_Union[MemoryBudget, _Mapping]]] = ..., fixed_workspace_bytes: _Optional[int] = ..., activation_buffer_count: _Optional[int] = ..., allocator_allowance_fraction: _Optional[float] = ..., host_transport_buffer_bytes: _Optional[int] = ..., provenance: _Optional[_Union[_common_pb2.Provenance, str]] = ..., observed_available_host_bytes: _Optional[int] = ..., observed_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, schema_version: _Optional[_Union[_common_pb2.ArtifactVersion, _Mapping]] = ..., worker_id: _Optional[str] = ..., endpoint: _Optional[str] = ..., backend: _Optional[_Union[Backend, str]] = ..., primary_memory_domain: _Optional[_Union[MemoryDomain, str]] = ..., supported_architectures: _Optional[_Iterable[str]] = ..., supported_execution_dtypes: _Optional[_Iterable[_Union[_common_pb2.DataType, str]]] = ..., supports_mixed_precision: _Optional[bool] = ..., memory_budgets: _Optional[_Iterable[_Union[MemoryBudget, _Mapping]]] = ..., fixed_workspace_bytes: _Optional[int] = ..., activation_buffer_count: _Optional[int] = ..., allocator_allowance_fraction: _Optional[float] = ..., host_transport_buffer_bytes: _Optional[int] = ..., provenance: _Optional[_Union[_common_pb2.Provenance, str]] = ..., observed_available_host_bytes: _Optional[int] = ..., observed_at: _Optional[str] = ...) -> None: ...
 
 class LinkProfile(_message.Message):
     __slots__ = ("schema_version", "source_worker_id", "target_worker_id", "connection_type", "fixed_latency_ms", "bandwidth_bytes_per_second", "sender_conversion_ms", "receiver_conversion_ms", "provenance", "observed_at", "qualification")

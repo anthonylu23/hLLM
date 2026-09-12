@@ -139,3 +139,22 @@ def test_drift_does_not_pass(tmp_path: Path, key: ProfileKey):
     final = run(spec, directory, drifting)
     assert final["decision"] == "unstable"
     assert json.loads((directory / "summary.json").read_text())["decision"] == "unstable"
+
+
+def test_mixed_sweep_preserves_precision_contract(tmp_path: Path, key: ProfileKey):
+    from hllm_control.models import DeploymentPlan, DType
+
+    spec = sweep_fixture(tmp_path, key)
+    selected = spec.selected_plan.model_copy(
+        update={"schema_version": "1.2", "weight_dtype": DType.F16}
+    )
+    spec = spec.model_copy(update={"selected_plan": selected})
+    for candidate in placements(spec):
+        assert candidate.schema_version == "1.2"
+        assert candidate.weight_dtype == DType.F16
+        assert candidate.execution_dtype == DType.F32
+        assert candidate.plan_digest == digest(
+            candidate.model_dump(mode="json", exclude={"plan_id", "plan_digest"})
+        )
+        assert candidate.plan_id == "plan-" + candidate.plan_digest[:16]
+        assert DeploymentPlan.model_validate(candidate.model_dump()) == candidate

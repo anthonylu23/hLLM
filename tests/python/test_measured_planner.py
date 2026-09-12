@@ -484,3 +484,16 @@ def test_disk_bundle_equivalence_and_integrity(tmp_path, key):
     path.write_text(path.read_text().replace(disk.bundle_digest, "0" * 64))
     with pytest.raises(ValueError, match="bundle digest mismatch"):
         read_profile_bundle(path)
+
+
+def test_measured_matching_requires_weight_precision(tmp_path: Path, key: ProfileKey):
+    from hllm_control.planner.measured import evaluate
+
+    manifest, bundle = bundle_fixture(tmp_path, key)
+    assignment = assignments_for("a", "b", 1, manifest.config.num_layers)
+    assert evaluate(bundle, manifest, bundle.workload, assignment)[0] == "measured"
+    status, reasons, prediction = evaluate(
+        bundle, manifest, bundle.workload, assignment, weight_dtype=DType.F16
+    )
+    assert status == "unknown"
+    assert reasons and prediction is None

@@ -223,6 +223,7 @@ class WorkerProfile(StrictModel):
     primary_memory_domain: MemoryDomain
     supported_architectures: tuple[str, ...]
     supported_execution_dtypes: tuple[DType, ...]
+    supports_mixed_precision: bool = Field(default=False, exclude_if=lambda v: not v)
     memory_budgets: tuple[MemoryBudget, ...]
     fixed_workspace_bytes: NonNegativeInt = 0
     activation_buffer_count: PositiveInt = 2
@@ -280,6 +281,16 @@ class ObjectiveWeights(StrictModel):
 class PlannerSettings(StrictModel):
     mode: PlanningMode = PlanningMode.FEASIBILITY
     execution_dtype: DType = DType.F16
+    weight_dtype: DType | None = Field(default=None, exclude_if=lambda v: v is None)
+
+    @model_validator(mode="after")
+    def validate_precision(self) -> PlannerSettings:
+        if self.weight_dtype is not None and (
+            self.weight_dtype != DType.F16 or self.execution_dtype != DType.F32
+        ):
+            raise ValueError("mixed precision requires F16 weights and F32 execution/KV")
+        return self
+
     objective_weights: ObjectiveWeights = ObjectiveWeights()
 
 
@@ -346,6 +357,7 @@ class DeploymentPlan(StrictModel):
     workload_id: str
     planning_mode: PlanningMode
     execution_dtype: DType
+    weight_dtype: DType | None = Field(default=None, exclude_if=lambda v: v is None)
     activation_dtype: DType
     split_layer: NonNegativeInt
     workload_digest: str | None = None
@@ -354,10 +366,21 @@ class DeploymentPlan(StrictModel):
 
     @model_validator(mode="after")
     def validate_partition(self) -> DeploymentPlan:
+        mixed = self.weight_dtype is not None
+        if mixed and (
+            self.weight_dtype != DType.F16
+            or self.execution_dtype != DType.F32
+            or self.schema_version != "1.2"
+        ):
+            raise ValueError(
+                "mixed precision requires schema 1.2, F16 weights and F32 execution/KV"
+            )
+        if not mixed and self.schema_version == "1.2":
+            raise ValueError("schema 1.2 requires explicit weight precision")
         if self.planning_mode == PlanningMode.MEASURED:
             import re
 
-            if self.schema_version != "1.1" or not all(
+            if self.schema_version != ("1.2" if mixed else "1.1") or not all(
                 re.fullmatch(r"[0-9a-f]{64}", value or "")
                 for value in (self.workload_digest, self.profile_bundle_digest)
             ):

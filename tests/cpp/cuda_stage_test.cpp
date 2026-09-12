@@ -31,13 +31,41 @@ std::vector<float> oracle_rows(const nlohmann::json& tensor, std::size_t positio
           values.begin() + static_cast<std::ptrdiff_t>((position + count) * width)};
 }
 
+TEST(CudaStageTest, MixedPrecisionAccountsForResidentWeightsCachesAndCastWorkspace) {
+  const test::ModelFixture fixture;
+  auto factory = make_backend_factory();
+  EXPECT_TRUE(factory->capabilities().supports_mixed_precision);
+  auto request = fixture.load(0U, false);
+  auto baseline = factory->load(request, fixture.root, kBudget);
+  const auto weights = baseline->weight_memory().device_bytes;
+  const auto memory = baseline->sequence_memory(16U);
+  baseline.reset();
+  request.mutable_plan()->set_weight_dtype(v1::DATA_TYPE_F16);
+  EXPECT_THROW(static_cast<void>(factory->load(request, fixture.root, kBudget)), runtime::Error);
+  request.mutable_plan()->mutable_schema_version()->set_minor(2U);
+  auto mixed = factory->load(request, fixture.root, kBudget);
+  EXPECT_EQ(mixed->weight_memory().device_bytes * 2U, weights);
+  EXPECT_EQ(mixed->sequence_memory(16U).cache.device_bytes, memory.cache.device_bytes);
+  EXPECT_GT(mixed->sequence_memory(16U).workspace.device_bytes, memory.workspace.device_bytes);
+  mixed.reset();
+  request.mutable_plan()->set_execution_dtype(v1::DATA_TYPE_F16);
+  EXPECT_THROW(static_cast<void>(factory->load(request, fixture.root, kBudget)), runtime::Error);
+}
+
 TEST(CudaStageTest, ProfilingPreservesNonzeroBoundaryAndDecodeOutputs) {
   const test::ModelFixture fixture;
   auto factory = make_backend_factory();
-  for (const auto dtype : {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16}) {
+  for (const auto mode : {0, 1, 2}) {
+    const auto dtype = mode == 1 ? v1::DATA_TYPE_F16 : v1::DATA_TYPE_F32;
     auto a = fixture.load(0U); auto b = fixture.load(1U);
     a.mutable_plan()->set_execution_dtype(dtype);
     b.mutable_plan()->set_execution_dtype(dtype);
+    if (mode == 2) {
+      for (auto* request : {&a, &b}) {
+        request->mutable_plan()->set_weight_dtype(v1::DATA_TYPE_F16);
+        request->mutable_plan()->mutable_schema_version()->set_minor(2U);
+      }
+    }
     auto first = factory->load(a, fixture.root, kBudget);
     auto last = factory->load(b, fixture.root, kBudget);
     test::paired_timing_contract(*first, *last);
@@ -47,14 +75,19 @@ TEST(CudaStageTest, ProfilingPreservesNonzeroBoundaryAndDecodeOutputs) {
 TEST(CudaStageTest, QwenPrefillDecodeLayersCachesAndLogitsMatchIndependentOracle) {
   const test::ModelFixture fixture;
   auto factory = make_backend_factory();
-  for (const auto dtype : {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16}) {
+  for (const auto mode : {0, 1, 2}) {
+    const auto dtype = mode == 1 ? v1::DATA_TYPE_F16 : v1::DATA_TYPE_F32;
     auto request = fixture.load(0U, false);
     request.mutable_plan()->set_execution_dtype(dtype);
+    if (mode == 2) {
+      request.mutable_plan()->set_weight_dtype(v1::DATA_TYPE_F16);
+      request.mutable_plan()->mutable_schema_version()->set_minor(2U);
+    }
     auto stage = factory->load(request, fixture.root, kBudget);
     auto& reference = dynamic_cast<ReferenceStage&>(*stage);
     auto state = stage->allocate_sequence(16U);
     const std::array<std::uint64_t, 5U> ids{1U, 4U, 2U, 8U, 3U};
-    const float tolerance = dtype == v1::DATA_TYPE_F32 ? 3e-5F : 5e-3F;
+    const float tolerance = mode == 0 ? 3e-5F : 5e-3F;
     std::atomic_bool cancelled{false};
     for (const std::size_t position : {0U, 3U, 4U}) {
       const std::size_t count = position == 0U ? 3U : 1U;

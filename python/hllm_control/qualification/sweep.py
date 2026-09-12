@@ -75,6 +75,7 @@ class SweepContent(ProfileModel):
             or p.planning_mode != PlanningMode.MEASURED
             or p.profile_bundle_digest != self.profile_bundle_digest
             or p.workload_digest != digest(w)
+            or p.execution_dtype != w.kv_dtype
             or len(p.stages) != 2
         ):
             raise ValueError("selection/reference/bundle scope mismatch")
@@ -124,12 +125,14 @@ def placements(spec: SweepSpec) -> tuple[DeploymentPlan, ...]:
         for split in range(1, spec.manifest.config.num_layers):
             cid = f"{first}--{final}-m{split:03d}"
             unsigned = dict(
+                schema_version="1.2" if spec.selected_plan.weight_dtype else "1.0",
                 planner_version="qualification-1.0",
                 deployment_version=1,
                 manifest_digest=spec.manifest.manifest_digest,
                 workload_id=spec.workload.workload_id,
                 planning_mode=PlanningMode.FEASIBILITY,
                 execution_dtype=spec.selected_plan.execution_dtype,
+                weight_dtype=spec.selected_plan.weight_dtype,
                 activation_dtype=spec.selected_plan.activation_dtype,
                 split_layer=split,
                 stages=assignments_for(first, final, split, spec.manifest.config.num_layers),
@@ -141,7 +144,13 @@ def placements(spec: SweepSpec) -> tuple[DeploymentPlan, ...]:
             )
             d = digest(provisional.model_dump(mode="json", exclude={"plan_id", "plan_digest"}))
             result.append(
-                provisional.model_copy(update={"plan_id": "sweep-" + d[:16], "plan_digest": d})
+                provisional.model_copy(
+                    update={
+                        "plan_id": ("plan-" if spec.selected_plan.weight_dtype else "sweep-")
+                        + d[:16],
+                        "plan_digest": d,
+                    }
+                )
             )
     return tuple(result)
 
@@ -222,7 +231,9 @@ def validate_result(spec: SweepSpec, result: JobResult, job: str, plan: Deployme
                 "memory exclusion requires complete independent native memory evidence"
             )
         if (
-            e.profile.key.assignment not in plan.stages
+            e.profile.key.weight_dtype != plan.weight_dtype
+            or e.profile.key.execution_dtype != plan.execution_dtype
+            or e.profile.key.assignment not in plan.stages
             or e.profile.key.workload != spec.workload
             or e.profile.key.checkpoint_digest != spec.reference.checkpoint_digest
             or e.profile.key.manifest_digest != spec.manifest.manifest_digest
