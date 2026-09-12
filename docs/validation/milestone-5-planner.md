@@ -406,3 +406,11 @@ reference tokens, and left both workers unloaded with no active requests or
 reservations. Fresh link measurements passed in both directions. This establishes
 selection and activation behavior; the independent five-round acceptance sweep
 and separate final M5 audit remain required.
+
+All 54 placements completed their first production sweep jobs with exact tokens
+and clean unload: [initial coverage checkpoint](milestone-5-planner/mixed-first-coverage.json).
+Each placement passed two warmups and one timed request, totaling 162 exact
+512+256 requests and 41,472 generated tokens. This checkpoint checks completed
+job results; it is not the final raw-evidence audit or statistical acceptance.
+The remaining shuffled rounds, selected health checks, drift and regret gates,
+and separate final M5 audit remain required.

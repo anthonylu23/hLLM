@@ -1,0 +1,397 @@
+{
+  "scope": "Initial production coverage checkpoint only; repeated timing, health, drift and final acceptance audit still pending",
+  "sweep_digest": "8fa63a8b31d2b1bd9536865492e0d9869391ce9b43381129e19c3aad2a5a2010",
+  "placements": 54,
+  "exact_requests": 162,
+  "exact_generated_tokens": 41472,
+  "precision": {
+    "resident_weights": "F16",
+    "execution": "F32",
+    "kv": "F32",
+    "wire": "F16"
+  },
+  "prompt_tokens": 512,
+  "output_tokens": 256,
+  "concurrency": 1,
+  "cache_capacity": 768,
+  "jobs": [
+    {
+      "job_id": "r000-c000",
+      "candidate_id": "mlx--cuda-m003",
+      "evidence_digest": "fd99d6c48b0a298cef00a58338edef0f7441b82318c2d4337d924f0928826252",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c001",
+      "candidate_id": "cuda--mlx-m016",
+      "evidence_digest": "bcfb53fb1b908bc953ea01c1f4c5dd4e41e73fac15257261eca693a4634db416",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c002",
+      "candidate_id": "mlx--cuda-m027",
+      "evidence_digest": "cfcabf33960f651f84fda836eecc1d2b7b954b659e52266d2657ecc86c82f9c7",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c003",
+      "candidate_id": "cuda--mlx-m009",
+      "evidence_digest": "7f5bf4a52ef0012122021472d6a1b644188fdf4c9b0cb19d0b5980578094dd90",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c004",
+      "candidate_id": "cuda--mlx-m022",
+      "evidence_digest": "ea39c17604b36b3cf1ab6b9fa50db89e4b397545f53467f6c1731728ea9614e4",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c005",
+      "candidate_id": "cuda--mlx-m026",
+      "evidence_digest": "366390380fab3caea70ff53c1fbd19741077cd738112086863db2c21c5d46984",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c006",
+      "candidate_id": "cuda--mlx-m001",
+      "evidence_digest": "21b9cf0551ea2afa64e17fdc4b406702b0ab5ad552b6f5a6818347cb87fdd993",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c007",
+      "candidate_id": "mlx--cuda-m018",
+      "evidence_digest": "3330a68b659114b40034c4eecfb33276c048e24122221385ff9d15fdfc7cb039",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c008",
+      "candidate_id": "cuda--mlx-m021",
+      "evidence_digest": "b0058f56c16fca80673d01f346d970b3edc6e3cc735922c24d2b64b0277522c3",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c009",
+      "candidate_id": "cuda--mlx-m019",
+      "evidence_digest": "20876fe8ff8b1aba2ca9083529494800b56dd24d4b04c3702be43fb9bfcbb94a",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c010",
+      "candidate_id": "mlx--cuda-m025",
+      "evidence_digest": "5164ba93e02f57761f20bb929801ae44b88658f73d4fdec0b0494f333f3324db",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c011",
+      "candidate_id": "mlx--cuda-m006",
+      "evidence_digest": "b5c33b824b0bd0e234571458d258564492bf8911751754fccb142f8f58396f45",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c012",
+      "candidate_id": "mlx--cuda-m014",
+      "evidence_digest": "85385e32286cf7c89e09dda7049286d07852cd337360c6c1a842ae36aae9ce8d",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c013",
+      "candidate_id": "cuda--mlx-m023",
+      "evidence_digest": "5fb8124aaa1bb9f11adca8a3b2d560ddebaeaf1b3a251c6f4550f3e0e3646981",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c014",
+      "candidate_id": "mlx--cuda-m008",
+      "evidence_digest": "bebd84a96a524a7c4039504b29ac9a272367d7a11915d1aaafa3b0a62cc542d3",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c015",
+      "candidate_id": "cuda--mlx-m004",
+      "evidence_digest": "c3f41e265c28731dd2a5f6ef8b08c5110ddf4137dc5924189c3ebc11dd232ecf",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c016",
+      "candidate_id": "cuda--mlx-m003",
+      "evidence_digest": "b65c8ba9f8e4ae98f2e7e3f05d381880d419961e6f20d03f1fb6c0718b23d42a",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c017",
+      "candidate_id": "mlx--cuda-m020",
+      "evidence_digest": "2a0dfc169c99b62b024e1760097f38a059f22dc048a320145e217082f05a8f81",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c018",
+      "candidate_id": "mlx--cuda-m015",
+      "evidence_digest": "6f036ec8924d3d5f8e06f73175b0d234919990d55374254a1675d00544f9c72f",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c019",
+      "candidate_id": "mlx--cuda-m022",
+      "evidence_digest": "56735b1d01d0dbe9714b1b76d99c4166199690d47643cd1406d6d510c317442f",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c020",
+      "candidate_id": "cuda--mlx-m011",
+      "evidence_digest": "63f9b7fa29316412a74d29ee72fffd118b289d003689286cbcb2da688544576a",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c021",
+      "candidate_id": "mlx--cuda-m007",
+      "evidence_digest": "e9765b48c62749125b1178fd182a854af58368320db09b500e896f745129205d",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c022",
+      "candidate_id": "cuda--mlx-m015",
+      "evidence_digest": "06125d30bff718aae5a3efc72cb5bad36356bc54fe09fdaf84cc3b797eba0d44",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c023",
+      "candidate_id": "mlx--cuda-m024",
+      "evidence_digest": "031f2a3f379993b7a504b6bb3e21d573e2ec8695fc50dc35685d8363c71ca0ee",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c024",
+      "candidate_id": "cuda--mlx-m017",
+      "evidence_digest": "ac0f6398478596f577b0e6196811363a389233a897a8c00cc1a34402ddd89495",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c025",
+      "candidate_id": "mlx--cuda-m002",
+      "evidence_digest": "1770058f6afcbab86403e7caa11404d14607b42c923e074438428bae244677f4",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c026",
+      "candidate_id": "cuda--mlx-m013",
+      "evidence_digest": "0344c700a0832d5a9101ee861fdcbd2c55534aeaf569dae024771592d6bbc04a",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c027",
+      "candidate_id": "cuda--mlx-m024",
+      "evidence_digest": "3581976aa2ee4d4afe648ac8c53fcb5995f1b8be09eb41f810c269c93d223451",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c028",
+      "candidate_id": "cuda--mlx-m025",
+      "evidence_digest": "c4a39a0afbe5ab1929eef8642a72a91a01308d463fd25d7876c4da5576b5dfc9",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c029",
+      "candidate_id": "mlx--cuda-m016",
+      "evidence_digest": "3b61a9f3fea16d1d73a8e5cb34f6d9f3c138161fcf64edd3b7d362aed43b8284",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c030",
+      "candidate_id": "cuda--mlx-m005",
+      "evidence_digest": "1601ac54f04e09e1acaef9f6f39d2a05a584b550f374b5827c0166d0b4bf76ec",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c031",
+      "candidate_id": "cuda--mlx-m027",
+      "evidence_digest": "09a562bcd4e29e50c1f4a4f10676a9b8fa15cff9c5f854d9cc41f0de21adaa4b",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c032",
+      "candidate_id": "cuda--mlx-m010",
+      "evidence_digest": "e970e00a106ff722f784d96a58e6e09fa615e67f487ff67d398efb750d2a3411",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c033",
+      "candidate_id": "mlx--cuda-m017",
+      "evidence_digest": "c36ce42d40af067e219da8ccd25f46f86d3151a2d6cf7e8285ee3d47dab76013",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c034",
+      "candidate_id": "mlx--cuda-m019",
+      "evidence_digest": "90942985e6dabf6cfe1cd16efc1e0155dc310dbdff8147e75c8ebe9e5b6572a0",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c035",
+      "candidate_id": "mlx--cuda-m026",
+      "evidence_digest": "c0514c231aeb4571158c05b7a08266833ff57d5774c621de64586aa84fda5eda",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c036",
+      "candidate_id": "mlx--cuda-m012",
+      "evidence_digest": "7ea981c7a2d060b59620ffca39f3b8022bf183f90ad0a5e60ed09f14796fc0c1",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c037",
+      "candidate_id": "mlx--cuda-m023",
+      "evidence_digest": "aacebc47bc216fef816cbe343ba48e8160c4bf5abe8b12290e60957544555154",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c038",
+      "candidate_id": "cuda--mlx-m008",
+      "evidence_digest": "6d5f5c0b896bf207b98748736799b616650de7f14827ba936c2b4c9e9fff145c",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c039",
+      "candidate_id": "mlx--cuda-m005",
+      "evidence_digest": "05b7f46f01ffba9fa7bbdb709b99f85095189d531e13b0eafc7a1ada015f33ff",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c040",
+      "candidate_id": "mlx--cuda-m009",
+      "evidence_digest": "d91ca0c1896f77162f920b9a6b36d40dde9ae9cd2d04b118850b80c072b54465",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c041",
+      "candidate_id": "mlx--cuda-m021",
+      "evidence_digest": "632990eb763e7b0c60ab95305785e5a932e59f7a2ba3f69f30c6193b61cd3c43",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c042",
+      "candidate_id": "mlx--cuda-m013",
+      "evidence_digest": "4cf4a5d4ee0597bfbacb977c78e4d6f8a4a378f39759f07441040d7c4aba01ab",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c043",
+      "candidate_id": "cuda--mlx-m014",
+      "evidence_digest": "58ed20611513fa42f806852bf4ce5eb6e1fcb53f13759510c6848e83a2642c4c",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c044",
+      "candidate_id": "cuda--mlx-m006",
+      "evidence_digest": "874bfdb998d582dad0d30ec07fa3f9e7b7ace89ecd0b3804f1ffd03ea658d4f8",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c045",
+      "candidate_id": "mlx--cuda-m010",
+      "evidence_digest": "38c9e206451756312fe39bc46afdaeae922c782f142ac4dde4f2fc4b546f25f0",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c046",
+      "candidate_id": "cuda--mlx-m020",
+      "evidence_digest": "81cf2b0fc11a83b2a7bde98c8832b65925055850ddeb42134ddb43ecae64ccce",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c047",
+      "candidate_id": "cuda--mlx-m012",
+      "evidence_digest": "c3cef0cac7cf952ce6f3544f8df28d999a2b810a347ed2a0a650d839b766273b",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c048",
+      "candidate_id": "cuda--mlx-m002",
+      "evidence_digest": "fbc020672ca114fc27943f48135b25fa0dfc2e45244b3d3f5f31256c87e20582",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c049",
+      "candidate_id": "cuda--mlx-m018",
+      "evidence_digest": "f5af037542fd620a4dddc482255bbbcf3a34df5e89b18d8ed717236ea94087f4",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c050",
+      "candidate_id": "mlx--cuda-m011",
+      "evidence_digest": "9d6127e9edd1f901dbf7906f29237287f655227f280f9f3f4d3aaf65175280ec",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c051",
+      "candidate_id": "mlx--cuda-m001",
+      "evidence_digest": "930fc151f34b4e07ae06d7c5ed6434492e3e396de6fc5e7d812bf643453aa730",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c052",
+      "candidate_id": "cuda--mlx-m007",
+      "evidence_digest": "3611aa9ba0008c766c3d40254b331671c071edbb0e354e12f756d5febdb645ee",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job_id": "r000-c053",
+      "candidate_id": "mlx--cuda-m004",
+      "evidence_digest": "0baa6107f6df745bdc4631359a29275f6bed8024603839a241cf9193554abd1f",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    }
+  ]
+}

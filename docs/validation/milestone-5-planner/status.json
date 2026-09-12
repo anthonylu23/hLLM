@@ -6,7 +6,7 @@
   "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
   "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
   "candidate_count": 54,
-  "independently_timed_candidates": 0,
+  "independently_timed_candidates": 54,
   "qualified_request_setup_directions": 2,
   "previous_profile_split": 14,
   "reference_file": "reference-512-f32.json.gz",
@@ -38,7 +38,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T09:35:35.433120+00:00",
+  "updated_at": "2026-09-12T11:43:09.057107+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
@@ -105,5 +105,7 @@
   "mixed_cuda_profile_audit_file": "mixed-cuda-profiles.json",
   "mixed_mlx_profile_audit_file": "mixed-mlx-profiles.json",
   "mixed_selection_file": "mixed-selection.json",
-  "mixed_selected_candidate_id": "mlx--cuda-m001"
+  "mixed_selected_candidate_id": "mlx--cuda-m001",
+  "mixed_first_coverage_file": "mixed-first-coverage.json",
+  "mixed_first_coverage_exact_requests": 162
 }
