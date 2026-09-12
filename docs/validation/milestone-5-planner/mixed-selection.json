@@ -1,0 +1,63 @@
+{
+  "purpose": "Fresh measured selection and activation check; not final M5 acceptance",
+  "candidate_count": 54,
+  "measured_candidates": 54,
+  "unknown_candidates": 0,
+  "selected_candidate_id": "mlx--cuda-m001",
+  "plan": {
+    "activation_dtype": "F16",
+    "deployment_version": 1,
+    "duplicated_tensor_groups": [
+      "token_embeddings"
+    ],
+    "execution_dtype": "F32",
+    "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+    "plan_digest": "3869a559b9535fb180017cac83e4c6069781f3f43aadef8a27fea2b1585bfa64",
+    "plan_id": "plan-3869a559b9535fb1",
+    "planner_version": "0.2.0",
+    "planning_mode": "measured",
+    "profile_bundle_digest": "dd7780cd3f9b07472a44963ff006c0c27a6bc66dc3972611b3905e848299c135",
+    "schema_version": "1.2",
+    "selected_candidate_id": "mlx--cuda-m001",
+    "split_layer": 1,
+    "stages": [
+      {
+        "layer_end": 1,
+        "layer_start": 0,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false,
+        "owns_token_embedding": true,
+        "stage_index": 0,
+        "worker_id": "mlx"
+      },
+      {
+        "layer_end": 28,
+        "layer_start": 1,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true,
+        "owns_token_embedding": false,
+        "stage_index": 1,
+        "worker_id": "cuda"
+      }
+    ],
+    "weight_dtype": "F16",
+    "workload_digest": "ddc49e7418e0f3630b6ceef87e274de37d25049a53308a3ebe22d4f7b9eb61b2",
+    "workload_id": "milestone-5-mixed-512-256"
+  },
+  "predicted_generation_ms": 21131.92001086979,
+  "activation_exact_output_tokens": 256,
+  "activation_completed": true,
+  "links": {
+    "mlx-cuda": {
+      "artifact_digest": "261483c86ccaecbcc1138508447436d4bfc132c25bb633a098cef92df6a5aa7b",
+      "qualified": true
+    },
+    "cuda-mlx": {
+      "artifact_digest": "49561abb3ac240d081e1ca6cf79476f4cc8cae0399db25e241d57f9b30351a3a",
+      "qualified": true
+    }
+  },
+  "source_revision": "sources-sha256:6407b91fa24fc7ae94cb27fb99c8cdc8e12012e53365ab4a30f7e7feda37116d"
+}

@@ -392,3 +392,17 @@ verified all assignments, hashes, workload/precision and executable identities,
 measurement conditions, and recomputed all 54 safe memory-fit assessments.
 Mac collection remains in progress; the completed CUDA profiles do not establish
 an automatic selection or acceptance result.
+
+The [MLX profile collection](milestone-5-planner/mixed-mlx-profiles.json) also passed
+its 108-artifact audit. Both hosts now have all 54 memory and 54 compute profiles
+for the approved precision, with every memory fit recomputed safe. Fresh link
+measurements passed in both directions. New measured selection and activation
+validation precede the independent acceptance sweep; M5 remains pending.
+
+The [fresh measured selection](milestone-5-planner/mixed-selection.json) qualifies
+all 54 candidate placements and selects MLX→CUDA at split 1. The actual measured
+plan activated through its frozen disk-backed bundle, generated all 256 exact
+reference tokens, and left both workers unloaded with no active requests or
+reservations. Fresh link measurements passed in both directions. This establishes
+selection and activation behavior; the independent five-round acceptance sweep
+and separate final M5 audit remain required.
