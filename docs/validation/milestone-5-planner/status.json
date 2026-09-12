@@ -25,9 +25,9 @@
   "generated_ids_digest": "713d51e3db0f8e9623e61ab390f6f8498bfc85451979cb6664ab40d32970afd5",
   "correctness_policy": "exact-greedy-token-sequence",
   "blockers": [
-    "Deadline fix passes both native suites and cross-machine health; fresh profiles/selection and independent sweep pending.",
-    "Frozen reference drift is 12.171%, exceeding 10%; original sweep cannot qualify.",
-    "Separate final M5.1\u2013M5.6 audit pending after production acceptance."
+    "Five-job new-build timing pilot failed the 10% drift gate (12.398%) despite 15 exact full requests and clean unload.",
+    "Instrumented resource/network timing investigation in progress; no full sweep launched.",
+    "Separate final M5 audit and PR pending."
   ],
   "regret": null,
   "four_b_status": "not qualified; separate physical-fit gate pending",
@@ -39,7 +39,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T20:25:27.649253+00:00",
+  "updated_at": "2026-09-12T22:49:36.288817+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
@@ -77,7 +77,7 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Run the guarded selected-candidate timing pilot, audit stability and exactness, then freeze the full independent sweep; final audit and PR remain pending.",
+  "next_step": "Instrumented diagnostic with network RTT, Mac memory activity and CUDA utilization/clocks; preserve all attempts and thresholds.",
   "internal_precision_matrix_state": "complete54 across3 attempts,51exact; reverse27exact, forward16/18/21fail",
   "internal_precision_resource_file": "internal-f32-resource-stop.json",
   "internal_precision_matrix_file": "correctness-internal-complete.json",
@@ -122,5 +122,6 @@
   "deadline_setup_calibration_state": "complete and audited: 10 jobs, 30 exact requests",
   "deadline_setup_calibration_file": "deadline-setup-calibration.json",
   "deadline_selection_file": "deadline-selection.json",
-  "deadline_selected_candidate_id": "mlx--cuda-m001"
+  "deadline_selected_candidate_id": "mlx--cuda-m001",
+  "deadline_timing_file": "deadline-timing-failure.json"
 }

@@ -526,3 +526,15 @@ removed. A separate five-job timing-stability pilot is prepared with two exact
 warmups and one timed request per fresh job. It waits below the unchanged 4.9 GB
 Mac startup guard. These diagnostic jobs do not replace the independent acceptance
 sweep or its 10% drift gate.
+
+The [five-job timing pilot](milestone-5-planner/deadline-timing-failure.json)
+completed with 15 exact full requests and clean unload, but **failed the 10% timing
+stability gate: 12.398% drift**, spanning 22.533–25.327 seconds. All samples and
+raw evidence digests were audited and preserved. Variation occurs in prefill and
+decode, including occasional long inter-token gaps; native and client timings
+agree closely. The original prefill-only hypothesis does not explain all observed
+variation. Host pressure and network latency remain possible contributors, not
+established causes. An instrumented diagnostic is collecting RTT, Mac memory
+activity and CUDA utilization/clocks alongside generation with unchanged binaries
+and correctness requirements. It cannot substitute for acceptance samples, and
+no full sweep will launch on this failed stability result.
