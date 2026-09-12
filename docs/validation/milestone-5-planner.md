@@ -327,3 +327,8 @@ only after suffix replay. The remaining 31 placements have resumed after the Mac
 resource guard passed, preserving the earlier 23 exact results. F32 KV adds 84 MiB
 of cache across 28 layers at 768-token capacity, before backend workspace overhead;
 this allocation calculation is not a fresh physical-memory qualification.
+
+The continuation launch immediately stopped at its resource guard (4.32 GB), before
+any new placement completed. The 23 exact results and nine prepared prefixes remain
+intact. The next continuation is prepared; prefer 4.9 GB available at launch to absorb
+startup fluctuations while retaining the existing 4.6 GB runtime guard.
