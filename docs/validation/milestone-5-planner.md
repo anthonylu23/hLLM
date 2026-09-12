@@ -517,3 +517,12 @@ setup residuals were independently recomputed. Median setup estimates are
 removed. Fresh directional links are running, with measured selection and exact
 activation queued only after link success and cleanup. No regret or timing-drift
 acceptance is implied by this calibration checkpoint.
+
+The [refreshed measured selection](milestone-5-planner/deadline-selection.json)
+measured all 54 candidates and selected MLX→CUDA at split 1. Its actual measured
+plan activated through the new frozen bundle, matched all 256 reference tokens,
+and unloaded cleanly. Both directional links passed and owned firewall rules were
+removed. A separate five-job timing-stability pilot is prepared with two exact
+warmups and one timed request per fresh job. It waits below the unchanged 4.9 GB
+Mac startup guard. These diagnostic jobs do not replace the independent acceptance
+sweep or its 10% drift gate.
