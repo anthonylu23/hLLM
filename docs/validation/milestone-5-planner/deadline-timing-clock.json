@@ -1,0 +1,781 @@
+{
+  "diagnostic_only": true,
+  "summary": {
+    "candidate_id": "mlx--cuda-m001",
+    "completed": true,
+    "diagnostic_only": true,
+    "drift_fraction": 0.29517454677259125,
+    "exact_full_requests": 15,
+    "limit": 0.1,
+    "samples": [
+      {
+        "evidence_digest": "16e83511bb6df21452e49c43fa0af96c4b0a9020f4d720467618ced089b21da7",
+        "generation_ms": 21592.856499832124,
+        "job": "stability-00",
+        "native_setup_ms": 101.875999,
+        "native_ttft_ms": 680.773417,
+        "ttft_ms": 682.9639999195933
+      },
+      {
+        "evidence_digest": "6fe6d6528db2ac9d65fbe1f6ca22610c3f79e010e82054d968b556f6bc021c96",
+        "generation_ms": 27895.98270924762,
+        "job": "stability-01",
+        "native_setup_ms": 99.991625,
+        "native_ttft_ms": 4126.146458,
+        "ttft_ms": 4128.285584039986
+      },
+      {
+        "evidence_digest": "a79663ac74eb4bd68b6512b04131367bc4b3cb930a378f92909b5352961bd452",
+        "generation_ms": 21538.39633334428,
+        "job": "stability-02",
+        "native_setup_ms": 106.775542,
+        "native_ttft_ms": 668.997,
+        "ttft_ms": 671.0973330773413
+      },
+      {
+        "evidence_digest": "201e4371b020d7e0e85107f074cf52f7001f02e225098c0c882086ceb996a63c",
+        "generation_ms": 22159.322833642364,
+        "job": "stability-03",
+        "native_setup_ms": 105.935167,
+        "native_ttft_ms": 646.86875,
+        "ttft_ms": 649.0280837751925
+      },
+      {
+        "evidence_digest": "45e4efe37a414dc0e8259813f5f767e32587c17ca1b6026fa96763dfc7107d5c",
+        "generation_ms": 22477.467624936253,
+        "job": "stability-04",
+        "native_setup_ms": 100.406917,
+        "native_ttft_ms": 631.158292,
+        "ttft_ms": 632.677957881242
+      }
+    ],
+    "telemetry_instrumented": true,
+    "timing_gate_passed": false
+  },
+  "exact_full_requests": 15,
+  "cleanup_passed": true,
+  "requests": [
+    {
+      "job": "stability-00",
+      "request_index": 0,
+      "timed": false,
+      "generation_ms": 22078.723500017077,
+      "ttft_ms": 1014.8797500878572,
+      "network_timeouts": [],
+      "rtt_max_ms": 74,
+      "memory_page_deltas": {
+        "Swapins": 0,
+        "Swapouts": 0,
+        "Pageouts": 77,
+        "Compressions": 236146,
+        "Decompressions": 57400
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255558.8070452,
+          "end": 1789255559.8213272,
+          "gap_ms": 1014.2819881439209
+        }
+      ],
+      "evidence_digest": "16e83511bb6df21452e49c43fa0af96c4b0a9020f4d720467618ced089b21da7"
+    },
+    {
+      "job": "stability-00",
+      "request_index": 1,
+      "timed": false,
+      "generation_ms": 21805.991540662944,
+      "ttft_ms": 674.0139997564256,
+      "network_timeouts": [],
+      "rtt_max_ms": 85,
+      "memory_page_deltas": {
+        "Swapins": 4,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 11364
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255580.991627,
+          "end": 1789255581.6655161,
+          "gap_ms": 673.88916015625
+        },
+        {
+          "token_index": 116,
+          "start": 1789255591.058306,
+          "end": 1789255591.2274969,
+          "gap_ms": 169.1908836364746
+        },
+        {
+          "token_index": 152,
+          "start": 1789255594.032372,
+          "end": 1789255594.5216901,
+          "gap_ms": 489.3181324005127
+        }
+      ],
+      "evidence_digest": "16e83511bb6df21452e49c43fa0af96c4b0a9020f4d720467618ced089b21da7"
+    },
+    {
+      "job": "stability-00",
+      "request_index": 2,
+      "timed": true,
+      "generation_ms": 21592.856499832124,
+      "ttft_ms": 682.9639999195933,
+      "network_timeouts": [],
+      "rtt_max_ms": 65,
+      "memory_page_deltas": {
+        "Swapins": 4,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 15850
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255602.9127219,
+          "end": 1789255603.595638,
+          "gap_ms": 682.9161643981934
+        },
+        {
+          "token_index": 65,
+          "start": 1789255608.793188,
+          "end": 1789255608.9521012,
+          "gap_ms": 158.91313552856445
+        },
+        {
+          "token_index": 198,
+          "start": 1789255619.646208,
+          "end": 1789255619.834215,
+          "gap_ms": 188.00687789916992
+        }
+      ],
+      "evidence_digest": "16e83511bb6df21452e49c43fa0af96c4b0a9020f4d720467618ced089b21da7"
+    },
+    {
+      "job": "stability-01",
+      "request_index": 0,
+      "timed": false,
+      "generation_ms": 21894.889499992132,
+      "ttft_ms": 849.1171253845096,
+      "network_timeouts": [],
+      "rtt_max_ms": 63,
+      "memory_page_deltas": {
+        "Swapins": 60,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 20446
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255652.77021,
+          "end": 1789255653.619267,
+          "gap_ms": 849.0569591522217
+        },
+        {
+          "token_index": 47,
+          "start": 1789255657.424442,
+          "end": 1789255657.6360152,
+          "gap_ms": 211.57312393188477
+        }
+      ],
+      "evidence_digest": "6fe6d6528db2ac9d65fbe1f6ca22610c3f79e010e82054d968b556f6bc021c96"
+    },
+    {
+      "job": "stability-01",
+      "request_index": 1,
+      "timed": false,
+      "generation_ms": 23296.736374963075,
+      "ttft_ms": 2491.5571250021458,
+      "network_timeouts": [],
+      "rtt_max_ms": 60,
+      "memory_page_deltas": {
+        "Swapins": 64,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 3543
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255674.78061,
+          "end": 1789255677.272147,
+          "gap_ms": 2491.536855697632
+        }
+      ],
+      "evidence_digest": "6fe6d6528db2ac9d65fbe1f6ca22610c3f79e010e82054d968b556f6bc021c96"
+    },
+    {
+      "job": "stability-01",
+      "request_index": 2,
+      "timed": true,
+      "generation_ms": 27895.98270924762,
+      "ttft_ms": 4128.285584039986,
+      "network_timeouts": [
+        1789255705.3072152,
+        1789255715.766099
+      ],
+      "rtt_max_ms": 69,
+      "memory_page_deltas": {
+        "Swapins": 8,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 1408
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255698.2009249,
+          "end": 1789255702.329192,
+          "gap_ms": 4128.267049789429
+        },
+        {
+          "token_index": 20,
+          "start": 1789255703.866842,
+          "end": 1789255704.052435,
+          "gap_ms": 185.5928897857666
+        },
+        {
+          "token_index": 76,
+          "start": 1789255708.559517,
+          "end": 1789255708.751926,
+          "gap_ms": 192.40903854370117
+        },
+        {
+          "token_index": 88,
+          "start": 1789255709.6415172,
+          "end": 1789255710.1139789,
+          "gap_ms": 472.4617004394531
+        },
+        {
+          "token_index": 89,
+          "start": 1789255710.1139789,
+          "end": 1789255710.534676,
+          "gap_ms": 420.6972122192383
+        },
+        {
+          "token_index": 92,
+          "start": 1789255710.6931121,
+          "end": 1789255710.866015,
+          "gap_ms": 172.90282249450684
+        },
+        {
+          "token_index": 99,
+          "start": 1789255711.357594,
+          "end": 1789255711.730291,
+          "gap_ms": 372.6968765258789
+        },
+        {
+          "token_index": 113,
+          "start": 1789255712.784411,
+          "end": 1789255712.9750772,
+          "gap_ms": 190.66619873046875
+        },
+        {
+          "token_index": 115,
+          "start": 1789255713.060239,
+          "end": 1789255713.230623,
+          "gap_ms": 170.38393020629883
+        },
+        {
+          "token_index": 116,
+          "start": 1789255713.230623,
+          "end": 1789255713.6893508,
+          "gap_ms": 458.7278366088867
+        },
+        {
+          "token_index": 118,
+          "start": 1789255713.775991,
+          "end": 1789255713.990152,
+          "gap_ms": 214.16091918945312
+        },
+        {
+          "token_index": 131,
+          "start": 1789255714.9647949,
+          "end": 1789255715.144125,
+          "gap_ms": 179.33011054992676
+        },
+        {
+          "token_index": 135,
+          "start": 1789255715.3920882,
+          "end": 1789255715.586713,
+          "gap_ms": 194.6249008178711
+        },
+        {
+          "token_index": 136,
+          "start": 1789255715.586713,
+          "end": 1789255715.78433,
+          "gap_ms": 197.6168155670166
+        },
+        {
+          "token_index": 144,
+          "start": 1789255716.357151,
+          "end": 1789255716.560589,
+          "gap_ms": 203.43804359436035
+        },
+        {
+          "token_index": 149,
+          "start": 1789255716.9130619,
+          "end": 1789255717.2169878,
+          "gap_ms": 303.9259910583496
+        },
+        {
+          "token_index": 151,
+          "start": 1789255717.2966862,
+          "end": 1789255717.477622,
+          "gap_ms": 180.93585968017578
+        },
+        {
+          "token_index": 158,
+          "start": 1789255717.9529479,
+          "end": 1789255718.1546628,
+          "gap_ms": 201.71499252319336
+        }
+      ],
+      "evidence_digest": "6fe6d6528db2ac9d65fbe1f6ca22610c3f79e010e82054d968b556f6bc021c96"
+    },
+    {
+      "job": "stability-02",
+      "request_index": 0,
+      "timed": false,
+      "generation_ms": 22846.48416703567,
+      "ttft_ms": 1279.197707772255,
+      "network_timeouts": [
+        1789255770.969881
+      ],
+      "rtt_max_ms": 71,
+      "memory_page_deltas": {
+        "Swapins": 0,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 1048
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255754.588293,
+          "end": 1789255755.867433,
+          "gap_ms": 1279.1399955749512
+        },
+        {
+          "token_index": 56,
+          "start": 1789255760.371438,
+          "end": 1789255760.612607,
+          "gap_ms": 241.16897583007812
+        },
+        {
+          "token_index": 64,
+          "start": 1789255761.1746922,
+          "end": 1789255761.367218,
+          "gap_ms": 192.52586364746094
+        },
+        {
+          "token_index": 70,
+          "start": 1789255761.764391,
+          "end": 1789255761.956297,
+          "gap_ms": 191.90597534179688
+        },
+        {
+          "token_index": 116,
+          "start": 1789255765.6121018,
+          "end": 1789255765.812028,
+          "gap_ms": 199.92613792419434
+        },
+        {
+          "token_index": 156,
+          "start": 1789255769.05269,
+          "end": 1789255769.2098281,
+          "gap_ms": 157.13810920715332
+        },
+        {
+          "token_index": 158,
+          "start": 1789255769.2955751,
+          "end": 1789255769.561732,
+          "gap_ms": 266.1569118499756
+        }
+      ],
+      "evidence_digest": "a79663ac74eb4bd68b6512b04131367bc4b3cb930a378f92909b5352961bd452"
+    },
+    {
+      "job": "stability-02",
+      "request_index": 1,
+      "timed": false,
+      "generation_ms": 21940.15583442524,
+      "ttft_ms": 650.7026674225926,
+      "network_timeouts": [],
+      "rtt_max_ms": 81,
+      "memory_page_deltas": {
+        "Swapins": 4,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 598
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255777.562523,
+          "end": 1789255778.2131991,
+          "gap_ms": 650.6762504577637
+        },
+        {
+          "token_index": 4,
+          "start": 1789255778.451039,
+          "end": 1789255778.68798,
+          "gap_ms": 236.94086074829102
+        },
+        {
+          "token_index": 186,
+          "start": 1789255793.420744,
+          "end": 1789255793.867302,
+          "gap_ms": 446.55799865722656
+        }
+      ],
+      "evidence_digest": "a79663ac74eb4bd68b6512b04131367bc4b3cb930a378f92909b5352961bd452"
+    },
+    {
+      "job": "stability-02",
+      "request_index": 2,
+      "timed": true,
+      "generation_ms": 21538.39633334428,
+      "ttft_ms": 671.0973330773413,
+      "network_timeouts": [],
+      "rtt_max_ms": 81,
+      "memory_page_deltas": {
+        "Swapins": 0,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 5854
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255799.6160011,
+          "end": 1789255800.287072,
+          "gap_ms": 671.0708141326904
+        },
+        {
+          "token_index": 21,
+          "start": 1789255801.9165509,
+          "end": 1789255802.108463,
+          "gap_ms": 191.91217422485352
+        }
+      ],
+      "evidence_digest": "a79663ac74eb4bd68b6512b04131367bc4b3cb930a378f92909b5352961bd452"
+    },
+    {
+      "job": "stability-03",
+      "request_index": 0,
+      "timed": false,
+      "generation_ms": 22507.01891584322,
+      "ttft_ms": 1451.155874878168,
+      "network_timeouts": [],
+      "rtt_max_ms": 63,
+      "memory_page_deltas": {
+        "Swapins": 4,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 386
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255848.748807,
+          "end": 1789255850.199902,
+          "gap_ms": 1451.0951042175293
+        },
+        {
+          "token_index": 183,
+          "start": 1789255865.1959941,
+          "end": 1789255865.385042,
+          "gap_ms": 189.04781341552734
+        }
+      ],
+      "evidence_digest": "201e4371b020d7e0e85107f074cf52f7001f02e225098c0c882086ceb996a63c"
+    },
+    {
+      "job": "stability-03",
+      "request_index": 1,
+      "timed": false,
+      "generation_ms": 21581.49225031957,
+      "ttft_ms": 645.8471673540771,
+      "network_timeouts": [],
+      "rtt_max_ms": 61,
+      "memory_page_deltas": {
+        "Swapins": 0,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 116
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255871.36735,
+          "end": 1789255872.0131671,
+          "gap_ms": 645.8170413970947
+        },
+        {
+          "token_index": 234,
+          "start": 1789255891.0959308,
+          "end": 1789255891.250657,
+          "gap_ms": 154.7262668609619
+        }
+      ],
+      "evidence_digest": "201e4371b020d7e0e85107f074cf52f7001f02e225098c0c882086ceb996a63c"
+    },
+    {
+      "job": "stability-03",
+      "request_index": 2,
+      "timed": true,
+      "generation_ms": 22159.322833642364,
+      "ttft_ms": 649.0280837751925,
+      "network_timeouts": [],
+      "rtt_max_ms": 65,
+      "memory_page_deltas": {
+        "Swapins": 0,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 725
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255893.060779,
+          "end": 1789255893.709779,
+          "gap_ms": 648.9999294281006
+        },
+        {
+          "token_index": 13,
+          "start": 1789255894.6760461,
+          "end": 1789255894.868151,
+          "gap_ms": 192.10481643676758
+        },
+        {
+          "token_index": 92,
+          "start": 1789255901.2565382,
+          "end": 1789255901.443033,
+          "gap_ms": 186.4948272705078
+        },
+        {
+          "token_index": 131,
+          "start": 1789255904.5944362,
+          "end": 1789255904.917771,
+          "gap_ms": 323.3349323272705
+        },
+        {
+          "token_index": 161,
+          "start": 1789255907.284967,
+          "end": 1789255907.473786,
+          "gap_ms": 188.81916999816895
+        }
+      ],
+      "evidence_digest": "201e4371b020d7e0e85107f074cf52f7001f02e225098c0c882086ceb996a63c"
+    },
+    {
+      "job": "stability-04",
+      "request_index": 0,
+      "timed": false,
+      "generation_ms": 23590.58625018224,
+      "ttft_ms": 1460.0331662222743,
+      "network_timeouts": [
+        1789255951.5883222
+      ],
+      "rtt_max_ms": 77,
+      "memory_page_deltas": {
+        "Swapins": 0,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 302
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255943.7138429,
+          "end": 1789255945.173841,
+          "gap_ms": 1459.9981307983398
+        },
+        {
+          "token_index": 34,
+          "start": 1789255947.8826501,
+          "end": 1789255948.261558,
+          "gap_ms": 378.9079189300537
+        },
+        {
+          "token_index": 63,
+          "start": 1789255950.573761,
+          "end": 1789255951.181518,
+          "gap_ms": 607.7570915222168
+        },
+        {
+          "token_index": 71,
+          "start": 1789255951.744166,
+          "end": 1789255952.080794,
+          "gap_ms": 336.6281986236572
+        }
+      ],
+      "evidence_digest": "45e4efe37a414dc0e8259813f5f767e32587c17ca1b6026fa96763dfc7107d5c"
+    },
+    {
+      "job": "stability-04",
+      "request_index": 1,
+      "timed": false,
+      "generation_ms": 25646.423291880637,
+      "ttft_ms": 2662.710167001933,
+      "network_timeouts": [
+        1789255968.382318
+      ],
+      "rtt_max_ms": 69,
+      "memory_page_deltas": {
+        "Swapins": 4,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 857
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255967.427284,
+          "end": 1789255970.0899699,
+          "gap_ms": 2662.6858711242676
+        },
+        {
+          "token_index": 11,
+          "start": 1789255970.910263,
+          "end": 1789255971.0913851,
+          "gap_ms": 181.1220645904541
+        },
+        {
+          "token_index": 49,
+          "start": 1789255974.144994,
+          "end": 1789255974.554773,
+          "gap_ms": 409.7790718078613
+        },
+        {
+          "token_index": 54,
+          "start": 1789255974.88286,
+          "end": 1789255975.0611289,
+          "gap_ms": 178.2689094543457
+        },
+        {
+          "token_index": 132,
+          "start": 1789255981.309972,
+          "end": 1789255981.5461602,
+          "gap_ms": 236.18817329406738
+        },
+        {
+          "token_index": 143,
+          "start": 1789255982.341099,
+          "end": 1789255982.7927198,
+          "gap_ms": 451.62081718444824
+        },
+        {
+          "token_index": 179,
+          "start": 1789255985.66693,
+          "end": 1789255985.863314,
+          "gap_ms": 196.38395309448242
+        },
+        {
+          "token_index": 198,
+          "start": 1789255987.305186,
+          "end": 1789255987.5751271,
+          "gap_ms": 269.9410915374756
+        },
+        {
+          "token_index": 215,
+          "start": 1789255988.866483,
+          "end": 1789255989.2880168,
+          "gap_ms": 421.53382301330566
+        },
+        {
+          "token_index": 222,
+          "start": 1789255989.7753952,
+          "end": 1789255990.250059,
+          "gap_ms": 474.66373443603516
+        },
+        {
+          "token_index": 237,
+          "start": 1789255991.397005,
+          "end": 1789255991.597001,
+          "gap_ms": 199.9959945678711
+        }
+      ],
+      "evidence_digest": "45e4efe37a414dc0e8259813f5f767e32587c17ca1b6026fa96763dfc7107d5c"
+    },
+    {
+      "job": "stability-04",
+      "request_index": 2,
+      "timed": true,
+      "generation_ms": 22477.467624936253,
+      "ttft_ms": 632.677957881242,
+      "network_timeouts": [
+        1789256007.3028731
+      ],
+      "rtt_max_ms": 69,
+      "memory_page_deltas": {
+        "Swapins": 4,
+        "Swapouts": 0,
+        "Pageouts": 0,
+        "Compressions": 0,
+        "Decompressions": 2018
+      },
+      "slow_gaps": [
+        {
+          "token_index": 0,
+          "start": 1789255993.186384,
+          "end": 1789255993.81904,
+          "gap_ms": 632.6560974121094
+        },
+        {
+          "token_index": 122,
+          "start": 1789256003.696908,
+          "end": 1789256004.137113,
+          "gap_ms": 440.2050971984863
+        },
+        {
+          "token_index": 177,
+          "start": 1789256008.593885,
+          "end": 1789256009.0491672,
+          "gap_ms": 455.28221130371094
+        },
+        {
+          "token_index": 221,
+          "start": 1789256012.574823,
+          "end": 1789256012.7622988,
+          "gap_ms": 187.47591972351074
+        },
+        {
+          "token_index": 244,
+          "start": 1789256014.5756001,
+          "end": 1789256014.761246,
+          "gap_ms": 185.64581871032715
+        }
+      ],
+      "evidence_digest": "45e4efe37a414dc0e8259813f5f767e32587c17ca1b6026fa96763dfc7107d5c"
+    }
+  ],
+  "limitations": [
+    "Network timeout timestamps represent completion of a two-second probe timeout, not the onset of packet loss.",
+    "Host telemetry sampled at two-second intervals; overlap is association, not proof of causation.",
+    "Instrumentation is private and these results cannot substitute for acceptance sweep samples."
+  ],
+  "findings": [
+    "All 15 full requests exact; canonical raw digests and request clock token sequences independently checked; cleanup passed and firewall removal returned zero.",
+    "Timed drift 29.517%; slowest 27.896s request has 4.128s TTFT, with native TTFT agreeing within 3ms.",
+    "Two probe timeouts completed 7.106s and 17.565s after slowest request start. Neither two-second timeout window overlaps initial 4.128s TTFT, so this does not explain that delay.",
+    "Slowest request telemetry has zero new compression, pageouts or swapouts; eight swapin pages. This weakens but does not eliminate memory pressure as the immediate cause.",
+    "Next compare bounded idle network baseline with active telemetry before selecting further experiments."
+  ]
+}
