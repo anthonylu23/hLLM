@@ -39,7 +39,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T15:06:59.690584+00:00",
+  "updated_at": "2026-09-12T16:10:45.603233+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
@@ -116,5 +116,6 @@
   "mixed_health_investigation_file": "mixed-health-investigation.json",
   "deadline_fix_file": "deadline-fix.json",
   "deadline_health_file": "deadline-health.json",
-  "deadline_profile_collection_state": "running largest-assignment checks before all 216 memory/compute profiles"
+  "deadline_profile_collection_state": "CUDA 108/108 complete and audited; MLX 46/108 recorded, collection running",
+  "deadline_cuda_profile_audit_file": "deadline-cuda-profiles.json"
 }

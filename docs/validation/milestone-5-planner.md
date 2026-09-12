@@ -492,3 +492,10 @@ first/final assignments checked before all 216 memory and compute artifacts. The
 failed sweep and its timing samples remain preserved. Setup/link calibration,
 new measured selection, timing stability and a newly frozen sweep still precede
 the final acceptance audit.
+
+The [new-build CUDA profile audit](milestone-5-planner/deadline-cuda-profiles.json)
+passed all 108 artifacts: 54 memory and 54 compute profiles, exact assignment and
+workload coverage, source/executable identities, measurement conditions and sealed
+artifact hashes. All 54 independent memory fits recompute as safe. Mac collection
+is still running (46/108 artifacts at this checkpoint), with no resource pauses
+or failures observed. The CUDA audit alone does not qualify selection or regret.
