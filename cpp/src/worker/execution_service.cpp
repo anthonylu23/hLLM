@@ -57,8 +57,8 @@ class RequestGuard final {
 class Watchdog final {
  public:
   Watchdog(grpc::ServerContext& server, const std::shared_ptr<ActiveRequest>& request,
-           grpc::ClientContext* peer = nullptr)
-      : thread_([&server, request, peer](std::stop_token stop) {
+           grpc::ClientContext* peer = nullptr, const std::atomic_bool* client_write = nullptr)
+      : thread_([&server, request, peer, client_write](std::stop_token stop) {
           while (!stop.stop_requested()) {
             if (request->cancelled.load() || server.IsCancelled() ||
                 std::chrono::system_clock::now() >= request->deadline) {
@@ -68,14 +68,16 @@ class Watchdog final {
               }
               // TryCancel forces a CANCELLED transport status, even if the
               // handler returns DEADLINE_EXCEEDED. For a generation deadline,
-              // cancelling the peer normally wakes the handler immediately;
-              // allow it to return its precise status before cancelling the
-              // client transport. Retain a bounded fallback for blocked writes.
-              if (peer != nullptr && std::chrono::system_clock::now() >= request->deadline) {
+              // cancel the peer and let compute unwind with its precise status.
+              // Only a blocked client write needs the transport fallback.
+              // The write flag is set before checking cancellation, so no new
+              // write can start after this watchdog observes it as false.
+              if (client_write != nullptr &&
+                  std::chrono::system_clock::now() >= request->deadline) {
                 for (int attempt = 0; attempt < 20 && !stop.stop_requested(); ++attempt) {
                   std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 }
-                if (stop.stop_requested()) {
+                if (stop.stop_requested() || !client_write->load()) {
                   return;
                 }
               }
@@ -320,7 +322,8 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     }
     grpc::ClientContext peer_context;
     peer_context.set_deadline(active->deadline);
-    Watchdog watchdog(*context, active, &peer_context);
+    std::atomic_bool client_write{false};
+    Watchdog watchdog(*context, active, &peer_context, &client_write);
     std::unique_ptr<v1::StageExecution::Stub> stub;
     std::unique_ptr<grpc::ClientReaderWriter<v1::StageMessage, v1::StageMessage>> peer;
     CancelPeerOnExit cancel_peer{peer_context};
@@ -352,6 +355,12 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
       }
     }
     auto emit = [&](const v1::GenerationEvent& event) {
+      struct Writing {
+        std::atomic_bool& flag;
+        explicit Writing(std::atomic_bool& value) : flag(value) { flag.store(true); }
+        ~Writing() { flag.store(false); }
+      } writing(client_write);
+      check_running(*active, *context);
       if (!writer->Write(event)) {
         throw std::runtime_error("generation client disconnected");
       }

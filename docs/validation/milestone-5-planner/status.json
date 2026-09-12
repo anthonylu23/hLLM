@@ -25,7 +25,7 @@
   "generated_ids_digest": "713d51e3db0f8e9623e61ab390f6f8498bfc85451979cb6664ab40d32970afd5",
   "correctness_policy": "exact-greedy-token-sequence",
   "blockers": [
-    "Mixed sweep stopped on selected-health RPC cancellation; deadline-status fallback reproduced in isolation, original exact failure path remains unconfirmed.",
+    "Deadline-status fallback fix implemented and Mac validated; full CUDA suite and fresh cross-machine health pilot pending.",
     "Frozen reference drift is 12.171%, exceeding 10%; original sweep cannot qualify.",
     "Separate final M5.1\u2013M5.6 audit pending after production acceptance."
   ],
@@ -39,7 +39,7 @@
     "cuda-mlx"
   ],
   "extreme_memory_file": "extreme-assignment-memory.json",
-  "updated_at": "2026-09-12T14:16:53.039945+00:00",
+  "updated_at": "2026-09-12T14:48:12.188993+00:00",
   "profiling_progress": {
     "mlx_extreme_assignments_memory_safe": 2,
     "cuda_extreme_assignments_memory_safe": 2,
@@ -77,7 +77,7 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Fix deadline-status fallback and retain partial health diagnostics; validate both hosts, refresh affected identities and timing stability, then freeze a new sweep before final audit and PR.",
+  "next_step": "Finish new-build CUDA and cross-machine health validation, refresh affected profiles/selection, investigate timing stability, and run a newly frozen acceptance sweep before the separate final audit and PR.",
   "internal_precision_matrix_state": "complete54 across3 attempts,51exact; reverse27exact, forward16/18/21fail",
   "internal_precision_resource_file": "internal-f32-resource-stop.json",
   "internal_precision_matrix_file": "correctness-internal-complete.json",
@@ -113,5 +113,6 @@
   "mixed_sweep_successful_jobs": 111,
   "mixed_sweep_failed_jobs": 1,
   "mixed_sweep_exact_full_requests": 336,
-  "mixed_health_investigation_file": "mixed-health-investigation.json"
+  "mixed_health_investigation_file": "mixed-health-investigation.json",
+  "deadline_fix_file": "deadline-fix.json"
 }

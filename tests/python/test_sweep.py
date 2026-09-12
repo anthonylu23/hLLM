@@ -3,8 +3,10 @@ from __future__ import annotations
 # ruff: noqa: F811 -- imported pytest fixture
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
+from hllm_control.controller import DeploymentSession
 from hllm_control.profiling.models import ProfileKey, digest
 from hllm_control.profiling.runner import write_exclusive
 from hllm_control.qualification.sweep import (
@@ -158,3 +160,75 @@ def test_mixed_sweep_preserves_precision_contract(tmp_path: Path, key: ProfileKe
         )
         assert candidate.plan_id == "plan-" + candidate.plan_digest[:16]
         assert DeploymentPlan.model_validate(candidate.model_dump()) == candidate
+
+
+def test_health_retains_partial_fault_evidence(tmp_path, key, monkeypatch):
+    import grpc
+    from hllm_control.proto import execution_pb2
+    from hllm_control.qualification.native import _health
+
+    spec = sweep_fixture(tmp_path, key)
+    sample = Sample(
+        token_ids=(2, 2, 2),
+        client_arrivals_ms=(10, 50, 100),
+        native_arrivals_ms=(),
+        terminal_ms=101,
+    )
+
+    class Cancelled(grpc.RpcError):
+        def code(self):
+            return grpc.StatusCode.CANCELLED
+
+        def details(self):
+            return "Cancelled on the server side"
+
+    class Session:
+        calls = 0
+
+        def generate(self, *_args, **_kwargs):
+            self.calls += 1
+            count = 3 if self.calls == 2 else 1
+            for _ in range(count):
+                yield execution_pb2.GenerationEvent(token=execution_pb2.TokenEvent(token_id=2))
+            if self.calls == 3:
+                raise Cancelled()
+
+    monkeypatch.setattr("hllm_control.qualification.native._clean", lambda *_a, **_kw: None)
+    evidence = {}
+    with pytest.raises(Cancelled):
+        _health(cast(DeploymentSession, Session()), [], spec, sample, evidence=evidence)
+    assert evidence["cancel"]["passed"] is True
+    assert evidence["cancel"]["phase"] == "complete"
+    assert evidence["deadline"] == {
+        "phase": "generate",
+        "timeout_seconds": 0.055,
+        "passed": False,
+        "rpc_status": "CANCELLED",
+        "error_detail": "Cancelled on the server side",
+        "received": 1,
+    }
+
+
+def test_health_rejects_truncated_recovery(tmp_path, key, monkeypatch):
+    from hllm_control.proto import execution_pb2
+    from hllm_control.qualification.native import _health
+
+    spec = sweep_fixture(tmp_path, key)
+    sample = Sample(
+        token_ids=(2, 2, 2),
+        client_arrivals_ms=(10, 50, 100),
+        native_arrivals_ms=(),
+        terminal_ms=101,
+    )
+
+    class Session:
+        def generate(self, *_args, **_kwargs):
+            yield execution_pb2.GenerationEvent(token=execution_pb2.TokenEvent(token_id=2))
+
+    monkeypatch.setattr("hllm_control.qualification.native._clean", lambda *_a, **_kw: None)
+    evidence = {}
+    with pytest.raises(RuntimeError, match="recovery output diverged"):
+        _health(cast(DeploymentSession, Session()), [], spec, sample, evidence=evidence)
+    assert evidence["cancel"]["phase"] == "recovery"
+    assert evidence["cancel"]["passed"] is False
+    assert evidence["cancel"]["recovered_ids"] == (2,)

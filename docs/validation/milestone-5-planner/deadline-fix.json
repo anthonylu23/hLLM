@@ -1,0 +1,51 @@
+{
+  "updated_at": "2026-09-12T14:48:12.188993+00:00",
+  "acceptance_status": "pending",
+  "source_revision": "sources-sha256:4745cd1091f777633df94b8ce0485e2bb3b107d528e1668d790e353801e21ae7",
+  "changes": [
+    "Generation deadline fallback cancels the client transport only when a write remains in progress; slow compute unwind retains DEADLINE_EXCEEDED.",
+    "Writers publish the active-write flag before checking cancellation, preventing a post-watchdog blocked write.",
+    "Partial health phases, token counts, RPC status, recovery tokens and failure tracebacks survive failed attempts.",
+    "Recovery requires the entire expected token prefix, rejecting truncated matching output."
+  ],
+  "validation": {
+    "baseline_regression": "SlowDecodeUnwindPreservesDeadlineStatus failed with CANCELLED before the native fix.",
+    "native_regressions": [
+      "SlowDecodeUnwindPreservesDeadlineStatus",
+      "ControlCancellationStillInterruptsSlowDecode",
+      "DeadlineUnblocksBackpressuredClientWrite"
+    ],
+    "mac_ctest_passed": 62,
+    "python_tests_passed": 90,
+    "ruff": "passed",
+    "pyright": "passed with explicit workspace Python interpreter",
+    "protobuf_check": "passed",
+    "cuda_ctest": "in progress; native regressions, numerical and pipeline checks passed so far",
+    "cross_machine_health_pilot": "prepared; starts only after all 65 CUDA tests pass"
+  },
+  "executables": [
+    {
+      "worker_id": "mlx",
+      "binary_digest": "68dd370dbe73e791957aeb6d7254e66d03dc76fd7e182040b57d8fa5b28a5fd6",
+      "memory_binary_digest": "8cab8744d79c0be53a82c686024f5c018dec5f6c7c98edc64bac045b88898334"
+    },
+    {
+      "worker_id": "cuda",
+      "binary_digest": "08c11166117913e1e5bf6dafb80ea8546198b397b29d8a8b738d5fc9ecd33f3a",
+      "memory_binary_digest": "6fb1155e587007683a68b8f3f79650fc3e903e81e6b242ce905dad4748685f07"
+    }
+  ],
+  "evidence_sha256": {
+    "deadline-before.log": "97704dce8504aace2415bcac9e5d616542a5ff5e133deb938d8dd69973983a4d",
+    "deadline-after.log": "fef329281e7d3567b7d0d0df0ce5eda8b604b7f6ca21048be939897bad0ec78a",
+    "deadline-ctest-mac.log": "d34407072535501920f2c971950575a0a294703c1a379698db6946229d846a7a",
+    "deadline-python-final.log": "e8151e695b586b306ab6b752d7ffcb8969debbcdff4bc4f9f5f6771bf63cbc58",
+    "deadline-pyright.log": "f552d237ad0bd249c05f97eb62dbc65d2d0e4a5fe2346608e10fb7838dba9ed1"
+  },
+  "limitations": [
+    "Original failure path remains unconfirmed; the fixed watchdog mechanism was reproduced independently.",
+    "New binary/source/package identities require fresh qualification; prior profiles/selection/sweep are not promoted.",
+    "Timing drift remains unresolved and requires a new sweep with the unchanged 10% gate.",
+    "Separate M5.1\u2013M5.6 audit and PR remain pending."
+  ]
+}

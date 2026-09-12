@@ -7,6 +7,7 @@ import shlex
 import subprocess
 import sys
 import time
+import traceback
 from contextlib import ExitStack
 from pathlib import Path
 from typing import Annotated, Literal
@@ -279,7 +280,9 @@ class NativeExecutor(ProfileModel):
                             status = "correctness-failed"
                             raise RuntimeError("independent reference token divergence")
                     if job.endswith("reference-after"):
-                        raw["selected_health"] = _health(session, controls, spec, samples[-1])
+                        health_evidence: dict[str, object] = {}
+                        raw["selected_health"] = health_evidence
+                        _health(session, controls, spec, samples[-1], evidence=health_evidence)
                         health = True
                 _clean(controls, weights=True)
                 cleanup = True
@@ -288,6 +291,7 @@ class NativeExecutor(ProfileModel):
                     "fresh processes, independent memory exercise, exact tokens and unload verified"
                 )
         except (Exception, KeyboardInterrupt) as error:
+            raw["error_traceback"] = traceback.format_exc()
             detail = f"{type(error).__name__}: {error}"
             if isinstance(error, KeyboardInterrupt):
                 detail = "interrupted; immutable attempt retained"
@@ -354,8 +358,10 @@ def _health(
     controls: list[control_pb2_grpc.WorkerControlStub],
     spec: SweepSpec,
     sample: Sample,
+    *,
+    evidence: dict[str, object] | None = None,
 ) -> dict[str, object]:
-    results: dict[str, object] = {}
+    results: dict[str, object] = evidence if evidence is not None else {}
     for fault in ("cancel", "deadline"):
         # Place the deadline during decode using this candidate's preceding sample.
         timeout = (
@@ -367,6 +373,8 @@ def _health(
             if fault == "deadline"
             else 180
         )
+        observed: dict[str, object] = dict(phase="generate", timeout_seconds=timeout, passed=False)
+        results[fault] = observed
         received = 0
         rejected = False
         stream = session.generate(
@@ -382,32 +390,41 @@ def _health(
                     if fault == "cancel":
                         break
         except grpc.RpcError as error:
+            observed.update(rpc_status=error.code().name, error_detail=error.details())
             if fault != "deadline" or error.code() != grpc.StatusCode.DEADLINE_EXCEEDED:
                 raise
             rejected = True
         except RuntimeError as error:
+            observed["error_detail"] = str(error)
             if fault != "deadline" or "DEADLINE_EXCEEDED" not in str(error):
                 raise
             rejected = True
         finally:
+            observed["received"] = received
             stream.close()
+        observed["phase"] = "verify_fault"
         if (fault == "cancel" and received != 1) or (
             fault == "deadline" and (not rejected or received == 0)
         ):
             raise RuntimeError("selected fault did not exercise the expected decode failure")
+        observed["phase"] = "cleanup"
         _clean(controls, weights=False)
+        observed.update(cleaned=True, phase="recovery")
+        recovery_length = min(4, spec.workload.output_tokens)
         recovery = tuple(
             e.token.token_id
             for e in session.generate(
                 spec.reference.prompt_ids,
-                maximum_new_tokens=min(4, spec.workload.output_tokens),
+                maximum_new_tokens=recovery_length,
                 stop_token_ids=[],
                 timeout=180,
             )
             if e.HasField("token")
         )
-        if recovery != spec.reference.generated_ids[: len(recovery)] or not recovery:
+        observed["recovered_ids"] = recovery
+        if recovery != spec.reference.generated_ids[:recovery_length]:
             raise RuntimeError("selected recovery output diverged")
+        observed["phase"] = "recovery_cleanup"
         _clean(controls, weights=False)
-        results[fault] = dict(received=received, recovered_ids=recovery, cleaned=True)
+        observed.update(phase="complete", passed=True)
     return results

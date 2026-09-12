@@ -196,3 +196,10 @@ report last-row layer activations, and the final stage reports logits and sample
 IDs. The tool enforces the load specification's memory capacity and refuses existing
 outputs. These diagnostics do not replace independent serving correctness, timing,
 or fresh memory qualification, and are never registered as ordinary tests.
+
+
+Health evidence retains each fault phase, token count, observed RPC status, recovery
+output and completion flag even when a later phase fails. Failed native attempts
+also retain a traceback. Recovery must produce the entire expected prefix (up to
+four tokens); a shorter matching prefix does not qualify. These diagnostics do
+not relax the required deadline status, exact tokens or cleanup checks.

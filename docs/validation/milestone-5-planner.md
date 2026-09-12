@@ -458,3 +458,28 @@ health phases and tracebacks. Requalify affected identities and cross-machine
 health, investigate timing stability, then freeze a new complete sweep. Keep every
 original attempt and the exact-token, memory, drift and regret gates. The separate
 M5.1–M5.6 audit still precedes acceptance and PR creation.
+
+## Deadline handling fix — 2026-09-12
+
+The [deadline fix checkpoint](milestone-5-planner/deadline-fix.json) implements the
+confirmed watchdog correction. A generation deadline still cancels the peer and
+marks the request cancelled. The 100 ms client-transport fallback now applies only
+while a client write remains active; slow compute unwind can return its precise
+`DEADLINE_EXCEEDED` status. A write publishes its active flag before checking
+cancellation, so the watchdog cannot exit just before a new blocking write starts.
+Explicit cancellation and downstream idle-read interruption remain bounded.
+
+A real gRPC regression with a private slow-decode backend failed against the old
+runtime and passes after the fix. Separate tests verify control cancellation,
+stalled-client write interruption, reservation retirement, recovery and unload.
+All **62 Mac CTest checks** and **90 Python tests** pass, along with Ruff, Pyright
+and the protobuf consistency check. The separate CUDA build completed; its full
+65-test suite and the fresh cross-machine health pilot are still pending at this
+checkpoint. The pilot will start only after the complete CUDA suite succeeds.
+
+Failed health attempts now retain partial fault phases, token counts, RPC status,
+recovery output and tracebacks. Recovery must return the complete expected prefix;
+a shorter matching prefix is rejected. New source, executable and package
+identities are kept separate from the failed sweep. This fix does not establish
+the original failure's exact cause or resolve timing drift. Production profile
+refresh, new selection/sweep, and the final M5 audit still remain.
