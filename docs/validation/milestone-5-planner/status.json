@@ -79,7 +79,7 @@
   "residual_control_file": "residual-f32-control.json",
   "residual_matrix_state": "complete and rejected: 44/54 exact, ten regressions from baseline",
   "residual_matrix_file": "correctness-residual-01.json",
-  "next_step": "Resume remaining31 F32KV diagnostics onceMacfree+inactive>=4.6GB; fullpass would require explicit precisioncontract decision before production.",
+  "next_step": "Audit combined23+31 diagnostic coverage when complete; F32KV requires explicitprecisioncontract decision before production.",
   "internal_precision_matrix_state": "complete54 across3 attempts,51exact; reverse27exact, forward16/18/21fail",
   "internal_precision_resource_file": "internal-f32-resource-stop.json",
   "internal_precision_matrix_file": "correctness-internal-complete.json",
@@ -87,6 +87,7 @@
   "both_internal_matrix_file": "both-internal-complete.json",
   "cuda_kv_control_file": "cuda-kv-control.json",
   "key_value_controls_file": "cuda-key-value-controls.json",
-  "kv_f32_matrix_state": "23/54exact so far; remaining31waitMacmemory",
-  "kv_f32_matrix_file": "kv-f32-progress.json"
+  "kv_f32_matrix_state": "remaining31 resumed with9verifiedremote-prefixes; prior23exact preserved",
+  "kv_f32_matrix_file": "kv-f32-progress.json",
+  "kv_prefix_preparation_file": "kv-remote-prefix-preparation.json"
 }

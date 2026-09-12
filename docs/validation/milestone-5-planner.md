@@ -319,3 +319,11 @@ Mac resource guard; 31 remaining placements are prepared for a fresh continuatio
 without overwriting the first attempt. Full diagnostic coverage is still required,
 and even a complete pass would require an explicit precision-contract decision
 before implementation and fresh acceptance qualification.
+
+While the Mac was constrained, [nine remaining CUDA prefixes](milestone-5-planner/kv-remote-prefix-preparation.json)
+were prepared remotely and verified against binary, history, specification and payload
+hashes. The continuation reuses those exact boundaries; they count toward correctness
+only after suffix replay. The remaining 31 placements have resumed after the Mac
+resource guard passed, preserving the earlier 23 exact results. F32 KV adds 84 MiB
+of cache across 28 layers at 768-token capacity, before backend workspace overhead;
+this allocation calculation is not a fresh physical-memory qualification.
