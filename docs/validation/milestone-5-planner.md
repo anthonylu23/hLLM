@@ -473,9 +473,12 @@ A real gRPC regression with a private slow-decode backend failed against the old
 runtime and passes after the fix. Separate tests verify control cancellation,
 stalled-client write interruption, reservation retirement, recovery and unload.
 All **62 Mac CTest checks** and **90 Python tests** pass, along with Ruff, Pyright
-and the protobuf consistency check. The separate CUDA build completed; its full
-65-test suite and the fresh cross-machine health pilot are still pending at this
-checkpoint. The pilot will start only after the complete CUDA suite succeeds.
+and the protobuf consistency check. The separate CUDA build also passed all
+**65 CTest checks**. The [cross-machine health pilot](milestone-5-planner/deadline-health.json)
+passed at split 1 in both stage orders: six full exact 512+256 requests, ten
+cancellation/deadline pairs, twenty exact four-token recovery prefixes, and clean
+unload. Raw evidence digests and worker binary identities were verified; the
+owned firewall rule was removed. These are health diagnostics, not sweep samples.
 
 Failed health attempts now retain partial fault phases, token counts, RPC status,
 recovery output and tracebacks. Recovery must return the complete expected prefix;
@@ -483,3 +486,9 @@ a shorter matching prefix is rejected. New source, executable and package
 identities are kept separate from the failed sweep. This fix does not establish
 the original failure's exact cause or resolve timing drift. Production profile
 refresh, new selection/sweep, and the final M5 audit still remain.
+
+Fresh profiles for the new binaries are collecting on both hosts, with the largest
+first/final assignments checked before all 216 memory and compute artifacts. The
+failed sweep and its timing samples remain preserved. Setup/link calibration,
+new measured selection, timing stability and a newly frozen sweep still precede
+the final acceptance audit.

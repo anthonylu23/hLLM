@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-12T14:48:12.188993+00:00",
+  "updated_at": "2026-09-12T15:06:59.690584+00:00",
   "acceptance_status": "pending",
   "source_revision": "sources-sha256:4745cd1091f777633df94b8ce0485e2bb3b107d528e1668d790e353801e21ae7",
   "changes": [
@@ -20,8 +20,8 @@
     "ruff": "passed",
     "pyright": "passed with explicit workspace Python interpreter",
     "protobuf_check": "passed",
-    "cuda_ctest": "in progress; native regressions, numerical and pipeline checks passed so far",
-    "cross_machine_health_pilot": "prepared; starts only after all 65 CUDA tests pass"
+    "cuda_ctest": "all 65 passed",
+    "cross_machine_health_pilot": "passed and raw-evidence audited: 6 full exact requests, 10 health pairs, 20 exact recovery prefixes, clean unload"
   },
   "executables": [
     {
@@ -40,12 +40,14 @@
     "deadline-after.log": "fef329281e7d3567b7d0d0df0ce5eda8b604b7f6ca21048be939897bad0ec78a",
     "deadline-ctest-mac.log": "d34407072535501920f2c971950575a0a294703c1a379698db6946229d846a7a",
     "deadline-python-final.log": "e8151e695b586b306ab6b752d7ffcb8969debbcdff4bc4f9f5f6771bf63cbc58",
-    "deadline-pyright.log": "f552d237ad0bd249c05f97eb62dbc65d2d0e4a5fe2346608e10fb7838dba9ed1"
+    "deadline-pyright.log": "f552d237ad0bd249c05f97eb62dbc65d2d0e4a5fe2346608e10fb7838dba9ed1",
+    "deadline-cuda-build-test.log": "e96c9ae49a4da87bb944817e0c320959c9fa90561bd62e173d7a77a743048dc1"
   },
   "limitations": [
     "Original failure path remains unconfirmed; the fixed watchdog mechanism was reproduced independently.",
     "New binary/source/package identities require fresh qualification; prior profiles/selection/sweep are not promoted.",
     "Timing drift remains unresolved and requires a new sweep with the unchanged 10% gate.",
     "Separate M5.1\u2013M5.6 audit and PR remain pending."
-  ]
+  ],
+  "health_pilot_file": "deadline-health.json"
 }
