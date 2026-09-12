@@ -9,7 +9,9 @@ token IDs through a Python controller. Request admission, cancellation, deadline
 cleanup are covered by numerical and process integration tests.
 
 The approved M5 qualification target uses F16 resident weights, F32 execution/KV,
-and F16 wire transfers. Production acceptance and the final audit remain pending;
+and F16 wire transfers. The production sweep is blocked on deadline-status validation
+and timing drift; see the [failure investigation](docs/validation/milestone-5-planner.md#mixed-sweep-failure-investigation--2026-09-12).
+Production acceptance and the final audit remain pending;
 see the [precision target](docs/milestone-5-precision-proposal.md).
 
 ## Milestone status

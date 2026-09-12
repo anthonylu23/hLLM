@@ -414,3 +414,47 @@ Each placement passed two warmups and one timed request, totaling 162 exact
 job results; it is not the final raw-evidence audit or statistical acceptance.
 The remaining shuffled rounds, selected health checks, drift and regret gates,
 and separate final M5 audit remain required.
+
+## Mixed sweep failure investigation — 2026-09-12
+
+**Acceptance is blocked.** The [investigation record](milestone-5-planner/mixed-health-investigation.json)
+verifies the raw evidence digests for all 112 completed job attempts. Both first
+placement rounds completed: all 54 placements passed twice. There are 111 measured
+jobs with verified unload and one unknown job, `r001-reference-after`. All three
+full requests in that failed job also matched the reference, bringing the total
+to **336 exact 512+256 requests**. It failed during selected health with
+`CANCELLED: Cancelled on the server side`; its evidence does not identify which
+health phase failed. Cleanup was not verified within that job, though owned
+processes subsequently retired and the temporary firewall rule was removed.
+
+A separate diagnostic using the unchanged frozen worker binaries and sweep
+placement passed three more exact full requests and ten consecutive health pairs.
+Every pair verified cancellation after one token, a deadline during decode, empty
+request reservations and exact four-token recovery. Final unload and firewall
+cleanup passed. These are diagnostic results, not replacement acceptance samples.
+
+An [isolated C++ reproduction](milestone-5-planner/watchdog-repro.cpp), linked against
+the frozen worker runtime archive, confirms a status-loss mechanism. A synthetic
+backend that unwinds promptly at its deadline returns `DEADLINE_EXCEEDED`. Delaying
+its unwind by 250 ms crosses the watchdog's 100 ms fallback and returns the exact
+`CANCELLED: Cancelled on the server side` message. Both cases release reservations,
+recover and unload. The test deliberately asserts the current fallback behavior;
+it is not a passing regression test for the stricter M5 acceptance contract.
+This single-stage reproduction confirms the mechanism but does **not** establish
+that it caused the original cross-machine failure, whose partial health trace was
+not retained. Production runtime code and binaries remain unchanged.
+
+Timing is a separate blocker. The valid reference samples span 21.652–24.287 seconds,
+a **12.171%** max/min spread against the frozen 10% limit. The slow reference's
+first-token time was 2.642 seconds versus 0.650 seconds for the fastest reference;
+request setup remained approximately 0.106 versus 0.117 seconds. Native and client
+timing agree on the slowdown. The cause of the prefill variability remains
+unresolved; the current unrelated CPU workload was left running. Adding samples
+cannot reduce a max/min spread, so resuming this sweep cannot make it qualify.
+
+Next steps are to preserve precise deadline status while keeping blocked transport
+operations bounded, add deterministic regression coverage, and retain partial
+health phases and tracebacks. Requalify affected identities and cross-machine
+health, investigate timing stability, then freeze a new complete sweep. Keep every
+original attempt and the exact-token, memory, drift and regret gates. The separate
+M5.1–M5.6 audit still precedes acceptance and PR creation.

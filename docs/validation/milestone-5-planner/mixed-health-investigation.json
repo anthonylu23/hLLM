@@ -1,0 +1,1098 @@
+{
+  "updated_at": "2026-09-12T14:16:53.039945+00:00",
+  "acceptance_status": "blocked",
+  "sweep_digest": "8fa63a8b31d2b1bd9536865492e0d9869391ce9b43381129e19c3aad2a5a2010",
+  "executor_digest": "b2ca946f35178534b8b7c4bbc53eab32680beeb86062aa9078a26fa2c32e18b9",
+  "original_sweep": {
+    "jobs": 112,
+    "measured_jobs": 111,
+    "unknown_jobs": 1,
+    "exact_full_requests_including_failed_health_job": 336,
+    "complete_placement_rounds": 2,
+    "failed_job": "r001-reference-after",
+    "failure": {
+      "detail": "sweep job failed; immutable results retained: [('r001-reference-after', '_MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:\\n\\tstatus = StatusCode.CANCELLED\\n\\tdetails = \"Cancelled on the server side\"\\n\\tdebug_error_string = \"CANCELLED:Cancelled on the server side\"\\n>')]",
+      "error": "RuntimeError"
+    },
+    "health_phase_detail": "Three full exact samples completed before health failed. Original evidence does not retain fault phase or traceback.",
+    "reference_drift_fraction": 0.12171145022216234,
+    "drift_limit": 0.1,
+    "references": [
+      {
+        "job": "r000-reference-after",
+        "job_status": "measured",
+        "ttft_ms": 656.6314166411757,
+        "generation_ms": 22132.209416944534,
+        "decode_ms": 21475.578000303358,
+        "native_setup_ms": 104.415458
+      },
+      {
+        "job": "r000-reference-before",
+        "job_status": "measured",
+        "ttft_ms": 2641.539624892175,
+        "generation_ms": 24287.456958089024,
+        "decode_ms": 21645.91733319685,
+        "native_setup_ms": 105.949833
+      },
+      {
+        "job": "r001-reference-after",
+        "job_status": "unknown",
+        "ttft_ms": 659.6119171008468,
+        "generation_ms": 22188.128999900073,
+        "decode_ms": 21528.517082799226,
+        "native_setup_ms": 101.605166
+      },
+      {
+        "job": "r001-reference-before",
+        "job_status": "measured",
+        "ttft_ms": 650.1788329333067,
+        "generation_ms": 21652.143207844347,
+        "decode_ms": 21001.96437491104,
+        "native_setup_ms": 117.328083
+      }
+    ],
+    "firewall_cleanup": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "success\n"
+    },
+    "jobs_evidence": [
+      {
+        "job": "r000-c000",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "1394b8a1d992aaaa6fc9d34c6a9d41c2bc31665ec4197ab449cf3185adbcd79e",
+        "evidence_digest": "fd99d6c48b0a298cef00a58338edef0f7441b82318c2d4337d924f0928826252"
+      },
+      {
+        "job": "r000-c001",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2bf6416f09ac269c9f0ffc405e62ec14ee37e301b65d83d6f5567644f25a7c41",
+        "evidence_digest": "bcfb53fb1b908bc953ea01c1f4c5dd4e41e73fac15257261eca693a4634db416"
+      },
+      {
+        "job": "r000-c002",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "7da41c8e8d49a23af6fed40a437f13ca72c00734559aced096c21e938cd1cbeb",
+        "evidence_digest": "cfcabf33960f651f84fda836eecc1d2b7b954b659e52266d2657ecc86c82f9c7"
+      },
+      {
+        "job": "r000-c003",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "362a81b54ad0f3058460d0693dfae42a3e7971e7f07ec80d698be508b733ae90",
+        "evidence_digest": "7f5bf4a52ef0012122021472d6a1b644188fdf4c9b0cb19d0b5980578094dd90"
+      },
+      {
+        "job": "r000-c004",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "4cb9fc95f75f4b86a3a3e98a71e14d2a772075bb66c3ee9e29c5d91b9637e117",
+        "evidence_digest": "ea39c17604b36b3cf1ab6b9fa50db89e4b397545f53467f6c1731728ea9614e4"
+      },
+      {
+        "job": "r000-c005",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a486a98eb28645aeb80a8dc1426276742f11523b0f539146617ff5e82aca8729",
+        "evidence_digest": "366390380fab3caea70ff53c1fbd19741077cd738112086863db2c21c5d46984"
+      },
+      {
+        "job": "r000-c006",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "8612b46392b4b49675849d98da5acbce6fb5e14a6231661aa86fe959b03c2eae",
+        "evidence_digest": "21b9cf0551ea2afa64e17fdc4b406702b0ab5ad552b6f5a6818347cb87fdd993"
+      },
+      {
+        "job": "r000-c007",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2248ba668cb08117f7f12f51c0c9dd970fc49a5f42e42d42966e91347493baf7",
+        "evidence_digest": "3330a68b659114b40034c4eecfb33276c048e24122221385ff9d15fdfc7cb039"
+      },
+      {
+        "job": "r000-c008",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "cf1e3879d71611f6cee3e8e1110ba914c6132d113470e9c4b4897e31b7e5bd66",
+        "evidence_digest": "b0058f56c16fca80673d01f346d970b3edc6e3cc735922c24d2b64b0277522c3"
+      },
+      {
+        "job": "r000-c009",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "5e07589299d9d05841ecbca33c4a30f1c645d0e00e991e9fa000a811977662ff",
+        "evidence_digest": "20876fe8ff8b1aba2ca9083529494800b56dd24d4b04c3702be43fb9bfcbb94a"
+      },
+      {
+        "job": "r000-c010",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "4ae762a284f265cbc2eea2a3b262d5397f96dd7e28551dbd4433936c14bc236b",
+        "evidence_digest": "5164ba93e02f57761f20bb929801ae44b88658f73d4fdec0b0494f333f3324db"
+      },
+      {
+        "job": "r000-c011",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "6b51f184f3b31104afc72f4c26317563db856ca294d62d04f08b449e7b4f3ddf",
+        "evidence_digest": "b5c33b824b0bd0e234571458d258564492bf8911751754fccb142f8f58396f45"
+      },
+      {
+        "job": "r000-c012",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2efa322bdccb0c179a3b041448db1986bbcdc49b34f331fc1f7cefce4ad0b0da",
+        "evidence_digest": "85385e32286cf7c89e09dda7049286d07852cd337360c6c1a842ae36aae9ce8d"
+      },
+      {
+        "job": "r000-c013",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "685276a421245617263af492ae37d4a2723e53b4c965f40f5b7182e9f65bba71",
+        "evidence_digest": "5fb8124aaa1bb9f11adca8a3b2d560ddebaeaf1b3a251c6f4550f3e0e3646981"
+      },
+      {
+        "job": "r000-c014",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "ac53116e7b4a01fd7c0d6185815344c4d62e4d612b681e22f5d886bf8e0d3ed8",
+        "evidence_digest": "bebd84a96a524a7c4039504b29ac9a272367d7a11915d1aaafa3b0a62cc542d3"
+      },
+      {
+        "job": "r000-c015",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "09c1a93b8bad09211adc51acbd8a397d94ce17c1f5d541166dc6f98f7b9d6241",
+        "evidence_digest": "c3f41e265c28731dd2a5f6ef8b08c5110ddf4137dc5924189c3ebc11dd232ecf"
+      },
+      {
+        "job": "r000-c016",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "260880aa1137465e6e6477e0d466cadc7b857b9d08e28a0e635afa7eae7e49ee",
+        "evidence_digest": "b65c8ba9f8e4ae98f2e7e3f05d381880d419961e6f20d03f1fb6c0718b23d42a"
+      },
+      {
+        "job": "r000-c017",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "ba0bb742406f11b01e93ab80d3cf4385893558c958e759af504a3b87a56b3fea",
+        "evidence_digest": "2a0dfc169c99b62b024e1760097f38a059f22dc048a320145e217082f05a8f81"
+      },
+      {
+        "job": "r000-c018",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "b10790e9fca6d661435b078ba7032645316ac5a621a84a0efa87ea87db5d3eff",
+        "evidence_digest": "6f036ec8924d3d5f8e06f73175b0d234919990d55374254a1675d00544f9c72f"
+      },
+      {
+        "job": "r000-c019",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "8ea8e0d48b5137dfa84e33dee19c25c59b85bd64d72b9c807a7861d5f77d37ec",
+        "evidence_digest": "56735b1d01d0dbe9714b1b76d99c4166199690d47643cd1406d6d510c317442f"
+      },
+      {
+        "job": "r000-c020",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "b2bf4043ea09b40373df6239b95e18ca3a524c03c069d02739e0822040191d4d",
+        "evidence_digest": "63f9b7fa29316412a74d29ee72fffd118b289d003689286cbcb2da688544576a"
+      },
+      {
+        "job": "r000-c021",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "5856ea3ed1961776404446d9110adc0bfb960018866f6d785b5da31c07b6db0e",
+        "evidence_digest": "e9765b48c62749125b1178fd182a854af58368320db09b500e896f745129205d"
+      },
+      {
+        "job": "r000-c022",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "b42eb3983c845b83bfc3d4509d8cc23a0da54c052bd128f37d48d8f46956d83f",
+        "evidence_digest": "06125d30bff718aae5a3efc72cb5bad36356bc54fe09fdaf84cc3b797eba0d44"
+      },
+      {
+        "job": "r000-c023",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "4cecb013c85de2533b1f9872763c7915b7ce38e923fc9310e218e4d43ee62a2b",
+        "evidence_digest": "031f2a3f379993b7a504b6bb3e21d573e2ec8695fc50dc35685d8363c71ca0ee"
+      },
+      {
+        "job": "r000-c024",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "01767ac0044dcdcdafcb62a96b3281132450a55bde4e658144450e0c7e7dbfa9",
+        "evidence_digest": "ac0f6398478596f577b0e6196811363a389233a897a8c00cc1a34402ddd89495"
+      },
+      {
+        "job": "r000-c025",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "1917951fe65095676cfe382cacd343110779bb7bbe0d58dfdd9552e6574eaa00",
+        "evidence_digest": "1770058f6afcbab86403e7caa11404d14607b42c923e074438428bae244677f4"
+      },
+      {
+        "job": "r000-c026",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "8b8595df93461170e890f4b266b1d4544989c00318aea7d72f35ccd181a6be7b",
+        "evidence_digest": "0344c700a0832d5a9101ee861fdcbd2c55534aeaf569dae024771592d6bbc04a"
+      },
+      {
+        "job": "r000-c027",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "d0ceef818ba1b7175f25bbdf840d71a5eb08dc9755af819f04f2814cc192add2",
+        "evidence_digest": "3581976aa2ee4d4afe648ac8c53fcb5995f1b8be09eb41f810c269c93d223451"
+      },
+      {
+        "job": "r000-c028",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a6237e189d06cd968a038c8057f2db75fe14335a04170b31708b68441901de20",
+        "evidence_digest": "c4a39a0afbe5ab1929eef8642a72a91a01308d463fd25d7876c4da5576b5dfc9"
+      },
+      {
+        "job": "r000-c029",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "da2c69f1273121f1358bd4488f192dab01278bebe8f612503f1b7f0646086b71",
+        "evidence_digest": "3b61a9f3fea16d1d73a8e5cb34f6d9f3c138161fcf64edd3b7d362aed43b8284"
+      },
+      {
+        "job": "r000-c030",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "826e46c583ca25e34496324a1454db5704a24caa0fa975bd3ee72796d9df27c3",
+        "evidence_digest": "1601ac54f04e09e1acaef9f6f39d2a05a584b550f374b5827c0166d0b4bf76ec"
+      },
+      {
+        "job": "r000-c031",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "6d3833af0b44d42ca8212a4c51c25eef94217a32a8805543f5c95978ec2f88e4",
+        "evidence_digest": "09a562bcd4e29e50c1f4a4f10676a9b8fa15cff9c5f854d9cc41f0de21adaa4b"
+      },
+      {
+        "job": "r000-c032",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "083da07f22cdf56485c9f4308541ac175b990638cacd7014f62d23830d2d6118",
+        "evidence_digest": "e970e00a106ff722f784d96a58e6e09fa615e67f487ff67d398efb750d2a3411"
+      },
+      {
+        "job": "r000-c033",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "4a1981d818db60732e7a03126a7296a769f0008558def190c955b8570030db92",
+        "evidence_digest": "c36ce42d40af067e219da8ccd25f46f86d3151a2d6cf7e8285ee3d47dab76013"
+      },
+      {
+        "job": "r000-c034",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "e32dc270008e37c003b27b19452b3b796f40d4ce6ad5d324dbfc9153bdc0e4bd",
+        "evidence_digest": "90942985e6dabf6cfe1cd16efc1e0155dc310dbdff8147e75c8ebe9e5b6572a0"
+      },
+      {
+        "job": "r000-c035",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2ca761ba2477aba155b51411d4f0cee7890c8bcaa73050691b2a1b20adb63f0b",
+        "evidence_digest": "c0514c231aeb4571158c05b7a08266833ff57d5774c621de64586aa84fda5eda"
+      },
+      {
+        "job": "r000-c036",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "ebf63f267bc16e8f264729f879e6ffff8ba8e41ac7ff714b96626729bd4a1a57",
+        "evidence_digest": "7ea981c7a2d060b59620ffca39f3b8022bf183f90ad0a5e60ed09f14796fc0c1"
+      },
+      {
+        "job": "r000-c037",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "7e0568666e448c6303c33ea00eb2014228a408356babfb70620d13baf9968a74",
+        "evidence_digest": "aacebc47bc216fef816cbe343ba48e8160c4bf5abe8b12290e60957544555154"
+      },
+      {
+        "job": "r000-c038",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2110f63b34844b518e392ad972f121bb7772a01540749d2818b042df41e5cb19",
+        "evidence_digest": "6d5f5c0b896bf207b98748736799b616650de7f14827ba936c2b4c9e9fff145c"
+      },
+      {
+        "job": "r000-c039",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "bc0e62703c82db381f5574d6b39984a847b1ae3f0c8106ee9a7747ee5e0ec6b8",
+        "evidence_digest": "05b7f46f01ffba9fa7bbdb709b99f85095189d531e13b0eafc7a1ada015f33ff"
+      },
+      {
+        "job": "r000-c040",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "47bec82aede577061a140afc2bb1d86e2ccb1268903157d40c338d876208bdb5",
+        "evidence_digest": "d91ca0c1896f77162f920b9a6b36d40dde9ae9cd2d04b118850b80c072b54465"
+      },
+      {
+        "job": "r000-c041",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "9028548673535523cf11c311ebc787a98c97b417e4ce4cc7f710b308dc329ee7",
+        "evidence_digest": "632990eb763e7b0c60ab95305785e5a932e59f7a2ba3f69f30c6193b61cd3c43"
+      },
+      {
+        "job": "r000-c042",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "9fc2a2546eb38f730d7ff62a7315f0208da1fb64b23bb63e6f83f89e62f86626",
+        "evidence_digest": "4cf4a5d4ee0597bfbacb977c78e4d6f8a4a378f39759f07441040d7c4aba01ab"
+      },
+      {
+        "job": "r000-c043",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "018df860fb5259783329c083811f92aa6f6b882289fe5f87ba03f2b0813e8b16",
+        "evidence_digest": "58ed20611513fa42f806852bf4ce5eb6e1fcb53f13759510c6848e83a2642c4c"
+      },
+      {
+        "job": "r000-c044",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "6e898c6ab08289dfcf356e91081b73f4180103556b7479b27d3a7857c5eecf1f",
+        "evidence_digest": "874bfdb998d582dad0d30ec07fa3f9e7b7ace89ecd0b3804f1ffd03ea658d4f8"
+      },
+      {
+        "job": "r000-c045",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "f240ebb6971c9d0e6ab131b4ef53fccbe8ff42297f3e406e7e602688667a62ec",
+        "evidence_digest": "38c9e206451756312fe39bc46afdaeae922c782f142ac4dde4f2fc4b546f25f0"
+      },
+      {
+        "job": "r000-c046",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "6beba19a944d86c0cecf240f3bd498f0fa50856217119020dd0c56ddf9038729",
+        "evidence_digest": "81cf2b0fc11a83b2a7bde98c8832b65925055850ddeb42134ddb43ecae64ccce"
+      },
+      {
+        "job": "r000-c047",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "63e7ab14bac9a6540296ffbc0047d0baff3742465a85a4d3667415acf5586f61",
+        "evidence_digest": "c3cef0cac7cf952ce6f3544f8df28d999a2b810a347ed2a0a650d839b766273b"
+      },
+      {
+        "job": "r000-c048",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "202b89f43c54c609e1ce9a0fef17270756bfbf2fd31922b446d6d5df1ae5ec06",
+        "evidence_digest": "fbc020672ca114fc27943f48135b25fa0dfc2e45244b3d3f5f31256c87e20582"
+      },
+      {
+        "job": "r000-c049",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "954b7144ae0f9a7e284d28ba24128bfb5e07d92502ed8e93d0f541a77ceb446e",
+        "evidence_digest": "f5af037542fd620a4dddc482255bbbcf3a34df5e89b18d8ed717236ea94087f4"
+      },
+      {
+        "job": "r000-c050",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "90287f7621abc00c64e42fc25a46f328891d86d243eb27fc6868cc5dc994bc9b",
+        "evidence_digest": "9d6127e9edd1f901dbf7906f29237287f655227f280f9f3f4d3aaf65175280ec"
+      },
+      {
+        "job": "r000-c051",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "bc9242a524d6ac7226a3b64eb04ea23455f904ed524ddd05983a64479e0e6813",
+        "evidence_digest": "930fc151f34b4e07ae06d7c5ed6434492e3e396de6fc5e7d812bf643453aa730"
+      },
+      {
+        "job": "r000-c052",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "89122f1aadb07b07f17fade218d44b66bb80e5fe078c866640385440d49904ff",
+        "evidence_digest": "3611aa9ba0008c766c3d40254b331671c071edbb0e354e12f756d5febdb645ee"
+      },
+      {
+        "job": "r000-c053",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "da31def04b1d37ade4ff8ebb5ebe18d1996a9730fd1e4c68300d8ea655feb969",
+        "evidence_digest": "0baa6107f6df745bdc4631359a29275f6bed8024603839a241cf9193554abd1f"
+      },
+      {
+        "job": "r000-reference-after",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "c011e4735d6d0ff2210978298b2a425f644a5702740afa45038c36e3ec25569e",
+        "evidence_digest": "857b5ab7eb02697b69ab3faa476039a547e6d215f1d638afa7a59a7c7552aa65"
+      },
+      {
+        "job": "r000-reference-before",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "f3567f012c7f850c8120415f48e80329ed066429863bd8133d55ddd25f1d1295",
+        "evidence_digest": "6a3c729b28a3482a279d279bc04f6c2aa4d27376d5fa7272eff0d9664bab9780"
+      },
+      {
+        "job": "r001-c000",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "ec5faa0088a3ffd52921171110d491e0f0892039f523a6aa60c93ba778b8c8b9",
+        "evidence_digest": "b46b36abe62adaa7da04608e2c8694bfc66d8a703b670aa09c4cff02852307ac"
+      },
+      {
+        "job": "r001-c001",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "545e571a4d0a23e0649b4ae887060bb2b1b00ef93d275a9086419750b221c257",
+        "evidence_digest": "4c3e669d1e177c04acc69ec58d795fdc2f73add51340c2b86b34d971f49f22a1"
+      },
+      {
+        "job": "r001-c002",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "0c683c6be6091da2e154c5df9142acd77dd6a5ca2356c60a211bba343ab253fd",
+        "evidence_digest": "369c6933beba3f089bea89ca8f6a5d36bf504275cc6303f07fc6ac3b1f3e0641"
+      },
+      {
+        "job": "r001-c003",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "5fa2bd395859cef57e80b3e60a73f0887702040dd10735c299076b09835a26d3",
+        "evidence_digest": "9b4db11c2602b177405f448aab03711088453a93517df9c591abb72f31eda432"
+      },
+      {
+        "job": "r001-c004",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "7965517744d9ffbaf3e01814029ec83ccb608de8d8e85ec442a1be4a6ccb5257",
+        "evidence_digest": "4f25099997ecef41d09bfc47c7f31359f32232e0650127cbeca8e44a5d43d379"
+      },
+      {
+        "job": "r001-c005",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "cb8922465cf7a08842f162b0ee7145ceeb56aa90518e1d2a518ca7a1402caf82",
+        "evidence_digest": "e509faebdf71a3937892e0ac4290ef2c4c3e84a6b997bbda457ff6b422631d05"
+      },
+      {
+        "job": "r001-c006",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "3f8c49c71382c9e4371b7e8366f3461c931c314064d929bddeb118cf34b3f9b7",
+        "evidence_digest": "06235d380f7611659619f65b1f4dbc83880921e638e9591dec4ba31685b293eb"
+      },
+      {
+        "job": "r001-c007",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "e7563f6e38ee7ebecbda564fabf281a9da464fa85524d4ecaea4c4e64ff92dfb",
+        "evidence_digest": "0e2e43cbc72f58e87626d97c9a934906122d64a444acf863ec78cfe9a0e8963d"
+      },
+      {
+        "job": "r001-c008",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "8fc0040f2246c14affdd7921bd9dbadeaa1509fe89ab1d8d094f89e96c10629e",
+        "evidence_digest": "c1a8af045e2a95727f0bd7a52f1a5bdc014b1fcde38d1d4e3083057da1d7318b"
+      },
+      {
+        "job": "r001-c009",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "296d2bae2e9ca7b793bead7f062029cb8609d8f1947a0f236367ff0b50d1b644",
+        "evidence_digest": "f15f669224f2f34ba692a46b3d23901daf6b9e80ec456db9fea7d883944623f2"
+      },
+      {
+        "job": "r001-c010",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "cf4f8573d35502686e454db3b9fc1445e038bc9c1c8bea16d5e1addafdfff616",
+        "evidence_digest": "4319d5b0e9604c5555d0acea2cf904b4c104f3feeef62cc88d0d151214c4df7f"
+      },
+      {
+        "job": "r001-c011",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "0e093c0e9213802b44792d08839647cab9493effa54a0ffa45fefea0e58d7c4a",
+        "evidence_digest": "f26a9d2fdda048957998aff25dde95dca1d76ccfe5f1578203925f8eda4c8722"
+      },
+      {
+        "job": "r001-c012",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "5534bea7868f74923d4b726c7f8f0caabe4041e2e6a4c22cc25c3f6989c25996",
+        "evidence_digest": "253255b21e78978cf44ac230db17ac382c46cf5d7369fb272a76a60c88393448"
+      },
+      {
+        "job": "r001-c013",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "8c2ece6337dfed94669e4cd66e664346d78886af9ec6ab1c8df2ff2e9e4d1c74",
+        "evidence_digest": "cd6f8f69c52052af09c9dba5061b38d084bf3ab00a6c0e7afbcc4b556699490c"
+      },
+      {
+        "job": "r001-c014",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "caa485a16b70041ce82745ba5c7bbc560150667777282d9110997606a708e411",
+        "evidence_digest": "2df484a03fd001d4efe0659d5d6e85678aa7071c9a94bd8de0714d41dd2d9880"
+      },
+      {
+        "job": "r001-c015",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "e6fbc8ba43be5c706db84721f117133064c01695b03422f58b1f09ca463a9c0d",
+        "evidence_digest": "d8604ec0afa10bf03da9d2ee679c4d666510892f0b262ac95bd640d795a54daa"
+      },
+      {
+        "job": "r001-c016",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "f800d97b0f52cf16dd2714406a8694cee51be01fde25eb7e348274e7a1fadbb5",
+        "evidence_digest": "c37026e27266910f865a898affbf158f6c624b29bb84b2ffa8badbf11c026f42"
+      },
+      {
+        "job": "r001-c017",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "feb6f4063148dec239758a979f17dd3063406d53365a31dca4e4a36c1552d45d",
+        "evidence_digest": "e2b68421478bae477efdc109267b29ea955a254b5ea51080a0e7bb632e12e929"
+      },
+      {
+        "job": "r001-c018",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "e16db6f8770b7fcba2db742d6cff26aae81286de96f0e7564fdd3f559784c0e3",
+        "evidence_digest": "bf659b881d295e6f24e4871062790ce2d8d929f1398768a31c66f846e07af8a4"
+      },
+      {
+        "job": "r001-c019",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "890e30428975661d9aec9973cae570fa6a6ebf868c69316f1e9c8f45e6d3ee34",
+        "evidence_digest": "f4cb08d2b0b6bdaae7e6cd3f91c255e38e697af32a0edb4e43a24f31b71f4293"
+      },
+      {
+        "job": "r001-c020",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a6abd7bc832c3558a0800eb235a9187441808e0fd3b4e445b44495cb33fa6700",
+        "evidence_digest": "c83e9a5867a51c6ee9b86e170d3739ddc1783ca8c52ebb7ecfe59494d18a5ff7"
+      },
+      {
+        "job": "r001-c021",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "300b41363d4a4deef47a47832dc98de74c5382e8c96209d1368b74ef9d3851a1",
+        "evidence_digest": "7742dd5937b595fcda129640d2941683a337359ab78efd92fbdec29801bf9d33"
+      },
+      {
+        "job": "r001-c022",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a54750b542b36d423564d6c9f0ecfb464e9b7646f8fedf617a2c981426e923bf",
+        "evidence_digest": "9da3f790a2480fa4c6baf7068123e768c413841d327da51a278429826543cb64"
+      },
+      {
+        "job": "r001-c023",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "b4d6866f5141bbf0b63cbb397689bdfcdf96e32758a8809ddd8ac1008a9b9ea4",
+        "evidence_digest": "b2df3273473a065f262cadf205a9098d5afbd85d61e6c199a1ab7f7c3acbc276"
+      },
+      {
+        "job": "r001-c024",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a95a15a8daed3e9d8d30961727130b13143943d01343b53cdd446b1de87065f5",
+        "evidence_digest": "d231f42e3d298980329de85fc881463aeabedffb3f782d4de9138faa998184ca"
+      },
+      {
+        "job": "r001-c025",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "e793b563f3665ba8768d9a55f5e926ade2c7329337617aa9430a0cbe1129bc1c",
+        "evidence_digest": "642de1084d9617c3bd793f78c163f2a3417595a16cf0399a48bb04f050d7c9f8"
+      },
+      {
+        "job": "r001-c026",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a6989df34c1c2a99f0a39abf69dfea4ceac0074b4186f3c9462aacdd89a73b48",
+        "evidence_digest": "7911a62863b2e963ccfa3e6082a9ad79556e4b5a720090de323bb88d8cd2b154"
+      },
+      {
+        "job": "r001-c027",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "b7fe7314d6b3f461d5871ab0f1c343e077b5fae3d11dd076143e8b51508480d5",
+        "evidence_digest": "07ea1924ab12f2018be9b1698cda733cd8ef99166c9abcfb58038b3b5f581845"
+      },
+      {
+        "job": "r001-c028",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "e8acec61ff12240cf9f115d7e253cf993674e51bf2f0d63b64a1ae46d2304d68",
+        "evidence_digest": "33b2969ff1425b34ef940ee5fda8993f8a74fd307de3b060f6900bd719f8bc41"
+      },
+      {
+        "job": "r001-c029",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "53457b49c1bc638a0f48afc4dd1c98a4363243f31d7d594b6aa3d7b391998672",
+        "evidence_digest": "3bddbb2f088d6a10ac64372a377a40f0ea9399eb451721cbc5810b4e07bf26bb"
+      },
+      {
+        "job": "r001-c030",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "d3aaf1a7491f3428da3c85c7563f4b58b9168ed0c0667f3a29eafc806a48e5f4",
+        "evidence_digest": "dc8d5f174abd616367a9c232f1e5ae2c9015511323ea20662cd3353875c3684c"
+      },
+      {
+        "job": "r001-c031",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "d90891563202d8c8ef143d574f8bf742f38f2478db624ca8093d49065cc1614c",
+        "evidence_digest": "eb9e6302a6bb180282d2a3a3068515f56aed5436af8014c3657c56aaa56476ed"
+      },
+      {
+        "job": "r001-c032",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "285177fe844715c3a36654a654252cb4703cea7d2b1a16250f526408fd96fcef",
+        "evidence_digest": "7f81ea1ae26f6e4b5179e191b90ab9f4d5e76ca06b6521fa0f2f615e3e6040f6"
+      },
+      {
+        "job": "r001-c033",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "efbb624177612a9b105f7baf2cb6c99569c00843d7a0b5c699e32f786ec2e757",
+        "evidence_digest": "9edcec174cdb74982a3a931b6cfe03852835575c8ade321514f80b32f2930cf7"
+      },
+      {
+        "job": "r001-c034",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "9e3df021450f598d5f854f7c627896c276d685481c8eef8aa6ced1f1634a5843",
+        "evidence_digest": "23933e6998f964dbf5cce13cc444a1cccd5ba77bea72113da3e91219802b64bf"
+      },
+      {
+        "job": "r001-c035",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "ec4dd4c72bf87a76df35f1132cabb05b010751e7748bc31cd760c5fe82015f51",
+        "evidence_digest": "2eac83c7ecdc2f33c5b5b538d67376275493700c9ba124f3706549ecbfe2698b"
+      },
+      {
+        "job": "r001-c036",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "9cb108b8afddbff04a4e86942b1110c2978927dd8daa5996ddf5ea0a84c78460",
+        "evidence_digest": "b8d7a7515e41a551656ff18d3009d5c5abc2523f0bbc562a5d025e25545d2d56"
+      },
+      {
+        "job": "r001-c037",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "77f9636982cffc41afaf14648134c15c61163ef71102ee205f2f452e54e4a621",
+        "evidence_digest": "9d8872bd091fa422cde0d808c409c9aee35c2d6d9440ae332a3dae6b2279f776"
+      },
+      {
+        "job": "r001-c038",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "94fd35eedb1789b200935c5410d1001fa6a8b2a26377ebef85df5afad523519d",
+        "evidence_digest": "a5fcb5eee859deb69fb42c43d2c647ca5a0d789a066cea64fc951838f5d4ec9d"
+      },
+      {
+        "job": "r001-c039",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "1d2aecfd20f0785ce2478e64fb144c08a5b082ef28657b3da5a19f9b627918ec",
+        "evidence_digest": "6d681c5b81f817be66d660d5296047dd76ffe21cdae07b8bebc593fdb040e0ad"
+      },
+      {
+        "job": "r001-c040",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2365cd7ec9c3f159c190511d22e390f9b1b6e71e2df4a97fe309f70268e66a9d",
+        "evidence_digest": "6508c7fd7022ab3ee06dab3b3df5115df2fff79243a7dab5661fe8bbcafd0922"
+      },
+      {
+        "job": "r001-c041",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "eadb453b7c84a5b9965a053e6ff03330e830d9cf2fbee1f36e2594242ab9d68a",
+        "evidence_digest": "71edbcaaf839edd5e9d38a268697477f2ceecab00c7df22cacaf33f1cb70168c"
+      },
+      {
+        "job": "r001-c042",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "7ddcd0b4f25c4305892279c2df2a68172b8520a501b2f71eb95238d379aec0d1",
+        "evidence_digest": "b7ccb4db543e28f9435a38477aaf5e898cc229ed1ee2f95e8e755b91862ebd0a"
+      },
+      {
+        "job": "r001-c043",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "9b64f05f1551eb72cf3097081b6f9667e9a1d117907096467577571d7cec648a",
+        "evidence_digest": "bfe18fd232c99082b7f21bc363662d405fd38b388ce4bd5751cfeeacfa2c4978"
+      },
+      {
+        "job": "r001-c044",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "a273a75582b574863be6e948c7a25c295c2d6abd423ea43259db8c15042a2c9c",
+        "evidence_digest": "11cd599c32072bfe247deb27e611ff62843d24c6b7834f655ecc53a8a8eb82c0"
+      },
+      {
+        "job": "r001-c045",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "d7b32515847b25532090e8b805edb20ffcfb77874c16348680a1f27f2983d409",
+        "evidence_digest": "852ba708e105dce4821691dd291f30bda3f1f376cf614efd10716ef8333aaafd"
+      },
+      {
+        "job": "r001-c046",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "2a2426ac016de7ca07214c661f79d53cb3c4c5348ab6b660db2509b335db6358",
+        "evidence_digest": "74b2381d41a77694376dd5b0506cca86e49410809dc62c433b617da5e917f781"
+      },
+      {
+        "job": "r001-c047",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "94a746169c6e7f287b54adbb2ce6ea26fe63a881b66aa5e9d8f430581fd01293",
+        "evidence_digest": "96e9e8321abbe83f0da08f784feb4589e26ad9f56874f5ec420e59f6b15dab8d"
+      },
+      {
+        "job": "r001-c048",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "ffbbeb3efaf3eb18b91a1801e4244693024f8aa5beee504e3f6e4f6fe18323d8",
+        "evidence_digest": "cda73e6d2a525364ff8b62a151f20bb601734fab03ce51cd805e71b333715228"
+      },
+      {
+        "job": "r001-c049",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "7129a010001b3fa754613762bbfde11e7d08a30840adb1fbf2d2b3181322144d",
+        "evidence_digest": "23a47a1f659c04b2396e5c30fe2e3ff8510241d9e3b7a155e778552da3cf7c2c"
+      },
+      {
+        "job": "r001-c050",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "b185c4abed03bdc39468a4f712256b05977fa25643e006e45b412d398e99c37c",
+        "evidence_digest": "3aac268d1433788a0b363aa680e98c3dc2dfd391c8650353a91283fabeecf774"
+      },
+      {
+        "job": "r001-c051",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "21db2aaf23b025646c396452062468bbe6f8a6d8d5e70c73f51aa7cbf524bca3",
+        "evidence_digest": "571d32b3364ba3b259fdc3974d1f35a94d6fbfae68e20cf3dc3e168eea848686"
+      },
+      {
+        "job": "r001-c052",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "572d853642d39abeca0f6b78ad0d1ea443bebe2557dc5b6e99fef898d5a26642",
+        "evidence_digest": "23b3f1eca6f92b48abddb8f8757ea5c33f949a7e6a8a8835de3c3797b13640ff"
+      },
+      {
+        "job": "r001-c053",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "542ed2a13958a0d1102808961551c5cd8d09e235d091735f48397ca609c111b0",
+        "evidence_digest": "54ff2574666c44c3c53c6f854da56b168900d3a5fa631c4aa16a3b3c7931a5d3"
+      },
+      {
+        "job": "r001-reference-after",
+        "status": "unknown",
+        "cleanup_passed": false,
+        "result_sha256": "5f12d36f598d49368850b006608b7abc032893df6c337e175ac9c663b3f23e1c",
+        "evidence_digest": "3e4445e3a4230dcc36cae80af98fef8188179833c7a61cd3bc81678543d59ba2"
+      },
+      {
+        "job": "r001-reference-before",
+        "status": "measured",
+        "cleanup_passed": true,
+        "result_sha256": "4608569bf285bbbcf85dd7707b5c1faa4a42eb87b19fd75b0549ae4fe335a515",
+        "evidence_digest": "ac287e148bf44c0a1ff9c0a8b1099616ad2175b4d2e09a5999be5562148a490d"
+      }
+    ]
+  },
+  "frozen_binary_reproduction": {
+    "diagnostic_only": true,
+    "full_exact_requests": 3,
+    "health_pairs_passed": 10,
+    "health_results": [
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 143,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 134,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 140,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 144,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 142,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 147,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 139,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 144,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 145,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      },
+      {
+        "cancel": {
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        },
+        "deadline": {
+          "received": 139,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "cleaned": true
+        }
+      }
+    ],
+    "unload_passed": true,
+    "evidence_digest": "7e087aa6895e66dcb355fc35ec8fab8cfd0eb5161420c1525aab25cfb458c92b",
+    "trace_sha256": "f4be427f79182ac284af64dee648fb5579d0ce5c06d4f29e2c51103f1778bfc8",
+    "firewall_cleanup": {
+      "returncode": 0,
+      "stdout": "success\n",
+      "stderr": ""
+    }
+  },
+  "isolated_watchdog_reproduction": {
+    "diagnostic_only": true,
+    "linked_runtime_archive_sha256": "66f7cf67b7184200e4102810fc8478c8de620239e97011054a49eb563a95fa58",
+    "source_file": "watchdog-repro.cpp",
+    "source_sha256": "ca9551f25c44ae455afc50e73cff10d8ab5e2a996b18da7d75b946c9d5405371",
+    "fast_cancellation": "Running main() from /Users/anthony/Documents/Projects/hLLM/build/native/m5-mixed/_deps/googletest-src/googletest/src/gtest_main.cc\n[==========] Running 1 test from 1 test suite.\n[----------] Global test environment set-up.\n[----------] 1 test from WatchdogDiagnostic\n[ RUN      ] WatchdogDiagnostic.SlowComputeDeadlineStatusAndRecovery\niteration=0 code=4 detail=request cancelled or deadline exceeded elapsed_ms=209.147 tokens=0\niteration=1 code=0 detail= elapsed_ms=8.21425 tokens=1\n[       OK ] WatchdogDiagnostic.SlowComputeDeadlineStatusAndRecovery (249 ms)\n[----------] 1 test from WatchdogDiagnostic (249 ms total)\n\n[----------] Global test environment tear-down\n[==========] 1 test from 1 test suite ran. (250 ms total)\n[  PASSED  ] 1 test.\n",
+    "delayed_cancellation": "Running main() from /Users/anthony/Documents/Projects/hLLM/build/native/m5-mixed/_deps/googletest-src/googletest/src/gtest_main.cc\n[==========] Running 1 test from 1 test suite.\n[----------] Global test environment set-up.\n[----------] 1 test from WatchdogDiagnostic\n[ RUN      ] WatchdogDiagnostic.SlowComputeDeadlineStatusAndRecovery\niteration=0 code=1 detail=Cancelled on the server side elapsed_ms=338.657 tokens=0\niteration=1 code=0 detail= elapsed_ms=7.25279 tokens=1\n[       OK ] WatchdogDiagnostic.SlowComputeDeadlineStatusAndRecovery (491 ms)\n[----------] 1 test from WatchdogDiagnostic (491 ms total)\n\n[----------] Global test environment tear-down\n[==========] 1 test from 1 test suite ran. (491 ms total)\n[  PASSED  ] 1 test.\n",
+    "finding": "The unchanged runtime returns DEADLINE_EXCEEDED when the test backend promptly unwinds, but CANCELLED after a 250 ms unwind delay exceeds its 100 ms watchdog fallback. Both cases retire reservations, recover and unload.",
+    "limitation": "This is a single-stage synthetic backend test. It confirms the mechanism, not the unrecorded execution path of the original cross-machine failure."
+  },
+  "next_steps": [
+    "Preserve deadline status when generation compute unwinds slowly, while retaining bounded cancellation for stalled transport operations; add deterministic regression coverage.",
+    "Persist partial health phases and error tracebacks so future failures identify cancellation, deadline, cleanup or recovery.",
+    "Requalify changed worker identities and health on both hosts before freezing a new sweep; do not mix results from changed binaries.",
+    "Investigate prefill timing variability in a stable resource window. Preserve all old samples and the 10% max/min drift gate.",
+    "Run a new complete acceptance sweep, then the separate M5.1\u2013M5.6 audit before acceptance and PR."
+  ]
+}
