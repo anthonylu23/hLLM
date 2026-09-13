@@ -1,0 +1,146 @@
+{
+  "purpose": "Production request setup calibration; not final M5 acceptance",
+  "precision": {
+    "weights": "F16",
+    "execution": "F32",
+    "kv": "F32",
+    "wire": "F16"
+  },
+  "prompt_tokens": 512,
+  "output_tokens": 256,
+  "concurrency": 1,
+  "cache_capacity": 768,
+  "split": 14,
+  "exact_requests": 30,
+  "exact_generated_tokens": 7680,
+  "executor_digest": "b24cc4ad80acc398a0cba31ce7ff242a07b104b416b49fb205e9d7e83c329028",
+  "reference": "13c0fca588bc128648e6a2ad2eabbb1256c55f35a91b3e2f50c33c71b456d569",
+  "cleanup_passed": true,
+  "method": "native_setup + client_TTFT - native_TTFT; retain only the third request after two warmups in each fresh reference-checked job",
+  "jobs": [
+    {
+      "job": "mlx-cuda-00",
+      "evidence_digest": "835f5182bbe8c6ccd1a75ab8b4ac0a84cc72c22d57b911ea81dd4ca2fccfb4ff",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 459.27491690963507,
+        "native_setup_ms": 0.239708,
+        "native_ttft_ms": 456.669167
+      },
+      "residual_ms": 2.8454579096350585,
+      "measured_at": "2026-09-13T04:23:41.561064+00:00"
+    },
+    {
+      "job": "mlx-cuda-01",
+      "evidence_digest": "dcf9e70d7d64954e63e85c7c612283ef635b1f8586967f3f865ee254488c3242",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 2426.4175831340253,
+        "native_setup_ms": 0.229584,
+        "native_ttft_ms": 2425.563959
+      },
+      "residual_ms": 1.0832081340254263,
+      "measured_at": "2026-09-13T04:28:15.928723+00:00"
+    },
+    {
+      "job": "mlx-cuda-02",
+      "evidence_digest": "e273334b8a86110a445bb9c255b4065798c8ad9d9850246bca1dffce6495487d",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 623.7421249970794,
+        "native_setup_ms": 0.271958,
+        "native_ttft_ms": 621.536583
+      },
+      "residual_ms": 2.4774999970794624,
+      "measured_at": "2026-09-13T04:32:53.425044+00:00"
+    },
+    {
+      "job": "mlx-cuda-03",
+      "evidence_digest": "2b5f0975a7da809778f81fbda774f773df6ab039a502cdb580748984dd911a26",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 941.8014171533287,
+        "native_setup_ms": 0.236167,
+        "native_ttft_ms": 939.727709
+      },
+      "residual_ms": 2.309875153328676,
+      "measured_at": "2026-09-13T04:37:23.727455+00:00"
+    },
+    {
+      "job": "mlx-cuda-04",
+      "evidence_digest": "d7e72730348dfcf867a1aa66edd7260856aba5d72d477556822338f092e416f4",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 2015.0817083194852,
+        "native_setup_ms": 0.210499,
+        "native_ttft_ms": 2013.311625
+      },
+      "residual_ms": 1.9805823194851655,
+      "measured_at": "2026-09-13T04:41:58.768832+00:00"
+    },
+    {
+      "job": "cuda-mlx-00",
+      "evidence_digest": "8eae7ab8b6a7596568528933a1d694be3ae4a634c0ed95954d86ee1fc045ecc7",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 593.9500420354307,
+        "native_setup_ms": 0.220063,
+        "native_ttft_ms": 542.836686
+      },
+      "residual_ms": 51.333419035430666,
+      "measured_at": "2026-09-13T04:26:07.318588+00:00"
+    },
+    {
+      "job": "cuda-mlx-01",
+      "evidence_digest": "dc79b8ff236b2b3fbabbd8fe52853d1f6b5deb97a7db55c88d0faa4e8fe47d65",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 3116.638000123203,
+        "native_setup_ms": 0.176962,
+        "native_ttft_ms": 3066.526564
+      },
+      "residual_ms": 50.288398123203024,
+      "measured_at": "2026-09-13T04:30:53.335667+00:00"
+    },
+    {
+      "job": "cuda-mlx-02",
+      "evidence_digest": "b6561d9ff11a4e778bd9ca5282090f44546c8b2a5f84e70300d1ccf3ad76c626",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 884.9486671388149,
+        "native_setup_ms": 0.174522,
+        "native_ttft_ms": 832.46321
+      },
+      "residual_ms": 52.65997913881495,
+      "measured_at": "2026-09-13T04:35:23.489889+00:00"
+    },
+    {
+      "job": "cuda-mlx-03",
+      "evidence_digest": "da71cc3ac8338ca5f47af1a0ad2709ecd77800667aedb59f4335f21e4bf19c03",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 809.9437500350177,
+        "native_setup_ms": 0.174413,
+        "native_ttft_ms": 755.021614
+      },
+      "residual_ms": 55.09654903501769,
+      "measured_at": "2026-09-13T04:39:53.431112+00:00"
+    },
+    {
+      "job": "cuda-mlx-04",
+      "evidence_digest": "6a44ef69e4fde1379b944a3482f998f3db987c2efa2734315003d38eb687bc8c",
+      "exact_requests": 3,
+      "raw": {
+        "client_ttft_ms": 802.9118748381734,
+        "native_setup_ms": 0.169532,
+        "native_ttft_ms": 745.719825
+      },
+      "residual_ms": 57.36158183817338,
+      "measured_at": "2026-09-13T04:44:32.892695+00:00"
+    }
+  ],
+  "median_setup_ms": {
+    "mlx-cuda": 2.309875153328676,
+    "cuda-mlx": 52.65997913881495
+  }
+}
