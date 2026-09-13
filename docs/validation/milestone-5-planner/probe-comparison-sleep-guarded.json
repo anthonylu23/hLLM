@@ -1,0 +1,90 @@
+{
+  "candidate_id": "mlx--cuda-m001",
+  "comparison_only": true,
+  "completed": true,
+  "diagnostic_only": true,
+  "drift_fraction": 0.09184370548057164,
+  "exact_full_requests": 18,
+  "limit": 0.1,
+  "samples": [
+    {
+      "evidence_digest": "5e472308d0e8b5e3044272ec60e5be6691ec9fd6d5ffcea1b5bf75af84712882",
+      "generation_ms": 25369.071749970317,
+      "job": "stability-00",
+      "native_setup_ms": 0.234334,
+      "native_ttft_ms": 2567.407834,
+      "network_probe_enabled": true,
+      "ttft_ms": 2569.2155840806663
+    },
+    {
+      "evidence_digest": "93495e84e2f86855c1ce995a68ae41a318ed836c6f967ffa35640ae81b33794b",
+      "generation_ms": 23283.8944173418,
+      "job": "stability-01",
+      "native_setup_ms": 0.283166,
+      "native_ttft_ms": 1230.214875,
+      "network_probe_enabled": false,
+      "ttft_ms": 1232.1560829877853
+    },
+    {
+      "evidence_digest": "2f0678ee61690a4c1b37a0d1a106cfa45ffeb7cc6f031268bb80c9012301a604",
+      "generation_ms": 23235.076250042766,
+      "job": "stability-02",
+      "native_setup_ms": 0.337167,
+      "native_ttft_ms": 1189.691166,
+      "network_probe_enabled": false,
+      "ttft_ms": 1191.8203746899962
+    },
+    {
+      "evidence_digest": "43647d26d35aa9ccd408ca6da4d85391091f73a69587576c6cd1592f59cce1b0",
+      "generation_ms": 23999.686249997467,
+      "job": "stability-03",
+      "native_setup_ms": 0.254792,
+      "native_ttft_ms": 1395.961292,
+      "network_probe_enabled": true,
+      "ttft_ms": 1398.1802919879556
+    },
+    {
+      "evidence_digest": "cefed64444943184b5bcc89f0bf1fbce714f28becfa06161ee23f963baff2d26",
+      "generation_ms": 24595.21499974653,
+      "job": "stability-04",
+      "native_setup_ms": 0.243583,
+      "native_ttft_ms": 2160.644208,
+      "network_probe_enabled": true,
+      "ttft_ms": 2162.9243339411914
+    },
+    {
+      "evidence_digest": "436abbfb0c79e8552b344f322040259fa8915f6d0a6e36d212a8995cebd79db1",
+      "generation_ms": 24245.109624695033,
+      "job": "stability-05",
+      "native_setup_ms": 0.27275,
+      "native_ttft_ms": 1754.378917,
+      "network_probe_enabled": false,
+      "ttft_ms": 1756.6298330202699
+    }
+  ],
+  "accepted": false,
+  "evidence_digests_verified": true,
+  "cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "probe_on_over_off_minus_one": 0.08955449184117081
+    },
+    {
+      "pair": 1,
+      "probe_on_over_off_minus_one": 0.03290757438135339
+    },
+    {
+      "pair": 2,
+      "probe_on_over_off_minus_one": 0.014440247145547813
+    }
+  ],
+  "last_result_local": "2026-09-13T15:16:27.251473",
+  "sleep_events_during_comparison": [],
+  "interpretation": "All three pairs are slower with probes enabled; small sequential diagnostic does not establish causation. No reason to enable probes in acceptance. Repeat five-job plain timing with process-scoped sleep prevention before qualification."
+}
