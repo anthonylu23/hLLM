@@ -1,0 +1,14 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "attempt": "network-probe-comparison-01",
+  "completed_timing_jobs": 0,
+  "status": "unknown",
+  "detail": "RuntimeError: fresh memory qualification failed for cuda: ssh: connect to host 100.86.45.68 port 22: Operation timed out\n",
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "next": "SSH connectivity recovered; repeat the identical predefined comparison in a new evidence directory."
+}
