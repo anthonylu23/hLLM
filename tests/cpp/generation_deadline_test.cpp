@@ -139,6 +139,73 @@ class GenerationDeadlineTest : public ::testing::Test {
   }
 };
 
+TEST(ExecutionDeadlineTest, SlowDecodeUnwindPreservesDeadlineStatus) {
+  test::ModelFixture model;
+  auto state = std::make_shared<ExecutionState>();
+  ControlService control{{"cpu-b", "127.0.0.1:0", model.root, 1'000'000U},
+                         std::make_unique<DeadlineFactory>(state)};
+  ExecutionService execution{control};
+  grpc::ServerBuilder builder;
+  int port = 0;
+  builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+  builder.RegisterService(&execution);
+  auto server = builder.BuildAndStart();
+  ASSERT_TRUE(server);
+  auto load = model.load(1U, true);
+  v1::LoadStageResponse loaded;
+  ASSERT_TRUE(control.LoadStage(nullptr, &load, &loaded).ok());
+  ASSERT_TRUE(loaded.accepted());
+  auto stub = v1::StageExecution::NewStub(grpc::CreateChannel(
+      "127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+  grpc::ClientContext context;
+  context.set_deadline(std::chrono::system_clock::now() + 10s);
+  auto call = stub->Execute(&context);
+  v1::StageMessage message;
+  auto* open = message.mutable_open_sequence();
+  open->set_protocol_version(1U);
+  open->set_deployment_id("plan-1");
+  open->set_deployment_version(1U);
+  open->set_request_id("downstream-deadline");
+  open->set_maximum_total_tokens(3U);
+  open->set_maximum_new_tokens(2U);
+  open->set_deadline_unix_ms(static_cast<std::uint64_t>(
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          (std::chrono::system_clock::now() + 500ms).time_since_epoch()).count()));
+  ASSERT_TRUE(call->Write(message));
+  for (std::uint64_t step = 0; step < 2; ++step) {
+    message.Clear();
+    auto* tensor = message.mutable_tensor();
+    tensor->set_protocol_version(1U);
+    tensor->set_deployment_id("plan-1");
+    tensor->set_deployment_version(1U);
+    tensor->set_request_id("downstream-deadline");
+    tensor->set_sequence_number(step);
+    tensor->set_phase(step == 0 ? v1::EXECUTION_PHASE_PREFILL : v1::EXECUTION_PHASE_DECODE);
+    tensor->set_first_position(step);
+    tensor->add_sequence_lengths(1U);
+    tensor->add_cache_slot_ids(0U);
+    tensor->add_shape(1U); tensor->add_shape(1U); tensor->add_shape(6U);
+    tensor->set_dtype(v1::DATA_TYPE_F16);
+    tensor->set_layout("dense_row_major_le");
+    tensor->set_payload_length(12U);
+    tensor->set_payload(std::string(12, '\0'));
+    ASSERT_TRUE(call->Write(message));
+    if (step == 0) {
+      ASSERT_TRUE(call->Read(&message));
+      ASSERT_TRUE(message.has_sampled_token());
+    }
+  }
+  call->WritesDone();
+  while (call->Read(&message)) {}
+  EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::DEADLINE_EXCEEDED);
+  v1::MemoryReport memory;
+  ASSERT_TRUE(control.GetMemoryReport(nullptr, nullptr, &memory).ok());
+  EXPECT_EQ(memory.active_requests(), 0U);
+  EXPECT_EQ(memory.reserved_cache_bytes(), 0U);
+  EXPECT_EQ(memory.reserved_workspace_bytes(), 0U);
+  server->Shutdown();
+}
+
 TEST_F(GenerationDeadlineTest, SlowDecodeUnwindPreservesDeadlineStatus) {
   grpc::ClientContext context;
   context.set_deadline(std::chrono::system_clock::now() + 10s);

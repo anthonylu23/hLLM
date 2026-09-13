@@ -26,3 +26,32 @@ The diagnostic will first exercise the existing deadline regressions, then
 repeat the bounded full-checkpoint health pilot. Its outputs cannot replace
 acceptance evidence. Any resulting runtime fix must preserve bounded cleanup
 for stalled consumers as well as precise deadline status for consuming clients.
+
+
+## Downstream regression and fix
+
+The isolated full-checkpoint diagnostic reproduced the deadline failure during
+its first MLX-to-CUDA health iteration. The generation watchdog logged no
+trigger for that deadline request, which points away from its blocked-write
+fallback. This trace does not directly identify the uninstrumented CUDA branch.
+
+A new downstream slow-decode regression reproduces a concrete defect: the old
+ExecutionService watchdog forces CANCELLED immediately at its application
+deadline while compute is still unwinding. Request resources remain active when
+the client receives that status. This is consistent with the full-checkpoint
+failure and exposes a gap left by the earlier generation-only fix.
+
+ExecutionService now marks active stream reads and writes. At a deadline, its
+watchdog lets compute unwind and return DEADLINE_EXCEEDED; blocked stream I/O
+retains the bounded transport-cancellation fallback. Each I/O operation marks
+itself active before checking cancellation, preventing a new blocking operation
+after the watchdog decides no interrupt is needed. Explicit cancellation
+continues to interrupt transport immediately.
+
+Isolated m5-stage-deadline and cuda-stage-deadline builds passed all 66 Mac
+and 69 CUDA tests (211.44s and 360.35s). Full-checkpoint health validation
+passed six exact requests, ten cancellation/deadline pairs and twenty exact
+recovery prefixes, with cleanup verified in both directions. Timing validation
+is running and must pass before refreshed
+qualification evidence or another acceptance sweep. The earlier failed sweep
+remains immutable and unaccepted.

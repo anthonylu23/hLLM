@@ -69,6 +69,14 @@ class RequestGuard final {
   ExecutionLease lease_;
 };
 
+class ActiveIo final {
+ public:
+  explicit ActiveIo(std::atomic_bool& active) : active_(active) { active_.store(true); }
+  ~ActiveIo() { active_.store(false); }
+ private:
+  std::atomic_bool& active_;
+};
+
 // Synchronous gRPC reads/writes must also wake when cancellation arrives over
 // the independent control RPC. Join before any referenced context is destroyed.
 class Watchdog final {
@@ -84,11 +92,11 @@ class Watchdog final {
                 peer->TryCancel();
               }
               // TryCancel forces a CANCELLED transport status, even if the
-              // handler returns DEADLINE_EXCEEDED. For a generation deadline,
+              // handler returns DEADLINE_EXCEEDED. For an application deadline,
               // cancel the peer and let compute unwind with its precise status.
-              // Only a blocked client write needs the transport fallback.
-              // The write flag is set before checking cancellation, so no new
-              // write can start after this watchdog observes it as false.
+              // Only blocked stream I/O needs the transport fallback.
+              // The I/O flag is set before checking cancellation, so no new
+              // operation can start after this watchdog observes it as false.
               if (client_write != nullptr &&
                   std::chrono::system_clock::now() >= request->deadline) {
                 for (int attempt = 0; attempt < 20 && !stop.stop_requested(); ++attempt) {
@@ -234,13 +242,19 @@ grpc::Status ExecutionService::Execute(
                                         effective_deadline(*context, open.deadline_unix_ms()), 1U));
     auto& lease = guard.lease();
     active = lease.request;
-    Watchdog watchdog(*context, active);
+    std::atomic_bool stream_io{false};
+    Watchdog watchdog(*context, active, nullptr, &stream_io);
     validate_stop_ids(open.stop_token_ids(), *lease.deployment->backend);
     std::size_t position = 0U;
     std::uint64_t sequence = 0U;
     std::size_t prompt = 0U;
     bool stopped = false;
-    while (stream->Read(&message)) {
+    auto read = [&] {
+      ActiveIo reading(stream_io);
+      check_running(*active, *context);
+      return stream->Read(&message);
+    };
+    while (read()) {
       check_running(*active, *context);
       if (message.has_terminate()) {
         const auto& terminal = message.terminate();
@@ -290,8 +304,12 @@ grpc::Status ExecutionService::Execute(
       stopped = sequence == open.maximum_new_tokens() ||
                 std::find(open.stop_token_ids().begin(), open.stop_token_ids().end(), token) !=
                     open.stop_token_ids().end();
-      if (!stream->Write(response)) {
-        throw std::runtime_error("sampled token send failed");
+      {
+        ActiveIo writing(stream_io);
+        check_running(*active, *context);
+        if (!stream->Write(response)) {
+          throw std::runtime_error("sampled token send failed");
+        }
       }
     }
     throw std::runtime_error("stage stream disconnected before termination");
