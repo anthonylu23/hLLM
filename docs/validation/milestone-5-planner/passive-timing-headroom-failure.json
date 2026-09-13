@@ -1,0 +1,83 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "attempt": "timing-stage-deadline-passive-01",
+  "completed_timing_jobs": 0,
+  "status": "unknown",
+  "evidence_digest": "f69169a79328edf6ada5119465dcaed64a10ec4789b92a26eeb205395ec50747",
+  "evidence_digest_verified": true,
+  "job_cleanup_verified": false,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "memory_preflight": {
+    "admission_capacity": {
+      "device": 0,
+      "host": 0,
+      "pinned": 0,
+      "unified": 3489660928
+    },
+    "device_budget": null,
+    "host_budget": {
+      "available_bytes": 4213309440,
+      "extra_overhead_bytes": 268435456,
+      "headroom_bytes": 268435456,
+      "safety_fraction": 0.1
+    },
+    "key": {
+      "assignment": {
+        "layer_end": 1,
+        "layer_start": 0,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false,
+        "owns_token_embedding": true,
+        "stage_index": 0,
+        "worker_id": "mlx"
+      },
+      "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+      "environment": {
+        "allocator": "pending",
+        "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 3489660928}}",
+        "backend": "mlx",
+        "backend_version": "pending",
+        "binary_digest": "79789194ac06d65e2ab1330009efd397e262a774730515342127bb168782b585",
+        "compiler": "pending",
+        "device_identity": "pending",
+        "device_name": "pending",
+        "driver_version": "pending",
+        "os": "macOS-26.5.1-arm64-arm-64bit;kernel=Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:06 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6030",
+        "source_revision": "sources-sha256:15121d0c578f2c7c6a4d4bbe0ae279050de63f8284910a86e26c32342f0f9fea"
+      },
+      "execution_dtype": "F32",
+      "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+      "input_kind": "synthetic-shape",
+      "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+      "transport_mode": "pageable",
+      "weight_dtype": "F16",
+      "workload": {
+        "activation_dtype": "F16",
+        "concurrency": 1,
+        "kv_dtype": "F32",
+        "kv_overhead_factor": 1.1,
+        "output_tokens": 256,
+        "prompt_tokens": 512,
+        "schema_version": "1.0",
+        "total_cached_tokens": 768,
+        "workload_id": "milestone-5-mixed-512-256"
+      },
+      "workload_digest": "ddc49e7418e0f3630b6ceef87e274de37d25049a53308a3ebe22d4f7b9eb61b2"
+    },
+    "observed_at": "2026-09-13T19:54:35.475636+00:00",
+    "reasons": [
+      "host/unified: configured probe cap plus physical allowances exceeds availability"
+    ],
+    "schema_version": "1.0",
+    "status": "rejected"
+  },
+  "required_available_bytes": 4375497932.8,
+  "interpretation": "Mac availability dropped between the outer launch guard and cold-load preflight. No generation occurred and this is not evidence for excluding a placement. Subsequent owned worker and sampler inspection found none.",
+  "next": "Preserve failed attempt. Require at least5.5GB available continuously for60seconds before each job; retain unchanged strict per-probe checks and all caps/margins."
+}
