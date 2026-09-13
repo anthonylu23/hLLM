@@ -1,0 +1,1003 @@
+{
+  "worker": "mlx",
+  "complete": true,
+  "memory_profiles": 54,
+  "compute_profiles": 54,
+  "source_revision": "sources-sha256:4b08a1efcb222a59e6d50e352134b8202fa632ce1fb9dd5bda8850a9054630a4",
+  "binaries": {
+    "memory": "3b65b2ca2450a798385125a439d4a127a0aa369c08027c5c1e298d58fd1a48ff",
+    "compute": "05d0269b3a55042bfc125f72d5fc7330e9dc7d4adf451cb9cecb3603927b7962"
+  },
+  "workload": {
+    "schema_version": "1.0",
+    "workload_id": "milestone-5-mixed-512-256",
+    "prompt_tokens": 512,
+    "output_tokens": 256,
+    "concurrency": 1,
+    "total_cached_tokens": 768,
+    "kv_overhead_factor": 1.1,
+    "kv_dtype": "F32",
+    "activation_dtype": "F16"
+  },
+  "precision": {
+    "weights": "F16",
+    "execution": "F32",
+    "kv": "F32",
+    "wire": "F16"
+  },
+  "records": [
+    {
+      "file": "mlx-first-m001-memory.json",
+      "artifact_digest": "9cb13d8bc038d2feb60be5a392de9a22b4e9395e040ff5a2cf893ebb5038997d",
+      "raw_sha256": "9a03ffca2c7658a36a2a62ddd6648c4789dff4106b7fe1821d9463b4d41ffa90",
+      "measured_at": "2026-09-13T01:29:58.755969+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3062988800,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m001-compute.json",
+      "artifact_digest": "3c3ec55a18698d7b1cafa1e11d53f5950ca0b5f72ca1ad86210745a1ebfe9be2",
+      "raw_sha256": "5ac2c3dc1883f0ad69448fc1e00e4dc010edb1c23325a1060cb0c79e91ad6ac7",
+      "measured_at": "2026-09-13T01:30:01.212015+00:00"
+    },
+    {
+      "file": "mlx-final-m001-memory.json",
+      "artifact_digest": "033e97733e5f38768132d4d7115ab94f071bf237c392d4bcd439798594bb0929",
+      "raw_sha256": "67d8b36d9d75ef94dd8e82d667541619a8f8e916126083308a56e622ac45ccaa",
+      "measured_at": "2026-09-13T01:30:15.633701+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 4188982909,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m001-compute.json",
+      "artifact_digest": "5fb37794d097ccd22de219077a998aa22484adeca76c8dbc4ccbf22bd2ff8278",
+      "raw_sha256": "29545eecc427afe9eeb5cca8e394c32077205d01584dad5589a877e25b45e5ad",
+      "measured_at": "2026-09-13T01:30:39.790212+00:00"
+    },
+    {
+      "file": "mlx-first-m002-memory.json",
+      "artifact_digest": "a834a3ccd2ea87f5cbea8d0b3c92e7ae1fdbea78667912a9e04681faacc26bbe",
+      "raw_sha256": "8102710277c185b67306f94a04ac255b51bd0339b46c9c0f6883794cbb2a0c78",
+      "measured_at": "2026-09-13T01:35:28.596857+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3063024845,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m002-compute.json",
+      "artifact_digest": "0f64d46e602e8465ecf78d9ef82ad64f3b34099deaf3e2d1bcd69713e8fe4501",
+      "raw_sha256": "2fcd41b4eaf09490f522726aeb7aa76e96e600a5a20a731b24a06b21acd3597c",
+      "measured_at": "2026-09-13T01:35:31.882322+00:00"
+    },
+    {
+      "file": "mlx-final-m002-memory.json",
+      "artifact_digest": "2e99634f2ac5cff3bd4677925d0fbb0ef052e8a52ceaf4edb63b5fab029c4627",
+      "raw_sha256": "6e7c023d78d087d2bc4d399880d34a297e2944f2002bf11951251bccaf06d673",
+      "measured_at": "2026-09-13T01:35:53.235968+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 4147436208,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m002-compute.json",
+      "artifact_digest": "8a4b4b25a0be2e73ac575619351940d02266460d85862901473c015b4dfafc41",
+      "raw_sha256": "022c80369edee07dbb00d0a6919e9f3692e4a6dec165fc2665074cf91cfc1887",
+      "measured_at": "2026-09-13T01:36:17.719594+00:00"
+    },
+    {
+      "file": "mlx-first-m003-memory.json",
+      "artifact_digest": "51efb961bfc435bb2eca76fc6fec88230fd2c2289d654fa09a0a47f449f3a790",
+      "raw_sha256": "9c7692490174b5723a0d2bc436ed2ec178530cf51990e287c64bd1f7d9b16165",
+      "measured_at": "2026-09-13T01:40:58.183597+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3062934733,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m003-compute.json",
+      "artifact_digest": "9c9fe5491ff02971bc65fefc91c877ff2fba811d6813f4c0eeabfb75f7fcde93",
+      "raw_sha256": "b1c03186509d8346773bf82334b3f7f35b46ddecd080de4881af580030c1e9cf",
+      "measured_at": "2026-09-13T01:41:01.433779+00:00"
+    },
+    {
+      "file": "mlx-final-m003-memory.json",
+      "artifact_digest": "da13c00ffe72fca646d28f8d2922e88db18f67ba5303c81087cee05ae35a742f",
+      "raw_sha256": "495a421a7e45a487922605f35534943248aa0bd81343d26f3bb0a41ab294de07",
+      "measured_at": "2026-09-13T01:41:28.089942+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 4106051709,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m003-compute.json",
+      "artifact_digest": "3841247741d466ca15e78bc1c2cc9e19c4e1e4caa5e76dc7a2d178dd6c4d6b60",
+      "raw_sha256": "84e662c084864114da3020b9792cdb37b0bd2cc744cc69cc4463428805b0f6c9",
+      "measured_at": "2026-09-13T01:41:52.646884+00:00"
+    },
+    {
+      "file": "mlx-first-m004-memory.json",
+      "artifact_digest": "0b79818c07bc1c241c09833fdabd3acd5baaea5ad03422962a69ecb311bf91ec",
+      "raw_sha256": "fcfabc5ec2514d9e7746cf81ff1bc22a9cfb2fb48558cdaaa4b93d6062439282",
+      "measured_at": "2026-09-13T01:46:25.210507+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3062988800,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m004-compute.json",
+      "artifact_digest": "cc24d17603653aee06ca9613780f001d8d7a3ebf4a00a78c7c7f61d50612be8e",
+      "raw_sha256": "5f87a29ab0fde5602ef757ee0c52b4cbb52844ddb83daa7dc2c62db426aa6beb",
+      "measured_at": "2026-09-13T01:46:28.984669+00:00"
+    },
+    {
+      "file": "mlx-final-m004-memory.json",
+      "artifact_digest": "b0fd711183c8d075e6288b7fe44ada1b45ff07bab408af0e6ceae29623662fcc",
+      "raw_sha256": "4aa9461aef9ec93342b96a6285ef2aa1da49cbf61a21b4729491a7f9ec4cdcf1",
+      "measured_at": "2026-09-13T01:46:59.918475+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 4064414896,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m004-compute.json",
+      "artifact_digest": "6b555a19fbaf8d061fdc6b57915e9af5d5e5be49f5f18bfb6940deb87fa94fba",
+      "raw_sha256": "1e4feabe03339cc539a85d00cb6ea73218b4f1e82f182855ab35bfbdf47a1773",
+      "measured_at": "2026-09-13T01:47:23.950649+00:00"
+    },
+    {
+      "file": "mlx-first-m005-memory.json",
+      "artifact_digest": "b0b7162d082c1fb64f4e0584f4295367f60c4e3272e5d5b8d67594a72486ba9d",
+      "raw_sha256": "f15cbb1416da48d203530a19869420bc79ac9b1f36dc291879b984be19218c14",
+      "measured_at": "2026-09-13T01:51:48.031920+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3062970778,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m005-compute.json",
+      "artifact_digest": "41143e0066108016f2604761fecd64c7fb8d4919e1794b6eeb5b689466f03898",
+      "raw_sha256": "ca79b58797fc7cee16b3a5596fa659e815751dce8dd8c3db5ef56fe2515faad9",
+      "measured_at": "2026-09-13T01:51:52.331612+00:00"
+    },
+    {
+      "file": "mlx-final-m005-memory.json",
+      "artifact_digest": "46fcedf7763507b164ec4767254b49309ccfcf91fe66c899a4efd35d845465e6",
+      "raw_sha256": "e812fe85113416ab793f68effb6ae742ac1a673cfc6c1c4d4f08f15eccdabd48",
+      "measured_at": "2026-09-13T01:52:36.488188+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 4022021143,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m005-compute.json",
+      "artifact_digest": "26088681c13cbde2770a5893cc71b3139777f8ae6bed1dfba0a1822508ebb755",
+      "raw_sha256": "e11db9f340a959c15090a86adfe3ba26cc3ff0190d6d18d1b2a11c5b51ff320d",
+      "measured_at": "2026-09-13T01:52:57.804234+00:00"
+    },
+    {
+      "file": "mlx-first-m006-memory.json",
+      "artifact_digest": "b77a191095e3729078e90e96933e3b023203dfe01fa342f3d6e5ef366da7f910",
+      "raw_sha256": "c32b5200ba58df93288234d95454218c07937292de3a23cbf07a5b531739d363",
+      "measured_at": "2026-09-13T01:57:14.444824+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3063042868,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m006-compute.json",
+      "artifact_digest": "f42f168913a678458a217b36dc5cff9e47e00179b9412ecda7c88252214aa8fd",
+      "raw_sha256": "88c98b13005be21ea0f11021bd8dc9199002d98b48a23b1609a58b5c12e8f1db",
+      "measured_at": "2026-09-13T01:57:19.264973+00:00"
+    },
+    {
+      "file": "mlx-final-m006-memory.json",
+      "artifact_digest": "61dc832eba6fab3f7fd6db08cd736b9503178b2ae9d88b0e02f30ee0afa45ef4",
+      "raw_sha256": "c88a2753e98946aa9dfe7291b06ccc2136d6452c17252b6a4c5c86175f4490ec",
+      "measured_at": "2026-09-13T01:58:10.064734+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3981411607,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m006-compute.json",
+      "artifact_digest": "169aec7f6399e2febce2cebdffe41e71012f032059951d8df449f59b70989f63",
+      "raw_sha256": "e7bc9b59256e2dcf9da972bcdb842c233a5dbd509ad9949ad6492b65340ea4d5",
+      "measured_at": "2026-09-13T01:58:31.451971+00:00"
+    },
+    {
+      "file": "mlx-first-m007-memory.json",
+      "artifact_digest": "3368374c28c21b43e716cd1befc86c9264bbb025ff46f65ab972e8ed642d74db",
+      "raw_sha256": "0951e336a6023c9fc191c75052fc247dc50db1ae00fc2f4bf55a00c0d78dcfc4",
+      "measured_at": "2026-09-13T02:02:42.579956+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3063024845,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m007-compute.json",
+      "artifact_digest": "d464311fcada220ee57bfe615fa79f8ddb9f0652be4b1dff20564b8e1c4ae853",
+      "raw_sha256": "f3320dbf1ad521599bd23844972df1dd18ac2fe1d648aef059790850f093bfbc",
+      "measured_at": "2026-09-13T02:02:47.946249+00:00"
+    },
+    {
+      "file": "mlx-final-m007-memory.json",
+      "artifact_digest": "272323a790cc7d8f37c3709e70648ce32f06de8e96781dc815570dfc391b9690",
+      "raw_sha256": "81bdd8ad557481af24c7e431fed23430ab180effc05f119dab4583b9dafaa953",
+      "measured_at": "2026-09-13T02:03:46.203380+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3939864906,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m007-compute.json",
+      "artifact_digest": "217cda9f2e5c75bac144ca115e0724c27462f3508bc36c0d402d396470d9b829",
+      "raw_sha256": "eca16d9660d1e4831dd814f7427ebd24f27ded135a8b119148ece6ebf2aba99a",
+      "measured_at": "2026-09-13T02:04:06.197252+00:00"
+    },
+    {
+      "file": "mlx-first-m008-memory.json",
+      "artifact_digest": "38087aa5457b8b797f765def172987ecbcdd27c4c0ac2c7f6b173d73ba6635f2",
+      "raw_sha256": "450143713d5f7c2412b1069a59aa3911713b466c31b72bc08a2d35c0d3fff8cf",
+      "measured_at": "2026-09-13T02:08:09.566729+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3063060890,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m008-compute.json",
+      "artifact_digest": "83c64e61424533a3676e8070506c58400cfd7005a7a608e594ff3f45730a4be4",
+      "raw_sha256": "df78eab2d749d181e5d2015dc79b0952d28d2d46fd86e494ec51b68ee2a341aa",
+      "measured_at": "2026-09-13T02:08:15.782887+00:00"
+    },
+    {
+      "file": "mlx-final-m008-memory.json",
+      "artifact_digest": "a805f49c0afb3c3a451ec680f497474d3b88ddfde788b171fe405a6988b5e857",
+      "raw_sha256": "df7e9b1909034e467d22cd746a566ee7ecd9457bc7eff711ee04b0df7f49ee87",
+      "measured_at": "2026-09-13T02:09:20.635695+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3898264138,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m008-compute.json",
+      "artifact_digest": "c97b529a83a4c9fc8aa12ae7860cc3fc8f98a1ecdd313d91fecc128dea91dffa",
+      "raw_sha256": "b59e8b39d58b7be7e95d124dfa5baed35aa3b79ca628373364508c4a1d560ab2",
+      "measured_at": "2026-09-13T02:09:40.179960+00:00"
+    },
+    {
+      "file": "mlx-first-m009-memory.json",
+      "artifact_digest": "fbfd7cf8c753b389baefe63a944bc77dca934d18def08843d9cc4f04a66c8b94",
+      "raw_sha256": "f1a764f99952378aa0831c80ce524da2b3047bcf2c750122065afabf7d2eb59a",
+      "measured_at": "2026-09-13T02:13:42.312969+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3041992704,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m009-compute.json",
+      "artifact_digest": "2963270ceed27091b56f044b7268a2b221878b987a32a268ff5993217c483e69",
+      "raw_sha256": "0d5ae4673db9d55d8e0a5edb1d552c6de93a91f3416420984fb693b04b951450",
+      "measured_at": "2026-09-13T02:13:50.926333+00:00"
+    },
+    {
+      "file": "mlx-final-m009-memory.json",
+      "artifact_digest": "0c6ec1c20aa0ba34a436b22094cdb1625e0c260ae24269e365f36f49d1815e82",
+      "raw_sha256": "ed6504a0f99509b66c30ce842a6c2a0f1863a111179aec688c3f9ac2fc5b9f76",
+      "measured_at": "2026-09-13T02:14:59.014996+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3856879639,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m009-compute.json",
+      "artifact_digest": "546a31b52447f4b2babd50ac837a44dfb93bda1e0fae2c4d0a25400ec8bf2837",
+      "raw_sha256": "3629780884dcb8e394729850d308b654bf5249d98f0ea6ff065aaf26f57cc72a",
+      "measured_at": "2026-09-13T02:15:17.987558+00:00"
+    },
+    {
+      "file": "mlx-first-m010-memory.json",
+      "artifact_digest": "df07f762ef785d18daeeec51294d9c8c8d69ac80b069a3b4b4fc6861e19b41d2",
+      "raw_sha256": "2ad39a5dada3bddbefbf08b4813a950bf1b4b56b08f0e64c2dc55fc990d34d85",
+      "measured_at": "2026-09-13T02:19:10.524943+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3063078912,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m010-compute.json",
+      "artifact_digest": "68104ad3715f75e8fcdfe7cf74374f07330c7fc8e62f61be8bc90adf92c4a083",
+      "raw_sha256": "0ab588c9a99e8626415394159efd3e783ad9f54e7cb44cfb9aa45cdb9107570b",
+      "measured_at": "2026-09-13T02:19:19.690972+00:00"
+    },
+    {
+      "file": "mlx-final-m010-memory.json",
+      "artifact_digest": "e357c2236c8726c8ecf17419bf5426a19dee0c4909b6c6afa043754ff9132fe2",
+      "raw_sha256": "c1aa76371bef511cb36545f132a49c9c2cb3467a92f7854655b981bb6eb1b5f3",
+      "measured_at": "2026-09-13T02:21:01.382468+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3815350960,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m010-compute.json",
+      "artifact_digest": "c7ade98c189809ae348457bf1d751922429ba083a4a1250daea2f0680191e94e",
+      "raw_sha256": "bf2ba057a21130be916df668490c41a01ad4e4c49937ae3fba463c0cf6a1b934",
+      "measured_at": "2026-09-13T02:21:19.806951+00:00"
+    },
+    {
+      "file": "mlx-first-m011-memory.json",
+      "artifact_digest": "62891bf60e5c824075d3934dfbd4d0f5f96fa361c41dda76ee0d6568d825801e",
+      "raw_sha256": "4638deeee2e07d9db30e6349f59f1e0265df8948a82885ef1b8213527f28793b",
+      "measured_at": "2026-09-13T02:25:12.086486+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3063078912,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m011-compute.json",
+      "artifact_digest": "19f4c8815e5c525ad261dcfd7ece292e39cae59ac6a04da0f7dc29b720b009ed",
+      "raw_sha256": "ec659f8a642ea69fe89fe0d3aa09ce3ff90bf3626b7b756c4ae2b53fb1f28ebd",
+      "measured_at": "2026-09-13T02:25:20.089600+00:00"
+    },
+    {
+      "file": "mlx-final-m011-memory.json",
+      "artifact_digest": "0037bef7a0c6592fff8a3cf7dfa1cebab6e1213cd4a8abed24a7a757b7ea10b7",
+      "raw_sha256": "05283f5e3a67407eea8712bdc415244dfdf95b45835ffe6b719a61fd6460fa9c",
+      "measured_at": "2026-09-13T02:27:33.164530+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3773714148,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m011-compute.json",
+      "artifact_digest": "fe30768f0539052d32125f029824a683ee0f2bb1d7418b65d58f0ef3e31cc1b1",
+      "raw_sha256": "3a908a76ef20d307dd95c6c467c7232a882469ba1355ca9dcf50b9864a6ce3b2",
+      "measured_at": "2026-09-13T02:27:51.397196+00:00"
+    },
+    {
+      "file": "mlx-first-m012-memory.json",
+      "artifact_digest": "13f305b275ac08dbac445b8c4f63f4069391c7f0691b56bcb4639153abf0eb16",
+      "raw_sha256": "78a8274eef6358165468c518ab953e87a2bc5d64d99b0b76a6197d4ff9688192",
+      "measured_at": "2026-09-13T02:31:33.396436+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3103047588,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m012-compute.json",
+      "artifact_digest": "65d277742003a569180616cf2e3cf6101d53864bec85928ffcc1eb1d3d616fd0",
+      "raw_sha256": "04a68130a4af11aa425776dbdbde41a32b9bdef2cc439b593c3ad57edb1a8ac9",
+      "measured_at": "2026-09-13T02:31:41.641872+00:00"
+    },
+    {
+      "file": "mlx-final-m012-memory.json",
+      "artifact_digest": "bef8be50b71b10f442e8f2e68c803ba00168a43318f33b974f2314cef330f4fd",
+      "raw_sha256": "3d781b3badc09e8d31569719f2fd4882a04c1322657eab92e3934b2e22a1fcf6",
+      "measured_at": "2026-09-13T02:33:50.982345+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3720074416,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m012-compute.json",
+      "artifact_digest": "d296ba930d5f66f624bae08f6911324d96975758c7fb744272efd678549a232a",
+      "raw_sha256": "9bfaca0d18fb11a1ae251306c6439f8eaf525e23b36a4c91b63219fe97a24461",
+      "measured_at": "2026-09-13T02:34:09.199352+00:00"
+    },
+    {
+      "file": "mlx-first-m013-memory.json",
+      "artifact_digest": "95fb555251ba6543d3f75acbb46ad51880902627ebbe9ae53389d6a4629af36c",
+      "raw_sha256": "ebf6bbd446b524cd652442f1cc47b94a96e39315171b31b34775c65a081b61fa",
+      "measured_at": "2026-09-13T02:37:42.915506+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3144450110,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m013-compute.json",
+      "artifact_digest": "15ac03ad773ad0b0742fdd0a4f0c91179143fa655d52457f0238f2f6efba13a8",
+      "raw_sha256": "bb84b7eb31fc9531a664f2d89c95b2a2cdf57d979c268f9151f154cd6c99fb08",
+      "measured_at": "2026-09-13T02:37:51.444316+00:00"
+    },
+    {
+      "file": "mlx-final-m013-memory.json",
+      "artifact_digest": "ab4239b0702ab3436c71e5ef99316e75718a7c353067b062bae8b92e36d0b96f",
+      "raw_sha256": "ef94486a64458d71fb9cbcead1dd7b51a5f08456d60c9bee6784a960883f4732",
+      "measured_at": "2026-09-13T02:40:18.790877+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3690674813,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m013-compute.json",
+      "artifact_digest": "da5f211476fc78a5ecb13c3a31b64d0f176c4ca5378b3bb94a8af1be1f44a726",
+      "raw_sha256": "ee082db44edfaeea93c3afa99bec51e4b26b30c1ecd72bd03c8fa76523dc8201",
+      "measured_at": "2026-09-13T02:40:37.572000+00:00"
+    },
+    {
+      "file": "mlx-first-m014-memory.json",
+      "artifact_digest": "29381c8f74dab66e3783523a72a0cddc6393a448a2ab16cb4bd83e78bfc10194",
+      "raw_sha256": "218fa116683fd785f4ae6446459a86399b4584459cee7fee641c54cabd438332",
+      "measured_at": "2026-09-13T02:43:59.569059+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3186014833,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m014-compute.json",
+      "artifact_digest": "f0dffddbe8e64f0ea28456cb9fa0ea2361c22a2634f6b54a8a008c6068cc86d4",
+      "raw_sha256": "1ef2ebd86bfd75b0a860e1c8a5f9e7855642162f66cd7e90c649b7a45c9cc5c1",
+      "measured_at": "2026-09-13T02:44:08.843996+00:00"
+    },
+    {
+      "file": "mlx-final-m014-memory.json",
+      "artifact_digest": "59fdeeea31ca34f80a956b216feafde7470bf6cbbba3412b100a641466abaf6a",
+      "raw_sha256": "a21761ac17fddd1575c971719a7ce06c8386910008a8e3c3c67c5e665e19440c",
+      "measured_at": "2026-09-13T02:46:33.746448+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3649092068,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m014-compute.json",
+      "artifact_digest": "9232664b1581238628d02caaf10d434024839199769c0741c6364a693bc11e2f",
+      "raw_sha256": "986367f159c81e3fb700e0b14ea79c6bca445d4f4f1120f3d6af097e15aade17",
+      "measured_at": "2026-09-13T02:46:50.124733+00:00"
+    },
+    {
+      "file": "mlx-first-m015-memory.json",
+      "artifact_digest": "011aef6b1d4e8b65e455280efaae282e74d9e7610e79a0e9109291cb36d5334e",
+      "raw_sha256": "0b5e21c66d85f0db138971b422e18c4570334c12de5f0535f0c946ea3839d529",
+      "measured_at": "2026-09-13T02:50:09.602708+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3227579556,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m015-compute.json",
+      "artifact_digest": "1ccf29ac2ca8885e3c3e13045e0e97ada17b3a4c98cf783c88579d4171a2f103",
+      "raw_sha256": "a2b798157b9de317bae1edcee7bea5ffc0b33cd166bda7635793acaa4bc86b30",
+      "measured_at": "2026-09-13T02:50:19.417698+00:00"
+    },
+    {
+      "file": "mlx-final-m015-memory.json",
+      "artifact_digest": "b385de8051ef25844228ab4777cd02286c1fe5edef32782392f225163ea90ba7",
+      "raw_sha256": "e7cbbaac9492dfee76598eb91730ab47c33f01291bac10717a24e76b82c4c33f",
+      "measured_at": "2026-09-13T02:52:32.122055+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3607653501,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m015-compute.json",
+      "artifact_digest": "54e8871ea737bb7bca90d727b3ed980ce671972d1f3acc0353f93a0c1d3411fe",
+      "raw_sha256": "7d15ee496737ca86fcf1e53375a9fb1fe2de43d502f484bd1065c38864872209",
+      "measured_at": "2026-09-13T02:52:47.684996+00:00"
+    },
+    {
+      "file": "mlx-first-m016-memory.json",
+      "artifact_digest": "0c6638236e690a9a6bd6b4cc4437adc00aceeda2501ce324c440be27246bd2cc",
+      "raw_sha256": "de60cc470b57488401a55debca99f5eac2da2971112dce2302d9c37c894af214",
+      "measured_at": "2026-09-13T02:55:59.306384+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3253845515,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m016-compute.json",
+      "artifact_digest": "7b08eb2b6aaa8d64f3be1c330a6c72ac9fee4c6a6964d920b84b23a0627d02a9",
+      "raw_sha256": "be68f246c5bda988711694d127b4822e1f8bc398549f6cc8ca853180d76f9909",
+      "measured_at": "2026-09-13T02:56:15.278807+00:00"
+    },
+    {
+      "file": "mlx-final-m016-memory.json",
+      "artifact_digest": "955a921286dcbb7f92bb821c901b72092c2d3de3e4d8dce551af7779fda34c31",
+      "raw_sha256": "cfec78b32319d2d71a284245da3811c275641317a233e3e1ff4a267b7fde20af",
+      "measured_at": "2026-09-13T02:58:47.276320+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3566106800,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m016-compute.json",
+      "artifact_digest": "14a2486190ba75de8ff9cc918db494a6223dc83c35779c59a10a1570795e3cc0",
+      "raw_sha256": "9604691e69fd2ade8a61f128068f172dbef8f706595216081fe3591ab61701dc",
+      "measured_at": "2026-09-13T02:59:02.947320+00:00"
+    },
+    {
+      "file": "mlx-first-m017-memory.json",
+      "artifact_digest": "ae1b3d6d9afffac292a40ea7862930b1f8891651056a6fb419c19f8a6a33c60a",
+      "raw_sha256": "5b370aea6144f993f8d4c8af5be3e08b35709726071917c92b9c78524aa12b8c",
+      "measured_at": "2026-09-13T03:02:14.302892+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3310567076,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m017-compute.json",
+      "artifact_digest": "9a878196706d6430ac87e5a5a2d924d6d896bf874446f64b4cd79b1a8cf1f5d3",
+      "raw_sha256": "40547123d21676ef03a855317242873b4215eb16bfc50b520b49ad7aae93dd0b",
+      "measured_at": "2026-09-13T03:02:25.410666+00:00"
+    },
+    {
+      "file": "mlx-final-m017-memory.json",
+      "artifact_digest": "2ec69050323248d26c50baa695864a0404f2557233c1c425049e4a1146938d1d",
+      "raw_sha256": "554a11816141c1cde721187f9ee49beed871951d6b1ba295bba8c6ada74204ea",
+      "measured_at": "2026-09-13T03:05:13.224734+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3524542077,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m017-compute.json",
+      "artifact_digest": "015d1c54bb78c083cc5b9b562cbd4e675adba6fc2663cb7cf509f2409244256f",
+      "raw_sha256": "c31bd6c901c7ce9a8ee76c88dc8991c9f888130f5530c757e5d78ef561a922a4",
+      "measured_at": "2026-09-13T03:05:28.569307+00:00"
+    },
+    {
+      "file": "mlx-first-m018-memory.json",
+      "artifact_digest": "4f9f8398777730e491783a87f3248f0191e0f2ff017ae9355fd30a65b633d745",
+      "raw_sha256": "04c96f78ee857ce85bb7e0747bfc88300d1951822b4ee211be639db71afc095d",
+      "measured_at": "2026-09-13T03:08:30.778292+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3352203889,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m018-compute.json",
+      "artifact_digest": "952e307248f09fd69286657ca29b77eda21c25b39ac0267c036cf0a90db6517c",
+      "raw_sha256": "c812d46be21b1b8e54e6dba95cc47448560f28005d50faf378a1b691891fe267",
+      "measured_at": "2026-09-13T03:08:48.767195+00:00"
+    },
+    {
+      "file": "mlx-final-m018-memory.json",
+      "artifact_digest": "1369d049e411c8aae733681294d07253e28364c76441a120ab3dbed34c238bfd",
+      "raw_sha256": "c04c7194ad6470fd4e7b743b7ca6e226ce52b676ea6751c492be4ff43dd0306f",
+      "measured_at": "2026-09-13T03:12:34.266086+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3482995376,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m018-compute.json",
+      "artifact_digest": "9d1a0befec20e4891da176e8cec2d26fa5d991e6b76863d4c6fe3f916f27c060",
+      "raw_sha256": "a2b8e27176b4481199c5e3e92f7142c1cb95cbd48c5b265b8b5dd15fa67d8f1e",
+      "measured_at": "2026-09-13T03:12:49.978058+00:00"
+    },
+    {
+      "file": "mlx-first-m019-memory.json",
+      "artifact_digest": "6f21600ce66ed0f3a041d70560768118cda7be2bb3ecbcb120632cd85e71e55f",
+      "raw_sha256": "ec98b90eb72dfb75d4b49e57b87cbcb94a61f430a0efa018a26120d3b54d96ff",
+      "measured_at": "2026-09-13T03:15:40.363661+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3393714545,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m019-compute.json",
+      "artifact_digest": "95f8cd465e22a3f0f1f7dd1015c96d2772ac0e923421436d515c719fec9edd4b",
+      "raw_sha256": "0323cb797c0aed9f3019eb5ff4c2bf05c4d255dd3d2b1f77a4bcb279ea5c9dae",
+      "measured_at": "2026-09-13T03:15:59.170984+00:00"
+    },
+    {
+      "file": "mlx-final-m019-memory.json",
+      "artifact_digest": "9e71268a41ee5fa569d09b7ad1be58386165a0a069665911e7955e4c6a83ea09",
+      "raw_sha256": "fbba477d30b3051835b8c733b1f0b0e954751283a9f18c516f1d38625688f2db",
+      "measured_at": "2026-09-13T03:19:04.995519+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3441412631,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m019-compute.json",
+      "artifact_digest": "5bcb322a968b83f3e86a7c83e511d167934466655d69a907e4988bf320339e97",
+      "raw_sha256": "72c33ff0c76683e1926eb513531bd6097001f74ac94b8b3e21320f3ed9261690",
+      "measured_at": "2026-09-13T03:19:18.713840+00:00"
+    },
+    {
+      "file": "mlx-first-m020-memory.json",
+      "artifact_digest": "e44e6f51135a0d0db16a24e3a2645fffd2de955f91658b31241a50b13aeba3bd",
+      "raw_sha256": "ff8dbbd19c2677de0cc6428bc5b4d484b20f3ad61e23b2573f53494dd5468e0c",
+      "measured_at": "2026-09-13T03:22:03.938008+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3435261246,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m020-compute.json",
+      "artifact_digest": "b3055989eb1192b0c40ad348703f5ff2b0188658854450ed7eab9b65f5367caa",
+      "raw_sha256": "afe7b3ae5fe709e209867d9851f330ca575984a3f44f0e99136f4de081f16fb1",
+      "measured_at": "2026-09-13T03:22:17.534895+00:00"
+    },
+    {
+      "file": "mlx-final-m020-memory.json",
+      "artifact_digest": "38e0959e4b62cef3250968a9a7009d1a6c89dd10cc135c2374120b940c1226df",
+      "raw_sha256": "99ec4e3dfd2fc9bfe5e3c12ca4275505be117378d64e50d64b1be5c28910bfbd",
+      "measured_at": "2026-09-13T03:25:50.800999+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3399956042,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m020-compute.json",
+      "artifact_digest": "fcb134242c4d17216908b91ae6e51fcc2a5dcdbd9f0a07e034a6f9e05e87ecf3",
+      "raw_sha256": "5352e5233ef1466d932a9db7e43c94a815e10c15c6f8b37e99355455f3b904c2",
+      "measured_at": "2026-09-13T03:26:04.559850+00:00"
+    },
+    {
+      "file": "mlx-first-m021-memory.json",
+      "artifact_digest": "c310d4e0b8d0fab11686bef08e17cb1a8d6a6bb2d95f5ba0c4b12be45f4d4bad",
+      "raw_sha256": "10ee70bbcbde308da84d3903635b55814d14f51b15a561ee18fbb39090f69e90",
+      "measured_at": "2026-09-13T03:28:46.522721+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3476880036,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m021-compute.json",
+      "artifact_digest": "f45c1a692af28487e52a0ddca9bc2aeec537f863a65343348ff2772ac6a4cf6d",
+      "raw_sha256": "24c2d676137d6fa7054512d0f49cca0f508b44c16b050ccad773569c7c91cbcb",
+      "measured_at": "2026-09-13T03:29:02.446886+00:00"
+    },
+    {
+      "file": "mlx-final-m021-memory.json",
+      "artifact_digest": "1bd537af86696a85c1c5d6215a85ff30a6675429507e3f4c347396608cd1e5ff",
+      "raw_sha256": "fdf647142298a5a2e7d4a93b52f72617adda50ec21440343fd0a6c0d10c03cfc",
+      "measured_at": "2026-09-13T03:33:04.572613+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3358337252,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m021-compute.json",
+      "artifact_digest": "c1fd5229a7242c3b3bbebb05ce2987a52eef5bebae2b38fae4135bf3b193e8fb",
+      "raw_sha256": "089f81de37e17d05c6893174b3e934b43f08f42f11c3048414e2d923be72e249",
+      "measured_at": "2026-09-13T03:33:17.281978+00:00"
+    },
+    {
+      "file": "mlx-first-m022-memory.json",
+      "artifact_digest": "92d2c9611a402cd11b45d90990107bc3b6dac13daae5741403b2c222eaf79646",
+      "raw_sha256": "a436247e6a4676f7ceadcc94ee2f1ddb105943355f568da03e191fc435f45c1e",
+      "measured_at": "2026-09-13T03:35:52.290603+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3518300580,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m022-compute.json",
+      "artifact_digest": "95eb734004306566510264047d1cda40ebb7acb2109daccc28c0b34a8f8bfcb3",
+      "raw_sha256": "e7af3e16e7c83eb7ed8435d40fa946834b0ef8082215a22c432b7ea3ef91a368",
+      "measured_at": "2026-09-13T03:36:14.234598+00:00"
+    },
+    {
+      "file": "mlx-final-m022-memory.json",
+      "artifact_digest": "b0e3cea1135a0e5323d9a6f79d718f70aa96fb80060fa3cf88065c2e12902861",
+      "raw_sha256": "f8dd9982e01e49723b6f47d658e881067ff8031f4ae90c4e37e745832d6f7868",
+      "measured_at": "2026-09-13T03:40:26.825616+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3316880663,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m022-compute.json",
+      "artifact_digest": "ab97dfb229529326679ef816116314c9c03a0b139d9ca6b7b4acaf4b713ba7a0",
+      "raw_sha256": "16f5f35f64230d26b2088f6f55a3895c0355751adb7ebd40b26db85886dcd96d",
+      "measured_at": "2026-09-13T03:40:39.255227+00:00"
+    },
+    {
+      "file": "mlx-first-m023-memory.json",
+      "artifact_digest": "2f4ca7042897db9f29670d55160f9228001b06dfbfe56e4dbe34ac71d3172762",
+      "raw_sha256": "9e0b539b8fbad7ad2108749274ac3e87edbd6ab6c5a1db488034da1a7ccf9fc4",
+      "measured_at": "2026-09-13T03:43:06.248370+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3559757169,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m023-compute.json",
+      "artifact_digest": "7cde905b92bd8c3fb3f36f7e762458cc52baedb5f2e43b3a752f695f7092697a",
+      "raw_sha256": "befa8308a8ede1e13a816fa5ad5e56a70b4c0e6c0125a3bb88e3393d5dc56a8c",
+      "measured_at": "2026-09-13T03:43:28.555205+00:00"
+    },
+    {
+      "file": "mlx-final-m023-memory.json",
+      "artifact_digest": "92898fbd7ac032c008a4d4ae36c4e889135c4a0c0e64d4705ca44d3348a27287",
+      "raw_sha256": "8567435048b6c98f432232b381aaf16e7c2b7537c4611a95cc3e040748550617",
+      "measured_at": "2026-09-13T03:47:28.499425+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3275370007,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m023-compute.json",
+      "artifact_digest": "423880775537a9534a6edb1fd0d2dbfab8e3f830de668695adfcc4e636e4e4e6",
+      "raw_sha256": "ea980b62e1470a08a9c1654107c8264fc296bc9c3e459de1c9bc44d27fa92d30",
+      "measured_at": "2026-09-13T03:47:40.626672+00:00"
+    },
+    {
+      "file": "mlx-first-m024-memory.json",
+      "artifact_digest": "045e2955336f7932e99818530345387ed2ce063fb146bd133bf40f7312569148",
+      "raw_sha256": "b8fcc3b2fd9028f36261d943467cae263a1493cd56d0dd0664e3b2a10d5ffd35",
+      "measured_at": "2026-09-13T03:50:03.919317+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3601375960,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m024-compute.json",
+      "artifact_digest": "e7a2c0d4f518654a20b4709e8bf34a24721d224c10493bb868b43c1760b53f74",
+      "raw_sha256": "aaa5f759667242976ac997b74a39653ac0b645e48677e92fc41d0a6db4cedbf5",
+      "measured_at": "2026-09-13T03:50:27.493312+00:00"
+    },
+    {
+      "file": "mlx-final-m024-memory.json",
+      "artifact_digest": "b7e83a1f6a8c9b630324259d13e0acc09ab8ea524efd4e1c500249048d2d2c6e",
+      "raw_sha256": "97cd13c640ba39ee38980bf5744543c6cbfb8a4938a256caeffcc75674021b4a",
+      "measured_at": "2026-09-13T03:55:01.927723+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3233751216,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m024-compute.json",
+      "artifact_digest": "a08184e2cd1dbc049685df61fcd10ce0df30f80c4ce1f93424d1c65fc895d98e",
+      "raw_sha256": "9f8bb107a81ecef555bf5922190bcf6ec5c65a687d6c666459bf6ff24fd191a9",
+      "measured_at": "2026-09-13T03:55:13.063198+00:00"
+    },
+    {
+      "file": "mlx-first-m025-memory.json",
+      "artifact_digest": "3009fc3c1957b4397e6692afeeae984e379611b581e800be0222ed5058f8d141",
+      "raw_sha256": "1f3b8ead74848a8ecc3b821a080614ffa895d0332f36386403385cdd88692fe3",
+      "measured_at": "2026-09-13T03:57:26.522036+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3642904638,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m025-compute.json",
+      "artifact_digest": "c889659d85a519163cbc49dabdd4c80c08b977d0e25eec9c49bd085ae7f19f3b",
+      "raw_sha256": "785980fd9b7fb4391ad5ca494382c736e643b353471d0f4fa361a114b7157d5d",
+      "measured_at": "2026-09-13T03:57:50.893356+00:00"
+    },
+    {
+      "file": "mlx-final-m025-memory.json",
+      "artifact_digest": "064060a1c9171cf01abfec1d8cbd6e2eb9cdf4f47ba8db9cabefa70f682ba0b6",
+      "raw_sha256": "ff0e723ec69344d5bec0200763570f523e1d7bac23e5af0ac319c6ffbbfe0e17",
+      "measured_at": "2026-09-13T04:02:43.479832+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3192222538,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m025-compute.json",
+      "artifact_digest": "28da39d85990eee2feb86be700a42280004c66b82f67f57a2dd30f626d347005",
+      "raw_sha256": "be9ccdd9c4e375f5440ff7ad930c2179c1dc939d370c34d7f2a4b740dba36f73",
+      "measured_at": "2026-09-13T04:02:54.354229+00:00"
+    },
+    {
+      "file": "mlx-first-m026-memory.json",
+      "artifact_digest": "c71ed8b895d3a6b19e4cab981f26d5d0489a08d415e6867683df655e08000652",
+      "raw_sha256": "7733a00f9a68899654c74fa462faaeac1aff1c400fc77a495eb88fb2b72d56a3",
+      "measured_at": "2026-09-13T04:05:04.473436+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3684451339,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m026-compute.json",
+      "artifact_digest": "f1bd0d71b98be17719b0130662ce733bc57e5231a369248354be147d7f5fb8ee",
+      "raw_sha256": "8c93d753aebf692ec90fed569dfb517ae0a057165fe16d44940ad44d075e1275",
+      "measured_at": "2026-09-13T04:05:26.165517+00:00"
+    },
+    {
+      "file": "mlx-final-m026-memory.json",
+      "artifact_digest": "5384ac057494f6d548250f96a74c5c9f8ada964d261fb48107f60535c0db1e69",
+      "raw_sha256": "f243d8e77869857b0ea63cbe6c22ec6cca2ae5e69cc9911aa2933c69ee707596",
+      "measured_at": "2026-09-13T04:10:27.881794+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3150711882,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m026-compute.json",
+      "artifact_digest": "73e0ea2ce5ec4e8cca60aca2298d16c540e556b8f626d938aef96344d6ff6192",
+      "raw_sha256": "6d52270e56224d704849415ba5714f4970ff3883ddec8fada029480d1125c52d",
+      "measured_at": "2026-09-13T04:10:38.529224+00:00"
+    },
+    {
+      "file": "mlx-first-m027-memory.json",
+      "artifact_digest": "598ee2bb39e8aee85aa298ed9ad42eed88fc721f14e061eea117cb3526340bdb",
+      "raw_sha256": "a6362d1453004fbedbcd27e7dbadcca287dd1cedd43734b9f4e56f1b36f9b061",
+      "measured_at": "2026-09-13T04:12:42.198502+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3733943665,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-first-m027-compute.json",
+      "artifact_digest": "4c8c6cf54a4b5384aa3477e5e3a3ae1c5400ca16c5e2851b980941b6c2b91ae3",
+      "raw_sha256": "4ace582fdd486230161289f1c0ce7e794b83658de32c5d59be0501c2f233f04c",
+      "measured_at": "2026-09-13T04:13:08.284567+00:00"
+    },
+    {
+      "file": "mlx-final-m027-memory.json",
+      "artifact_digest": "44fdd87ac25d31539daa72405738954ad2e1b5782716aa2730d5838bc79f6db1",
+      "raw_sha256": "947e5dc191512ccb10c55e6ae8f328e4116e2c7fbb907b3e7daf91c83b578df7",
+      "measured_at": "2026-09-13T04:18:38.951817+00:00",
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3109273316,
+        "reasons": [],
+        "status": "safe"
+      }
+    },
+    {
+      "file": "mlx-final-m027-compute.json",
+      "artifact_digest": "be6f54f6b48c5812a7826a033bba948254a9f0e5003afd17778cee774679d1fa",
+      "raw_sha256": "9faf1606421ff5c5f88eecebc54970472cfc96a329c405dae54c304c220ce9de",
+      "measured_at": "2026-09-13T04:18:48.758297+00:00"
+    }
+  ],
+  "peak_rss_native_units": 334413824
+}
