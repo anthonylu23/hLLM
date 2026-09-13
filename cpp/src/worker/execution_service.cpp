@@ -13,6 +13,23 @@
 #include "hllm/runtime/tensor_envelope.hpp"
 
 namespace hllm::worker {
+
+std::shared_ptr<grpc::Channel> LoadedDeployment::downstream_channel() {
+  std::call_once(downstream_once_, [&] {
+    std::string endpoint;
+    for (const auto& stage : spec.stage_endpoints()) {
+      if (stage.stage_index() == 1U) endpoint = stage.endpoint();
+    }
+    if (endpoint.empty()) throw std::logic_error("missing downstream endpoint");
+    grpc::ChannelArguments arguments;
+    arguments.SetMaxReceiveMessageSize(kMaximumRpcBytes);
+    arguments.SetMaxSendMessageSize(kMaximumRpcBytes);
+    downstream_channel_ = grpc::CreateCustomChannel(
+        endpoint, grpc::InsecureChannelCredentials(), arguments);
+  });
+  return downstream_channel_;
+}
+
 namespace {
 
 class PeerFailure final : public std::runtime_error {
@@ -328,17 +345,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     std::unique_ptr<grpc::ClientReaderWriter<v1::StageMessage, v1::StageMessage>> peer;
     CancelPeerOnExit cancel_peer{peer_context};
     if (split) {
-      std::string endpoint;
-      for (const auto& stage : lease.deployment->spec.stage_endpoints()) {
-        if (stage.stage_index() == 1U) {
-          endpoint = stage.endpoint();
-        }
-      }
-      grpc::ChannelArguments arguments;
-      arguments.SetMaxReceiveMessageSize(kMaximumRpcBytes);
-      arguments.SetMaxSendMessageSize(kMaximumRpcBytes);
-      stub = v1::StageExecution::NewStub(
-          grpc::CreateCustomChannel(endpoint, grpc::InsecureChannelCredentials(), arguments));
+      stub = v1::StageExecution::NewStub(lease.deployment->downstream_channel());
       peer = stub->Execute(&peer_context);
       v1::StageMessage opening;
       auto* open = opening.mutable_open_sequence();

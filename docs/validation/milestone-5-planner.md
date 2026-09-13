@@ -6,6 +6,28 @@ Measured planning and the independent sweep runner are implemented and tested.
 The [machine-readable status](milestone-5-planner/status.json) records the latest
 measured selection and partial sweep coverage; regret remains unqualified.
 
+## Channel reuse experiment — 2026-09-13
+
+The timestamped [TCP diagnostic](milestone-5-planner/deadline-timing-tcp.json)
+reproduced 21.8% drift with exact outputs. Slow prefill requests showed incomplete
+boundary transfers after one to two seconds. The previous worker created a new
+downstream channel for every generation, so request warmups could lose connection
+and flow-control state before the timed request.
+
+An implementation experiment now retains one downstream channel per loaded
+split deployment. Initialization is thread-safe; each request still owns a fresh
+RPC stream, context, deadline and cancellation. Outstanding deployment leases
+keep the channel alive through cleanup, and unloading releases the deployment's
+ownership. No global endpoint cache or unbounded retained history is introduced.
+
+The isolated `m5-channel` Mac build passed all 65 CTest checks (213.45s);
+the `cuda-channel` build passed all 68 checks (355.73s), including channel
+ownership tests, cancellation/recovery integration and backend numerical parity. The existing `m5-deadline`
+artifacts remain historical evidence for their exact binaries. This experiment
+has not established a timing improvement or M5 acceptance. New binary validation,
+exact-token timing comparisons and fresh qualification identities are required
+before any acceptance claim.
+
 ## Implemented behavior
 
 - Exact-assignment memory/compute and directional transport matching, with explicit

@@ -18,6 +18,7 @@ add_executable(
   hllm_runtime_common_tests
   backend_contract_test.cpp
   buffer_test.cpp
+  downstream_channel_test.cpp
   generation_deadline_test.cpp
   half_test.cpp
   llama_test.cpp

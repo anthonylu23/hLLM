@@ -30,6 +30,14 @@ struct WorkerConfig {
 struct LoadedDeployment {
   v1::LoadStageRequest spec;
   std::unique_ptr<runtime::StageBackend> backend;
+
+  // Retain connection/flow-control state across requests, but never retain a
+  // request context or stream. The deployment lease bounds channel lifetime.
+  std::shared_ptr<grpc::Channel> downstream_channel();
+
+ private:
+  std::once_flag downstream_once_;
+  std::shared_ptr<grpc::Channel> downstream_channel_;
 };
 
 struct ActiveRequest {
