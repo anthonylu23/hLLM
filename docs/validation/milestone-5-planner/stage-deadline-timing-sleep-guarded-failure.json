@@ -1,0 +1,76 @@
+{
+  "candidate_id": "mlx--cuda-m001",
+  "completed": true,
+  "diagnostic_only": true,
+  "drift_fraction": 0.11565319637126836,
+  "exact_full_requests": 15,
+  "limit": 0.1,
+  "samples": [
+    {
+      "evidence_digest": "a3bdcac1a8221e999afadab7eff2892f758e5f3cba349238b3c4d26fd473f20f",
+      "generation_ms": 21880.885375197977,
+      "job": "stability-00",
+      "native_setup_ms": 0.217667,
+      "native_ttft_ms": 528.602791,
+      "ttft_ms": 530.7919173501432,
+      "native_decode_ms": 21350.312334,
+      "native_gap_median_ms": 80.12708299999986,
+      "native_gap_max_ms": 367.8077080000003
+    },
+    {
+      "evidence_digest": "776ab99cf1b9c1d9ee7b6a8248a645366ca84ce1b9b792509c44a7b6c5d32427",
+      "generation_ms": 22348.684415686876,
+      "job": "stability-01",
+      "native_setup_ms": 0.324291,
+      "native_ttft_ms": 1120.793458,
+      "ttft_ms": 1122.8725826367736,
+      "native_decode_ms": 21226.009792,
+      "native_gap_median_ms": 80.05629099999896,
+      "native_gap_max_ms": 459.38424999999916
+    },
+    {
+      "evidence_digest": "7bc34144a9a22e0293fbc6c5b42a1d3977d8b811df2f6b7ae646bfd8afb1123b",
+      "generation_ms": 22415.526167023927,
+      "job": "stability-02",
+      "native_setup_ms": 0.211958,
+      "native_ttft_ms": 1025.722333,
+      "ttft_ms": 1028.274292126298,
+      "native_decode_ms": 21387.502666999997,
+      "native_gap_median_ms": 80.03662499999973,
+      "native_gap_max_ms": 337.49004200000127
+    },
+    {
+      "evidence_digest": "8c4fe63b97cddd18b2351c56d494c16147ec836118f1619ca98add980668c1a3",
+      "generation_ms": 22342.582083307207,
+      "job": "stability-03",
+      "native_setup_ms": 0.274376,
+      "native_ttft_ms": 1256.890125,
+      "ttft_ms": 1259.9085830152035,
+      "native_decode_ms": 21083.236917000002,
+      "native_gap_median_ms": 79.94108299999971,
+      "native_gap_max_ms": 447.7547080000004
+    },
+    {
+      "evidence_digest": "d67428d7679dd63f82e22fcd005c32da3503cc006b1888fdacbd5a9dda6975e5",
+      "generation_ms": 24411.479708272964,
+      "job": "stability-04",
+      "native_setup_ms": 1.373999,
+      "native_ttft_ms": 2218.441666,
+      "ttft_ms": 2223.5334161669016,
+      "native_decode_ms": 22187.524417,
+      "native_gap_median_ms": 80.03049999999985,
+      "native_gap_max_ms": 466.9615420000009
+    }
+  ],
+  "timing_gate_passed": false,
+  "accepted": false,
+  "evidence_digests_verified": true,
+  "cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "sleep_events_during_run": [],
+  "interpretation": "Sleep prevention avoided sleep events and connection failures but did not meet timing gate. Slowest versus fastest timed job differs by about 1.69s in native TTFT and 0.84s in decode; median token intervals stay near80ms. No host or socket telemetry in this run establishes cause. Next collect passive host/socket telemetry with request timestamps and no active network probes; diagnostic only."
+}
