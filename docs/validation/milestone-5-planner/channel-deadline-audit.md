@@ -55,3 +55,28 @@ recovery prefixes, with cleanup verified in both directions. Timing validation
 is running and must pass before refreshed
 qualification evidence or another acceptance sweep. The earlier failed sweep
 remains immutable and unaccepted.
+
+
+## Timing and unattended execution follow-up
+
+The new runtime passed the instrumented timing pilot (4.148% drift), but the
+uninstrumented confirmation failed at 18.965%, despite all 15 full requests
+matching the reference. Timing stability remains unresolved. A fixed six-job
+network-probe comparison is diagnostic only and cannot replace acceptance.
+
+Its second attempt lost the generation connection with UNAVAILABLE during its
+first job. The Mac entered maintenance sleep at 13:30:31 EDT on September 13
+and woke at 13:32:25; the failure was recorded shortly afterward. This overlap
+supports a sleep-related connection investigation, without establishing the
+cause of earlier timing drift. The job did not verify cleanup; subsequent
+inspection found no owned workers, and firewall cleanup succeeded. See
+`probe-comparison-sleep-failure.json` for the preserved failure and power events.
+
+Attempt three runs the identical ON/OFF, OFF/ON, ON/OFF comparison with
+`caffeinate -is` covering both conditions. Both idle and system sleep assertions
+were verified after launch; they expire when the comparison process exits.
+The system assertion requires AC power. No global power settings were changed.
+After completion, audit exact tokens, evidence digests, cleanup, paired timings
+and any intervening power events before selecting the next validation step.
+Fresh profiles, calibration, selection and the independent acceptance sweep
+remain pending for this runtime.
