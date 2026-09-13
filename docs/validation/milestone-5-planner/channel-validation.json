@@ -1,0 +1,116 @@
+{
+  "diagnostic_only": true,
+  "runtime_commit": "6b9aeb8",
+  "health": {
+    "diagnostic_only": true,
+    "runtime_commit": "6b9aeb8",
+    "exact_full_requests": 6,
+    "health_pairs": 10,
+    "exact_recovery_prefixes": 20,
+    "cleanup_passed": true,
+    "jobs": [
+      {
+        "candidate": "cuda--mlx-m001",
+        "exact_requests": 3,
+        "cleanup_passed": true,
+        "evidence_digest": "5c0586111272665529f578ca5eec508c5de5e4af764d03fd0b6593cbbe1640b7"
+      },
+      {
+        "candidate": "mlx--cuda-m001",
+        "exact_requests": 3,
+        "cleanup_passed": true,
+        "evidence_digest": "cbbfd20be6535d74009479c76d557b6b14575bc8cd09cbd2c94dfb2771f5e812"
+      }
+    ]
+  },
+  "timing": {
+    "candidate_id": "mlx--cuda-m001",
+    "completed": true,
+    "diagnostic_only": true,
+    "drift_fraction": 0.06849830395337553,
+    "exact_full_requests": 15,
+    "limit": 0.1,
+    "samples": [
+      {
+        "evidence_digest": "6195256dfb973630c2155a18f6c33deb1da5501d6fb8452f2076aa3209f933ca",
+        "generation_ms": 22226.258541923016,
+        "job": "stability-00",
+        "native_setup_ms": 0.149792,
+        "native_ttft_ms": 426.285792,
+        "ttft_ms": 456.90425019711256
+      },
+      {
+        "evidence_digest": "ef1c46b1ce9b3075e7ae98fbc63b87da5b7c4f0d079b160636ecaf3c92f69d23",
+        "generation_ms": 23506.33191689849,
+        "job": "stability-01",
+        "native_setup_ms": 0.336541,
+        "native_ttft_ms": 1325.534375,
+        "ttft_ms": 1327.5668751448393
+      },
+      {
+        "evidence_digest": "f3aaa7aac18ef601b9c157f8cbf8ac42961909c3d17f0e6f71542c2805478158",
+        "generation_ms": 21999.40966675058,
+        "job": "stability-02",
+        "native_setup_ms": 0.323625,
+        "native_ttft_ms": 571.772667,
+        "ttft_ms": 573.8643328659236
+      },
+      {
+        "evidence_digest": "a297d531984a2757b3e9eb5a2a904c857c025fd3f0ec5e82c152c2a93e4aa97d",
+        "generation_ms": 22327.08279090002,
+        "job": "stability-03",
+        "native_setup_ms": 0.33225,
+        "native_ttft_ms": 430.792625,
+        "ttft_ms": 432.8933749347925
+      },
+      {
+        "evidence_digest": "24df43d990a29c9e11e92362efc676567298ce2f921bc4500cfb98500e3e79d7",
+        "generation_ms": 22148.344457615167,
+        "job": "stability-04",
+        "native_setup_ms": 0.22725,
+        "native_ttft_ms": 1005.246125,
+        "ttft_ms": 1006.7862076684833
+      }
+    ],
+    "telemetry_instrumented": true,
+    "timing_gate_passed": true
+  },
+  "timing_jobs": [
+    {
+      "job": "stability-00",
+      "evidence_digest": "6195256dfb973630c2155a18f6c33deb1da5501d6fb8452f2076aa3209f933ca",
+      "same_downstream_peer_across_three_requests": true,
+      "downstream_peer": "[::ffff:100.68.43.49]:60682"
+    },
+    {
+      "job": "stability-01",
+      "evidence_digest": "ef1c46b1ce9b3075e7ae98fbc63b87da5b7c4f0d079b160636ecaf3c92f69d23",
+      "same_downstream_peer_across_three_requests": true,
+      "downstream_peer": "[::ffff:100.68.43.49]:60700"
+    },
+    {
+      "job": "stability-02",
+      "evidence_digest": "f3aaa7aac18ef601b9c157f8cbf8ac42961909c3d17f0e6f71542c2805478158",
+      "same_downstream_peer_across_three_requests": true,
+      "downstream_peer": "[::ffff:100.68.43.49]:60721"
+    },
+    {
+      "job": "stability-03",
+      "evidence_digest": "a297d531984a2757b3e9eb5a2a904c857c025fd3f0ec5e82c152c2a93e4aa97d",
+      "same_downstream_peer_across_three_requests": true,
+      "downstream_peer": "[::ffff:100.68.43.49]:60743"
+    },
+    {
+      "job": "stability-04",
+      "evidence_digest": "24df43d990a29c9e11e92362efc676567298ce2f921bc4500cfb98500e3e79d7",
+      "same_downstream_peer_across_three_requests": true,
+      "downstream_peer": "[::ffff:100.68.43.49]:60764"
+    }
+  ],
+  "findings": [
+    "All21fullrequests exact;10healthpairs and20exactrecovery prefixes pass; cleanup and firewall removal verified.",
+    "All five jobs retained the same downstream socket across two warmups and timed request.",
+    "Timed drift6.850%; native setup0.150\u20130.337ms. Evidence supports reduced channel setup overhead, but does not prove stability over a full sweep.",
+    "Next run one predeclared five-job pilot without telemetry before fresh profiles and independent acceptance."
+  ]
+}
