@@ -1,0 +1,80 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "runtime_commit": "e84bdaa",
+  "summary": {
+    "candidate_id": "mlx--cuda-m001",
+    "completed": true,
+    "diagnostic_only": true,
+    "drift_fraction": 0.04148170432944864,
+    "exact_full_requests": 15,
+    "limit": 0.1,
+    "samples": [
+      {
+        "evidence_digest": "76c2620a12b0743dac3994753268c3214581b7d966281721f0fc73494828d990",
+        "generation_ms": 21807.249458972365,
+        "job": "stability-00",
+        "native_setup_ms": 0.228209,
+        "native_ttft_ms": 668.0215,
+        "ttft_ms": 670.1896251179278
+      },
+      {
+        "evidence_digest": "ee29efa96a500f752812f0b8c28e66adfc78a178a262f7c78d1116937ad559d0",
+        "generation_ms": 22449.558875057846,
+        "job": "stability-01",
+        "native_setup_ms": 0.243959,
+        "native_ttft_ms": 321.521167,
+        "ttft_ms": 323.4228752553463
+      },
+      {
+        "evidence_digest": "1706e53a7517203cded8363e78d95a6a4956e42ed365533d69b12e90aaae347d",
+        "generation_ms": 22153.21079082787,
+        "job": "stability-02",
+        "native_setup_ms": 0.256042,
+        "native_ttft_ms": 622.620917,
+        "ttft_ms": 625.1782909967005
+      },
+      {
+        "evidence_digest": "878ed2f8a8e5c469d1bac58776bcbe509b280c24650e91304b6c3bfd06decf7b",
+        "generation_ms": 22299.7328331694,
+        "job": "stability-03",
+        "native_setup_ms": 0.364875,
+        "native_ttft_ms": 1227.426791,
+        "ttft_ms": 1229.297208134085
+      },
+      {
+        "evidence_digest": "8dcdf588612ae5d0c79f7265aa9bb37c7c9f8b58cfb0e31d21c3b428ae47975f",
+        "generation_ms": 22711.851333267987,
+        "job": "stability-04",
+        "native_setup_ms": 0.267457,
+        "native_ttft_ms": 414.755958,
+        "ttft_ms": 417.1996251679957
+      }
+    ],
+    "telemetry_instrumented": true,
+    "timing_gate_passed": true
+  },
+  "jobs": [
+    {
+      "job": "stability-00",
+      "evidence_digest": "76c2620a12b0743dac3994753268c3214581b7d966281721f0fc73494828d990"
+    },
+    {
+      "job": "stability-01",
+      "evidence_digest": "ee29efa96a500f752812f0b8c28e66adfc78a178a262f7c78d1116937ad559d0"
+    },
+    {
+      "job": "stability-02",
+      "evidence_digest": "1706e53a7517203cded8363e78d95a6a4956e42ed365533d69b12e90aaae347d"
+    },
+    {
+      "job": "stability-03",
+      "evidence_digest": "878ed2f8a8e5c469d1bac58776bcbe509b280c24650e91304b6c3bfd06decf7b"
+    },
+    {
+      "job": "stability-04",
+      "evidence_digest": "8dcdf588612ae5d0c79f7265aa9bb37c7c9f8b58cfb0e31d21c3b428ae47975f"
+    }
+  ],
+  "cleanup_passed": true
+}
