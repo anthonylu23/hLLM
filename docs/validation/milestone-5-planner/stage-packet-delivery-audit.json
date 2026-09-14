@@ -1,0 +1,107 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "exact_requests": 3,
+  "evidence_digest": "1d308fb9b41d3bf6641abf75d55a5cf30e7ad861a2eb76327fae03efc4663684",
+  "evidence_digest_verified": true,
+  "cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "capture_packets": 5256,
+  "kernel_drops": 0,
+  "capture_exit": {
+    "capture_end_wall": 1789359119.9876423,
+    "returncode": 0
+  },
+  "packet_log_sha256": "3ba281039b9d94ab0cb49bbf56756fed28b37febaa0b9a7af300efea9f4ca868",
+  "stage_connection": {
+    "client": "100.68.43.49.65524",
+    "server": "100.86.45.68.50546"
+  },
+  "tcp_sequence_gap_episodes": [
+    {
+      "start_remote_wall": 1789359053.077897,
+      "missing_sequence_start": 1106198024,
+      "out_of_order_start": 1106198067,
+      "sack_end": 1106200271,
+      "cumulative_ack_recovery_ms": 55.39584159851074
+    },
+    {
+      "start_remote_wall": 1789359059.20729,
+      "missing_sequence_start": 1106357374,
+      "out_of_order_start": 1106358350,
+      "sack_end": 1106359578,
+      "cumulative_ack_recovery_ms": 213.3181095123291
+    },
+    {
+      "start_remote_wall": 1789359080.883445,
+      "missing_sequence_start": 1107936534,
+      "out_of_order_start": 1107937510,
+      "sack_end": 1107938738,
+      "cumulative_ack_recovery_ms": 282.7739715576172
+    },
+    {
+      "start_remote_wall": 1789359083.08289,
+      "missing_sequence_start": 1107985108,
+      "out_of_order_start": 1107986084,
+      "sack_end": 1107987312,
+      "cumulative_ack_recovery_ms": 294.45695877075195
+    },
+    {
+      "start_remote_wall": 1789359087.581527,
+      "missing_sequence_start": 1108091092,
+      "out_of_order_start": 1108092069,
+      "sack_end": 1108093297,
+      "cumulative_ack_recovery_ms": 267.09604263305664
+    },
+    {
+      "start_remote_wall": 1789359113.725573,
+      "missing_sequence_start": 1109802210,
+      "out_of_order_start": 1109803187,
+      "sack_end": 1109804415,
+      "cumulative_ack_recovery_ms": 269.72484588623047
+    },
+    {
+      "start_remote_wall": 1789359117.020416,
+      "missing_sequence_start": 1109881650,
+      "out_of_order_start": 1109883855,
+      "sack_end": 1109883872,
+      "cumulative_ack_recovery_ms": 49.00693893432617
+    },
+    {
+      "start_remote_wall": 1789359117.06935,
+      "missing_sequence_start": 1109882878,
+      "out_of_order_start": 1109883855,
+      "sack_end": 1109883898,
+      "cumulative_ack_recovery_ms": 0.07295608520507812
+    }
+  ],
+  "clock_offset_bounds": [
+    {
+      "local_end": 1789359026.2879932,
+      "local_start": 1789359025.37231,
+      "offset_lower_seconds": -0.003470897674560547,
+      "offset_upper_seconds": 0.9122123718261719,
+      "remote_wall": 1789359026.2845223
+    },
+    {
+      "local_end": 1789359027.201073,
+      "local_start": 1789359026.288001,
+      "offset_lower_seconds": -0.0056018829345703125,
+      "offset_upper_seconds": 0.9074699878692627,
+      "remote_wall": 1789359027.195471
+    },
+    {
+      "local_end": 1789359028.134281,
+      "local_start": 1789359027.201084,
+      "offset_lower_seconds": -0.0070612430572509766,
+      "offset_upper_seconds": 0.926135778427124,
+      "remote_wall": 1789359028.1272197
+    }
+  ],
+  "conclusion": "Receiver emits selective acknowledgments for out-of-order data while cumulative ACK waits for missing sequence ranges. Several gaps persist hundreds of milliseconds. This is direct evidence of TCP delivery/recovery stalls on the stage connection, not backend compute variance. Receiver-only capture cannot identify which physical link dropped/delayed packets or distinguish every original packet from a resegmented retransmission.",
+  "next": "Inspect available network interfaces/routes for a controlled alternative path on the same two machines. Preserve production runtime and failed timing gates; do not use a single-job zero drift as acceptance."
+}
