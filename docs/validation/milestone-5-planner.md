@@ -5,6 +5,8 @@ Measured planning and the independent sweep runner are implemented and tested.
 0.6B selection or <=15% regret result yet. The 4B target remains unqualified.
 The [machine-readable status](milestone-5-planner/status.json) records the latest
 measured selection and partial sweep coverage; regret remains unqualified.
+The [preliminary acceptance audit](milestone-5-preacceptance-audit.md) consolidates
+the September 14 fixes, verification and remaining production gates.
 
 ## Acceptance summary audit — 2026-09-14
 
