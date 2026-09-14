@@ -143,6 +143,58 @@ def test_drift_does_not_pass(tmp_path: Path, key: ProfileKey):
     assert json.loads((directory / "summary.json").read_text())["decision"] == "unstable"
 
 
+def summary_results(spec, directory, rounds):
+    results = []
+    for round_index in range(rounds):
+        for job, plan in schedule(spec, round_index):
+            output = directory / job
+            output.mkdir()
+            results.append(fake(spec, job, plan, output))
+    return results
+
+
+def test_summary_rejects_duplicate_and_unscheduled_jobs(tmp_path: Path, key: ProfileKey):
+    spec = sweep_fixture(tmp_path, key)
+    results = summary_results(spec, tmp_path, spec.repetitions)
+    assert summarize(spec, results)["decision"] == "pass"
+    with pytest.raises(ValueError, match="duplicate"):
+        summarize(spec, [*results, results[0]])
+    for job in ("invented-reference", "r999-reference-before"):
+        with pytest.raises(ValueError, match="scheduled"):
+            summarize(spec, [results[0].model_copy(update={"job_id": job})])
+
+
+def test_summary_requires_complete_bracketed_rounds(tmp_path: Path, key: ProfileKey):
+    spec = sweep_fixture(tmp_path, key)
+    results = summary_results(spec, tmp_path, 2 * spec.repetitions)
+    # Enough unique before references used to satisfy the drift count without health checks.
+    before_only = [r for r in results if not r.job_id.endswith("reference-after")]
+    summary = summarize(spec, before_only)
+    assert summary["decision"] == "incomplete"
+    assert summary["selected_health_passed"] is False
+    # A missing placement in a later round must not be hidden by earlier coverage.
+    partial = [r for r in results if r.job_id != "r009-c000"]
+    assert summarize(spec, partial)["decision"] == "incomplete"
+    assert summarize(spec, results[len(schedule(spec, 0)) :])["decision"] == "incomplete"
+
+
+@pytest.mark.parametrize("fault", ["cleanup", "tokens", "placement", "memory"])
+def test_summary_validates_evidence(tmp_path: Path, key: ProfileKey, fault: str):
+    spec = sweep_fixture(tmp_path, key)
+    results = summary_results(spec, tmp_path, spec.repetitions)
+    result = results[1]
+    assert result.sample
+    updates = {
+        "cleanup": {"cleanup_passed": False},
+        "tokens": {"sample": result.sample.model_copy(update={"token_ids": (3, 3, 3)})},
+        "placement": {"candidate_id": results[2].candidate_id},
+        "memory": {"status": "memory-excluded"},
+    }
+    results[1] = result.model_copy(update=updates[fault])
+    with pytest.raises(ValueError):
+        summarize(spec, results)
+
+
 def test_mixed_sweep_preserves_precision_contract(tmp_path: Path, key: ProfileKey):
     from hllm_control.models import DeploymentPlan, DType
 

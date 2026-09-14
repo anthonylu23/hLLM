@@ -6,6 +6,31 @@ Measured planning and the independent sweep runner are implemented and tested.
 The [machine-readable status](milestone-5-planner/status.json) records the latest
 measured selection and partial sweep coverage; regret remains unqualified.
 
+## Acceptance summary audit — 2026-09-14
+
+Direct calls to the summary function could count duplicate jobs, skip result
+validation, and pass with sufficient before references but no after references
+or health checks. The normal runner already validates its scheduled results;
+this finding concerns the summary entry point and incomplete round coverage.
+
+The summary now rejects duplicate or unscheduled jobs, validates each job against
+its frozen placement and exact-output/cleanup or independent-memory requirements,
+and requires complete contiguous rounds with both reference jobs. Partial
+extensions and missing earlier rounds cannot inherit a pass from existing counts.
+Regression tests reproduced five failures before the fix; all 96 Python tests
+now pass. Ruff and full Pyright checks using the project interpreter pass.
+
+This changes the Python package identity, so future executor artifacts must be
+regenerated and synchronized across hosts. Historical evidence remains tied to
+its original package. Native binaries are unchanged.
+
+Transport stability remains open: the [raw TCP comparison](milestone-5-planner/raw-tcp-comparison.json)
+reproduced latency tails outside gRPC and model execution, with all 1,542 payload
+checks passing. Ethernet is unavailable; investigation continues on the existing
+Tailscale path between separate networks. No acceptance thresholds have changed.
+Next steps are transport isolation, a justified correction or demonstrated stable
+operating condition, fresh production qualification, then the final M5 audit.
+
 ## Channel reuse experiment — 2026-09-13
 
 The timestamped [TCP diagnostic](milestone-5-planner/deadline-timing-tcp.json)

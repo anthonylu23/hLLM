@@ -261,6 +261,33 @@ def _interval(values: list[float]) -> tuple[float, float]:
 
 
 def summarize(spec: SweepSpec, results: list[JobResult]) -> dict[str, object]:
+    # This entry point is also used without run(); never trust caller row counts
+    # or assume the caller validated scheduled placement and correctness evidence.
+    rounds: dict[int, dict[str, DeploymentPlan]] = {}
+    seen: set[str] = set()
+    for result in results:
+        if result.job_id in seen:
+            raise ValueError("duplicate sweep job")
+        prefix = result.job_id.split("-", 1)[0]
+        if not (
+            len(prefix) == 4 and prefix[0] == "r" and prefix[1:].isascii() and prefix[1:].isdigit()
+        ):
+            raise ValueError("result is not a scheduled sweep job")
+        round_index = int(prefix[1:])
+        if round_index >= spec.maximum_repetitions:
+            raise ValueError("result is not a scheduled sweep job")
+        if round_index not in rounds:
+            rounds[round_index] = dict(schedule(spec, round_index))
+        plan = rounds[round_index].get(result.job_id)
+        if plan is None:
+            raise ValueError("result is not a scheduled sweep job")
+        validate_result(spec, result, result.job_id, plan)
+        seen.add(result.job_id)
+    complete_rounds = (
+        len(rounds) >= spec.repetitions
+        and set(rounds) == set(range(max(rounds, default=-1) + 1))
+        and all(job in seen for jobs in rounds.values() for job in jobs)
+    )
     ids = [p.selected_candidate_id for p in placements(spec)]
     samples: dict[str, list[Sample]] = {cid: [] for cid in ids}
     statuses: dict[str, list[str]] = {cid: [] for cid in ids}
@@ -278,7 +305,7 @@ def summarize(spec: SweepSpec, results: list[JobResult]) -> dict[str, object]:
     measured = {
         cid: [s.client_arrivals_ms[-1] for s in rows] for cid, rows in samples.items() if rows
     }
-    complete = all(
+    complete = complete_rounds and all(
         (len(samples[cid]) >= spec.repetitions and set(statuses[cid]) == {"measured"})
         or (len(statuses[cid]) >= spec.repetitions and set(statuses[cid]) == {"memory-excluded"})
         for cid in ids
@@ -291,7 +318,7 @@ def summarize(spec: SweepSpec, results: list[JobResult]) -> dict[str, object]:
             for r in reference_jobs
             if r.job_id.endswith("reference-after")
         )
-        if reference_jobs
+        if complete_rounds
         else False
     )
     stable = (
