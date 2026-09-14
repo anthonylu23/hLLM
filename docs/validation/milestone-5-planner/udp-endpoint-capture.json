@@ -1,0 +1,65 @@
+{
+  "recorded_utc": "2026-09-14T15:13:34.841922+00:00",
+  "accepted": false,
+  "diagnostic_only": true,
+  "summary": {
+    "diagnostic_only": true,
+    "accepted": false,
+    "completed": true,
+    "sent": 600,
+    "exact_echoes": 591,
+    "missing_after_2s_drain": 9,
+    "duplicates": 0,
+    "invalid": 0,
+    "median_ms": 53.37008299999724,
+    "max_ms": 106.01779200000294,
+    "over150ms": 0,
+    "server_echoed": 591,
+    "payload_bytes": 1024,
+    "pacing_ms": 100
+  },
+  "missing_sequences": [
+    64,
+    113,
+    195,
+    342,
+    352,
+    396,
+    424,
+    525,
+    588
+  ],
+  "capture_counts": {
+    "mac0": 600,
+    "mac1": 591,
+    "cuda0": 591,
+    "cuda1": 591
+  },
+  "capture_completion": {
+    "mac": false,
+    "cuda": true
+  },
+  "capture_exit_codes": [
+    -15,
+    0
+  ],
+  "firewall_cleanup_passed": true,
+  "owned_processes_absent_after_audit": true,
+  "source": "https://github.com/tailscale/tailscale/blob/v1.102.3/net/packet/capture.go",
+  "interpretation": "All 600 outgoing sequences appear at the Mac Tailscale capture point. Nine are absent from PC incoming capture and the echo results. The same 591 sequences appear at PC outgoing and Mac incoming capture. This supports loss between the two Tailscale capture points, without identifying the physical link or excluding capture loss.",
+  "limitations": "The Mac helper required SIGTERM and lacks a completion footer. Its matching sequence set includes the final probe, but do not describe this as a fully clean capture. The PC helper exited cleanly. Packet capture loss has no independent counter. Cross-host clocks were not used for one-way latency.",
+  "helper_fix": "Mac tailscale command is a shell wrapper without exec. Terminating that wrapper can leave its child holding stdout open. Invoke the app binary directly for capture ownership. A readiness-then-stdin-EOF smoke check now exits 0 with a completion footer within five seconds.",
+  "artifact_sha256": {
+    "summary.json": "af9e817a475bd3d01e22b91212ef0ea25e476d023bf86bf095868414a49cc1f3",
+    "mac-capture.jsonl": "b865450ddeda5e5652bba0a2ed069411b5d1a55936ad3ed693ff17a567672900",
+    "path-after.json": "807bfe1e6d950e1a75405c610441b3cdf3572d7318abc2f97ab34721c80f0367",
+    "firewall-cleanup.json": "141ad2719a09aa6202c9fee44f253fda8cf5805d282e9de6d75bcf8c401c6962",
+    "capture-exits.json": "40e9c3536e6455534e72ffca6d0c1968a63bb6d1201b70aa0b2f7079eb9a5407",
+    "samples.json": "aa723c368a5e10f9923a3bcf873b5ca88a6cf4a338df5513a357c507cf675ed2",
+    "cuda-capture.jsonl": "d0dfe8e409b99a29812516dc7606bb6ce7a61257935b3345910ee320dbc80dad",
+    "server-summary.json": "93eeebddeef3cb671f740488bbf21b0ed0e258ca32296b02f2ec287777a05c27",
+    "path-before.json": "0489d7d3b1873367af4354ecde8afac4640550c7c2c52d3fe2f60b2997f8ad67",
+    "progress.json": "bb03d2f7f322f9318bdf80a361e1572c70d8dfd141ce131fea6b213615b22af3"
+  },
+  "next": "Use the corrected helper for one bounded confirmation with relevant Tailscale transport drop/error counter deltas; then evaluate justified path/runtime options. No acceptance sweep until production timing is stable; no global network tuning or threshold relaxation."
+}
