@@ -47,6 +47,14 @@ a mislabeled record could therefore attach another direction's measurements.
 Both source and target mismatch regressions fail on the old validator and pass
 with this check. The full Python suite now has 100 passing tests.
 
+Activation now binds plan execution precision to workload KV precision, and plan
+wire precision to workload activation precision. A manually reconstructed,
+validly hashed legacy measured plan could previously disagree with its frozen
+workload while reusing its profile bundle. Normal planner output already enforced
+execution/KV agreement, and the mixed-precision schema separately constrains
+execution to F32. The activation check closes the imported-plan gap before worker
+RPCs. Both precision regressions pass; the full Python suite now has 102 tests.
+
 ## Channel reuse experiment — 2026-09-13
 
 The timestamped [TCP diagnostic](milestone-5-planner/deadline-timing-tcp.json)

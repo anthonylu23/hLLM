@@ -31,6 +31,11 @@ def validate_activation(
         bundle.workload
     ):
         raise ValueError("measured workload/manifest mismatch")
+    if (
+        plan.execution_dtype != bundle.workload.kv_dtype
+        or plan.activation_dtype != bundle.workload.activation_dtype
+    ):
+        raise ValueError("measured plan precision differs from frozen workload")
     unsigned = plan.model_dump(mode="json", exclude={"plan_id", "plan_digest"})
     if plan.plan_digest != digest(unsigned) or plan.plan_id != f"plan-{plan.plan_digest[:16]}":
         raise ValueError("measured plan hash mismatch")

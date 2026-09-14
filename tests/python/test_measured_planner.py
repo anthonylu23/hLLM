@@ -330,6 +330,34 @@ def test_direction_requires_matching_probe_worker(tmp_path: Path, key: ProfileKe
         DirectionEvidence.model_validate(data)
 
 
+@pytest.mark.parametrize(
+    "field,value", [("execution_dtype", DType.F16), ("activation_dtype", DType.F32)]
+)
+def test_activation_binds_plan_precision_to_workload(
+    tmp_path: Path, key: ProfileKey, monkeypatch, field: str, value: DType
+):
+    from hllm_control.planner import activation
+    from hllm_control.planner.activation import validate_activation
+
+    manifest, bundle = bundle_fixture(tmp_path, key)
+
+    class Clock:
+        @staticmethod
+        def now(_zone):
+            return bundle.evaluated_at
+
+    monkeypatch.setattr(activation, "datetime", Clock)
+    plan = report_for(manifest, bundle).plan
+    assert plan
+    changed = plan.model_copy(update={field: value})
+    hashed = digest(changed.model_dump(mode="json", exclude={"plan_id", "plan_digest"}))
+    changed = type(plan).model_validate(
+        {**changed.model_dump(), "plan_id": "plan-" + hashed[:16], "plan_digest": hashed}
+    )
+    with pytest.raises(ValueError, match=r"precision.*workload"):
+        validate_activation(manifest, changed, bundle, [])
+
+
 @pytest.mark.parametrize("expired", ["link", "request setup"])
 def test_activation_rejects_transport_evidence_expired_since_planning(
     tmp_path: Path, key: ProfileKey, monkeypatch, expired: str
