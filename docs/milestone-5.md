@@ -5,7 +5,8 @@ paired native compute/conversion timing and directional gRPC qualification. See 
 [profiling workflow](milestone-5-profiling.md),
 [memory report](validation/milestone-5-memory.md), and
 [timing report](validation/milestone-5-timing.md). Measured split selection (5.5) and the independent sweep runner (5.6) are now
-implemented. The full 15% exhaustive acceptance comparison remains pending. See the
+implemented. The full 15% exhaustive acceptance comparison is deferred by user decision after
+the bounded code investigation. See the [engineering closeout](validation/milestone-5-wan-closeout.md). See the
 [placement workflow](milestone-5-placement.md) and
 [current validation/gates](validation/milestone-5-planner.md).
 

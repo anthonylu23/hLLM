@@ -9,10 +9,11 @@ token IDs through a Python controller. Request admission, cancellation, deadline
 cleanup are covered by numerical and process integration tests.
 
 The approved M5 qualification target uses F16 resident weights, F32 execution/KV,
-and F16 wire transfers. The production sweep is blocked on deadline-status validation
-and timing drift; see the [failure investigation](docs/validation/milestone-5-planner.md#mixed-sweep-failure-investigation--2026-09-12).
-Production acceptance and the final audit remain pending;
-see the [precision target](docs/milestone-5-precision-proposal.md).
+and F16 wire transfers. M5 implementation and the bounded code investigation are
+complete for now; WAN performance acceptance is deferred. The NYC–Texas path
+shows delivery loss and timing variability, while controlled local delay tests
+preserve exact tokens, deadlines, cleanup and recovery. See the
+[engineering closeout](docs/validation/milestone-5-wan-closeout.md).
 
 ## Milestone status
 
@@ -23,7 +24,7 @@ see the [precision target](docs/milestone-5-precision-proposal.md).
 | 2 | Linux CUDA worker (F32/F16, pinned transfers) | Complete | [docs/milestone-2.md](docs/milestone-2.md), [mixed qualification](docs/validation/mixed-cpu-cuda.md) |
 | 3 | Apple Silicon MLX worker (unified memory) | Complete | [docs/milestone-3.md](docs/milestone-3.md), [MLX qualification](docs/validation/mlx.md) |
 | 4 | Full Qwen3-0.6B checkpoint across MLX/CUDA over Tailscale | Complete | [docs/milestone-4.md](docs/milestone-4.md), [cross-machine report](docs/validation/full-checkpoint-cross-machine.md) |
-| 5 | Measured automatic placement | In progress | [docs/milestone-5.md](docs/milestone-5.md) |
+| 5 | Measured automatic placement | Implemented; WAN acceptance deferred | [docs/milestone-5.md](docs/milestone-5.md) |
 
 Milestone 5.1–5.4 add versioned measured profiles, isolated native memory and
 compute/conversion probes, directional native gRPC profiling, and admission/fit

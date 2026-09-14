@@ -1,7 +1,9 @@
 # M5.5–M5.6 implementation validation — 2026-09-09
 
 Measured planning and the independent sweep runner are implemented and tested.
-**Full checkpoint M5 acceptance is pending.** There is no qualified automatic
+**Full checkpoint M5 acceptance is deferred by user decision.** See the
+[engineering closeout](milestone-5-wan-closeout.md) for the bounded code investigation
+and remaining WAN qualification gates. There is no qualified automatic
 0.6B selection or <=15% regret result yet. The 4B target remains unqualified.
 The [machine-readable status](milestone-5-planner/status.json) records the latest
 measured selection and partial sweep coverage; regret remains unqualified.

@@ -991,7 +991,8 @@ compute/conversion probes, directional gRPC profiling, and admission/physical-fi
 gates. M5.5 adds exact-scope measured selection and activation checks; M5.6 adds
 frozen, independent, resumable placement sweeps. See [implementation status](docs/milestone-5.md)
 and [validation/gates](docs/validation/milestone-5-planner.md). Full checkpoint
-acceptance remains pending complete coverage and a measured <=15% regret result.
+acceptance is deferred after the bounded code investigation; complete coverage and
+a measured <=15% regret result remain required. See the [WAN closeout](docs/validation/milestone-5-wan-closeout.md).
 
 - Add backend dry-load memory measurements.
 - Profile layer compute, conversion, and link transfer.
