@@ -1,6 +1,6 @@
 # Milestone 5 implementation plan
 
-Status: M5.1–M5.4 implemented, 2026-09-08; M5.5–M5.6 remain planned. The
+Status: M5.1–M5.6 implemented; full acceptance remains pending as of 2026-09-14. The
 [profiling workflow](milestone-5-profiling.md) and
 [memory report](validation/milestone-5-memory.md) and
 [timing report](validation/milestone-5-timing.md) record the delivered behavior
@@ -9,8 +9,11 @@ and limitations. See [current status](milestone-5.md) and [SPEC](../SPEC.md).
 ## Scope and acceptance contract
 
 The agreed initial workload is **512 prompt tokens + 256 generated tokens,
-concurrency 1, with capacity for 768 cached tokens**. Use F16 execution, KV and
-boundary activations, fixed tokenized prompts, and disabled early stopping.
+concurrency 1, with capacity for 768 cached tokens**. F16 execution, KV and
+boundary activations were the original proposal. The approved qualification now
+uses **F16 resident weights, F32 execution and KV, and F16 boundary activations**,
+with fixed tokenized prompts and disabled early stopping. See the
+[precision decision](milestone-5-precision-proposal.md).
 Create a dedicated workload fixture; preserve the existing 32,768-token capacity
 example as a separate, unqualified capacity target.
 
@@ -39,7 +42,10 @@ native loop waits for each downstream sampled token before the next decode step.
 Report TTFT, average/p95 ITL and prediction error separately. A 15% selection-regret
 pass is not a claim that every prediction is accurate within 15%.
 
-## Current gaps
+## Initial gaps at planning time
+
+This table records the implementation starting point. Delivered behavior and
+outstanding acceptance gates are tracked in the [validation report](validation/milestone-5-planner.md).
 
 | Area | Existing implementation | Work required |
 | --- | --- | --- |

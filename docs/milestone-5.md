@@ -65,8 +65,8 @@ in the measurement report. Do not extrapolate 0.6B results to 4B or arbitrary co
 
 ## Next implementation steps
 
-The [implementation plan](milestone-5-implementation-plan.md) breaks the remaining
-work into six reviewable slices:
+The [implementation plan](milestone-5-implementation-plan.md) tracks six
+implementation slices and their outstanding qualification:
 
 1. **Implemented:** versioned measured profiles, compatibility checks and workload fixtures.
 2. **Implemented:** assignment dry-load/context memory measurements and physical-fit checks.

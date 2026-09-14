@@ -1,5 +1,11 @@
 # M5 precision target — approved for implementation
 
+This document preserves the rationale and implementation plan at approval time.
+Mixed precision is now implemented; the production acceptance sweep remains
+pending. See the [current validation report](validation/milestone-5-planner.md)
+for subsequent exact-token, health and transport evidence. The diagnostic counts
+below describe the earlier decision point.
+
 The isolated diagnostic now matches all 256 reference tokens at all 54 placements
 (13,824 teacher-forced outputs). The [evidence audit](validation/milestone-5-planner/kv-f32-complete.json)
 verifies coverage, raw hashes, shared inputs, cached prefixes and configured caps.
