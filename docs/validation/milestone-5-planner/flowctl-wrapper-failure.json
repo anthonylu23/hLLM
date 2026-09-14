@@ -1,0 +1,15 @@
+{
+  "diagnostic_only": true,
+  "accepted": false,
+  "attempt": "timing-flowctl-01",
+  "completed_timing_jobs": 0,
+  "detail": "RuntimeError: fresh memory qualification failed for cuda: /bin/bash: line 1: /home/anthonylu/Projects/experiments/hllm-m5-profiles/build/m5-acceptance/flowctl-python-cuda.sh: Permission denied\n",
+  "evidence_digest": "06a205916089a6aa814bf209804b04a0c731922cdea38b78107f5a3d188aba26",
+  "evidence_digest_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "fix": "Remote wrapper had mode0644 after copy. Applied owner execute permission and verified Python3.12.13 via wrapper. No runtime content or acceptance settings changed."
+}
