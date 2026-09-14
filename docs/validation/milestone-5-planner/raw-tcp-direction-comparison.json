@@ -1,0 +1,88 @@
+{
+  "recorded_utc": "2026-09-14T14:05:40.071321+00:00",
+  "accepted": false,
+  "diagnostic_only": true,
+  "exact_digest_checks": 1542,
+  "samples": [
+    {
+      "index": 0,
+      "pair": 0,
+      "direction": "mac-to-pc",
+      "payload_bytes": 2048,
+      "prefill_ms": 501.15,
+      "decode_median_ms": 52.6461669999998,
+      "decode_max_ms": 462.24283399999956,
+      "decode_over150ms": 3,
+      "run_sha256": "7ad16f2582be190c809d6edb23362508a615c300f9ce17de5edd68e1db268dcd"
+    },
+    {
+      "index": 1,
+      "pair": 0,
+      "direction": "pc-to-mac",
+      "payload_bytes": 2048,
+      "prefill_ms": 392.9915420000008,
+      "decode_median_ms": 51.978229000001264,
+      "decode_max_ms": 257.90587499999873,
+      "decode_over150ms": 2,
+      "run_sha256": "dbefcc841edc5fbc430af253c97bc9e42cc38a93550f6edb16e8ae5c9950c4eb"
+    },
+    {
+      "index": 2,
+      "pair": 1,
+      "direction": "pc-to-mac",
+      "payload_bytes": 2048,
+      "prefill_ms": 450.35683300000073,
+      "decode_median_ms": 51.91568749999931,
+      "decode_max_ms": 257.3529169999986,
+      "decode_over150ms": 3,
+      "run_sha256": "7ff87e46423cdc0c32314e3b7c2dd3b67af8db338d4ce59c02e67b77e1957ded"
+    },
+    {
+      "index": 3,
+      "pair": 1,
+      "direction": "mac-to-pc",
+      "payload_bytes": 2048,
+      "prefill_ms": 401.08183400000286,
+      "decode_median_ms": 52.92764600000055,
+      "decode_max_ms": 427.94495799999765,
+      "decode_over150ms": 1,
+      "run_sha256": "b3df49d7ae67edff1ecec679f98a6625a9c5dc95072dd739621bf841b91da9f9"
+    },
+    {
+      "index": 4,
+      "pair": 2,
+      "direction": "mac-to-pc",
+      "payload_bytes": 2048,
+      "prefill_ms": 399.50633299999794,
+      "decode_median_ms": 52.84533349999876,
+      "decode_max_ms": 314.37429199999656,
+      "decode_over150ms": 1,
+      "run_sha256": "be2f4ccbbd232d2438fad9e8348b0b7bcf130d333976f144d7db9dcf3df70e8b"
+    },
+    {
+      "index": 5,
+      "pair": 2,
+      "direction": "pc-to-mac",
+      "payload_bytes": 2048,
+      "prefill_ms": 608.6667080000012,
+      "decode_median_ms": 51.98291650000186,
+      "decode_max_ms": 479.167958000005,
+      "decode_over150ms": 3,
+      "run_sha256": "e4670226f2f10ea9a7a9c26e20c6531f149cf4e75c73413ccc9506db017be8ec"
+    }
+  ],
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stdout": "success\n",
+    "stderr": ""
+  },
+  "driver_and_server_exited": true,
+  "protocol": "Raw TCP direction comparison on the same Mac-initiated connection topology. Fixed 2048-byte decode and 1MiB prefill; forward sends header+payload and receives SHA256; reverse sends header and receives payload, verified locally. Protocol/ACK direction differs. Diagnostic only, not acceptance.",
+  "scripts_sha256": {
+    "run_tcp_direction_comparison.py": "538b27d96e11db50b67aa0b94a0a95e7c7ee4064dc2bf448d1390f4abc0eb478",
+    "tcp_direction_server.py": "48508fd09a89e2056767ffe0e948f17f11da33118eb2fca071efaee3ae5c81ef"
+  },
+  "conclusion": "Latency tails occur in both payload directions: Mac-to-PC maxima 314\u2013462ms and PC-to-Mac 257\u2013479ms, against medians near 52ms. Reversing payload direction does not eliminate the stalls.",
+  "limits": "Three runs per direction with fixed paired order. Payload and ACK direction, framing, and digest computation location differ. This does not identify Wi-Fi, a physical drop location, or the cause of any individual tail. Raw TCP is not model acceptance evidence.",
+  "next": "Use a bounded sub-MTU UDP echo diagnostic over the same Tailscale path to measure delivery loss and delay without TCP recovery. Preserve path identity and timing; do not infer physical fault location from a single endpoint capture or relax M5 gates."
+}
