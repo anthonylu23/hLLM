@@ -31,6 +31,15 @@ Tailscale path between separate networks. No acceptance thresholds have changed.
 Next steps are transport isolation, a justified correction or demonstrated stable
 operating condition, fresh production qualification, then the final M5 audit.
 
+The activation audit also found that link and request-setup measurements were
+checked against the bundle's planning timestamp, but not against the activation
+time. A measurement just inside its age limit when planned could expire before
+activation while the bundle and compute/memory profiles remained valid.
+Activation now checks the selected direction's link and setup timestamps against
+the current time before querying or loading workers. Two regression cases cover
+this planning-to-activation gap; all 98 Python tests pass. This changes the
+Python package identity again, so new executor inputs must bind the updated code.
+
 ## Channel reuse experiment — 2026-09-13
 
 The timestamped [TCP diagnostic](milestone-5-planner/deadline-timing-tcp.json)

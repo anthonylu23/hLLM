@@ -321,6 +321,43 @@ def test_changed_measurements_change_order_and_split(tmp_path: Path, key: Profil
     assert report_for(manifest, new).plan != report_for(manifest, bundle).plan
 
 
+@pytest.mark.parametrize("expired", ["link", "request setup"])
+def test_activation_rejects_transport_evidence_expired_since_planning(
+    tmp_path: Path, key: ProfileKey, monkeypatch, expired: str
+):
+    from hllm_control.planner import activation
+
+    manifest, bundle = bundle_fixture(tmp_path, key)
+    data = bundle.model_dump(exclude={"bundle_digest"})
+    data["maximum_profile_age_seconds"] = 60
+    old = bundle.evaluated_at - timedelta(seconds=59)
+    if expired == "link":
+        for original, link in zip(bundle.links, data["links"], strict=True):
+            previous = link["artifact_digest"]
+            unsigned = original.model_copy(update={"measured_at": old}).model_dump(
+                mode="json", exclude={"artifact_digest"}
+            )
+            link.update(unsigned, artifact_digest=digest(unsigned))
+            for direction in data["directions"]:
+                if direction["link_digest"] == previous:
+                    direction["link_digest"] = link["artifact_digest"]
+    else:
+        for direction in data["directions"]:
+            direction["request_setup_measured_at"] = old
+    bundle = seal_bundle(BundleContent.model_validate(data))
+    report = report_for(manifest, bundle)
+    assert report.plan  # Evidence was still valid when the plan was frozen.
+
+    class Clock:
+        @staticmethod
+        def now(_zone):
+            return bundle.evaluated_at + timedelta(seconds=2)
+
+    monkeypatch.setattr(activation, "datetime", Clock)
+    with pytest.raises(ValueError, match=f"{expired} evidence expired"):
+        activation.validate_activation(manifest, report.plan, bundle, [])
+
+
 def test_activation_refresh_rejects_memory_and_binary_changes(
     tmp_path: Path, key: ProfileKey, monkeypatch
 ):

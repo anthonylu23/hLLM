@@ -58,6 +58,18 @@ def validate_activation(
             raise ValueError("selected profile expired; refresh measurements and replan")
     if not 0 <= (now - bundle.evaluated_at).total_seconds() <= bundle.maximum_profile_age_seconds:
         raise ValueError("stale/future profile bundle; refresh measurements and replan")
+    direction = next(
+        d
+        for d in bundle.directions
+        if (d.source_worker_id, d.target_worker_id) == tuple(s.worker_id for s in plan.stages)
+    )
+    link = next(a for a in bundle.links if a.artifact_digest == direction.link_digest)
+    for name, measured_at in (
+        ("link", link.measured_at),
+        ("request setup", direction.request_setup_measured_at),
+    ):
+        if not 0 <= (now - measured_at).total_seconds() <= bundle.maximum_profile_age_seconds:
+            raise ValueError(f"{name} evidence expired; refresh measurements and replan")
     for assignment, control in zip(plan.stages, controls, strict=True):
         b = next(w for w in bundle.workers if w.worker.worker_id == assignment.worker_id)
         c = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
