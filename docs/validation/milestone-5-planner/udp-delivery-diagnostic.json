@@ -1,0 +1,70 @@
+{
+  "diagnostic_only": true,
+  "accepted": false,
+  "completed": true,
+  "sent": 600,
+  "exact_echoes": 597,
+  "missing_after_2s_drain": 3,
+  "duplicates": 0,
+  "invalid": 0,
+  "median_ms": 53.224500000006,
+  "max_ms": 66.78283300000487,
+  "over150ms": 0,
+  "server_echoed": 597,
+  "payload_bytes": 1024,
+  "pacing_ms": 100,
+  "recorded_utc": "2026-09-14T14:39:05.738791+00:00",
+  "missing_sequences": [
+    280,
+    413,
+    570
+  ],
+  "send_interval_range_ms": [
+    38.25720799999908,
+    157.53370899999936
+  ],
+  "firewall_cleanup_passed": true,
+  "owned_processes_exited": true,
+  "path_before": {
+    "peers": [
+      {
+        "HostName": "anthonypc",
+        "TailscaleIPs": [
+          "100.86.45.68",
+          "fd7a:115c:a1e0::4a34:2d44"
+        ],
+        "CurAddr": "[2605:a601:aa9d:7300::b]:41641",
+        "Relay": "dfw",
+        "Online": true
+      }
+    ],
+    "local_wall_time": 1789395729.318292
+  },
+  "path_after": {
+    "peers": [
+      {
+        "HostName": "anthonypc",
+        "TailscaleIPs": [
+          "100.86.45.68",
+          "fd7a:115c:a1e0::4a34:2d44"
+        ],
+        "CurAddr": "[2605:a601:aa9d:7300::b]:41641",
+        "Relay": "dfw",
+        "Online": true
+      }
+    ],
+    "local_wall_time": 1789395794.345192
+  },
+  "artifact_sha256": {
+    "summary.json": "c9e9d093eb13f7c958cc2285b2498f2dd4407fe0aab6be7223978b00fa5f4781",
+    "path-after.json": "27957e00ba1908fbba7f704e5af8efe9d98c7ba01a322095b9c8607fd54eadd5",
+    "firewall-cleanup.json": "141ad2719a09aa6202c9fee44f253fda8cf5805d282e9de6d75bcf8c401c6962",
+    "samples.json": "bdda30cf225c65b37537ba9624bea1bc6f72635f8bf67ac409d7ab1f210feeed",
+    "server-summary.json": "6a43ec0522f0c6c5e6b790e03789e0814b496ba5e41e4a3a0abe34ab16b1b514",
+    "path-before.json": "c653f6f6860818984167502e6d957263aa9d6a24b525a378f5cd743a23c420e2",
+    "progress.json": "dbd5efad4b36595a66a888747a3f3ac639621af1850cb4c320468891ea757ad0"
+  },
+  "conclusion": "Three of 600 UDP echoes were missing after the drain, and the server counted 597 received/echoed datagrams. Returned echoes had no TCP-like 200\u2013400ms tail: maximum 66.8ms. Supports delivery loss as a contributor to the earlier TCP recovery stalls; does not establish their individual cause.",
+  "limits": "One 60-second run, not a simultaneous TCP control. Aggregate server counts do not establish where packets were dropped; host queues and the network remain possible. Direct endpoint snapshots do not prove the path stayed unchanged throughout. No inference-transport replacement or acceptance claim.",
+  "next": "Inspect whether Tailscale diagnostic capture can safely provide filtered endpoint packet evidence without Mac sudo, and compare scoped drop/error counter deltas during a bounded follow-up. Preserve failed probes; do not change network settings blindly."
+}
