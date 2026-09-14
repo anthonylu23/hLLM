@@ -1,0 +1,578 @@
+{
+  "candidate_id": "mlx--cuda-m001",
+  "comparison_only": true,
+  "completed": true,
+  "diagnostic_only": true,
+  "drift_fraction": 0.10312344526769213,
+  "exact_full_requests": 9,
+  "limit": 0.1,
+  "samples": [
+    {
+      "evidence_digest": "0a9ef74f357daf427a4a64814690952491751cfff63af9f73264afa10d74a659",
+      "generation_ms": 24192.69312499091,
+      "job": "stability-00",
+      "native_setup_ms": 0.189666,
+      "native_ttft_ms": 2115.649958,
+      "ttft_ms": 2117.1526252292097
+    },
+    {
+      "evidence_digest": "cd7c63141bdc4fab0fc06d67d4d75b3d05a1cf20d60d7b70c0011085ff5013e3",
+      "generation_ms": 21931.084167212248,
+      "job": "stability-01",
+      "native_setup_ms": 0.236458,
+      "native_ttft_ms": 1115.859375,
+      "ttft_ms": 1117.8261670283973
+    },
+    {
+      "evidence_digest": "2ef259d29016cdf239eaa20ad6e6c806c0d45695413b64bbb28979dd851036b7",
+      "generation_ms": 23213.943833950907,
+      "job": "stability-02",
+      "native_setup_ms": 0.192458,
+      "native_ttft_ms": 797.421041,
+      "ttft_ms": 800.414458848536
+    }
+  ],
+  "accepted": false,
+  "evidence_digests_verified": true,
+  "trace_invariants_verified": true,
+  "cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "requests": [
+    {
+      "job": "stability-00",
+      "request_id": "b39523bd-2c95-4946-8170-07ba2183b061",
+      "sample": "warmup-0",
+      "evidence_digest": "0a9ef74f357daf427a4a64814690952491751cfff63af9f73264afa10d74a659",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1652.7440000000151,
+            "prefill_ms": 26.064000000000007
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.4899999999972522,
+            "prefill_ms": 0.16799999999997794
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 347.88799999998736,
+            "prefill_ms": 315.484
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 20154.62800000001,
+            "prefill_ms": 405.547
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 27.973000000020875,
+            "prefill_ms": 0.16099999999994452
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 16170.17063700001,
+            "prefill_ms": 365.840637
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 0.5619999999976244,
+            "prefill_ms": 0.22699999999997544
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5995.869000000025,
+            "prefill_ms": 327.326
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 6.062999999994645,
+            "prefill_ms": 0.08299999999996999
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-00",
+      "request_id": "206060d7-c86a-4b31-b815-49312d33499b",
+      "sample": "warmup-1",
+      "evidence_digest": "0a9ef74f357daf427a4a64814690952491751cfff63af9f73264afa10d74a659",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1605.1007910000221,
+            "prefill_ms": 29.618791
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 2.2610999999912025,
+            "prefill_ms": 0.5381
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 518.0154999999935,
+            "prefill_ms": 486.36349999999993
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 21149.885000000006,
+            "prefill_ms": 217.25799999999992
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 25.1549999999919,
+            "prefill_ms": 0.10199999999997544
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 17532.397039,
+            "prefill_ms": 587.917039
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 0.9330000000002201,
+            "prefill_ms": 0.5159999999999627
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5751.274000000001,
+            "prefill_ms": 92.98199999999997
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 6.380999999985306,
+            "prefill_ms": 0.03899999999998727
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-00",
+      "request_id": "66f513ca-ca97-4fcd-91be-b1514507b65a",
+      "sample": "timed",
+      "evidence_digest": "0a9ef74f357daf427a4a64814690952491751cfff63af9f73264afa10d74a659",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1614.7972089999973,
+            "prefill_ms": 29.147209
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.7355999999957064,
+            "prefill_ms": 0.5155999999999992
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 1904.1299000000215,
+            "prefill_ms": 1873.1399
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 20609.21,
+            "prefill_ms": 211.51999999999998
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 28.02999999994654,
+            "prefill_ms": 0.2300000000000182
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 18375.901438,
+            "prefill_ms": 1963.6714379999999
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 1.110000000003538,
+            "prefill_ms": 0.6200000000001182
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5758.529999999983,
+            "prefill_ms": 94.02999999999997
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 5.809999999994034,
+            "prefill_ms": 0.03999999999996362
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-01",
+      "request_id": "b03a1f85-ddcd-41e9-a59a-fe5f30e107f1",
+      "sample": "warmup-0",
+      "evidence_digest": "cd7c63141bdc4fab0fc06d67d4d75b3d05a1cf20d60d7b70c0011085ff5013e3",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1594.8870000000209,
+            "prefill_ms": 30.09700000000001
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.7819999999844356,
+            "prefill_ms": 0.17199999999999704
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 538.9570000000097,
+            "prefill_ms": 511.057
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 20160.804999999986,
+            "prefill_ms": 524.585
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 27.689999999977772,
+            "prefill_ms": 0.3000000000001819
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 16286.018088,
+            "prefill_ms": 598.129088
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 0.5640000000021246,
+            "prefill_ms": 0.2239999999999327
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 6020.419000000009,
+            "prefill_ms": 344.9290000000001
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 5.28700000000822,
+            "prefill_ms": 0.09699999999997999
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-01",
+      "request_id": "dd99c214-8772-4869-bf4e-6ca7373e20af",
+      "sample": "warmup-1",
+      "evidence_digest": "cd7c63141bdc4fab0fc06d67d4d75b3d05a1cf20d60d7b70c0011085ff5013e3",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1608.6930330000123,
+            "prefill_ms": 26.335033
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.7136000000010796,
+            "prefill_ms": 0.4756
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 437.3809000000055,
+            "prefill_ms": 408.0519
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 19496.48,
+            "prefill_ms": 215.969
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 28.36799999999255,
+            "prefill_ms": 0.10799999999994725
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 15793.079738999997,
+            "prefill_ms": 505.589739
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 1.1580000000014365,
+            "prefill_ms": 0.6719999999999686
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5756.8030000000035,
+            "prefill_ms": 92.93100000000004
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 5.295000000012124,
+            "prefill_ms": 0.03200000000003911
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-01",
+      "request_id": "cceb17c2-0017-4984-acd5-83858f0bc209",
+      "sample": "timed",
+      "evidence_digest": "cd7c63141bdc4fab0fc06d67d4d75b3d05a1cf20d60d7b70c0011085ff5013e3",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1613.0082500000135,
+            "prefill_ms": 29.428250000000002
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 2.08600000000812,
+            "prefill_ms": 0.5159999999999982
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 905.1720000000009,
+            "prefill_ms": 874.682
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 19346.84299999999,
+            "prefill_ms": 209.563
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 28.139999999966903,
+            "prefill_ms": 0.28999999999973625
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 16117.199540000009,
+            "prefill_ms": 968.56954
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 0.677000000004,
+            "prefill_ms": 0.22700000000008913
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5759.58399999998,
+            "prefill_ms": 92.86399999999992
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 5.299999999989268,
+            "prefill_ms": 0.049999999999954525
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-02",
+      "request_id": "453874cf-b339-4310-ab0f-1dff9571ef2b",
+      "sample": "warmup-0",
+      "evidence_digest": "2ef259d29016cdf239eaa20ad6e6c806c0d45695413b64bbb28979dd851036b7",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1546.6750000000354,
+            "prefill_ms": 30.491
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.6840000000007649,
+            "prefill_ms": 0.2300000000000182
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 336.5789999999648,
+            "prefill_ms": 308.696
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 19897.432000000023,
+            "prefill_ms": 417.834
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 26.320999999959213,
+            "prefill_ms": 0.2679999999999154
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 15783.484877,
+            "prefill_ms": 371.533877
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 0.9679999999992788,
+            "prefill_ms": 0.31399999999996453
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 6002.533999999991,
+            "prefill_ms": 328.581
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 6.079999999996176,
+            "prefill_ms": 0.08600000000001273
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-02",
+      "request_id": "af0b1f2d-cf65-465b-9a51-d7565b292c22",
+      "sample": "warmup-1",
+      "evidence_digest": "2ef259d29016cdf239eaa20ad6e6c806c0d45695413b64bbb28979dd851036b7",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1536.0271829999983,
+            "prefill_ms": 24.064183
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.186500000004834,
+            "prefill_ms": 0.3235000000000028
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 306.2723000000055,
+            "prefill_ms": 277.8173
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 20437.609000000004,
+            "prefill_ms": 202.13299999999998
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 27.599999999992406,
+            "prefill_ms": 0.2520000000000664
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 16532.130049000014,
+            "prefill_ms": 352.18304900000004
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 1.0830000000028122,
+            "prefill_ms": 0.6140000000000327
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5757.726000000005,
+            "prefill_ms": 92.96800000000002
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 5.457999999997867,
+            "prefill_ms": 0.03299999999995862
+          }
+        }
+      }
+    },
+    {
+      "job": "stability-02",
+      "request_id": "f0be3c55-32f2-4218-a6e2-686baff01c15",
+      "sample": "timed",
+      "evidence_digest": "2ef259d29016cdf239eaa20ad6e6c806c0d45695413b64bbb28979dd851036b7",
+      "stages": {
+        "generate": {
+          "compute": {
+            "count": 256,
+            "total_ms": 1600.180957999991,
+            "prefill_ms": 27.409958
+          },
+          "encode_tensor": {
+            "count": 256,
+            "total_ms": 1.9931999999965093,
+            "prefill_ms": 0.4272000000000027
+          },
+          "peer_write": {
+            "count": 256,
+            "total_ms": 566.173200000025,
+            "prefill_ms": 537.5402
+          },
+          "peer_read": {
+            "count": 256,
+            "total_ms": 20978.971,
+            "prefill_ms": 230.46699999999998
+          },
+          "client_write": {
+            "count": 259,
+            "total_ms": 28.94000000000335,
+            "prefill_ms": 0.2379999999999427
+          }
+        },
+        "execute": {
+          "read": {
+            "count": 257,
+            "total_ms": 17381.890729000024,
+            "prefill_ms": 651.751729
+          },
+          "decode_tensor": {
+            "count": 256,
+            "total_ms": 0.7490000000003647,
+            "prefill_ms": 0.25499999999999545
+          },
+          "compute": {
+            "count": 256,
+            "total_ms": 5781.811000000023,
+            "prefill_ms": 93.02600000000007
+          },
+          "write": {
+            "count": 256,
+            "total_ms": 6.075999999996839,
+            "prefill_ms": 0.044000000000096406
+          }
+        }
+      }
+    }
+  ],
+  "build_audit": {
+    "diagnostic_only": true,
+    "accepted": false,
+    "mac_ctest_passed": 66,
+    "cuda_ctest_passed": 69,
+    "mac_ctest_seconds": 213.85,
+    "cuda_ctest_seconds": 358.42,
+    "source_identity": "sources-sha256:6c1a9ff4e2dccde5ff2f0ed0b4700fda47115fe07c04336f9c0bb09ed7de71d6",
+    "executor_digest": "9288cab9253c39076dff3d680c713a26aae3e0300a249df56eb096adaef65a78",
+    "regression_trace_spans_validated": 32,
+    "trace_validation_scope": "Syntax, finite nonnegative duration and nonnegative step across recorded regression spans; full successful per-step coverage still requires pilot audit."
+  },
+  "findings": [
+    "Timed Mac compute totals1600\u20131615ms and CUDA totals5759\u20135782ms are nearly unchanged, while end-to-end duration varies21931\u201324193ms.",
+    "Slowest job00 vsfastest01 has about999ms extra peer-write time and1262ms extra peer-read time; compute differs by about2ms onMac and minus1ms onCUDA. This localizes observed variation to stream I/O rather than backend compute calls.",
+    "Prefill write alone takes1873ms,875ms,538ms across the three timed jobs. Encode times stay below1ms.",
+    "Stream I/O includes network,HTTP2flowcontrol,gRPC scheduling and remote wait; it is not a direct packet-loss measurement. The precise transport cause remains unresolved."
+  ],
+  "next": "Inspect HTTP2 receive-window and BDP behavior in the pinned gRPC implementation; design a bounded diagnostic comparison before altering production transport settings. Preserve exact-token and memory-cap contracts, and retain all failed timing evidence."
+}
