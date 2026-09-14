@@ -103,6 +103,11 @@ class DirectionEvidence(ProfileModel):
 
     @model_validator(mode="after")
     def raw_setup(self) -> Self:
+        if (
+            self.source_worker_id != self.source_probe.worker_id
+            or self.target_worker_id != self.target_probe.worker_id
+        ):
+            raise ValueError("direction does not match source/target probe worker")
         expected = tuple(s.residual_ms for s in self.request_setup_raw)
         if len(expected) != len(self.request_setup_samples_ms) or any(
             abs(a - b) > 1e-6 for a, b in zip(expected, self.request_setup_samples_ms, strict=True)

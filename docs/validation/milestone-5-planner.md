@@ -40,6 +40,13 @@ the current time before querying or loading workers. Two regression cases cover
 this planning-to-activation gap; all 98 Python tests pass. This changes the
 Python package identity again, so new executor inputs must bind the updated code.
 
+Direction records now also require their declared source/target worker IDs to
+match the corresponding probe identities. Previously the link checker compared
+the artifact to those probes, while selection used the separate direction labels;
+a mislabeled record could therefore attach another direction's measurements.
+Both source and target mismatch regressions fail on the old validator and pass
+with this check. The full Python suite now has 100 passing tests.
+
 ## Channel reuse experiment — 2026-09-13
 
 The timestamped [TCP diagnostic](milestone-5-planner/deadline-timing-tcp.json)

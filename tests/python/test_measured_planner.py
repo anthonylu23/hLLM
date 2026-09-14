@@ -321,6 +321,15 @@ def test_changed_measurements_change_order_and_split(tmp_path: Path, key: Profil
     assert report_for(manifest, new).plan != report_for(manifest, bundle).plan
 
 
+@pytest.mark.parametrize("side", ["source", "target"])
+def test_direction_requires_matching_probe_worker(tmp_path: Path, key: ProfileKey, side: str):
+    _, bundle = bundle_fixture(tmp_path, key)
+    data = bundle.directions[0].model_dump()
+    data[f"{side}_worker_id"] = "unrelated-worker"
+    with pytest.raises(ValueError, match="probe worker"):
+        DirectionEvidence.model_validate(data)
+
+
 @pytest.mark.parametrize("expired", ["link", "request setup"])
 def test_activation_rejects_transport_evidence_expired_since_planning(
     tmp_path: Path, key: ProfileKey, monkeypatch, expired: str
