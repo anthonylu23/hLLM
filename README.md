@@ -15,6 +15,11 @@ shows delivery loss and timing variability, while controlled local delay tests
 preserve exact tokens, deadlines, cleanup and recovery. See the
 [engineering closeout](docs/validation/milestone-5-wan-closeout.md).
 
+The [PR #15 review fixes](docs/validation/pr15-review-fixes.md) cover interrupted
+sweep resume, CLI registration, completion delivery, plan rejection diagnostics,
+downstream restart recovery tests and link-probe error reporting. These checks do
+not replace the deferred WAN acceptance sweep.
+
 ## Milestone status
 
 | Milestone | Scope | Status | Notes |

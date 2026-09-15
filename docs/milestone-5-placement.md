@@ -11,6 +11,8 @@ worker runtime now links OpenSSL Crypto to hash its executable and validate meas
 plan hashes. Legacy feasibility/estimated plans retain schema 1.0 and their existing
 plan hashing. Measured plans use schema 1.1 and hash the full workload digest and
 profile-bundle digest. Python and native workers reject altered measured plans.
+Native schema, identity and hash rejections return `ERROR_CODE_INCOMPATIBLE_WORKER`;
+they do not indicate a backend malfunction.
 
 The approved M5 target uses opt-in schema 1.2: `weight_dtype: F16`,
 `execution_dtype: F32`, workload `kv_dtype: F32`, and F16 wire activations.
@@ -37,6 +39,26 @@ capabilities and this state before any load, requires unloaded idle workers, and
 checks the independent physical envelope. A failed load unwinds acknowledged stages
 and a stage whose load response was lost. A definitive rejection is not treated as
 an acknowledged load. There is no automatic fallback to another placement.
+
+## Serving completion and downstream recovery
+
+Generation checks cancellation/deadlines through token generation and downstream
+acknowledgment. Once the outcome is committed, sequence cleanup can finish and the
+worker writes usage and terminal events without reapplying the generation deadline.
+These events follow reservation release. A disconnected client or its own expired
+RPC deadline can still prevent delivery.
+
+The upstream deployment retains its downstream channel across requests. Connection
+failures remain fail-fast while gRPC reconnects; the runtime does not automatically
+replay generation. After a downstream worker restart, restore its stage before
+issuing another request. The upstream stage can remain loaded. Both the serving
+channel and any controller control channels must reconnect; controller unload is
+best-effort, so inspect memory reports/cleanup after an unavailable control RPC.
+Local restart tests bound retries and verify exact tokens, released reservations,
+unchanged upstream process identity and final unload. They do not qualify WAN
+reconnect latency or alter gRPC backoff/keepalive settings.
+
+See the [PR #15 fixes and validation](validation/pr15-review-fixes.md).
 
 ## Assemble and use a bundle
 
@@ -140,10 +162,16 @@ uv run hllm qualify-sweep --spec build/m5/sweep-input.json \
 
 `--max-jobs N` provides a bounded first run; repeat the same command to resume.
 The spec, result digests and raw evidence must remain unchanged. Failed or interrupted
-attempts are retained. A subsequent run does not silently erase/retry failed jobs;
-start a new frozen sweep after correcting the cause. Executor configuration and the
+attempts are retained. Ctrl-C stops the current invocation after saving its attempt
+and summary. Resuming walks past that saved interruption and executes the remaining
+jobs; it does not erase or retry failed jobs. A failed candidate keeps coverage
+incomplete; a failed reference keeps the stability gate from passing. Start a new
+frozen sweep after correcting the cause. Executor configuration and the
 complete controller-package source hashes are part of the frozen identity. Remote
 helpers verify that package fingerprint before running any native process.
+
+The installed `hllm` entry point and `python -m hllm_control.cli` expose the same
+commands, including bundle sealing, sweep freezing and qualification.
 
 Each round shuffles all `2*(L-1)` candidates with a saved seed and repeats the selected
 reference before/after the round. Each job runs a fresh native memory probe for each
