@@ -192,6 +192,17 @@ exclusively and includes the executable hash. The server adds compiler, gRPC,
 Protobuf, OS and host identity. Its peer allowlist resolves target IDs; callers
 cannot supply an arbitrary destination address. It never loads a model.
 
+Serialize directional measurements that share either probe. One probe can perform
+only one source or target measurement at a time; contention returns
+`RESOURCE_EXHAUSTED`. Bad request limits/payloads return `INVALID_ARGUMENT`.
+The source preserves downstream RPC status codes and details, including transport
+`UNAVAILABLE`, instead of labeling failed exchanges as bad requests. A missing or
+malformed response/termination acknowledgment returns `DATA_LOSS`; a mismatched
+peer identity returns `FAILED_PRECONDITION`. An application timeout returns
+`DEADLINE_EXCEEDED`, and explicit cancellation releases the active probe slot.
+Direct target stream I/O may require gRPC transport cancellation to unblock; the
+source still classifies its own elapsed application deadline precisely.
+
 On the source host, measure the actual model width (`1024` for Qwen3-0.6B, `2560`
 for Qwen3-4B-Base), then repeat on the other host with the direction reversed:
 

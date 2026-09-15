@@ -389,6 +389,7 @@ def run_link_profile(
     timeout_seconds: float = 120,
     path_sample_interval_seconds: float = 0.5,
 ) -> LinkArtifact:
+    """Measure one direction with both probes idle; serialize runs sharing either probe."""
     if not (0.01 <= timeout_seconds <= 120 and 0.1 <= path_sample_interval_seconds <= 5):
         raise ValueError("invalid timing limits")
     # Reject runaway requests before opening a channel (native server enforces the same caps).

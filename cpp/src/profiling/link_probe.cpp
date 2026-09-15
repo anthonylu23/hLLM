@@ -5,7 +5,11 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <new>
+#include <stdexcept>
+#include <string>
 #include <thread>
+#include <utility>
 #include <sys/utsname.h>
 
 #include <grpc/grpc.h>
@@ -14,6 +18,7 @@
 #include <nlohmann/json.hpp>
 #include "control.grpc.pb.h"
 #include "execution.grpc.pb.h"
+#include "hllm/runtime/error.hpp"
 #include "hllm/runtime/timing.hpp"
 #include "hllm/worker/boundary_codec.hpp"
 
@@ -26,10 +31,21 @@ using namespace std::chrono_literals;
 constexpr std::uint64_t kMaxTraffic = 256U * 1024U * 1024U;
 constexpr std::uint32_t kMaxSteps = 1024U;
 constexpr auto kMaxTime = 120s;
+class RpcFailure final : public std::runtime_error {
+ public:
+  explicit RpcFailure(grpc::Status status)
+      : std::runtime_error(status.error_message()), status_(std::move(status)) {}
+  const grpc::Status& status() const { return status_; }
+ private:
+  grpc::Status status_;
+};
 struct Busy {
   std::atomic_bool& value;
   explicit Busy(std::atomic_bool& v) : value(v) {
-    if (value.exchange(true)) throw std::runtime_error("probe already active");
+    if (value.exchange(true)) {
+      throw RpcFailure({grpc::StatusCode::RESOURCE_EXHAUSTED,
+                        "probe already active; serialize directional measurements"});
+    }
   }
   ~Busy() { value.store(false); }
 };
@@ -45,8 +61,11 @@ class Deadline {
       : thread_([&server, deadline, peer](std::stop_token stop) {
           while (!stop.stop_requested()) {
             if (server.IsCancelled() || Clock::now() >= deadline) {
+              // Cancel downstream I/O and let QualifyLink return the precise
+              // application-deadline status. Direct Execute I/O needs the
+              // server transport fallback to unblock synchronous reads/writes.
               if (peer) peer->TryCancel();
-              server.TryCancel();
+              else server.TryCancel();
               return;
             }
             std::this_thread::sleep_for(5ms);
@@ -58,6 +77,40 @@ class Deadline {
 void require(bool condition, const char* detail) {
   if (!condition) throw std::invalid_argument(detail);
 }
+void check_running(grpc::ServerContext& context, Clock::time_point deadline) {
+  if (Clock::now() >= deadline) {
+    throw RpcFailure({grpc::StatusCode::DEADLINE_EXCEEDED, "probe deadline exceeded"});
+  }
+  if (context.IsCancelled()) {
+    throw RpcFailure({grpc::StatusCode::CANCELLED, "probe cancelled"});
+  }
+}
+grpc::Status failure(const std::exception& error, grpc::ServerContext& context,
+                     Clock::time_point deadline) {
+  if (Clock::now() >= deadline) return {grpc::StatusCode::DEADLINE_EXCEEDED, error.what()};
+  if (context.IsCancelled()) return {grpc::StatusCode::CANCELLED, error.what()};
+  if (const auto* rpc = dynamic_cast<const RpcFailure*>(&error)) return rpc->status();
+  if (dynamic_cast<const std::invalid_argument*>(&error)) {
+    return {grpc::StatusCode::INVALID_ARGUMENT, error.what()};
+  }
+  if (const auto* typed = dynamic_cast<const rt::Error*>(&error)) {
+    switch (typed->code()) {
+      case rt::ErrorCode::kInvalidRequest:
+        return {grpc::StatusCode::INVALID_ARGUMENT, error.what()};
+      case rt::ErrorCode::kIncompatibleWorker:
+        return {grpc::StatusCode::FAILED_PRECONDITION, error.what()};
+      case rt::ErrorCode::kResourceExhausted:
+        return {grpc::StatusCode::RESOURCE_EXHAUSTED, error.what()};
+      case rt::ErrorCode::kDeadlineExceeded:
+        return {grpc::StatusCode::DEADLINE_EXCEEDED, error.what()};
+      case rt::ErrorCode::kInternal: break;
+    }
+  }
+  if (dynamic_cast<const std::bad_alloc*>(&error)) {
+    return {grpc::StatusCode::RESOURCE_EXHAUSTED, error.what()};
+  }
+  return {grpc::StatusCode::INTERNAL, error.what()};
+}
 std::shared_ptr<grpc::Channel> channel(const std::string& endpoint) {
   grpc::ChannelArguments args;
   args.SetMaxReceiveMessageSize(worker::kMaximumRpcBytes);
@@ -65,7 +118,18 @@ std::shared_ptr<grpc::Channel> channel(const std::string& endpoint) {
   return grpc::CreateCustomChannel(endpoint, grpc::InsecureChannelCredentials(), args);
 }
 void checked(const grpc::Status& status) {
-  if (!status.ok()) throw std::runtime_error(status.error_message());
+  if (!status.ok()) throw RpcFailure(status);
+}
+[[noreturn]] void peer_failure(
+    grpc::ClientReaderWriter<v1::StageMessage, v1::StageMessage>& stream,
+    const char* detail, bool writes_done = false) {
+  if (!writes_done) stream.WritesDone();
+  const auto status = stream.Finish();
+  if (!status.ok()) throw RpcFailure(status);
+  throw RpcFailure({grpc::StatusCode::DATA_LOSS, detail});
+}
+void require_peer(bool condition, const char* detail) {
+  if (!condition) throw RpcFailure({grpc::StatusCode::DATA_LOSS, detail});
 }
 bool identity(const v1::SampledToken& token, const worker::BoundaryIdentity& id,
               std::uint64_t sequence, std::size_t position) {
@@ -101,6 +165,7 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
   grpc::Status QualifyLink(grpc::ServerContext* context,
                            const v1::LinkQualificationRequest* request,
                            v1::LinkProfile* response) override {
+    auto deadline = context->deadline();
     try {
       Busy busy(active_);
       require(peers_.contains(request->target_worker_id()), "target not in explicit peer allowlist");
@@ -114,13 +179,14 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
       require(std::uint64_t(prompt) * width * 2 <= worker::kMaximumRpcBytes / 2 &&
               (std::uint64_t(prompt) + steps - 1) * width * 2 * cycles <= kMaxTraffic,
               "probe payload or aggregate traffic exceeds limit");
-      const auto deadline = std::min(context->deadline(),
+      deadline = std::min(context->deadline(),
           Clock::now() + std::chrono::milliseconds(request->timeout_ms()));
       auto peer = channel(peers_.at(request->target_worker_id()));
       auto start = rt::ProfileClock::now();
-      while (!peer->WaitForConnected(std::min(deadline, Clock::now() + 100ms)))
-        require(!context->IsCancelled() && Clock::now() < deadline,
-                "peer connection cancelled or timed out");
+      while (!peer->WaitForConnected(std::min(deadline, Clock::now() + 100ms))) {
+        check_running(*context, deadline);
+      }
+      check_running(*context, deadline);
       auto* result = response->mutable_qualification();
       result->set_channel_ready_ms(rt::elapsed_ms(start));
       *result->mutable_source() = info_;
@@ -131,7 +197,9 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
         Deadline watch(*context, deadline, &info_context);
         checked(control->GetLinkProbeInfo(&info_context, {}, result->mutable_target()));
       }
-      require(result->target().worker_id() == request->target_worker_id(), "peer identity mismatch");
+      if (result->target().worker_id() != request->target_worker_id()) {
+        throw RpcFailure({grpc::StatusCode::FAILED_PRECONDITION, "peer identity mismatch"});
+      }
       result->set_prompt_tokens(prompt);
       result->set_hidden_size(width);
       result->set_output_tokens(steps);
@@ -139,7 +207,7 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
       result->set_measured_cycles(request->measured_cycles());
       auto execution = v1::StageExecution::NewStub(peer);
       for (std::uint32_t cycle = 0; cycle < cycles; ++cycle) {
-        require(!context->IsCancelled() && Clock::now() < deadline, "probe cancelled or expired");
+        check_running(*context, deadline);
         grpc::ClientContext stream_context;
         stream_context.set_deadline(deadline);
         Cancel cancel{stream_context};
@@ -160,7 +228,7 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
         stream_timing->set_cycle(cycle);
         start = rt::ProfileClock::now();
         auto stream = execution->Execute(&stream_context);
-        require(stream->Write(open), "sequence open failed");
+        if (!stream->Write(open)) peer_failure(*stream, "sequence open failed");
         stream->WaitForInitialMetadata();
         stream_timing->set_setup_ms(rt::elapsed_ms(start));
         for (std::uint32_t step = 0; step < steps; ++step) {
@@ -180,8 +248,10 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
           sample->set_message_bytes(message.ByteSizeLong());
           v1::StageMessage reply;
           start = rt::ProfileClock::now();
-          require(stream->Write(message) && stream->Read(&reply), "activation exchange failed");
-          require(reply.has_sampled_token() && identity(reply.sampled_token(), id, step,
+          if (!stream->Write(message) || !stream->Read(&reply)) {
+            peer_failure(*stream, "activation exchange ended without feedback");
+          }
+          require_peer(reply.has_sampled_token() && identity(reply.sampled_token(), id, step,
                       position + count), "invalid sampled-token feedback");
           sample->set_round_trip_ms(rt::elapsed_ms(start));
           sample->set_feedback_bytes(reply.ByteSizeLong());
@@ -193,12 +263,13 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
         end->set_request_id(id.request_id);
         end->set_state(v1::TERMINAL_STATE_COMPLETED);
         start = rt::ProfileClock::now();
-        require(stream->Write(termination), "termination write failed");
+        if (!stream->Write(termination)) peer_failure(*stream, "termination write failed");
         stream->WritesDone();
         v1::StageMessage ack;
-        require(stream->Read(&ack) && ack.SerializeAsString() == termination.SerializeAsString(),
-                "invalid termination acknowledgment");
-        require(!stream->Read(&ack), "unexpected trailing response");
+        if (!stream->Read(&ack)) peer_failure(*stream, "missing termination acknowledgment", true);
+        require_peer(ack.SerializeAsString() == termination.SerializeAsString(),
+                     "invalid termination acknowledgment");
+        require_peer(!stream->Read(&ack), "unexpected trailing response");
         checked(stream->Finish());
         stream_timing->set_teardown_ms(rt::elapsed_ms(start));
       }
@@ -208,19 +279,21 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
       response->mutable_schema_version()->set_major(1);
       response->mutable_schema_version()->set_minor(1);
       return grpc::Status::OK;
-    } catch (const std::invalid_argument& error) {
-      return {grpc::StatusCode::INVALID_ARGUMENT, error.what()};
     } catch (const std::exception& error) {
-      return {grpc::StatusCode::FAILED_PRECONDITION, error.what()};
+      return failure(error, *context, deadline);
     }
   }
   grpc::Status Execute(grpc::ServerContext* context,
                        grpc::ServerReaderWriter<v1::StageMessage, v1::StageMessage>* stream) override {
+    const auto deadline = std::min(context->deadline(), Clock::now() + kMaxTime);
     try {
       Busy busy(active_);
-      Deadline watch(*context, std::min(context->deadline(), Clock::now() + kMaxTime));
+      Deadline watch(*context, deadline);
       v1::StageMessage message;
-      require(stream->Read(&message) && message.has_open_sequence(), "expected sequence open");
+      if (!stream->Read(&message)) {
+        throw RpcFailure({grpc::StatusCode::DATA_LOSS, "probe stream ended before sequence open"});
+      }
+      require(message.has_open_sequence(), "expected sequence open");
       const auto open = message.open_sequence();
       require(open.protocol_version() == 1 && open.deployment_id() == "hllm-link-probe-v1" &&
                   open.deployment_version() == 1 && !open.request_id().empty() &&
@@ -242,7 +315,9 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
                       end.request_id() == open.request_id() && end.microbatch_id() == 0 &&
                       end.state() == v1::TERMINAL_STATE_COMPLETED && !end.has_error(),
                       "invalid probe termination");
-          require(stream->Write(message), "termination acknowledgment failed");
+          if (!stream->Write(message)) {
+            throw RpcFailure({grpc::StatusCode::UNAVAILABLE, "termination acknowledgment failed"});
+          }
           return grpc::Status::OK;
         }
         require(sequence < open.maximum_new_tokens() && message.has_tensor(), "unexpected probe message");
@@ -264,11 +339,13 @@ class Probe final : public v1::WorkerControl::Service, public v1::StageExecution
         token->set_sequence_number(sequence++);
         token->set_token_position(position);
         token->set_token_id(0);
-        require(stream->Write(reply), "feedback write failed");
+        if (!stream->Write(reply)) {
+          throw RpcFailure({grpc::StatusCode::UNAVAILABLE, "feedback write failed"});
+        }
       }
-      throw std::invalid_argument("probe stream ended without termination");
+      throw RpcFailure({grpc::StatusCode::DATA_LOSS, "probe stream ended without termination"});
     } catch (const std::exception& error) {
-      return {grpc::StatusCode::INVALID_ARGUMENT, error.what()};
+      return failure(error, *context, deadline);
     }
   }
  private:
