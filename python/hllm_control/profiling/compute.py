@@ -32,24 +32,18 @@ def summarize_compute(artifact: ProfileArtifact) -> dict[str, object]:
         for g, values in groups.items()
     ]
     comparisons: list[dict[str, object]] = []
-    for b in buckets:
-        if b["component"] != "stage" or b["timing_mode"] != "whole-stage":
+    for (phase, context, component, _layer, mode), values in groups.items():
+        if component != "stage" or mode != "whole-stage":
             continue
-        key = (
-            str(b["phase"]),
-            int(str(b["context_tokens"])),
-            "stage",
-            None,
-            "component-synchronized",
-        )
+        key = (phase, context, component, None, "component-synchronized")
         instrumented = groups.get(key)
         if instrumented:
-            baseline = float(str(b["median_ms"]))
+            baseline = median(values)
             detailed = median(instrumented)
             comparisons.append(
                 {
-                    "phase": b["phase"],
-                    "context_tokens": b["context_tokens"],
+                    "phase": phase,
+                    "context_tokens": context,
                     "whole_stage_ms": baseline,
                     "instrumented_ms": detailed,
                     "overhead_fraction": detailed / baseline - 1 if baseline > 0 else None,

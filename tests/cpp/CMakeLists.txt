@@ -140,7 +140,7 @@ foreach(backend IN ITEMS cpu mlx cuda)
       COMMAND ${CMAKE_COMMAND} -E env
         HLLM_MEMORY_PROFILER=$<TARGET_FILE:hllm-profile-memory-${backend}>
         HLLM_PROFILE_BACKEND=${backend}
-        ${HLLM_UV_EXECUTABLE} run pytest tests/profiling -q)
+        ${HLLM_UV_EXECUTABLE} run pytest tests/profiling/test_memory_process.py -q)
     set_tests_properties(MemoryProfile-${backend} PROPERTIES
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180)
   endif()
