@@ -424,6 +424,7 @@ def run(
             job_dir = directory / job
             job_dir.mkdir(parents=True, exist_ok=True)
             output = job_dir / "result.json"
+            executed = False
             if output.exists():
                 saved = json.loads(output.read_text())
                 if saved["digest"] != digest(saved["result"]):
@@ -439,13 +440,18 @@ def run(
                 data = result.model_dump(mode="json")
                 write_exclusive(output, {"result": data, "digest": digest(data)})
                 launched += 1
+                executed = True
             validate_result(spec, result, job, plan)
             evidence = json.loads((job_dir / "evidence.json").read_text())
             if digest(evidence) != result.evidence_digest:
                 raise ValueError("raw sweep evidence was changed")
             results.append(result)
-            if result.detail.startswith("interrupted"):
-                return summarize(spec, results)
+            # Stop this invocation on a fresh interrupt, but retain and walk past
+            # earlier failed attempts when resuming. They still prevent acceptance.
+            if executed and result.detail.startswith("interrupted"):
+                summary = summarize(spec, results)
+                (directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+                return summary
         summary = summarize(spec, results)
         (directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
         if round_index + 1 >= spec.repetitions and summary["decision"] != "inconclusive":

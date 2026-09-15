@@ -121,6 +121,49 @@ def test_wrong_workload_and_divergence_cannot_win(tmp_path: Path, key: ProfileKe
     assert summarize(spec, [result])["decision"] == "incomplete"
 
 
+@pytest.mark.parametrize("interrupted_index", [0, 1])
+def test_resume_after_interrupt_preserves_failed_attempt(tmp_path, key, interrupted_index):
+    spec = sweep_fixture(tmp_path, key)
+    directory = tmp_path / "sweep"
+    launched = []
+
+    def execute(spec, job, plan, output):
+        result = fake(spec, job, plan, output)
+        launched.append(job)
+        if len(launched) == interrupted_index + 1:
+            return result.model_copy(
+                update={
+                    "status": "unknown",
+                    "sample": None,
+                    "warmups": (),
+                    "cleanup_passed": False,
+                    "selected_health_passed": None,
+                    "detail": "interrupted; immutable attempt retained",
+                }
+            )
+        return result
+
+    assert run(spec, directory, execute)["decision"] == "incomplete"
+    assert len(launched) == interrupted_index + 1
+    assert json.loads((directory / "summary.json").read_text())["decision"] == "incomplete"
+    retained = {p: p.read_bytes() for job in launched for p in (directory / job).glob("*.json")}
+    assert run(spec, directory, execute, maximum_jobs=2)["decision"] == "incomplete"
+    assert len(launched) == interrupted_index + 3
+    final = run(spec, directory, execute)
+    # A failed reference prevents the stability gate; a failed candidate
+    # prevents complete placement coverage. Neither can qualify the sweep.
+    assert final["decision"] == ("unstable" if interrupted_index == 0 else "incomplete")
+    assert final["complete_coverage"] is (interrupted_index == 0)
+    assert len(launched) == spec.repetitions * len(schedule(spec, 0))
+    assert len(set(launched)) == len(launched)
+    assert all(p.read_bytes() == original for p, original in retained.items())
+
+    def unexpected(*_args):
+        raise AssertionError("saved attempts must not be rerun")
+
+    assert run(spec, directory, unexpected) == final
+
+
 def test_drift_does_not_pass(tmp_path: Path, key: ProfileKey):
     spec = sweep_fixture(tmp_path, key)
     directory = tmp_path / "sweep"
