@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import struct
+import time
 from pathlib import Path
 
 import grpc
@@ -15,6 +16,7 @@ from hllm_control.proto import (
     execution_pb2,
     execution_pb2_grpc,
 )
+from hllm_control.wire import deployment_plan_to_proto, model_manifest_to_proto
 
 from tests.process_contracts import (
     check_admission_rollback,
@@ -130,6 +132,69 @@ def test_client_cancellation_and_worker_loss_cleanup(tmp_path: Path) -> None:
 
 def test_stage_protocol_rejects_wrong_order_and_disconnects(tmp_path: Path) -> None:
     check_stage_protocol(tmp_path, Workers)
+
+
+def test_generation_recovers_after_downstream_restart_without_reloading_upstream(tmp_path):
+    manifest = write_model(tmp_path)
+    deployment = plan(manifest)
+    with Workers(tmp_path) as workers:
+        upstream_pid = workers.processes[0].pid
+        with DeploymentSession(manifest, deployment, workers.endpoints) as session:
+            expected = tokens(session, count=4)
+            for _ in range(2):
+                workers.processes[1].kill()
+                workers.processes[1].wait(timeout=5)
+                with pytest.raises(grpc.RpcError) as failure:
+                    tokens(session, count=4, timeout=0.5)
+                assert failure.value.code() in (
+                    grpc.StatusCode.UNAVAILABLE,
+                    grpc.StatusCode.DEADLINE_EXCEEDED,
+                )
+                memory = workers.controls[0].GetMemoryReport(common_pb2.Empty(), timeout=2)
+                assert memory.active_requests == 0
+                assert memory.reserved_cache_bytes == 0
+                assert memory.reserved_workspace_bytes == 0
+                assert memory.loaded_weight_bytes > 0
+
+                workers.restart(1)
+                empty = workers.controls[1].GetMemoryReport(common_pb2.Empty(), timeout=2)
+                assert empty.loaded_weight_bytes == 0
+                loaded = workers.controls[1].LoadStage(
+                    control_pb2.LoadStageRequest(
+                        plan=deployment_plan_to_proto(deployment),
+                        manifest=model_manifest_to_proto(manifest),
+                        stage_index=1,
+                        stage_endpoints=[
+                            control_pb2.StageEndpoint(
+                                stage_index=s.stage_index,
+                                worker_id=s.worker_id,
+                                endpoint=workers.endpoints[s.worker_id],
+                            )
+                            for s in deployment.stages
+                        ],
+                    ),
+                    timeout=5,
+                )
+                assert loaded.accepted, loaded.detail
+                # Serving retains fail-fast semantics while the cached channel
+                # reconnects. Only the test retries, with a bounded recovery window.
+                until = time.monotonic() + 10
+                while True:
+                    try:
+                        assert tokens(session, count=4, timeout=2) == expected
+                        # The controller's separate control channel must also
+                        # reconnect before its best-effort unload on context exit.
+                        assert all(r.active_requests == 0 for r in session.memory_reports())
+                        break
+                    except grpc.RpcError as error:
+                        assert error.code() == grpc.StatusCode.UNAVAILABLE
+                        assert time.monotonic() < until, "cached downstream channel did not recover"
+                        wait_clean(workers)
+                        time.sleep(0.05)
+                assert workers.processes[0].pid == upstream_pid
+                wait_clean(workers)
+                assert tokens(session, count=4) == expected
+        wait_clean(workers, loaded=False)
 
 
 def test_idle_stage_deadline_and_control_cancellation(tmp_path: Path) -> None:

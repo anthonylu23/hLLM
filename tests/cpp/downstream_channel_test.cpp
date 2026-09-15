@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <chrono>
 #include <thread>
 
 #include "hllm/worker/execution_service.hpp"
@@ -48,6 +49,52 @@ TEST(DownstreamChannel, ChannelLifetimeFollowsDeploymentAndOutstandingUsers) {
 TEST(DownstreamChannel, MissingEndpointFailsBeforeCreatingChannel) {
   LoadedDeployment deployment;
   EXPECT_THROW(deployment.downstream_channel(), std::logic_error);
+}
+
+TEST(DownstreamChannel, CachedChannelReconnectsAfterPeerRestart) {
+  using namespace std::chrono_literals;
+  class Peer final : public v1::WorkerControl::Service {
+    grpc::Status GetCapabilities(grpc::ServerContext*, const v1::Empty*,
+                                  v1::Capabilities*) override {
+      return grpc::Status::OK;
+    }
+  } service;
+  int port = 0;
+  auto start = [&](const std::string& address) {
+    grpc::ServerBuilder builder;
+    builder.AddListeningPort(address, grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    return builder.BuildAndStart();
+  };
+  auto server = start("127.0.0.1:0");
+  ASSERT_TRUE(server);
+  const auto address = "127.0.0.1:" + std::to_string(port);
+  LoadedDeployment deployment;
+  endpoint(deployment, address);
+  const auto cached = deployment.downstream_channel();
+  auto stub = v1::WorkerControl::NewStub(cached);
+  auto call = [&] {
+    grpc::ClientContext context;
+    context.set_deadline(std::chrono::system_clock::now() + 2s);
+    v1::Capabilities response;
+    return stub->GetCapabilities(&context, {}, &response);
+  };
+  ASSERT_TRUE(call().ok());
+  server->Shutdown();
+  server.reset();
+  EXPECT_EQ(call().error_code(), grpc::StatusCode::UNAVAILABLE);
+  const auto until = std::chrono::system_clock::now() + 5s;
+  while (cached->GetState(true) != GRPC_CHANNEL_TRANSIENT_FAILURE &&
+         std::chrono::system_clock::now() < until) {
+    std::this_thread::sleep_for(5ms);
+  }
+  ASSERT_EQ(cached->GetState(false), GRPC_CHANNEL_TRANSIENT_FAILURE);
+  server = start(address);
+  ASSERT_TRUE(server);
+  EXPECT_EQ(deployment.downstream_channel(), cached);
+  EXPECT_TRUE(cached->WaitForConnected(std::chrono::system_clock::now() + 10s));
+  EXPECT_TRUE(call().ok());
+  server->Shutdown();
 }
 
 }  // namespace
