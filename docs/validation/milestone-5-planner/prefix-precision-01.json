@@ -1,0 +1,53 @@
+{
+  "audited_at": "2026-09-11T10:18:28.760900+00:00",
+  "scope": "CUDA firstlayer0 feeding unchanged MLX suffix1; 256 teacher-forced outputs",
+  "native_control_matches_all_256_boundaries_byte_for_byte": true,
+  "variants": [
+    {
+      "variant": "oracle_rope",
+      "exact": true,
+      "mismatches": []
+    },
+    {
+      "variant": "oracle_attention",
+      "exact": true,
+      "mismatches": []
+    },
+    {
+      "variant": "oracle_both",
+      "exact": true,
+      "mismatches": []
+    }
+  ],
+  "boundary_errors_at_index145": {
+    "native": {
+      "relative_l2_to_f32_rounded_boundary": 0.0005914771680979415,
+      "maximum_absolute_difference": 0.001953125
+    },
+    "oracle_rope": {
+      "relative_l2_to_f32_rounded_boundary": 0.0005942498035851456,
+      "maximum_absolute_difference": 0.0009765625
+    },
+    "oracle_attention": {
+      "relative_l2_to_f32_rounded_boundary": 0.0008223214400613711,
+      "maximum_absolute_difference": 0.001953125
+    },
+    "oracle_both": {
+      "relative_l2_to_f32_rounded_boundary": 0.0008166454826500674,
+      "maximum_absolute_difference": 0.001953125
+    }
+  },
+  "sha256": {
+    "oracle_rope.json": "6cc13eb35544ff35976c8157aedfd1efe0717f5a35e989d7956057ccfc184af8",
+    "oracle_both-result.json": "b039dfa9d36e637da83c2c885f02c27252b77c99f200031227a277d11895a6dd",
+    "boundary-errors.json": "e93cdd3f22eb7a9c6b9d2f39f6dc9ac3b02b289fd15b14a892e1b60a88b06506",
+    "native.json": "4c39c76be855f8ff94b80f49ad4dd70eaff22a1d39ce51eb621aeac207fcb2e6",
+    "oracle_attention-result.json": "c764758a2bc2c8a89896831a4e45d143531fb25e179d6a234539c61cd8716fba",
+    "oracle_rope-result.json": "2073baa185cff040d106425283c863185f1f3d6495de41656031acbc0b46dc82",
+    "oracle_both.json": "dd383e855eb9484e92a2693aee2e257be10a135186d7f78bb5e02401e282f11a",
+    "oracle_attention.json": "3a838fe549f75822e0bf087f67f04858bcddc0522d99721a5e5c4993c8dd07a5"
+  },
+  "producer_sha256": "a990f4d9f5c1e5db68d62afa791a3e10af0d47e3de21db323f774da309112ab8",
+  "interpretation": "Native F32 rotary and attention arithmetic is reproduced exactly. Each isolated oracle-style rounding variant recovers exact tokens, but each increases relative L2 boundary error versus the F32 oracle at the affected step. This supports sensitivity to rounding paths and does not justify lowering precision or changing production kernels solely to match the token.",
+  "production_change": false
+}

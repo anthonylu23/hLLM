@@ -1,0 +1,331 @@
+{
+  "candidate_id": "mlx--cuda-m001",
+  "comparison_only": true,
+  "completed": true,
+  "diagnostic_only": true,
+  "drift_fraction": 0.43082183958167386,
+  "exact_full_requests": 18,
+  "limit": 0.1,
+  "samples": [
+    {
+      "condition": "baseline",
+      "evidence_digest": "13b7bd637e1fd31cdb76133248e4cfe0e74e517be2e9b000152b527a00d7eb9a",
+      "generation_ms": 21524.10004194826,
+      "job": "stability-00",
+      "native_setup_ms": 0.386625,
+      "native_ttft_ms": 326.729542,
+      "ttft_ms": 328.75241711735725,
+      "timed_trace": {
+        "generate": {
+          "client_write": {
+            "total_ms": 26.800000000011266,
+            "prefill_ms": 0.25000000000005684
+          },
+          "peer_read": {
+            "total_ms": 19788.51899999999,
+            "prefill_ms": 207.63400000000001
+          },
+          "encode_tensor": {
+            "total_ms": 2.5390999999992907,
+            "prefill_ms": 0.5211000000000006
+          },
+          "peer_write": {
+            "total_ms": 111.15839999999412,
+            "prefill_ms": 86.65039999999999
+          },
+          "compute": {
+            "total_ms": 1559.8600829999991,
+            "prefill_ms": 29.881083
+          }
+        },
+        "execute": {
+          "decode_tensor": {
+            "total_ms": 0.7949999999919442,
+            "prefill_ms": 0.2599999999999909
+          },
+          "write": {
+            "total_ms": 5.435000000013872,
+            "prefill_ms": 0.045000000000015916
+          },
+          "read": {
+            "total_ms": 15693.155659000022,
+            "prefill_ms": 181.453659
+          },
+          "compute": {
+            "total_ms": 5777.644,
+            "prefill_ms": 92.88799999999998
+          }
+        }
+      }
+    },
+    {
+      "condition": "window",
+      "evidence_digest": "81ee392201fc007d6b5878e5ffc7ab98e753de7d2eb3ee4b41d9a651748b85c0",
+      "generation_ms": 24094.398208893836,
+      "job": "stability-01",
+      "native_setup_ms": 0.155417,
+      "native_ttft_ms": 1521.16725,
+      "ttft_ms": 1522.3377919755876,
+      "timed_trace": {
+        "generate": {
+          "client_write": {
+            "total_ms": 10.839999999999009,
+            "prefill_ms": 0.049999999999954525
+          },
+          "peer_read": {
+            "total_ms": 21732.28999999998,
+            "prefill_ms": 278.27
+          },
+          "encode_tensor": {
+            "total_ms": 1.7498000000026934,
+            "prefill_ms": 0.21979999999999222
+          },
+          "peer_write": {
+            "total_ms": 1195.8454999999692,
+            "prefill_ms": 1171.7655
+          },
+          "compute": {
+            "total_ms": 1116.7143500000022,
+            "prefill_ms": 69.78435
+          }
+        },
+        "execute": {
+          "decode_tensor": {
+            "total_ms": 0.9899999999984175,
+            "prefill_ms": 0.2300000000000182
+          },
+          "write": {
+            "total_ms": 6.699999999981401,
+            "prefill_ms": 0.0500000000001819
+          },
+          "read": {
+            "total_ms": 18265.60689900001,
+            "prefill_ms": 1338.166899
+          },
+          "compute": {
+            "total_ms": 5774.840000000024,
+            "prefill_ms": 92.99000000000001
+          }
+        }
+      }
+    },
+    {
+      "condition": "window",
+      "evidence_digest": "bb0399990941366ddd5aa6f5c494086f8ace825e6e75790b063e156ef2802a13",
+      "generation_ms": 20859.526415821165,
+      "job": "stability-02",
+      "native_setup_ms": 0.23,
+      "native_ttft_ms": 316.530292,
+      "ttft_ms": 318.73254058882594,
+      "timed_trace": {
+        "generate": {
+          "client_write": {
+            "total_ms": 25.804999999985228,
+            "prefill_ms": 0.23200000000002774
+          },
+          "peer_read": {
+            "total_ms": 19175.65800000001,
+            "prefill_ms": 237.1
+          },
+          "encode_tensor": {
+            "total_ms": 1.4168000000040166,
+            "prefill_ms": 0.5097999999999985
+          },
+          "peer_write": {
+            "total_ms": 81.66719999998274,
+            "prefill_ms": 56.28320000000001
+          },
+          "compute": {
+            "total_ms": 1538.3969500000076,
+            "prefill_ms": 20.847949999999997
+          }
+        },
+        "execute": {
+          "decode_tensor": {
+            "total_ms": 0.34700000000134423,
+            "prefill_ms": 0.2330000000000041
+          },
+          "write": {
+            "total_ms": 5.715000000004693,
+            "prefill_ms": 0.036000000000001364
+          },
+          "read": {
+            "total_ms": 15047.652208999985,
+            "prefill_ms": 166.307209
+          },
+          "compute": {
+            "total_ms": 5755.180000000006,
+            "prefill_ms": 92.83999999999997
+          }
+        }
+      }
+    },
+    {
+      "condition": "baseline",
+      "evidence_digest": "1535a6c1e4f81fb3e37894f2c6c6d58c1bcaecd4099f33d36a4ff39ecce16b0e",
+      "generation_ms": 23142.592000309378,
+      "job": "stability-03",
+      "native_setup_ms": 0.240749,
+      "native_ttft_ms": 1265.255625,
+      "ttft_ms": 1267.3214580863714,
+      "timed_trace": {
+        "generate": {
+          "client_write": {
+            "total_ms": 30.64999999998645,
+            "prefill_ms": 0.2800000000002001
+          },
+          "peer_read": {
+            "total_ms": 20761.290000000005,
+            "prefill_ms": 263.11
+          },
+          "encode_tensor": {
+            "total_ms": 1.6903999999955168,
+            "prefill_ms": 0.5104000000000006
+          },
+          "peer_write": {
+            "total_ms": 997.2239999999905,
+            "prefill_ms": 971.3539999999999
+          },
+          "compute": {
+            "total_ms": 1263.263475000007,
+            "prefill_ms": 28.503475
+          }
+        },
+        "execute": {
+          "decode_tensor": {
+            "total_ms": 0.9000000000016826,
+            "prefill_ms": 0.650000000000091
+          },
+          "write": {
+            "total_ms": 5.899999999991223,
+            "prefill_ms": 0.049999999999954525
+          },
+          "read": {
+            "total_ms": 17306.200589000015,
+            "prefill_ms": 1108.990589
+          },
+          "compute": {
+            "total_ms": 5780.389999999992,
+            "prefill_ms": 93.90000000000009
+          }
+        }
+      }
+    },
+    {
+      "condition": "baseline",
+      "evidence_digest": "2afd2ff53decc8cd27197727cb832e5b0f14278aed5ffc332245a54207c8a086",
+      "generation_ms": 21649.09458393231,
+      "job": "stability-04",
+      "native_setup_ms": 0.31225,
+      "native_ttft_ms": 543.005875,
+      "ttft_ms": 545.163375325501,
+      "timed_trace": {
+        "generate": {
+          "client_write": {
+            "total_ms": 24.60300000001746,
+            "prefill_ms": 0.2380000000000564
+          },
+          "peer_read": {
+            "total_ms": 19792.61500000001,
+            "prefill_ms": 187.048
+          },
+          "encode_tensor": {
+            "total_ms": 1.7781999999989146,
+            "prefill_ms": 0.3092000000000006
+          },
+          "peer_write": {
+            "total_ms": 351.6597000000125,
+            "prefill_ms": 326.2077
+          },
+          "compute": {
+            "total_ms": 1445.2424749999673,
+            "prefill_ms": 27.489475000000002
+          }
+        },
+        "execute": {
+          "decode_tensor": {
+            "total_ms": 1.1570000000024834,
+            "prefill_ms": 0.6270000000000095
+          },
+          "write": {
+            "total_ms": 5.691999999997336,
+            "prefill_ms": 0.045000000000015916
+          },
+          "read": {
+            "total_ms": 15848.092008999985,
+            "prefill_ms": 391.70700899999997
+          },
+          "compute": {
+            "total_ms": 5753.871999999981,
+            "prefill_ms": 93.90899999999999
+          }
+        }
+      }
+    },
+    {
+      "condition": "window",
+      "evidence_digest": "f86551dea9c4227b0e469b6face1a674df922978e17a8b6c85fd3ba92336569e",
+      "generation_ms": 29846.26595908776,
+      "job": "stability-05",
+      "native_setup_ms": 0.225083,
+      "native_ttft_ms": 684.928208,
+      "ttft_ms": 687.1591252274811,
+      "timed_trace": {
+        "generate": {
+          "client_write": {
+            "total_ms": 21.62500000000375,
+            "prefill_ms": 0.2279999999999518
+          },
+          "peer_read": {
+            "total_ms": 27719.62700000001,
+            "prefill_ms": 457.621
+          },
+          "encode_tensor": {
+            "total_ms": 1.5882999999998368,
+            "prefill_ms": 0.5092999999999996
+          },
+          "peer_write": {
+            "total_ms": 271.689499999993,
+            "prefill_ms": 197.1045
+          },
+          "compute": {
+            "total_ms": 1793.2418249999794,
+            "prefill_ms": 28.033825
+          }
+        },
+        "execute": {
+          "decode_tensor": {
+            "total_ms": 0.5920000000025425,
+            "prefill_ms": 0.26600000000001955
+          },
+          "write": {
+            "total_ms": 5.537000000005435,
+            "prefill_ms": 0.06999999999999318
+          },
+          "read": {
+            "total_ms": 24025.48226900001,
+            "prefill_ms": 278.95926899999995
+          },
+          "compute": {
+            "total_ms": 5764.58299999999,
+            "prefill_ms": 92.89499999999998
+          }
+        }
+      }
+    }
+  ],
+  "paired_window_over_baseline_minus_one": [
+    0.11941489595087962,
+    -0.09865211228101378,
+    0.37863806929086485
+  ],
+  "accepted": false,
+  "exact_outputs_digests_traces_cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "conclusion": "No consistent improvement from2MiB initial server receive window with adaptiveBDP retained; do not adopt in production. Paired timings are sequential smallN diagnostics, not causal proof of harm.",
+  "next": "One bounded baseline diagnostic job with gRPC flowctl and bdp_estimator logging on both hosts to observe advertised window updates directly. Tracing perturbs execution; use for mechanism only, never timing acceptance."
+}

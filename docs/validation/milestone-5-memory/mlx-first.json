@@ -1,0 +1,714 @@
+{
+  "artifact_digest": "5e654b0d016f6382ab07fc23c06665d56c59e0ba8af99d7364a56cd8a803070c",
+  "conditions": {
+    "concurrent_load": "macOS desktop and background indexing; no competing inference",
+    "measured_at": "2026-09-08T16:07:42.088072Z",
+    "measured_cycles": 2,
+    "notes": [
+      "Synthetic shape exercise; not a correctness or timing benchmark.",
+      "External physical sampling is a lower bound; RSS high water is lifetime."
+    ],
+    "process_policy": "fresh-process-then-reloads",
+    "warmup_cycles": 0
+  },
+  "key": {
+    "assignment": {
+      "layer_end": 14,
+      "layer_start": 0,
+      "owns_final_norm": false,
+      "owns_lm_head": false,
+      "owns_sampling": false,
+      "owns_token_embedding": true,
+      "stage_index": 0,
+      "worker_id": "mlx"
+    },
+    "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+    "environment": {
+      "allocator": "mlx-metal",
+      "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 2936012800}}",
+      "backend": "mlx",
+      "backend_version": "0.32.2",
+      "binary_digest": "cbf7b3c564e7b3c6d9d1d4dc3312828e506ed64bbd9fa9b105b74b4c1dfa380e",
+      "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+      "device_identity": "253bd9c5f80cdb7e22f05da53822736420665c69dafed64310a9163fcef36ba3",
+      "device_name": "Apple Metal; Apple M3 Pro; Mac15,6",
+      "driver_version": "os-bundled",
+      "os": "macOS-26.5.1-arm64-arm-64bit;kernel=Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:06 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6030",
+      "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:bb0ef9a3945fbdccd58750a6397da2053c0560b1f59f40b151652c8ef87a8782"
+    },
+    "execution_dtype": "F16",
+    "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+    "input_kind": "synthetic-shape",
+    "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+    "transport_mode": "pageable",
+    "workload": {
+      "activation_dtype": "F16",
+      "concurrency": 1,
+      "kv_dtype": "F16",
+      "kv_overhead_factor": 1.1,
+      "output_tokens": 256,
+      "prompt_tokens": 512,
+      "schema_version": "1.0",
+      "total_cached_tokens": 768,
+      "workload_id": "milestone-5-512-256"
+    },
+    "workload_digest": "99b2cb44c09576465253366e0de039bd539ac61bbdefdc666072cdd8576f69ef"
+  },
+  "measurement": {
+    "admission_capacity": {
+      "device": 0,
+      "host": 0,
+      "pinned": 0,
+      "unified": 2936012800
+    },
+    "completed": true,
+    "error": null,
+    "execution": "isolated-stage-shape-exercise",
+    "kind": "memory",
+    "physical_sample_interval_seconds": 0.25,
+    "physical_samples": [
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 4.2582862079143524e-05,
+        "rss_bytes": 294912
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 0.2574843745678663,
+        "rss_bytes": 314802176
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 0.521868999581784,
+        "rss_bytes": 965050368
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 0.7864857907406986,
+        "rss_bytes": 965050368
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 1.042502415832132,
+        "rss_bytes": 1539899392
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 1.3125327499583364,
+        "rss_bytes": 924647424
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 1.5763631658628583,
+        "rss_bytes": 941506560
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 1.831078332848847,
+        "rss_bytes": 958382080
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 2.0945625826716423,
+        "rss_bytes": 952451072
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 2.358076165895909,
+        "rss_bytes": 949256192
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 2.621781415771693,
+        "rss_bytes": 949256192
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 2.8854034999385476,
+        "rss_bytes": 949272576
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 3.1488051246851683,
+        "rss_bytes": 949288960
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 3.412538915872574,
+        "rss_bytes": 949321728
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 3.6761770406737924,
+        "rss_bytes": 949436416
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 3.939821290783584,
+        "rss_bytes": 949452800
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 4.1998512907885015,
+        "rss_bytes": 949452800
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 4.463416124694049,
+        "rss_bytes": 949452800
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 4.726836790796369,
+        "rss_bytes": 949452800
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 4.990518165752292,
+        "rss_bytes": 949452800
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 5.2539805406704545,
+        "rss_bytes": 1007173632
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 5.518638332840055,
+        "rss_bytes": 986202112
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 5.782345290761441,
+        "rss_bytes": 1290764288
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 6.045847415924072,
+        "rss_bytes": 1019592704
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 6.35673604067415,
+        "rss_bytes": 1036402688
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 6.620486124884337,
+        "rss_bytes": 1053196288
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 6.88395783258602,
+        "rss_bytes": 1069989888
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 7.1499987076967955,
+        "rss_bytes": 1044938752
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 7.413756165653467,
+        "rss_bytes": 1045020672
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 7.688488165847957,
+        "rss_bytes": 422723584
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 7.9520696247927845,
+        "rss_bytes": 422690816
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 8.216096499934793,
+        "rss_bytes": 422690816
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 8.48012899979949,
+        "rss_bytes": 422690816
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 8.744178124703467,
+        "rss_bytes": 422690816
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 9.008332999888808,
+        "rss_bytes": 422690816
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 9.27221604064107,
+        "rss_bytes": 422690816
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 9.536053290590644,
+        "rss_bytes": 422707200
+      },
+      {
+        "device_process_bytes": null,
+        "elapsed_seconds": 9.80001112492755,
+        "rss_bytes": 422707200
+      }
+    ],
+    "samples": [
+      {
+        "allocator": {
+          "active_bytes": 0,
+          "cached_bytes": 24,
+          "peak_bytes": 24,
+          "peak_scope": "unavailable"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 0,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "baseline",
+        "rss_bytes": 31391744,
+        "rss_lifetime_peak_bytes": 31391744,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 751631360,
+          "cached_bytes": 25170432,
+          "peak_bytes": 933494784,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 0,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "load",
+        "rss_bytes": 971030528,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 795671552,
+          "cached_bytes": 25170440,
+          "peak_bytes": 795671556,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 44040192
+        },
+        "completed_steps": 0,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "allocate",
+        "rss_bytes": 971194368,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 670720000
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 795671552,
+          "cached_bytes": 67426848,
+          "peak_bytes": 954068536,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 44040192
+        },
+        "completed_steps": 1,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "prefill",
+        "rss_bytes": 953745408,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 670720000
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 795671552,
+          "cached_bytes": 63006196,
+          "peak_bytes": 814860812,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 44040192
+        },
+        "completed_steps": 256,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "decode",
+        "rss_bytes": 949452800,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 670720000
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 751631360,
+          "cached_bytes": 67724788,
+          "peak_bytes": 795671552,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 256,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "request_cleanup",
+        "rss_bytes": 949452800,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 0,
+          "cached_bytes": 67724788,
+          "peak_bytes": 751631360,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 256,
+        "cycle": 0,
+        "device_available_bytes": null,
+        "phase": "unload",
+        "rss_bytes": 945258496,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 0,
+          "cached_bytes": 67724788,
+          "peak_bytes": 0,
+          "peak_scope": "unavailable"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 0,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "baseline",
+        "rss_bytes": 945258496,
+        "rss_lifetime_peak_bytes": 1580728320,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 751631360,
+          "cached_bytes": 25170432,
+          "peak_bytes": 933494784,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 0,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "load",
+        "rss_bytes": 1069989888,
+        "rss_lifetime_peak_bytes": 1621114880,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 795671552,
+          "cached_bytes": 25170440,
+          "peak_bytes": 795671556,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 44040192
+        },
+        "completed_steps": 0,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "allocate",
+        "rss_bytes": 1069989888,
+        "rss_lifetime_peak_bytes": 1621114880,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 670720000
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 795671552,
+          "cached_bytes": 67426848,
+          "peak_bytes": 954068536,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 44040192
+        },
+        "completed_steps": 1,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "prefill",
+        "rss_bytes": 1050034176,
+        "rss_lifetime_peak_bytes": 1621114880,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 670720000
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 795671552,
+          "cached_bytes": 63019320,
+          "peak_bytes": 814857628,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 44040192
+        },
+        "completed_steps": 256,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "decode",
+        "rss_bytes": 422707200,
+        "rss_lifetime_peak_bytes": 1621114880,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 670720000
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 751631360,
+          "cached_bytes": 67737912,
+          "peak_bytes": 795671552,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 256,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "request_cleanup",
+        "rss_bytes": 422723584,
+        "rss_lifetime_peak_bytes": 1621114880,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 751631360
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      },
+      {
+        "allocator": {
+          "active_bytes": 0,
+          "cached_bytes": 67737912,
+          "peak_bytes": 751631360,
+          "peak_scope": "phase"
+        },
+        "cache": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "completed_steps": 256,
+        "cycle": 1,
+        "device_available_bytes": null,
+        "phase": "unload",
+        "rss_bytes": 422723584,
+        "rss_lifetime_peak_bytes": 1621114880,
+        "weights": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        },
+        "workspace": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 0
+        }
+      }
+    ]
+  },
+  "profiler_version": "0.1.0",
+  "schema_version": "1.0"
+}

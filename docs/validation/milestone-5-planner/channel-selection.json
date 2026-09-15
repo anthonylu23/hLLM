@@ -1,0 +1,15 @@
+{
+  "accepted": false,
+  "selection_qualified": true,
+  "runtime_commit": "6b9aeb8",
+  "selected_candidate_id": "mlx--cuda-m001",
+  "measured_candidates": 54,
+  "unknown_candidates": 0,
+  "bundle_digest": "3b0d1d2301f575bde1a3258f58a5f020abaa28423d817a6e5cd4a5f218b23d1e",
+  "plan_digest": "2a811a9877a554456d36affc4ee8224ea2cdf180997608d97d9f8bd766c0288b",
+  "report_digest": "87ac442e3cc29b57908b678f6ea9f1763a628736b51c39e815ef648b0ddfd5b3",
+  "profile_count": 216,
+  "exact_activation_tokens": 256,
+  "cleanup_passed": true,
+  "next": "Fresh independent sweep-channel-01, then separate comprehensive M5 audit."
+}

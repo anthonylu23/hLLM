@@ -1,0 +1,3488 @@
+{
+  "audited_at": "2026-09-11T05:19:38.918335+00:00",
+  "scope": "corrected MLX SiLU and refreshed CUDA; all54 assignments per backend, memory and compute",
+  "artifact_count": 216,
+  "audits": {
+    "mlx": {
+      "counts": {
+        "memory": 54,
+        "compute-run": 54
+      },
+      "audit_sha256": "afb1e0a4639d628acb95000321fd42657f9c04400ec4361e58d5529351f53b53",
+      "environment_digests": [
+        "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+        "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae"
+      ]
+    },
+    "cuda": {
+      "counts": {
+        "memory": 54,
+        "compute-run": 54
+      },
+      "audit_sha256": "e446546f2622ccca9e430be9e02d0263f94be05017ec7505a8e16d8e8ae44bfa",
+      "environment_digests": [
+        "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+        "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03"
+      ]
+    }
+  },
+  "profiles": [
+    {
+      "artifact_digest": "121bf6bf98e8eb890ff702332979ea347812ad61a561836b62ce01a0ea39a062",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:43:21.336953+00:00"
+    },
+    {
+      "artifact_digest": "dbac04a47c5a8e62ba4a1dd6ef03e96ce50528901208d363d3b4d0e249090a5a",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:43:10.617463+00:00"
+    },
+    {
+      "artifact_digest": "7d348eabc48f2a80a02f75598cd8aae7828fd704131410fd5eb0ce9e7c0dbe87",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 2,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:45:26.374404+00:00"
+    },
+    {
+      "artifact_digest": "ce757299e4bb9bb726b6dd48911a28b32d50f71f42661f6ad545964eca1de2e5",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 2,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:45:15.382942+00:00"
+    },
+    {
+      "artifact_digest": "268ccfc50f4c17446736a02f202001765d391bd3040747eeff545c4961dbf5d2",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 3,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:47:27.770304+00:00"
+    },
+    {
+      "artifact_digest": "dbb62b88df0e608ee876d943d65bec6ce35e226ed2ab5bfbd57062dd5d37b68c",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 3,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:47:18.516620+00:00"
+    },
+    {
+      "artifact_digest": "efa48e7a86b3c00f07393f815980dad7a7f608f072325cdf1b71290743838f23",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 4,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:49:25.366399+00:00"
+    },
+    {
+      "artifact_digest": "61db8348c61cc239f4141fc9373983546bc8caf8b97f125c217be2aabb3bf029",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 4,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:49:16.349016+00:00"
+    },
+    {
+      "artifact_digest": "5a1d779d7949d7d05876e297ae4ffcbb8e658fbebcaea732be471b1f85bb6ba6",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 5,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:51:27.068567+00:00"
+    },
+    {
+      "artifact_digest": "a996f5d2dbdafc3fbb0e38ed8d6c30ff0d0ad1c89cd9a4891b1510456cec881f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 5,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:51:18.328288+00:00"
+    },
+    {
+      "artifact_digest": "79b54eb37fb55ffd48063a086326289b64f2293871a835eb682c6aa90ad99c14",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 6,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:53:25.021754+00:00"
+    },
+    {
+      "artifact_digest": "c5ff25d675110ca59904bb44350906e406a1d9ced6fb47cfdebe5ba266a505f9",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 6,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:53:16.591877+00:00"
+    },
+    {
+      "artifact_digest": "92e602b5f98f81849f48de135738a7719d485d684535c3875fcde7b8945bab62",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 7,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:55:23.254568+00:00"
+    },
+    {
+      "artifact_digest": "86ddc2b9a2f9d431ca6cde4f4532f5a6608615bb8ac4a4d052272af19c11d4e1",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 7,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:55:15.027842+00:00"
+    },
+    {
+      "artifact_digest": "641cc245f5756d32b67a167199a96c14b765b7d7047d3e70e85724a59f596863",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 8,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:57:21.179943+00:00"
+    },
+    {
+      "artifact_digest": "8d27f0b97e43aa58d7b18be96bddd49de9b56a1d11cecfdab346c8a22fa8e858",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 8,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:57:13.198344+00:00"
+    },
+    {
+      "artifact_digest": "4eaa0fdb2783a5d67a5d948ef190f6d079d1e78264c27b706747eb37a021c876",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 9,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:59:21.810306+00:00"
+    },
+    {
+      "artifact_digest": "a02d2590b218a58a4bafc7857e81c9acb36441ba64b64ec7fc411102d377b955",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 9,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:59:13.533154+00:00"
+    },
+    {
+      "artifact_digest": "92718aa42705472ab02ac7ffff5bfee9edd30d2c33fd2f98d083c5a3ffe6c520",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 10,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:01:22.864577+00:00"
+    },
+    {
+      "artifact_digest": "1efcd3c7854db84e6d701d1fd17553bd346da57059f3c043991c7ed6aeb0bf64",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 10,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:01:15.390419+00:00"
+    },
+    {
+      "artifact_digest": "da28859326db1e0053d350c7f777b8cceae1876797b3c38b58c0042c3ec56b41",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 11,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:03:20.701072+00:00"
+    },
+    {
+      "artifact_digest": "4e7597f72bd2d004b5d17fc3349563ae28df710fc461c4aefc613b1f6b373aa5",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 11,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:03:13.517913+00:00"
+    },
+    {
+      "artifact_digest": "c78fbf26190f967f6bc159e47125e5adcf0ca96d16e7298b8bd10634987f7d7f",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 12,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:05:21.433179+00:00"
+    },
+    {
+      "artifact_digest": "cf6aa63fb8190e14d4a71cb38a5670d6a30b80935551385061a6caf60556188f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 12,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:05:14.525050+00:00"
+    },
+    {
+      "artifact_digest": "711999ee0ccbd3e1d8972b8bb9c11c35100bca6efbc3c0ceb282c224e6819951",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 13,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:07:19.231015+00:00"
+    },
+    {
+      "artifact_digest": "a1e9570da8d8e8c09ad30c4daa19351f7c6c7913fba3c0b004b7cf292299ca6a",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 13,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:07:12.595019+00:00"
+    },
+    {
+      "artifact_digest": "501a11f7ffcb520f883c90736f43325244c588bceb189c9a216a8ec19603f445",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 14,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:09:17.061709+00:00"
+    },
+    {
+      "artifact_digest": "2c0a3af9ec0546349f0bbd18e75fca575032ab7fa9f3f302d22bc2d95c22161d",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 14,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:09:10.652624+00:00"
+    },
+    {
+      "artifact_digest": "64d755257b6fe3f40adc0ae999a12af4b1b2b03281c2f04aa17b03ddbc1d3560",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 15,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:11:14.635337+00:00"
+    },
+    {
+      "artifact_digest": "b4836fc1a387e6a5845b94591f225dc9d13012c79514e09ba4868e40dbe4ddf6",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 15,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:11:08.472921+00:00"
+    },
+    {
+      "artifact_digest": "93e0dacc64644485ec5d760a48e15669cf6d7833a754a4835e58d8c3fbf49cd1",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 16,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:13:12.146079+00:00"
+    },
+    {
+      "artifact_digest": "47793ef9fd79a9b38c0236b5d6f1d53d651c82d4ca825eaa30aa22f7d3c7a705",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 16,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:13:06.264863+00:00"
+    },
+    {
+      "artifact_digest": "dc6c10a88f169fa2a2a9158fd66f533934470b00d4d2ee4c8e5905fbbabb9acc",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 17,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:15:09.739778+00:00"
+    },
+    {
+      "artifact_digest": "f307480946e9ec04e99354a53267bfc4009a4f45fdf200d2ef04ff763fc60abd",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 17,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:15:04.091113+00:00"
+    },
+    {
+      "artifact_digest": "a06ecc9e25b0c94fb84001cf96b429823f07015cb811a4dc846746ec4af11464",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 18,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:17:08.167037+00:00"
+    },
+    {
+      "artifact_digest": "c8a37a8e4258aaa9b6c5e091f8efd59b6c812b510dcec5a11ee59c499dc07343",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 18,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:17:02.786622+00:00"
+    },
+    {
+      "artifact_digest": "a893a9b038414334926c9a63acaa1a9782b5a62e5f228eb30d705aa10b2d4fa7",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 19,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:19:06.131682+00:00"
+    },
+    {
+      "artifact_digest": "96011eed096ccad8df636cdc6f30032aa3b3a98202500099ff6938c8af45c008",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 19,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:19:01.021115+00:00"
+    },
+    {
+      "artifact_digest": "70a06acb2a1c6870e010395efcb886e7fb22aad8ea1cbadcb42517dbde8d368a",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 20,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:21:04.246333+00:00"
+    },
+    {
+      "artifact_digest": "1a33d2c349d9b6d9e71b4c3cd4a179c0449bdd11dedbb167c87358cc7e5e1fca",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 20,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:20:59.396458+00:00"
+    },
+    {
+      "artifact_digest": "9c74ad6a041b09d29f71284baa07d57cb0aed6254f2ef57217b19f684d9462f8",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 21,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:23:03.214606+00:00"
+    },
+    {
+      "artifact_digest": "f2457fed5b82438616cdb9e2f4308a25b4a84629a224cefbfa22120221bc3783",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 21,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:22:58.613817+00:00"
+    },
+    {
+      "artifact_digest": "197084534edd7f591172473db76231607fd349b5e52eac579c39974027972304",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 22,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:25:01.453951+00:00"
+    },
+    {
+      "artifact_digest": "a524eb0526856b984af52390a54b97c899def425aa1005bf2487f5332d40982d",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 22,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:24:57.398363+00:00"
+    },
+    {
+      "artifact_digest": "d50bd9138bfb26b252229efbfee163070f824177b5b932e4bd203fdc8d7f4a34",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 23,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:26:59.880458+00:00"
+    },
+    {
+      "artifact_digest": "f59e56f4fc4768d117d394d278b6f9ec448b55a14d7b8198188b473dd54577df",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 23,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:26:56.070847+00:00"
+    },
+    {
+      "artifact_digest": "809fff23228233a239b5f521c231e3c3c9ace9084691c60bccfe31d483cf64cf",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 24,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:28:58.361175+00:00"
+    },
+    {
+      "artifact_digest": "cacf33458216a0c0aaa321ab9309af25f6d5e8731aa2b38251fdf0d5aa8e4405",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 24,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:28:54.840923+00:00"
+    },
+    {
+      "artifact_digest": "8f3ffe5dedd26af62f717f56e87942e31c4b6197885c785a3567bfb5eda69f67",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 25,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:31:01.216810+00:00"
+    },
+    {
+      "artifact_digest": "23f47f84205666958582deea7fa549f558461934f9642e22b70ef503c49b43e8",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 25,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:30:57.966076+00:00"
+    },
+    {
+      "artifact_digest": "60f829c67b77f245d00c133c3442db70d8122bfb067616c717e7b0fa8d1f4089",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 26,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:32:59.219033+00:00"
+    },
+    {
+      "artifact_digest": "f596c73de937fa1a261f57f5c71d970025e490b14220b4de97e12798c38dce29",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 26,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:32:56.216049+00:00"
+    },
+    {
+      "artifact_digest": "e9b11b7e6c4ec4644a285ec651d00464157af490075b89c44e61cc5a3a6708a7",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 27,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:34:57.748633+00:00"
+    },
+    {
+      "artifact_digest": "b17da672cb36bea374a1492543d472ee54cd24a7e6d49e5866d1a17d63d029e2",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 27,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:34:54.989892+00:00"
+    },
+    {
+      "artifact_digest": "f26e6d494b87d85cfea89bf89b162be3182e2e313ae4b8e13c6ea7dacecf0eac",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 1,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:43:00.910816+00:00"
+    },
+    {
+      "artifact_digest": "691f89ceb1d2725b268798f3f44b085d34f28b64500a2a253672cca206967856",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 1,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:42:58.218228+00:00"
+    },
+    {
+      "artifact_digest": "8fd772e2e65823f778cb776f4aa4eb3f3dbd3937172f57231a314f2dde39f2ae",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 2,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:45:04.129156+00:00"
+    },
+    {
+      "artifact_digest": "6e86bd7e33f87780dd43fcad85f7eac8a865c871ff1f11c7893150fb0601c57d",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 2,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:45:01.674271+00:00"
+    },
+    {
+      "artifact_digest": "8ab754484bc2d3b647bfec95f7e8188fd4bb6675a2a895962f9ac41a248a4c82",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 3,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:47:05.345509+00:00"
+    },
+    {
+      "artifact_digest": "3a3d3d529a7703448924b1de5d54968d68663961b73656f5093a0875bc113d7e",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 3,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:47:02.618422+00:00"
+    },
+    {
+      "artifact_digest": "3b4b9a251f335bb542670159404a40f1dd711b8bf67595981fe2e663a299ec5b",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 4,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:48:59.602884+00:00"
+    },
+    {
+      "artifact_digest": "0e1b867079dd95ad6886ad9914f06d9e7b1ca09240d7c63fde52b9d95048532f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 4,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:48:56.612398+00:00"
+    },
+    {
+      "artifact_digest": "0f82ed4bd015756600dc8aa32e1bb7eca1efffc62e6e623ea1d176fba5eb9137",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 5,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:50:58.417456+00:00"
+    },
+    {
+      "artifact_digest": "413b5a364c8f9e0f13e72abb078bcd1d337785606fd1b55c466441925508106f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 5,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:50:55.166952+00:00"
+    },
+    {
+      "artifact_digest": "c1414e715a2b0c0881b3eec1ae5bc4fe9f395c3f3d540b793ba2ddd772aaef6d",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 6,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:52:53.641962+00:00"
+    },
+    {
+      "artifact_digest": "c57c27a67ac682cc953e3c0676ab12abadba2752cf1ddc2672f7483867f45e72",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 6,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:52:50.130834+00:00"
+    },
+    {
+      "artifact_digest": "4fb0583c105663008846367a29bfda9ff63a78835940fb43602c667f47d1aa20",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 7,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:54:49.062107+00:00"
+    },
+    {
+      "artifact_digest": "6e696785597287f7305beea7b1c79d75b018096e067adf447d7a53b1c3090ddc",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 7,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:54:45.256386+00:00"
+    },
+    {
+      "artifact_digest": "b2d9e85f3bbc7bef892b74dff54140d1f8a2089dcea25f1b4a1946a49426b385",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 8,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:56:44.328787+00:00"
+    },
+    {
+      "artifact_digest": "3acf8b0d8421db2f85513c61e62d47bd876bbd67be97ae22d7d8db25d1970b89",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 8,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:56:40.286987+00:00"
+    },
+    {
+      "artifact_digest": "e0b6952d1b9ea13f3b939fa208c1c7a6559fff199b3c4ccbaf46b25278f49990",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 9,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T03:58:39.526564+00:00"
+    },
+    {
+      "artifact_digest": "3bc51c8d7fe5b350b51a058faef7e6283a9faf9d9a646490ae69a79401638fb8",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 9,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T03:58:35.194648+00:00"
+    },
+    {
+      "artifact_digest": "71e231c52538cb1f58a2db1943a1d7d605b841859d4d64e969629007b6b89882",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 10,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:00:40.664336+00:00"
+    },
+    {
+      "artifact_digest": "823dc91b74cdf87f4e2a85ee972a8b3441945342989d5c1747ed00995cf3c1f9",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 10,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:00:36.092918+00:00"
+    },
+    {
+      "artifact_digest": "c989d601921616a7e611213010c6c83f8bbe38f0d45670cc2b11b494a7d9f202",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 11,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:02:35.803981+00:00"
+    },
+    {
+      "artifact_digest": "b741de49030efe3232affae8d1045dcc7f3b8f8976d0c4c435f6a3e6324e4700",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 11,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:02:30.987519+00:00"
+    },
+    {
+      "artifact_digest": "d3d14c6bcfb9c8ce30aa9708f103c7a85352b4629d7bea968c80d655152250c6",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 12,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:04:30.840817+00:00"
+    },
+    {
+      "artifact_digest": "d1b946c79dd6cd8066494f443efbe42bad5e6623cc2e2894b6119e2057ffc209",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 12,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:04:25.738785+00:00"
+    },
+    {
+      "artifact_digest": "fcec4b46be6723af24636a4630a4efc5892a4a8f184a5b8dea100e28943cb9e6",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 13,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:06:28.861467+00:00"
+    },
+    {
+      "artifact_digest": "fbfddf474dc82e9cce834b986277a648b3048e220ab998803d35c000ef229e8f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 13,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:06:23.479326+00:00"
+    },
+    {
+      "artifact_digest": "21846ba48b6d31a8659cba75d8b10284c3e62e37f6047db68484835f715278f9",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 14,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:08:23.846522+00:00"
+    },
+    {
+      "artifact_digest": "03d518dc344331e762904f7e60e32cb5e9040ae4d8e1fab676e0cc0df180116d",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 14,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:08:18.222306+00:00"
+    },
+    {
+      "artifact_digest": "7d07a5fd280f8cc7226ba206b914e1d0d352788ae05183d20d9c16b31e8f6d5c",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 15,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:10:18.876935+00:00"
+    },
+    {
+      "artifact_digest": "890b5a5cd57cdaa45ff755bc4cb4c5272f744fa599d995ee11eb6497212cfd5a",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 15,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:10:13.021152+00:00"
+    },
+    {
+      "artifact_digest": "cd4b0953bca7bbf28745dc174eab1bde143466f6028792e83e92c47952968ac2",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 16,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:12:13.727017+00:00"
+    },
+    {
+      "artifact_digest": "9b30caa11e8c9568048116c0e2798ba5760870257f4e4f56a0eba46bae072aee",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 16,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:12:07.599609+00:00"
+    },
+    {
+      "artifact_digest": "b89b726b307056015ab794575a70c171140400048e9911112fc8c660daeb1c32",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 17,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:14:08.555047+00:00"
+    },
+    {
+      "artifact_digest": "5d2175fd6dc2d44e37314c63349a3211d87244fad7e882449b4870d0554e0e34",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 17,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:14:02.129604+00:00"
+    },
+    {
+      "artifact_digest": "622747d4702c8c953f686f892c2d8dfedf30c7e402135a6d9dec41595361c531",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 18,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:16:04.046047+00:00"
+    },
+    {
+      "artifact_digest": "68d139bf2b9178f4826fbc3bb818c0cb573cafa04d6ddc39092ce369c21fccb7",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 18,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:15:57.104658+00:00"
+    },
+    {
+      "artifact_digest": "1333a49bbf8caefa469ae8de896e2a6af54237c3e3b1ac3a7e7f6bbcf7a01608",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 19,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:17:59.382367+00:00"
+    },
+    {
+      "artifact_digest": "8917c1ba09541eebfbc6698467a7d807fad0e57ec441d46a6eae82d73b411421",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 19,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:17:52.180884+00:00"
+    },
+    {
+      "artifact_digest": "37a468bb6762e63d1b47021d2b9023cd9489e2bff508a71ba3192b83b8e4bdf7",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 20,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:19:54.615367+00:00"
+    },
+    {
+      "artifact_digest": "b82ae85f04c3163ff9659da60b5ee0bae20a67022b9271777df90f52e78b365c",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 20,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:19:47.130133+00:00"
+    },
+    {
+      "artifact_digest": "1d813f369721b05f49640044ae7f595ebd9ccdcac871d7904c89e2fcf62fa43c",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 21,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:21:49.898435+00:00"
+    },
+    {
+      "artifact_digest": "c4ad3edf9fa8b867ceeb77070fd0d93f3ae3430fe589652f08547be7569f9390",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 21,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:21:42.406673+00:00"
+    },
+    {
+      "artifact_digest": "587708fb11804967a37c22adb46435fa83d1aa892b68a39a01932b99c8646d69",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 22,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:23:46.579969+00:00"
+    },
+    {
+      "artifact_digest": "7ee4e1de96f303d4f5ed1ec96d2e40f5ab906efbd9c92db31786e4859ff9fb2f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 22,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:23:38.592223+00:00"
+    },
+    {
+      "artifact_digest": "402b0da93f6ebb74a23a8ffd23d6c246ac0163318bdfe5f0693b21548f65c778",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 23,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:25:42.046240+00:00"
+    },
+    {
+      "artifact_digest": "bf551cce5a76ae11729aecf0a6f2bcc710bd76722aa1899d987abed125d0dc5c",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 23,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:25:33.773969+00:00"
+    },
+    {
+      "artifact_digest": "bb0f0a6f79a6efc612544d3c27aae1af2a6f875925bc9203b3935d69d80f68f4",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 24,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:27:37.687609+00:00"
+    },
+    {
+      "artifact_digest": "355dba99ca4f7c3eaf5868d95e3f2dc077a141a008a07c6f69ebcea343b5840d",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 24,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:27:29.147124+00:00"
+    },
+    {
+      "artifact_digest": "522c53f5835c609af844b699c5f8dfdb7400df7d142f6be02dcc061de0c5a8af",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 25,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:29:33.458962+00:00"
+    },
+    {
+      "artifact_digest": "3a65007dcb8b12dcc09ed067f5426223a621d34ed4b83bd676f0b794b11bee17",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 25,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:29:24.633758+00:00"
+    },
+    {
+      "artifact_digest": "e01ed8f638290e9da241ede5b940da704d75a19c6b917782a4aa3bcca61527d0",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 26,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:31:33.156182+00:00"
+    },
+    {
+      "artifact_digest": "2fc939da6267c078c2bf3f3401cd600cd1341b6316dd442b6256b6e1f4d78b26",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 26,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:31:24.140085+00:00"
+    },
+    {
+      "artifact_digest": "02997a0d2aad6470fda8284a8a9c0d8eb0074c31bd63c4c277b24e7321f95617",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "603fa16988089e9c9be6b92e89ad3b82e8381443a1fe908fa8d22e417b23c570",
+      "measured_at": "2026-09-11T04:33:28.760908+00:00"
+    },
+    {
+      "artifact_digest": "aae6b200e0ccb319565dcf2049915a392e412b6e0b08e37146a52d62021ae440",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "e4eef875d199421f76abda44337e4bf8596bedf80997428dad92301ccb024cae",
+      "measured_at": "2026-09-11T04:33:19.446619+00:00"
+    },
+    {
+      "artifact_digest": "296127b303f293781a87eba4a0090c0c83af573af0963e58517c751630aa2210",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:15:22.646904+00:00"
+    },
+    {
+      "artifact_digest": "467ffadf3f97cd3b45730730943de3cfe6276e52cea2dedc9b828170e2a358d3",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:15:13.242607+00:00"
+    },
+    {
+      "artifact_digest": "8300c185c704e127658090591abc9b51a2c87b07e27a433eb1f94e68d3b3ac87",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 2,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:16:51.438120+00:00"
+    },
+    {
+      "artifact_digest": "b32c059fa5b091dfecece121fdcfb932d70ed62fb273014816833c59ea164053",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 2,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:16:42.262499+00:00"
+    },
+    {
+      "artifact_digest": "3fcbc45414022a1b8e4b091b2c4977c1dfbe85a61373670cac1ecf114b7660f5",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 3,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:18:19.875424+00:00"
+    },
+    {
+      "artifact_digest": "c27d4dd7550ec05b1aa7f24b7e2c5ace9c9f18ade3e5eb79e0fca9cb533dd2dc",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 3,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:18:10.973959+00:00"
+    },
+    {
+      "artifact_digest": "ab1a683887aa844a79dc03cbd2fe7a30387ba61126615c0a5da398c7c3f220b8",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 4,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:19:47.177618+00:00"
+    },
+    {
+      "artifact_digest": "80660fa80df9dbdd81830b614ad37ec1936ee833eea23da26fb17ce87152cf8a",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 4,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:19:38.612171+00:00"
+    },
+    {
+      "artifact_digest": "a29cf0f64a3702bb0220fd453183ddacf956064fd1a008f4010d881a1c556b85",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 5,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:21:14.779554+00:00"
+    },
+    {
+      "artifact_digest": "5ca128a6d9bfd0e50f00171d082b9d2b690a1330ea5fb95354ab1a32d3d37786",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 5,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:21:06.227489+00:00"
+    },
+    {
+      "artifact_digest": "58e3c15ec3e050a06ee0c1c7a15f6d5a8934c3d5a7875c0c2d85d88146243b43",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 6,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:22:41.912168+00:00"
+    },
+    {
+      "artifact_digest": "1589396bd2916d7c223b5c0037049551dea248fb306584eda04bb0eb2653cfcb",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 6,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:22:33.603209+00:00"
+    },
+    {
+      "artifact_digest": "838628056147e2744d49bb1f3e70cc54110b0ffa7b02dc00b6035ffa577c42b2",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 7,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:24:09.078054+00:00"
+    },
+    {
+      "artifact_digest": "13bfee62bda98a2f37adb697ad2d71d7a192c251c104a153dab6df4419fb9b1e",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 7,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:24:01.070747+00:00"
+    },
+    {
+      "artifact_digest": "b71f9d1c435e1c7a95787038a00a5bc41af0d468754b63dc432ec95154644b6c",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 8,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:25:36.697073+00:00"
+    },
+    {
+      "artifact_digest": "05d21fa016288b92667769e227b64be66b6f947dc0bd70d2846aea599e13ca28",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 8,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:25:28.941789+00:00"
+    },
+    {
+      "artifact_digest": "c7d4570b442bf933bd02043342f713c05311cde86ea1bef7e5d047e4a6eb6083",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 9,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:27:03.786969+00:00"
+    },
+    {
+      "artifact_digest": "13c78046ff7791a5482058ef49523cd164a45331d11399d94789e06b0ecbb1d8",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 9,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:26:56.054105+00:00"
+    },
+    {
+      "artifact_digest": "8607599cd51e4aeaeef83f0e6bb613dff56a67b4ec80be62ef557a45c4de1dcd",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 10,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:28:32.365106+00:00"
+    },
+    {
+      "artifact_digest": "e9c1d4dd8e295727584725e97bbe0324b39dfd81873902de95b8baf1700cace2",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 10,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:28:24.880106+00:00"
+    },
+    {
+      "artifact_digest": "32a675c4945e2eae8db9f560079f56af2c247dfade89285d209065d784c8ba85",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 11,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:30:00.245520+00:00"
+    },
+    {
+      "artifact_digest": "35074069fe291192a0d97bb5fe992f4c5daf9195ec526ab4bd48ec2908c070da",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 11,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:29:53.047426+00:00"
+    },
+    {
+      "artifact_digest": "565447158a4a9ecd0ea869d427bccf6fa8ef492724b280c64a27e989764c9bbb",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 12,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:31:28.613125+00:00"
+    },
+    {
+      "artifact_digest": "23686bc04ba4ebc557bd5ab2bf40eb68c64c974891d44654b091af1ad2ebe226",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 12,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:31:21.665256+00:00"
+    },
+    {
+      "artifact_digest": "0b5cea3a22fe51a250e6e8e1159b8e776e6addbaa3724840af29e930c5853da5",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 13,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:32:56.980868+00:00"
+    },
+    {
+      "artifact_digest": "0f61c2fb1bba6922ea6c1dcdac8e96dbfdda7b5c23b79af509627b5cc93c4d8b",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 13,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:32:50.070493+00:00"
+    },
+    {
+      "artifact_digest": "13a5101dfb48be85ab0f4c89b6f39ccd673da64283cd7265fc3d49a73928fc79",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 14,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:34:25.873026+00:00"
+    },
+    {
+      "artifact_digest": "282eb3699c48ac0d325f6455ac6d77adf773597e6c8dd1373d350e4725944c99",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 14,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:34:19.227137+00:00"
+    },
+    {
+      "artifact_digest": "64b7748557f2e2c0c252666eb1f89b8b1578c1a1409f3b4172f1904eeed2ebb8",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 15,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:35:53.935519+00:00"
+    },
+    {
+      "artifact_digest": "a8f769b037c903a2eb0e341a272774d13d6f3fb7088d8e1babdff6c2d45e3d88",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 15,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:35:47.549346+00:00"
+    },
+    {
+      "artifact_digest": "e3aee99ae6f59813d0c6213f75015cf89cb038efe4ef7d210eb921d30c7fe293",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 16,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:37:21.755431+00:00"
+    },
+    {
+      "artifact_digest": "3ae243ef26541ffa29de9acc40dd212061825d337a88aa48d3fb41d1c49eb1de",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 16,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:37:15.669197+00:00"
+    },
+    {
+      "artifact_digest": "9c47fbccab26ec5d199fb7d6d038912e73e16b075203ccd490807723858537e8",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 17,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:38:50.420607+00:00"
+    },
+    {
+      "artifact_digest": "f988bfd915cc6535d36c6e7002d1114dff1eafb577a2f92eb5a995473e18aa4a",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 17,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:38:44.580120+00:00"
+    },
+    {
+      "artifact_digest": "9248358ba9c973c8a75b865bb68b798b9a40b3cb0efb5637e9f2ee24ee0e4850",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 18,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:40:18.749759+00:00"
+    },
+    {
+      "artifact_digest": "2ff48e47400b7f96d2151b252288105eb4428041e8240e909a8d57303f55630b",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 18,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:40:13.208047+00:00"
+    },
+    {
+      "artifact_digest": "beafc0a918a92a3155ed023973c980f8efeaf676444285e91ea2692671ec0bf8",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 19,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:41:46.062757+00:00"
+    },
+    {
+      "artifact_digest": "d916d163ff4ed7a324bd9a105c992d097e48796d118be4fb60d9842622f07c20",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 19,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:41:40.795322+00:00"
+    },
+    {
+      "artifact_digest": "4164e54dd116ddb9aa7b0e310d3b57bc4d6479495890948885f232446e883d55",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 20,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:43:15.441142+00:00"
+    },
+    {
+      "artifact_digest": "4f4b01a5449894b031da74272a1d13ff99927a6e160f57d6ab21da785d340b43",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 20,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:43:10.154167+00:00"
+    },
+    {
+      "artifact_digest": "a0291142b6c75c78e1e13fb403bcc04c866a041bca28f8ea21383024a147fa98",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 21,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:44:43.788456+00:00"
+    },
+    {
+      "artifact_digest": "34beef147180d3fb0db714deecacfa85cc052735ef83f367afa845485919ce4e",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 21,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:44:38.733198+00:00"
+    },
+    {
+      "artifact_digest": "341a06704d92fc096e0a82e8c0e736c98744ede3ba3af5e3420cfb090cb4332b",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 22,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:46:11.361598+00:00"
+    },
+    {
+      "artifact_digest": "e6a8f4cd1efccc07decd89767b3f97d1c7c1ea51be1877f348402c59101dc82b",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 22,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:46:06.606357+00:00"
+    },
+    {
+      "artifact_digest": "6871dc547a81269d5011c3e5313c4842acf80030da86dfc308363a7504d5c858",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 23,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:47:39.657679+00:00"
+    },
+    {
+      "artifact_digest": "629736c77c2a28981ee0f2f6ca4d41bac0fd98df28f746090503b31468b17815",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 23,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:47:35.231496+00:00"
+    },
+    {
+      "artifact_digest": "d7c7cf643e5201f9d3aa7cd575ddd3e372df1ab39ee1efe7a2d10f63075a83d2",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 24,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:49:06.685305+00:00"
+    },
+    {
+      "artifact_digest": "df072c477772e8d94f1912ee0abbaec743de1eb86ad8d8ccfdba73904260f05f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 24,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:49:02.522470+00:00"
+    },
+    {
+      "artifact_digest": "7dbc15eca416df55548d8de8492101390830b05bbb43a02fef4b8840e35bbf85",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 25,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:50:34.242552+00:00"
+    },
+    {
+      "artifact_digest": "004c87b263befd211bb114c0e8173b0b9e0fa11d1bac835c65b42c3d398e9583",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 25,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:50:30.358385+00:00"
+    },
+    {
+      "artifact_digest": "db1a76927bc116333cebc46711c93dd782df6ef468898be6564d7774605cebdc",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 26,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:52:02.381976+00:00"
+    },
+    {
+      "artifact_digest": "6e55ef1ca7b3b75efc9bf5cf1feefe6ec39110c3f0e64aacd86c90130c9e0120",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 26,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:51:58.496579+00:00"
+    },
+    {
+      "artifact_digest": "373a74ea52cc2e4f761d774b11dd4669afc965b95045ca4c11ad385cb97eee7a",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 27,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:53:29.282553+00:00"
+    },
+    {
+      "artifact_digest": "e5f552ba1d87f7cf0311fcd73453ff6e9b00e373eb8487d1ebd6e4e29a49bb9f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 27,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:53:25.601067+00:00"
+    },
+    {
+      "artifact_digest": "17d775999f94e3a609234b7e793482d50e561e8444553ff76132c2f6d64f2448",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 1,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:15:07.078252+00:00"
+    },
+    {
+      "artifact_digest": "4fe69a3f2e73cbe7d6727866d6e54b4edf230e43c9ba736952a8092313b65dff",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 1,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:15:02.964694+00:00"
+    },
+    {
+      "artifact_digest": "27ce2a53c74bf709e3a31a0b26efee5e49661723a063dfa8064868e762735c73",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 2,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:16:34.182910+00:00"
+    },
+    {
+      "artifact_digest": "370067cab7d294807986cb003973754414ecfc0c272cef711e4c38193377d482",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 2,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:16:30.497047+00:00"
+    },
+    {
+      "artifact_digest": "1bcfaa66b0904a4bbb68a632915213e31afae5137b404b4306fb8aca8959c94d",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 3,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:18:00.609482+00:00"
+    },
+    {
+      "artifact_digest": "42dd81a0ffe1c5454daac7a58639ffb4700fdb7e9f7a3bfc144c5a84f6da7170",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 3,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:17:56.738425+00:00"
+    },
+    {
+      "artifact_digest": "0122a9884d5385875b9390c3fc2cbd8bb8310c18d9f57e2bc9fe644d1158420d",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 4,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:19:25.723887+00:00"
+    },
+    {
+      "artifact_digest": "3623481024fa173e2c3a13a32199445f0378f888969b66c1fc4ac14d29a04e5d",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 4,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:19:21.849993+00:00"
+    },
+    {
+      "artifact_digest": "e4e5d0b51bfe97fea0342debf3f3cc3e7cd65e44a69103d26916737873f9594e",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 5,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:20:51.546629+00:00"
+    },
+    {
+      "artifact_digest": "98a5ec4ff463db9b87da18389b91da2bcd9cec6abdb0c215a4d3aab98d00a359",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 5,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:20:47.383836+00:00"
+    },
+    {
+      "artifact_digest": "abdc7407fa5b9f70d6dbf6a22309d691872aed3168bd8a9d0f78bd87c15bcd62",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 6,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:22:16.889116+00:00"
+    },
+    {
+      "artifact_digest": "997837f4b80adef395d01281189f4fb4a88ba4f143f8452e6380d30db1b5fd42",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 6,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:22:12.450921+00:00"
+    },
+    {
+      "artifact_digest": "3709439aceafa12dfca684792be23ceeba18f056672498b5915dfc2e004628f0",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 7,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:23:42.073998+00:00"
+    },
+    {
+      "artifact_digest": "1aeb517cd0148fca9ac4582d2f4755aa266405002bd8093d9765a10b5ec192b1",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 7,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:23:37.302877+00:00"
+    },
+    {
+      "artifact_digest": "7f2ee08bb747fcf8b25e2e9f8a1301bd2613ac05e99e8ae59a85887069b9b3b1",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 8,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:25:07.150884+00:00"
+    },
+    {
+      "artifact_digest": "bba3600218c8ef9569d93907d5aaa2229d0fd43d2005c5ce3de08f679551a2c7",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 8,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:25:02.169183+00:00"
+    },
+    {
+      "artifact_digest": "69891bdd34c94146f2083313ae6dce385cdfa39edeb975d771f3ecd21426ac3b",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 9,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:26:32.727911+00:00"
+    },
+    {
+      "artifact_digest": "fa52d3e5c585fe55008876605bc9990d80caf2179c615a05d8f501bcb41c8e96",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 9,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:26:27.477955+00:00"
+    },
+    {
+      "artifact_digest": "c9b98f1ec28bfb7cf4bb756365d9ec64fad98fe4d3e66ac52383ff1166f90431",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 10,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:27:59.041791+00:00"
+    },
+    {
+      "artifact_digest": "83422864863741e07326f8059d1ec907768d313932516781b9f64032f929360c",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 10,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:27:53.787634+00:00"
+    },
+    {
+      "artifact_digest": "5b4e7f64af4e26d2b9d06a3dd661c8ebece7976d8c60db23437af4663c2a39db",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 11,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:29:24.660563+00:00"
+    },
+    {
+      "artifact_digest": "a7cd6862f9b2979cda0806a9d9fa01406873ec172f2099256aaf1b5904660b28",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 11,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:29:19.116914+00:00"
+    },
+    {
+      "artifact_digest": "05df1ffa944402e6f5c4eac2fae9864c6f338bae698e39eff1723b6ee667b07c",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 12,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:30:51.237391+00:00"
+    },
+    {
+      "artifact_digest": "efca84d8ecbcbb50455d98fc5e2bac21577caf5174d569f3b19941aea3cb2c75",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 12,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:30:45.425206+00:00"
+    },
+    {
+      "artifact_digest": "90d84421d605caae3b8f68d5597446a27e38c2f256dc1fb4dadcafcff63308aa",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 13,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:32:17.081203+00:00"
+    },
+    {
+      "artifact_digest": "5ab14e28cddf633ce14f0147df9cc7792008de36d841b2ce662c7ee4e5aadc0a",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 13,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:32:10.998732+00:00"
+    },
+    {
+      "artifact_digest": "7d3e70e09a5b3b60f7077c09f29a62c97f11fee7fbaab7a91c3b64e136cd7faf",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 14,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:33:44.477348+00:00"
+    },
+    {
+      "artifact_digest": "2a9dba29f56e41f1a4ab796c6bcaa32581ec8dd82c86b8722829d67c09328d3e",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 14,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:33:38.071155+00:00"
+    },
+    {
+      "artifact_digest": "8606c1ea87560c6b503c8249ea598ef9c9eab57e9f719c947e5a9390fdaf7e22",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 15,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:35:10.530769+00:00"
+    },
+    {
+      "artifact_digest": "5f3e5c9d7229d54c59bc51b51d6bf98144de88ed9068f8694e124e826ea39380",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 15,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:35:04.183898+00:00"
+    },
+    {
+      "artifact_digest": "d2edb1b9d8b3cd065228a73867ce83ecc7ed7632b05e9dd892c4c3f4a24dbb57",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 16,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:36:36.362978+00:00"
+    },
+    {
+      "artifact_digest": "3041a574d4cdba95cec8af0f4f7bc96c23fc4ffbadb7ef804ac5c9e57a955991",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 16,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:36:29.715868+00:00"
+    },
+    {
+      "artifact_digest": "5de35185ce8130cd41ad7f29789ef4d4b40612b9e9126c12270495369a418b90",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 17,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:38:02.731661+00:00"
+    },
+    {
+      "artifact_digest": "8f43125180bda56be562ab2cc47500f231cb8ff467cffaddb51f791fec5bb125",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 17,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:37:55.501436+00:00"
+    },
+    {
+      "artifact_digest": "8e970e1b36318ac02eec07b117ca259999a1db92c368a81855337a8162b83d33",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 18,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:39:29.073904+00:00"
+    },
+    {
+      "artifact_digest": "674f48116c5ecf6c7b6b90080e1bc9a48f25ab5a1a1eadfde365cfa678a06608",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 18,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:39:21.875351+00:00"
+    },
+    {
+      "artifact_digest": "d89d743505fde951d340b3d82f4553e3060f373206b59f1904e70e7ef92c84da",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 19,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:40:55.100120+00:00"
+    },
+    {
+      "artifact_digest": "e0bca42fa66cc92bbdbdbf59df2a70030298a922a65a0b4a72a5be92b92d6136",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 19,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:40:47.646501+00:00"
+    },
+    {
+      "artifact_digest": "688cdae6b55187cf61a285de4e0d67f035a32426965c238334b3208621ef17f5",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 20,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:42:20.927755+00:00"
+    },
+    {
+      "artifact_digest": "479e6842ccd821e6562cd2d2f4e3728d490610ffc124eae7cc4ed519d28ac33e",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 20,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:42:13.169121+00:00"
+    },
+    {
+      "artifact_digest": "24cf84f4dd504889f25a8663e11ce817bc6364a294e773fd9300f9d72479d012",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 21,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:43:48.242478+00:00"
+    },
+    {
+      "artifact_digest": "42ceee6476010050765718b30b099555d123ddf4b827c34e8e850790d68a25f5",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 21,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:43:40.518021+00:00"
+    },
+    {
+      "artifact_digest": "37927d7b40230a65eadf6c4dcf076623e87ce8cb33bf24f18b7343e08ad62d62",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 22,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:45:14.589441+00:00"
+    },
+    {
+      "artifact_digest": "4158a9db60b66cc0cd64eb7cb7e09caf0ad78abacd4da86dce0f8185e6307f11",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 22,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:45:06.584806+00:00"
+    },
+    {
+      "artifact_digest": "ca0f017a43ec119306b2d8c3153b5537119ab2bb577676cc0992b46d68b95f8b",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 23,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:46:40.171200+00:00"
+    },
+    {
+      "artifact_digest": "43efbff6903e6f2690b883b8a850c9fe093e600d89cd315b21f1e9eaf704b46b",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 23,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:46:31.884751+00:00"
+    },
+    {
+      "artifact_digest": "21979ab522d751e155e86a9dab54704b3ff44bfd5777c86236f13dd4252848a7",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 24,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:48:05.651530+00:00"
+    },
+    {
+      "artifact_digest": "ab538542e19a2a5845b04aa131ca1d42bbad38b3e4aa78bfe46f0be3e7372d62",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 24,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:47:57.372690+00:00"
+    },
+    {
+      "artifact_digest": "682f954fd26082b820f18ebd9ad3af90f505b02be90608cf02121402e3dfc109",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 25,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:49:30.939788+00:00"
+    },
+    {
+      "artifact_digest": "728fc5fad12bea4150e6fcb428f1921b266d3979d2dee4a894fdef74ba95d648",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 25,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:49:22.375142+00:00"
+    },
+    {
+      "artifact_digest": "723386f51292279cf7871da0d92cfe20fe7b4e729b5e9d08680ecd33d7beb181",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 26,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:50:56.543274+00:00"
+    },
+    {
+      "artifact_digest": "74357db6a5f4c01d0729d8c61a36d6a73e9e8730e840297d0bb5700916c1a537",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 26,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:50:47.649883+00:00"
+    },
+    {
+      "artifact_digest": "d0ad3a823f33441f198260524b9e28eba4f01ce866f25cc94107bec57b9b2147",
+      "kind": "compute-run",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "3a2e1d8fbf53b8a67a5a04c7e8e33deb42c7062cb0d92dcc4a4a375066a0781c",
+      "measured_at": "2026-09-11T04:52:22.848586+00:00"
+    },
+    {
+      "artifact_digest": "27797672d36ecfe3e4b01d93abfdd022755573608b7f4639245cf381895fb62f",
+      "kind": "memory",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "environment_digest": "582adc93e65763d710ea6ab19bf1dc5ed53a1bee4ce887097682830ba9375f03",
+      "measured_at": "2026-09-11T04:52:13.762344+00:00"
+    }
+  ],
+  "acceptance_status": "pending setup/link refresh, new frozen selection and independent sweep"
+}

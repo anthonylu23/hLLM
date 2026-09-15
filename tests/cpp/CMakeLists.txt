@@ -18,6 +18,8 @@ add_executable(
   hllm_runtime_common_tests
   backend_contract_test.cpp
   buffer_test.cpp
+  downstream_channel_test.cpp
+  generation_deadline_test.cpp
   half_test.cpp
   llama_test.cpp
   qwen3_test.cpp
@@ -119,3 +121,52 @@ foreach(backend IN ITEMS mlx cuda)
     endif()
   endif()
 endforeach()
+
+# Separate opt-in diagnostic; never changes the serving worker binary.
+foreach(backend IN ITEMS mlx cuda)
+  if(TARGET hllm-checkpoint-${backend})
+    add_executable(hllm-boundary-trace-${backend} boundary_trace.cpp)
+    target_link_libraries(hllm-boundary-trace-${backend} PRIVATE hllm::${backend}_backend
+      nlohmann_json::nlohmann_json hllm_project_options)
+    if(backend STREQUAL "mlx")
+      target_compile_definitions(hllm-boundary-trace-${backend} PRIVATE HLLM_PROBE_MLX=1)
+    endif()
+  endif()
+endforeach()
+
+foreach(backend IN ITEMS cpu mlx cuda)
+  if(TARGET hllm-profile-memory-${backend})
+    add_test(NAME MemoryProfile-${backend}
+      COMMAND ${CMAKE_COMMAND} -E env
+        HLLM_MEMORY_PROFILER=$<TARGET_FILE:hllm-profile-memory-${backend}>
+        HLLM_PROFILE_BACKEND=${backend}
+        ${HLLM_UV_EXECUTABLE} run pytest tests/profiling -q)
+    set_tests_properties(MemoryProfile-${backend} PROPERTIES
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180)
+  endif()
+endforeach()
+
+foreach(backend IN ITEMS cpu mlx cuda)
+  if(TARGET hllm-profile-compute-${backend})
+    add_test(NAME ComputeProfile-${backend}
+      COMMAND ${CMAKE_COMMAND} -E env
+        HLLM_COMPUTE_PROFILER=$<TARGET_FILE:hllm-profile-compute-${backend}>
+        HLLM_PROFILE_BACKEND=${backend}
+        ${HLLM_UV_EXECUTABLE} run pytest tests/profiling/test_compute_process.py -q)
+    set_tests_properties(ComputeProfile-${backend} PROPERTIES
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180)
+  endif()
+endforeach()
+
+add_test(NAME LinkProfile
+  COMMAND ${CMAKE_COMMAND} -E env HLLM_LINK_PROFILER=$<TARGET_FILE:hllm-profile-link>
+    ${HLLM_UV_EXECUTABLE} run pytest tests/profiling/test_link_process.py -q)
+set_tests_properties(LinkProfile PROPERTIES WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 90)
+
+add_test(NAME MeasuredPlannerIntegration
+  COMMAND ${CMAKE_COMMAND} -E env
+    HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+    HLLM_MEMORY_PROFILER=$<TARGET_FILE:hllm-profile-memory-cpu>
+    ${HLLM_UV_EXECUTABLE} run pytest tests/profiling/test_measured_process.py -q)
+set_tests_properties(MeasuredPlannerIntegration PROPERTIES
+  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 90)

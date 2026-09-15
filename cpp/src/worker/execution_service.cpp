@@ -13,6 +13,23 @@
 #include "hllm/runtime/tensor_envelope.hpp"
 
 namespace hllm::worker {
+
+std::shared_ptr<grpc::Channel> LoadedDeployment::downstream_channel() {
+  std::call_once(downstream_once_, [&] {
+    std::string endpoint;
+    for (const auto& stage : spec.stage_endpoints()) {
+      if (stage.stage_index() == 1U) endpoint = stage.endpoint();
+    }
+    if (endpoint.empty()) throw std::logic_error("missing downstream endpoint");
+    grpc::ChannelArguments arguments;
+    arguments.SetMaxReceiveMessageSize(kMaximumRpcBytes);
+    arguments.SetMaxSendMessageSize(kMaximumRpcBytes);
+    downstream_channel_ = grpc::CreateCustomChannel(
+        endpoint, grpc::InsecureChannelCredentials(), arguments);
+  });
+  return downstream_channel_;
+}
+
 namespace {
 
 class PeerFailure final : public std::runtime_error {
@@ -52,13 +69,21 @@ class RequestGuard final {
   ExecutionLease lease_;
 };
 
+class ActiveIo final {
+ public:
+  explicit ActiveIo(std::atomic_bool& active) : active_(active) { active_.store(true); }
+  ~ActiveIo() { active_.store(false); }
+ private:
+  std::atomic_bool& active_;
+};
+
 // Synchronous gRPC reads/writes must also wake when cancellation arrives over
 // the independent control RPC. Join before any referenced context is destroyed.
 class Watchdog final {
  public:
   Watchdog(grpc::ServerContext& server, const std::shared_ptr<ActiveRequest>& request,
-           grpc::ClientContext* peer = nullptr)
-      : thread_([&server, request, peer](std::stop_token stop) {
+           grpc::ClientContext* peer = nullptr, const std::atomic_bool* client_write = nullptr)
+      : thread_([&server, request, peer, client_write](std::stop_token stop) {
           while (!stop.stop_requested()) {
             if (request->cancelled.load() || server.IsCancelled() ||
                 std::chrono::system_clock::now() >= request->deadline) {
@@ -67,15 +92,17 @@ class Watchdog final {
                 peer->TryCancel();
               }
               // TryCancel forces a CANCELLED transport status, even if the
-              // handler returns DEADLINE_EXCEEDED. For a generation deadline,
-              // cancelling the peer normally wakes the handler immediately;
-              // allow it to return its precise status before cancelling the
-              // client transport. Retain a bounded fallback for blocked writes.
-              if (peer != nullptr && std::chrono::system_clock::now() >= request->deadline) {
+              // handler returns DEADLINE_EXCEEDED. For an application deadline,
+              // cancel the peer and let compute unwind with its precise status.
+              // Only blocked stream I/O needs the transport fallback.
+              // The I/O flag is set before checking cancellation, so no new
+              // operation can start after this watchdog observes it as false.
+              if (client_write != nullptr &&
+                  std::chrono::system_clock::now() >= request->deadline) {
                 for (int attempt = 0; attempt < 20 && !stop.stop_requested(); ++attempt) {
                   std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 }
-                if (stop.stop_requested()) {
+                if (stop.stop_requested() || !client_write->load()) {
                   return;
                 }
               }
@@ -145,91 +172,20 @@ void validate_identity(const std::string& deployment, std::uint64_t version,
   }
 }
 
+BoundaryIdentity boundary_identity(const ExecutionLease& lease) {
+  return {lease.deployment->spec.plan().plan_id(),
+          lease.deployment->spec.plan().deployment_version(), lease.request->id,
+          lease.request->maximum_tokens, lease.deployment->backend->hidden_size()};
+}
 runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
                                           const ExecutionLease& lease, std::uint64_t sequence,
                                           std::size_t position) {
-  validate_identity(tensor.deployment_id(), tensor.deployment_version(), tensor.request_id(),
-                    tensor.microbatch_id(), lease);
-  if (tensor.sequence_number() != sequence || tensor.first_position() != position ||
-      tensor.phase() !=
-          (sequence == 0U ? v1::EXECUTION_PHASE_PREFILL : v1::EXECUTION_PHASE_DECODE) ||
-      tensor.dtype() != v1::DATA_TYPE_F16 || tensor.layout() != "dense_row_major_le" ||
-      !tensor.checksum().empty()) {
-    throw runtime::Error::invalid_request(
-        "invalid tensor order, phase, encoding or unsupported checksum");
-  }
-  runtime::TensorEnvelopeMetadata metadata{
-      tensor.protocol_version(),
-      tensor.deployment_id(),
-      tensor.deployment_version(),
-      tensor.request_id(),
-      tensor.microbatch_id(),
-      tensor.sequence_number(),
-      sequence == 0U ? runtime::ExecutionPhase::kPrefill : runtime::ExecutionPhase::kDecode,
-      tensor.first_position(),
-      {tensor.sequence_lengths().begin(), tensor.sequence_lengths().end()},
-      {tensor.cache_slot_ids().begin(), tensor.cache_slot_ids().end()},
-      {tensor.shape().begin(), tensor.shape().end()},
-      runtime::DataType::kF16,
-      runtime::TensorLayout::kDenseRowMajorLittleEndian,
-      tensor.payload_length()};
-  runtime::validate_tensor_envelope(
-      metadata, tensor.payload().size(),
-      {.maximum_sequence_length = lease.request->maximum_tokens,
-       .hidden_size = lease.deployment->backend->hidden_size(),
-       .maximum_payload_bytes = static_cast<std::size_t>(kMaximumRpcBytes / 2)});
-  if (tensor.cache_slot_ids_size() != 1 || tensor.cache_slot_ids(0) != 0U) {
-    throw runtime::Error::invalid_request("single-sequence execution requires cache slot zero");
-  }
-  runtime::BoundaryActivation output{static_cast<std::size_t>(tensor.shape(1)),
-                                     lease.deployment->backend->hidden_size(),
-                                     std::vector<std::byte>(tensor.payload().size())};
-  std::memcpy(output.payload.data(), tensor.payload().data(), tensor.payload().size());
-  for (std::size_t i = 0U; i < output.payload.size(); i += 2U) {
-    const auto high = std::to_integer<unsigned char>(output.payload[i + 1U]);
-    if ((high & 0x7cU) == 0x7cU) {
-      throw runtime::Error::invalid_request("non-finite boundary activation");
-    }
-  }
-  return output;
+  return decode_tensor(tensor, boundary_identity(lease), sequence, position);
 }
-
 v1::StageMessage encode_tensor(const runtime::BoundaryActivation& hidden,
                                const ExecutionLease& lease, std::uint64_t sequence,
                                std::size_t position) {
-  if (hidden.payload.size() > static_cast<std::size_t>(kMaximumRpcBytes / 2)) {
-    throw runtime::Error::resource_exhausted("prefill activation exceeds transport limit");
-  }
-  v1::StageMessage message;
-  auto* tensor = message.mutable_tensor();
-  tensor->set_protocol_version(1U);
-  tensor->set_deployment_id(lease.deployment->spec.plan().plan_id());
-  tensor->set_deployment_version(lease.deployment->spec.plan().deployment_version());
-  tensor->set_request_id(lease.request->id);
-  tensor->set_sequence_number(sequence);
-  tensor->set_phase(sequence == 0U ? v1::EXECUTION_PHASE_PREFILL : v1::EXECUTION_PHASE_DECODE);
-  tensor->set_first_position(position);
-  tensor->add_sequence_lengths(hidden.tokens);
-  tensor->add_cache_slot_ids(0U);
-  tensor->add_shape(1U);
-  tensor->add_shape(hidden.tokens);
-  tensor->add_shape(hidden.width);
-  tensor->set_dtype(v1::DATA_TYPE_F16);
-  tensor->set_layout("dense_row_major_le");
-  if (hidden.width == 0U || hidden.width != lease.deployment->backend->hidden_size() ||
-      hidden.tokens == 0U ||
-      hidden.tokens > static_cast<std::size_t>(kMaximumRpcBytes / 4) / hidden.width ||
-      hidden.payload.size() != hidden.tokens * hidden.width * 2U) {
-    throw runtime::Error::internal("backend returned an invalid boundary shape");
-  }
-  for (std::size_t i = 1U; i < hidden.payload.size(); i += 2U) {
-    if ((std::to_integer<unsigned char>(hidden.payload[i]) & 0x7cU) == 0x7cU) {
-      throw runtime::Error::internal("backend returned a non-finite boundary activation");
-    }
-  }
-  tensor->set_payload(hidden.payload.data(), hidden.payload.size());
-  tensor->set_payload_length(hidden.payload.size());
-  return message;
+  return encode_tensor(hidden, boundary_identity(lease), sequence, position);
 }
 
 grpc::Status failure(const std::exception& error,
@@ -286,13 +242,19 @@ grpc::Status ExecutionService::Execute(
                                         effective_deadline(*context, open.deadline_unix_ms()), 1U));
     auto& lease = guard.lease();
     active = lease.request;
-    Watchdog watchdog(*context, active);
+    std::atomic_bool stream_io{false};
+    Watchdog watchdog(*context, active, nullptr, &stream_io);
     validate_stop_ids(open.stop_token_ids(), *lease.deployment->backend);
     std::size_t position = 0U;
     std::uint64_t sequence = 0U;
     std::size_t prompt = 0U;
     bool stopped = false;
-    while (stream->Read(&message)) {
+    auto read = [&] {
+      ActiveIo reading(stream_io);
+      check_running(*active, *context);
+      return stream->Read(&message);
+    };
+    while (read()) {
       check_running(*active, *context);
       if (message.has_terminate()) {
         const auto& terminal = message.terminate();
@@ -342,8 +304,12 @@ grpc::Status ExecutionService::Execute(
       stopped = sequence == open.maximum_new_tokens() ||
                 std::find(open.stop_token_ids().begin(), open.stop_token_ids().end(), token) !=
                     open.stop_token_ids().end();
-      if (!stream->Write(response)) {
-        throw std::runtime_error("sampled token send failed");
+      {
+        ActiveIo writing(stream_io);
+        check_running(*active, *context);
+        if (!stream->Write(response)) {
+          throw std::runtime_error("sampled token send failed");
+        }
       }
     }
     throw std::runtime_error("stage stream disconnected before termination");
@@ -355,6 +321,7 @@ grpc::Status ExecutionService::Execute(
 grpc::Status GenerationService::Generate(grpc::ServerContext* context,
                                          const v1::GenerationRequest* request,
                                          grpc::ServerWriter<v1::GenerationEvent>* writer) {
+  const auto timing_start = request->capture_timing() ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
   std::shared_ptr<ActiveRequest> active;
   try {
     if (request->token_ids_size() == 0 || request->maximum_new_tokens() == 0U ||
@@ -365,10 +332,12 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     }
     const auto total =
         static_cast<std::size_t>(request->token_ids_size()) + request->maximum_new_tokens();
+    const auto acquire_start = request->capture_timing() ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     RequestGuard guard(
         control_, control_.acquire(request->deployment_id(), request->deployment_version(),
                                    request->request_id(), total,
                                    effective_deadline(*context, request->deadline_unix_ms()), 0U));
+    const auto acquire_end = request->capture_timing() ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     auto& lease = guard.lease();
     active = lease.request;
     auto& backend = *lease.deployment->backend;
@@ -388,22 +357,13 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     }
     grpc::ClientContext peer_context;
     peer_context.set_deadline(active->deadline);
-    Watchdog watchdog(*context, active, &peer_context);
+    std::atomic_bool client_write{false};
+    Watchdog watchdog(*context, active, &peer_context, &client_write);
     std::unique_ptr<v1::StageExecution::Stub> stub;
     std::unique_ptr<grpc::ClientReaderWriter<v1::StageMessage, v1::StageMessage>> peer;
     CancelPeerOnExit cancel_peer{peer_context};
     if (split) {
-      std::string endpoint;
-      for (const auto& stage : lease.deployment->spec.stage_endpoints()) {
-        if (stage.stage_index() == 1U) {
-          endpoint = stage.endpoint();
-        }
-      }
-      grpc::ChannelArguments arguments;
-      arguments.SetMaxReceiveMessageSize(kMaximumRpcBytes);
-      arguments.SetMaxSendMessageSize(kMaximumRpcBytes);
-      stub = v1::StageExecution::NewStub(
-          grpc::CreateCustomChannel(endpoint, grpc::InsecureChannelCredentials(), arguments));
+      stub = v1::StageExecution::NewStub(lease.deployment->downstream_channel());
       peer = stub->Execute(&peer_context);
       v1::StageMessage opening;
       auto* open = opening.mutable_open_sequence();
@@ -419,11 +379,18 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         peer_failure(*peer, "cannot open downstream sequence");
       }
     }
-    auto emit = [&](const v1::GenerationEvent& event) {
+    auto write_event = [&](const v1::GenerationEvent& event) {
       if (!writer->Write(event)) {
         throw std::runtime_error("generation client disconnected");
       }
     };
+    auto emit = [&](const v1::GenerationEvent& event) {
+      ActiveIo writing(client_write);
+      check_running(*active, *context);
+      write_event(event);
+    };
+    const auto setup_ms = request->capture_timing() ? std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - timing_start - (acquire_end - acquire_start)).count() : 0.0;
     std::size_t position = 0U;
     std::uint64_t generated = 0U;
     for (std::uint64_t step = 0U; step < request->maximum_new_tokens(); ++step) {
@@ -475,6 +442,9 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
       event.set_request_id(request->request_id());
       event.mutable_token()->set_token_id(token);
       event.mutable_token()->set_token_position(position);
+      if (request->capture_timing()) event.mutable_token()->set_native_elapsed_ms(
+          std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - timing_start).count());
+      if (request->capture_timing() && step == 0U) event.mutable_token()->set_native_request_setup_ms(setup_ms);
       emit(event);
       ++generated;
       if (std::find(request->stop_token_ids().begin(), request->stop_token_ids().end(), token) !=
@@ -503,15 +473,19 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
       }
     }
     watchdog.stop();
+    check_running(*active, *context);
+    // Generation and downstream acknowledgment have completed. Commit the
+    // outcome before releasing sequence state; slow cleanup or a late control
+    // cancellation must not change it while usage/terminal events are written.
     control_.release(active);
     v1::GenerationEvent event;
     event.set_request_id(request->request_id());
     event.mutable_usage()->set_prompt_tokens(static_cast<std::uint64_t>(request->token_ids_size()));
     event.mutable_usage()->set_generated_tokens(generated);
-    emit(event);
+    write_event(event);
     event.clear_usage();
     event.mutable_terminal()->set_state(v1::TERMINAL_STATE_COMPLETED);
-    emit(event);
+    write_event(event);
     return grpc::Status::OK;
   } catch (const std::exception& error) {
     return failure(error, active);

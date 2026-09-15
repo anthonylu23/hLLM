@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-08T16:01:59.985460+00:00",
+  "model_id": "Qwen/Qwen3-4B-Base",
+  "revision": "906bfd4b4dc7f14ee4320094d8b41684abff8539",
+  "evidence": "metadata-only shape fixture from pinned checkpoint headers; no 4B payload loaded",
+  "manifest_digest": "eca922c17094bb4a40cd5bb416873f77a6110bc036f46a3629d4e786661ee6d4",
+  "hidden_size": 2560,
+  "vocabulary_size": 151936,
+  "tied_embeddings": true,
+  "candidate_count": 70,
+  "mlx_load_admission_lower_bound_bytes": 6223364096,
+  "formula": "embedding F16 (2N) + source BF16 (2N) + 3 decoded/copied F32 buffers (12N) + 65536; excludes all layer weights and any verification scratch",
+  "current_mac_available_bytes": 5166546944,
+  "status": "preflight-blocked",
+  "reason": "Every two-stage order assigns tied embeddings to its MLX stage. Even the endpoint-only native load-admission lower bound exceeds current Mac availability before safety/headroom. No 4B load was attempted.",
+  "limitation": "This is a native admission/preflight exclusion under current conditions, not a measured 4B physical peak or proof of infeasibility on an idle machine."
+}

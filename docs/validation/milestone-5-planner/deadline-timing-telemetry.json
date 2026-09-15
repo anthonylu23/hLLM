@@ -1,0 +1,162 @@
+{
+  "diagnostic_only": true,
+  "summary": {
+    "candidate_id": "mlx--cuda-m001",
+    "completed": true,
+    "diagnostic_only": true,
+    "drift_fraction": 0.08025708122724518,
+    "exact_full_requests": 15,
+    "limit": 0.1,
+    "samples": [
+      {
+        "evidence_digest": "df3495703a1cd7a7680cb57cc19e65a6f7d40e5e4b6aa90c655a48eb291bc79b",
+        "generation_ms": 21400.535832624882,
+        "job": "stability-00",
+        "native_setup_ms": 112.943542,
+        "native_ttft_ms": 637.310625,
+        "ttft_ms": 639.1709577292204
+      },
+      {
+        "evidence_digest": "e350e7fb7f38bdfe190f5964542ed715a302ad20533d7db020b162b569f985d0",
+        "generation_ms": 21839.48641596362,
+        "job": "stability-01",
+        "native_setup_ms": 99.169708,
+        "native_ttft_ms": 625.023792,
+        "ttft_ms": 626.1055828072131
+      },
+      {
+        "evidence_digest": "a9cf348fbc4084c7ea50d6b0b769131ad38e7f66ce7deb7d5e4dd365442b162c",
+        "generation_ms": 22751.338083762676,
+        "job": "stability-02",
+        "native_setup_ms": 102.840334,
+        "native_ttft_ms": 702.559542,
+        "ttft_ms": 704.797042068094
+      },
+      {
+        "evidence_digest": "d9a5e0b6d0e22d9c308b6ff90d118994ef0d349872167eeef7a3fb8a450e2ae1",
+        "generation_ms": 23118.08037525043,
+        "job": "stability-03",
+        "native_setup_ms": 111.739709,
+        "native_ttft_ms": 692.086708,
+        "ttft_ms": 693.7244581058621
+      },
+      {
+        "evidence_digest": "fec45f8dc359e46b6c096976cea21fa578ce8f823ab6de5de2e5872d41dc786c",
+        "generation_ms": 22168.806249741465,
+        "job": "stability-04",
+        "native_setup_ms": 111.3505,
+        "native_ttft_ms": 676.9225,
+        "ttft_ms": 679.1537920944393
+      }
+    ],
+    "telemetry_instrumented": true,
+    "timing_gate_passed": true
+  },
+  "jobs": [
+    {
+      "job": "stability-00",
+      "evidence_digest": "df3495703a1cd7a7680cb57cc19e65a6f7d40e5e4b6aa90c655a48eb291bc79b",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "rtt_ms_min_median_max": [
+        47,
+        52,
+        68
+      ],
+      "network_non_pong_lines": 0,
+      "swapins_pages_delta": 104,
+      "swapouts_pages_delta": 0,
+      "gpu_active_clock_range_mhz": [
+        1665,
+        1980
+      ],
+      "gpu_temp_max_c": 54
+    },
+    {
+      "job": "stability-01",
+      "evidence_digest": "e350e7fb7f38bdfe190f5964542ed715a302ad20533d7db020b162b569f985d0",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "rtt_ms_min_median_max": [
+        47,
+        52.0,
+        66
+      ],
+      "network_non_pong_lines": 1,
+      "swapins_pages_delta": 700,
+      "swapouts_pages_delta": 0,
+      "gpu_active_clock_range_mhz": [
+        1665,
+        1980
+      ],
+      "gpu_temp_max_c": 56
+    },
+    {
+      "job": "stability-02",
+      "evidence_digest": "a9cf348fbc4084c7ea50d6b0b769131ad38e7f66ce7deb7d5e4dd365442b162c",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "rtt_ms_min_median_max": [
+        47,
+        52.0,
+        101
+      ],
+      "network_non_pong_lines": 3,
+      "swapins_pages_delta": 209,
+      "swapouts_pages_delta": 0,
+      "gpu_active_clock_range_mhz": [
+        1665,
+        1980
+      ],
+      "gpu_temp_max_c": 57
+    },
+    {
+      "job": "stability-03",
+      "evidence_digest": "d9a5e0b6d0e22d9c308b6ff90d118994ef0d349872167eeef7a3fb8a450e2ae1",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "rtt_ms_min_median_max": [
+        46,
+        52.0,
+        78
+      ],
+      "network_non_pong_lines": 4,
+      "swapins_pages_delta": 16,
+      "swapouts_pages_delta": 0,
+      "gpu_active_clock_range_mhz": [
+        1665,
+        1980
+      ],
+      "gpu_temp_max_c": 57
+    },
+    {
+      "job": "stability-04",
+      "evidence_digest": "fec45f8dc359e46b6c096976cea21fa578ce8f823ab6de5de2e5872d41dc786c",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "rtt_ms_min_median_max": [
+        46,
+        52.0,
+        69
+      ],
+      "network_non_pong_lines": 0,
+      "swapins_pages_delta": 36,
+      "swapouts_pages_delta": 0,
+      "gpu_active_clock_range_mhz": [
+        1665,
+        1980
+      ],
+      "gpu_temp_max_c": 57
+    }
+  ],
+  "limitations": [
+    "Telemetry spans entire jobs, including memory profiling and startup; per-request wall-clock correlation is unavailable.",
+    "This run does not establish the cause of the earlier failure or replace acceptance samples."
+  ],
+  "findings": [
+    "All 15 full requests match the independent reference, evidence digests verify, and all job cleanup checks pass; firewall cleanup returned zero.",
+    "Five timed samples span 21.401\u201323.118 seconds (8.026% drift); diagnostic only.",
+    "Eight Tailscale probe timeouts occurred across three jobs; successful RTTs span 46\u2013101 ms. This does not prove generation transport loss or causation.",
+    "No Mac swapouts during sampled jobs; CUDA sampled temperatures reached at most 57 C. Per-request temporal correlation remains unavailable."
+  ]
+}

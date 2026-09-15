@@ -90,6 +90,7 @@ message StageMessage {
 }
 
 message GenerationRequest {
+  bool capture_timing = 8;
   string deployment_id = 1;
   string request_id = 2;
   repeated uint64 token_ids = 3;
@@ -104,6 +105,8 @@ message PrefillComplete {
 }
 
 message TokenEvent {
+  optional double native_elapsed_ms = 3;
+  optional double native_request_setup_ms = 4;
   uint64 token_id = 1;
   uint64 token_position = 2;
 }

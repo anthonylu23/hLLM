@@ -28,7 +28,7 @@ from . import placement_pb2 as placement__pb2
 from . import profile_pb2 as profile__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rcontrol.proto\x12\x07hllm.v1\x1a\x0c\x63ommon.proto\x1a\x0bmodel.proto\x1a\x0fplacement.proto\x1a\rprofile.proto\"6\n\x0c\x43\x61pabilities\x12&\n\x06worker\x18\x01 \x01(\x0b\x32\x16.hllm.v1.WorkerProfile\"4\n\x18LinkQualificationRequest\x12\x18\n\x10target_worker_id\x18\x01 \x01(\t\"I\n\rStageEndpoint\x12\x13\n\x0bstage_index\x18\x01 \x01(\r\x12\x11\n\tworker_id\x18\x02 \x01(\t\x12\x10\n\x08\x65ndpoint\x18\x03 \x01(\t\"\xa9\x01\n\x10LoadStageRequest\x12%\n\x04plan\x18\x01 \x01(\x0b\x32\x17.hllm.v1.DeploymentPlan\x12\x13\n\x0bstage_index\x18\x02 \x01(\r\x12(\n\x08manifest\x18\x03 \x01(\x0b\x32\x16.hllm.v1.ModelManifest\x12/\n\x0fstage_endpoints\x18\x04 \x03(\x0b\x32\x16.hllm.v1.StageEndpoint\"j\n\x11LoadStageResponse\x12\x10\n\x08\x61\x63\x63\x65pted\x18\x01 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x02 \x01(\t\x12)\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x15.hllm.v1.RuntimeErrorH\x00\x88\x01\x01\x42\x08\n\x06_error\"A\n\x12UnloadStageRequest\x12\x0f\n\x07plan_id\x18\x01 \x01(\t\x12\x1a\n\x12\x64\x65ployment_version\x18\x02 \x01(\x04\"\x90\x01\n\x15ReserveRequestMessage\x12\x0f\n\x07plan_id\x18\x01 \x01(\t\x12\x12\n\nrequest_id\x18\x02 \x01(\t\x12\x1a\n\x12\x64\x65ployment_version\x18\x03 \x01(\x04\x12\x1c\n\x14maximum_total_tokens\x18\x04 \x01(\x04\x12\x18\n\x10\x64\x65\x61\x64line_unix_ms\x18\x05 \x01(\x04\"h\n\x0fReserveResponse\x12\x10\n\x08\x61\x63\x63\x65pted\x18\x01 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x02 \x01(\t\x12)\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x15.hllm.v1.RuntimeErrorH\x00\x88\x01\x01\x42\x08\n\x06_error\"g\n\x14\x43\x61ncelRequestMessage\x12\x0f\n\x07plan_id\x18\x01 \x01(\t\x12\x12\n\nrequest_id\x18\x02 \x01(\t\x12\x1a\n\x12\x64\x65ployment_version\x18\x03 \x01(\x04\x12\x0e\n\x06reason\x18\x04 \x01(\t\"\x97\x01\n\x11\x44omainMemoryUsage\x12%\n\x06\x64omain\x18\x01 \x01(\x0e\x32\x15.hllm.v1.MemoryDomain\x12\x1b\n\x13loaded_weight_bytes\x18\x02 \x01(\x04\x12\x1c\n\x14reserved_cache_bytes\x18\x03 \x01(\x04\x12 \n\x18reserved_workspace_bytes\x18\x04 \x01(\x04\"\xde\x01\n\x0cMemoryReport\x12&\n\x07\x62udgets\x18\x01 \x03(\x0b\x32\x15.hllm.v1.MemoryBudget\x12\x1b\n\x13loaded_weight_bytes\x18\x02 \x01(\x04\x12\x1c\n\x14reserved_cache_bytes\x18\x03 \x01(\x04\x12 \n\x18reserved_workspace_bytes\x18\x04 \x01(\x04\x12\x17\n\x0f\x61\x63tive_requests\x18\x05 \x01(\x04\x12\x30\n\x0c\x64omain_usage\x18\x06 \x03(\x0b\x32\x1a.hllm.v1.DomainMemoryUsage\"y\n\x10\x41llocatorMetrics\x12%\n\x06\x64omain\x18\x01 \x01(\x0e\x32\x15.hllm.v1.MemoryDomain\x12\x14\n\x0c\x61\x63tive_bytes\x18\x02 \x01(\x04\x12\x14\n\x0c\x63\x61\x63hed_bytes\x18\x03 \x01(\x04\x12\x12\n\npeak_bytes\x18\x04 \x01(\x04\"c\n\rWorkerMetrics\x12\x11\n\tworker_id\x18\x01 \x01(\t\x12\x31\n\tallocator\x18\x02 \x01(\x0b\x32\x19.hllm.v1.AllocatorMetricsH\x00\x88\x01\x01\x42\x0c\n\n_allocator\"1\n\x0eHealthResponse\x12\x0f\n\x07serving\x18\x01 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x02 \x01(\t2\xc0\x04\n\rWorkerControl\x12\x38\n\x0fGetCapabilities\x12\x0e.hllm.v1.Empty\x1a\x15.hllm.v1.Capabilities\x12\x46\n\x0bQualifyLink\x12!.hllm.v1.LinkQualificationRequest\x1a\x14.hllm.v1.LinkProfile\x12\x42\n\tLoadStage\x12\x19.hllm.v1.LoadStageRequest\x1a\x1a.hllm.v1.LoadStageResponse\x12:\n\x0bUnloadStage\x12\x1b.hllm.v1.UnloadStageRequest\x1a\x0e.hllm.v1.Empty\x12J\n\x0eReserveRequest\x12\x1e.hllm.v1.ReserveRequestMessage\x1a\x18.hllm.v1.ReserveResponse\x12>\n\rCancelRequest\x12\x1d.hllm.v1.CancelRequestMessage\x1a\x0e.hllm.v1.Empty\x12\x38\n\x0fGetMemoryReport\x12\x0e.hllm.v1.Empty\x1a\x15.hllm.v1.MemoryReport\x12\x34\n\nGetMetrics\x12\x0e.hllm.v1.Empty\x1a\x16.hllm.v1.WorkerMetrics\x12\x31\n\x06Health\x12\x0e.hllm.v1.Empty\x1a\x17.hllm.v1.HealthResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rcontrol.proto\x12\x07hllm.v1\x1a\x0c\x63ommon.proto\x1a\x0bmodel.proto\x1a\x0fplacement.proto\x1a\rprofile.proto\"6\n\x0c\x43\x61pabilities\x12&\n\x06worker\x18\x01 \x01(\x0b\x32\x16.hllm.v1.WorkerProfile\"\xcf\x03\n\x12QualificationState\x12!\n\x14\x61vailable_host_bytes\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12#\n\x16\x61vailable_device_bytes\x18\x02 \x01(\x04H\x01\x88\x01\x01\x12\x17\n\x0f\x62\x61\x63kend_version\x18\x03 \x01(\t\x12\x16\n\x0e\x64river_version\x18\x04 \x01(\t\x12\x11\n\tallocator\x18\x05 \x01(\t\x12\x15\n\rbinary_digest\x18\x06 \x01(\t\x12\x17\n\x0f\x64\x65vice_identity\x18\x07 \x01(\t\x12\x12\n\nprocess_id\x18\x08 \x01(\x04\x12\x1f\n\x17\x62oundary_transport_mode\x18\t \x01(\t\x12\x1f\n\x12pytorch_alloc_conf\x18\n \x01(\tH\x02\x88\x01\x01\x12$\n\x17pytorch_cuda_alloc_conf\x18\x0b \x01(\tH\x03\x88\x01\x01\x12\x1a\n\x12\x64\x65vice_fingerprint\x18\x0c \x01(\tB\x17\n\x15_available_host_bytesB\x19\n\x17_available_device_bytesB\x15\n\x13_pytorch_alloc_confB\x1a\n\x18_pytorch_cuda_alloc_conf\"\xbb\x01\n\x18LinkQualificationRequest\x12\x18\n\x10target_worker_id\x18\x01 \x01(\t\x12\x15\n\rprompt_tokens\x18\x02 \x01(\r\x12\x13\n\x0bhidden_size\x18\x03 \x01(\r\x12\x15\n\routput_tokens\x18\x04 \x01(\r\x12\x15\n\rwarmup_cycles\x18\x05 \x01(\r\x12\x17\n\x0fmeasured_cycles\x18\x06 \x01(\r\x12\x12\n\ntimeout_ms\x18\x07 \x01(\r\"I\n\rStageEndpoint\x12\x13\n\x0bstage_index\x18\x01 \x01(\r\x12\x11\n\tworker_id\x18\x02 \x01(\t\x12\x10\n\x08\x65ndpoint\x18\x03 \x01(\t\"\xa9\x01\n\x10LoadStageRequest\x12%\n\x04plan\x18\x01 \x01(\x0b\x32\x17.hllm.v1.DeploymentPlan\x12\x13\n\x0bstage_index\x18\x02 \x01(\r\x12(\n\x08manifest\x18\x03 \x01(\x0b\x32\x16.hllm.v1.ModelManifest\x12/\n\x0fstage_endpoints\x18\x04 \x03(\x0b\x32\x16.hllm.v1.StageEndpoint\"j\n\x11LoadStageResponse\x12\x10\n\x08\x61\x63\x63\x65pted\x18\x01 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x02 \x01(\t\x12)\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x15.hllm.v1.RuntimeErrorH\x00\x88\x01\x01\x42\x08\n\x06_error\"A\n\x12UnloadStageRequest\x12\x0f\n\x07plan_id\x18\x01 \x01(\t\x12\x1a\n\x12\x64\x65ployment_version\x18\x02 \x01(\x04\"\x90\x01\n\x15ReserveRequestMessage\x12\x0f\n\x07plan_id\x18\x01 \x01(\t\x12\x12\n\nrequest_id\x18\x02 \x01(\t\x12\x1a\n\x12\x64\x65ployment_version\x18\x03 \x01(\x04\x12\x1c\n\x14maximum_total_tokens\x18\x04 \x01(\x04\x12\x18\n\x10\x64\x65\x61\x64line_unix_ms\x18\x05 \x01(\x04\"h\n\x0fReserveResponse\x12\x10\n\x08\x61\x63\x63\x65pted\x18\x01 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x02 \x01(\t\x12)\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x15.hllm.v1.RuntimeErrorH\x00\x88\x01\x01\x42\x08\n\x06_error\"g\n\x14\x43\x61ncelRequestMessage\x12\x0f\n\x07plan_id\x18\x01 \x01(\t\x12\x12\n\nrequest_id\x18\x02 \x01(\t\x12\x1a\n\x12\x64\x65ployment_version\x18\x03 \x01(\x04\x12\x0e\n\x06reason\x18\x04 \x01(\t\"\x97\x01\n\x11\x44omainMemoryUsage\x12%\n\x06\x64omain\x18\x01 \x01(\x0e\x32\x15.hllm.v1.MemoryDomain\x12\x1b\n\x13loaded_weight_bytes\x18\x02 \x01(\x04\x12\x1c\n\x14reserved_cache_bytes\x18\x03 \x01(\x04\x12 \n\x18reserved_workspace_bytes\x18\x04 \x01(\x04\"\xde\x01\n\x0cMemoryReport\x12&\n\x07\x62udgets\x18\x01 \x03(\x0b\x32\x15.hllm.v1.MemoryBudget\x12\x1b\n\x13loaded_weight_bytes\x18\x02 \x01(\x04\x12\x1c\n\x14reserved_cache_bytes\x18\x03 \x01(\x04\x12 \n\x18reserved_workspace_bytes\x18\x04 \x01(\x04\x12\x17\n\x0f\x61\x63tive_requests\x18\x05 \x01(\x04\x12\x30\n\x0c\x64omain_usage\x18\x06 \x03(\x0b\x32\x1a.hllm.v1.DomainMemoryUsage\"y\n\x10\x41llocatorMetrics\x12%\n\x06\x64omain\x18\x01 \x01(\x0e\x32\x15.hllm.v1.MemoryDomain\x12\x14\n\x0c\x61\x63tive_bytes\x18\x02 \x01(\x04\x12\x14\n\x0c\x63\x61\x63hed_bytes\x18\x03 \x01(\x04\x12\x12\n\npeak_bytes\x18\x04 \x01(\x04\"c\n\rWorkerMetrics\x12\x11\n\tworker_id\x18\x01 \x01(\t\x12\x31\n\tallocator\x18\x02 \x01(\x0b\x32\x19.hllm.v1.AllocatorMetricsH\x00\x88\x01\x01\x42\x0c\n\n_allocator\"1\n\x0eHealthResponse\x12\x0f\n\x07serving\x18\x01 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x02 \x01(\t2\xc6\x05\n\rWorkerControl\x12\x38\n\x0fGetCapabilities\x12\x0e.hllm.v1.Empty\x1a\x15.hllm.v1.Capabilities\x12\x44\n\x15GetQualificationState\x12\x0e.hllm.v1.Empty\x1a\x1b.hllm.v1.QualificationState\x12>\n\x10GetLinkProbeInfo\x12\x0e.hllm.v1.Empty\x1a\x1a.hllm.v1.LinkProbeIdentity\x12\x46\n\x0bQualifyLink\x12!.hllm.v1.LinkQualificationRequest\x1a\x14.hllm.v1.LinkProfile\x12\x42\n\tLoadStage\x12\x19.hllm.v1.LoadStageRequest\x1a\x1a.hllm.v1.LoadStageResponse\x12:\n\x0bUnloadStage\x12\x1b.hllm.v1.UnloadStageRequest\x1a\x0e.hllm.v1.Empty\x12J\n\x0eReserveRequest\x12\x1e.hllm.v1.ReserveRequestMessage\x1a\x18.hllm.v1.ReserveResponse\x12>\n\rCancelRequest\x12\x1d.hllm.v1.CancelRequestMessage\x1a\x0e.hllm.v1.Empty\x12\x38\n\x0fGetMemoryReport\x12\x0e.hllm.v1.Empty\x1a\x15.hllm.v1.MemoryReport\x12\x34\n\nGetMetrics\x12\x0e.hllm.v1.Empty\x1a\x16.hllm.v1.WorkerMetrics\x12\x31\n\x06Health\x12\x0e.hllm.v1.Empty\x1a\x17.hllm.v1.HealthResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,32 +37,34 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_CAPABILITIES']._serialized_start=85
   _globals['_CAPABILITIES']._serialized_end=139
-  _globals['_LINKQUALIFICATIONREQUEST']._serialized_start=141
-  _globals['_LINKQUALIFICATIONREQUEST']._serialized_end=193
-  _globals['_STAGEENDPOINT']._serialized_start=195
-  _globals['_STAGEENDPOINT']._serialized_end=268
-  _globals['_LOADSTAGEREQUEST']._serialized_start=271
-  _globals['_LOADSTAGEREQUEST']._serialized_end=440
-  _globals['_LOADSTAGERESPONSE']._serialized_start=442
-  _globals['_LOADSTAGERESPONSE']._serialized_end=548
-  _globals['_UNLOADSTAGEREQUEST']._serialized_start=550
-  _globals['_UNLOADSTAGEREQUEST']._serialized_end=615
-  _globals['_RESERVEREQUESTMESSAGE']._serialized_start=618
-  _globals['_RESERVEREQUESTMESSAGE']._serialized_end=762
-  _globals['_RESERVERESPONSE']._serialized_start=764
-  _globals['_RESERVERESPONSE']._serialized_end=868
-  _globals['_CANCELREQUESTMESSAGE']._serialized_start=870
-  _globals['_CANCELREQUESTMESSAGE']._serialized_end=973
-  _globals['_DOMAINMEMORYUSAGE']._serialized_start=976
-  _globals['_DOMAINMEMORYUSAGE']._serialized_end=1127
-  _globals['_MEMORYREPORT']._serialized_start=1130
-  _globals['_MEMORYREPORT']._serialized_end=1352
-  _globals['_ALLOCATORMETRICS']._serialized_start=1354
-  _globals['_ALLOCATORMETRICS']._serialized_end=1475
-  _globals['_WORKERMETRICS']._serialized_start=1477
-  _globals['_WORKERMETRICS']._serialized_end=1576
-  _globals['_HEALTHRESPONSE']._serialized_start=1578
-  _globals['_HEALTHRESPONSE']._serialized_end=1627
-  _globals['_WORKERCONTROL']._serialized_start=1630
-  _globals['_WORKERCONTROL']._serialized_end=2206
+  _globals['_QUALIFICATIONSTATE']._serialized_start=142
+  _globals['_QUALIFICATIONSTATE']._serialized_end=605
+  _globals['_LINKQUALIFICATIONREQUEST']._serialized_start=608
+  _globals['_LINKQUALIFICATIONREQUEST']._serialized_end=795
+  _globals['_STAGEENDPOINT']._serialized_start=797
+  _globals['_STAGEENDPOINT']._serialized_end=870
+  _globals['_LOADSTAGEREQUEST']._serialized_start=873
+  _globals['_LOADSTAGEREQUEST']._serialized_end=1042
+  _globals['_LOADSTAGERESPONSE']._serialized_start=1044
+  _globals['_LOADSTAGERESPONSE']._serialized_end=1150
+  _globals['_UNLOADSTAGEREQUEST']._serialized_start=1152
+  _globals['_UNLOADSTAGEREQUEST']._serialized_end=1217
+  _globals['_RESERVEREQUESTMESSAGE']._serialized_start=1220
+  _globals['_RESERVEREQUESTMESSAGE']._serialized_end=1364
+  _globals['_RESERVERESPONSE']._serialized_start=1366
+  _globals['_RESERVERESPONSE']._serialized_end=1470
+  _globals['_CANCELREQUESTMESSAGE']._serialized_start=1472
+  _globals['_CANCELREQUESTMESSAGE']._serialized_end=1575
+  _globals['_DOMAINMEMORYUSAGE']._serialized_start=1578
+  _globals['_DOMAINMEMORYUSAGE']._serialized_end=1729
+  _globals['_MEMORYREPORT']._serialized_start=1732
+  _globals['_MEMORYREPORT']._serialized_end=1954
+  _globals['_ALLOCATORMETRICS']._serialized_start=1956
+  _globals['_ALLOCATORMETRICS']._serialized_end=2077
+  _globals['_WORKERMETRICS']._serialized_start=2079
+  _globals['_WORKERMETRICS']._serialized_end=2178
+  _globals['_HEALTHRESPONSE']._serialized_start=2180
+  _globals['_HEALTHRESPONSE']._serialized_end=2229
+  _globals['_WORKERCONTROL']._serialized_start=2232
+  _globals['_WORKERCONTROL']._serialized_end=2942
 # @@protoc_insertion_point(module_scope)

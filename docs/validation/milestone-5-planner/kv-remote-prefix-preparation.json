@@ -1,0 +1,57 @@
+{
+  "prepared_prefixes": 9,
+  "steps_per_prefix": 256,
+  "binary_sha256": "209e8246652b86edad4080c3b76694478e8c1e402b3528becd9242fdc048013c",
+  "history_sha256": "fb20e2f3c22703f0551bb8c9bcf9ebb0b327ed2a605770e83564a181abb44b35",
+  "cases": [
+    {
+      "candidate": "cuda--mlx-m019",
+      "spec_sha256": "a87802275719034ff069a0e6a5c367b75a7aa90f7a12e4ee27abbbb2fb0b7f4e",
+      "boundary_sha256": "82d9339e2b1dc11bcf691a98db525cbe5af56700408ab40ee3ed52bcc39fff2d"
+    },
+    {
+      "candidate": "cuda--mlx-m020",
+      "spec_sha256": "5bc195d281244d0323429855ece037545b62fa934c44b12ec518eb69933a9a01",
+      "boundary_sha256": "1f48353bfaf5b2fb445547bc2334277034812b5b81ac1272fd7d23ca434aa35e"
+    },
+    {
+      "candidate": "cuda--mlx-m021",
+      "spec_sha256": "061ae83e04ad8b0d20e3ad8a1d2e6980a27feb273d689e0c6c530ee0567ae809",
+      "boundary_sha256": "079a13dfe50cb9964d2e0d5e1c99db54cf774403290aff2aad473c9b7a1be632"
+    },
+    {
+      "candidate": "cuda--mlx-m022",
+      "spec_sha256": "bec4056e4f0add876239e54e746756d7e77497bd3860eeb8e5335463ef3f8553",
+      "boundary_sha256": "ff7e6fed3d3d639634b7b183723abfc3f3d2553dfcf368f61c93e3267fe778a1"
+    },
+    {
+      "candidate": "cuda--mlx-m023",
+      "spec_sha256": "98868d6cfb145810ad1bdea24c90140c9034c3e013db55c26286db17ac2c044d",
+      "boundary_sha256": "78325ab97c51b48fc63f57377ca7828e57f2fc221adfc0247ab1ca1c7d1b1f1f"
+    },
+    {
+      "candidate": "cuda--mlx-m024",
+      "spec_sha256": "55643323783e00a96fe0b1a1d372d92bf4b19c6673830e40eb1c72ff647a9ec4",
+      "boundary_sha256": "3d33f32b4f300f6daf2be79ff7e616b6d657e068cded151167cd5791b28a6b4b"
+    },
+    {
+      "candidate": "cuda--mlx-m025",
+      "spec_sha256": "f01c1d47b3822dfaabf6e83c4c7d8fdfc45f4e968cbe3dff8a653257a1dbdcd9",
+      "boundary_sha256": "ab726752fd3e4138a3810d7ab057a7d36749a634a4e938bbf278e111e8df5af7"
+    },
+    {
+      "candidate": "cuda--mlx-m026",
+      "spec_sha256": "173b49bbc3c5a8200eab6d26a71bb7d18ff0f11e6db5050a80ebc96b2104e6bc",
+      "boundary_sha256": "826f69e5eef8503e2a2f9ec71f4610fdaae4af4d436bad08435f5034f6a828f9"
+    },
+    {
+      "candidate": "cuda--mlx-m027",
+      "spec_sha256": "caf560e361bd9ca671855434339b0fefa03e9dd9e69a606a9d7790571da6b3cd",
+      "boundary_sha256": "d3b976fb2bba7b419f897e5a05e70e02562ebb6cb77a084f6f896cbd59a5d00c"
+    }
+  ],
+  "all_boundary_hashes_verified": true,
+  "all_specs_match_continuation": true,
+  "scope": "Prepared prefix payloads only; no new exact-placement credit until suffix replay.",
+  "kv_memory_delta_bytes_all28layers_at768": 88080384
+}

@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "scope": "Fresh maximum-layer stage memory exercises; no all-split inference or exclusion claim",
+  "profiles": [
+    {
+      "name": "mlx-final-m001-memory",
+      "artifact_digest": "ba0b287994b300f2a9b477281e0c0ee27893343cb7af66640e7bbd4562470829",
+      "raw_artifact_sha256": "c860d626bb4f4048d9565f0ef1074397705306a2f51b396147d5309acc1ff847",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "admission_capacity": {
+        "host": 0,
+        "device": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3565642609,
+        "reasons": [],
+        "status": "safe"
+      },
+      "host_budget": {
+        "available_bytes": 5198036992,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 268435456,
+        "safety_fraction": 0.1
+      },
+      "device_budget": null,
+      "completed": true
+    },
+    {
+      "name": "mlx-first-m027-memory",
+      "artifact_digest": "2266e5ad3d97cdc98a7ada50ae5100d3439de986a791b30abf07fa6296431302",
+      "raw_artifact_sha256": "5f676c812bec77d11aa4aa0539babe45a32984188ab88c35077a07557d066c9d",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "admission_capacity": {
+        "host": 0,
+        "device": 0,
+        "pinned": 0,
+        "unified": 3489660928
+      },
+      "fit": {
+        "device_envelope_bytes": null,
+        "host_envelope_bytes": 3202797630,
+        "reasons": [],
+        "status": "safe"
+      },
+      "host_budget": {
+        "available_bytes": 4669095936,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 268435456,
+        "safety_fraction": 0.1
+      },
+      "device_budget": null,
+      "completed": true
+    },
+    {
+      "name": "cuda-final-m001-memory",
+      "artifact_digest": "936c9f5fd933e1a8c46557c803ea673250904af290e0a059ec472806789831fa",
+      "raw_artifact_sha256": "198dcdfa8ed47c30fadf4cde096be47e029be578bfc825fc7632043411b57280",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 1,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "admission_capacity": {
+        "host": 2147483648,
+        "device": 3221225472,
+        "pinned": 0,
+        "unified": 0
+      },
+      "fit": {
+        "device_envelope_bytes": 1970903450,
+        "host_envelope_bytes": 1913317376,
+        "reasons": [],
+        "status": "safe"
+      },
+      "host_budget": {
+        "available_bytes": 7384752128,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 1073741824,
+        "safety_fraction": 0.1
+      },
+      "device_budget": {
+        "available_bytes": 8056209408,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 536870912,
+        "safety_fraction": 0.1
+      },
+      "completed": true
+    },
+    {
+      "name": "cuda-first-m027-memory",
+      "artifact_digest": "9832deea17172af65e161fb85e1a441712cb31390e84add3ed881cfb7fd64e5c",
+      "raw_artifact_sha256": "a818b240c1166a6d62106d397beb281bdf0fa7943ce911de53e8cd471ab37547",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 27,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "admission_capacity": {
+        "host": 2147483648,
+        "device": 3221225472,
+        "pinned": 0,
+        "unified": 0
+      },
+      "fit": {
+        "device_envelope_bytes": 1970903450,
+        "host_envelope_bytes": 1912218010,
+        "reasons": [],
+        "status": "safe"
+      },
+      "host_budget": {
+        "available_bytes": 7432073216,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 1073741824,
+        "safety_fraction": 0.1
+      },
+      "device_budget": {
+        "available_bytes": 8056209408,
+        "extra_overhead_bytes": 268435456,
+        "headroom_bytes": 536870912,
+        "safety_fraction": 0.1
+      },
+      "completed": true
+    }
+  ]
+}

@@ -1,0 +1,1022 @@
+{
+  "schema_version": "1.0",
+  "compute": [
+    {
+      "name": "mlx-first",
+      "artifact": "mlx-first.json.gz",
+      "artifact_digest": "e5440dec6cf84cecaab656b700aa2d2e84ee8ddc2dda2e67be7a19da8b9420e9",
+      "archive_sha256": "6fa576506ffd2cf9a171c565a544921299e63fd5d22908d39d48892247aa038b",
+      "conditions": {
+        "measured_at": "2026-09-08T21:50:53.461270Z",
+        "warmup_cycles": 2,
+        "measured_cycles": 5,
+        "process_policy": "loaded-stage-paired-passes",
+        "concurrent_load": "macOS desktop and existing applications; no competing inference",
+        "notes": [
+          "Paired identical synthetic inputs; completed native work timed.",
+          "External physical telemetry disabled during timing."
+        ]
+      },
+      "environment": {
+        "backend": "mlx",
+        "device_identity": "68bd9e58566b92ea39397ad31a8edd2b203d4d165c69ad2cb43845f188f5b741",
+        "device_name": "Apple Metal; Apple M3 Pro; Mac15,6",
+        "backend_version": "0.32.2",
+        "driver_version": "os-bundled",
+        "allocator": "mlx-metal",
+        "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 2936012800}}",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "binary_digest": "260fa3e77797f796f222bc63973c440cd6683af1f7dbbfb82644f2bb176ff9ed",
+        "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+        "os": "macOS-26.5.1-arm64-arm-64bit;kernel=Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:06 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6030"
+      },
+      "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "mlx",
+        "layer_start": 0,
+        "layer_end": 14,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "dtype": "F16",
+      "transport_mode": "pageable",
+      "admission_capacity": {
+        "host": 0,
+        "device": 0,
+        "pinned": 0,
+        "unified": 2936012800
+      },
+      "physical_preflight": {
+        "host_budget": {
+          "available_bytes": 3689594880,
+          "extra_overhead_bytes": 67108864,
+          "headroom_bytes": 268435456,
+          "safety_fraction": 0.1
+        },
+        "device_budget": null
+      },
+      "comparisons": [
+        {
+          "phase": "prefill",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 137.318,
+              "median_phase_total_ms": 137.318,
+              "phase_total_samples_ms": [
+                114.334541,
+                123.633333,
+                137.511125,
+                142.478666,
+                137.318
+              ],
+              "min_step_ms": 114.334541,
+              "max_step_ms": 142.478666
+            },
+            "component-synchronized": {
+              "median_step_ms": 163.569417,
+              "median_phase_total_ms": 163.569417,
+              "phase_total_samples_ms": [
+                135.3625,
+                134.240959,
+                183.132167,
+                165.078917,
+                163.569417
+              ],
+              "min_step_ms": 134.240959,
+              "max_step_ms": 183.132167
+            }
+          },
+          "overhead_fraction": 0.19117243915582782
+        },
+        {
+          "phase": "decode",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 13.577834,
+              "median_phase_total_ms": 3721.105545,
+              "phase_total_samples_ms": [
+                3323.333627,
+                3228.683413,
+                3721.105545,
+                3762.827084,
+                3832.469496
+              ],
+              "min_step_ms": 11.007791,
+              "max_step_ms": 25.444375
+            },
+            "component-synchronized": {
+              "median_step_ms": 14.062375,
+              "median_phase_total_ms": 3630.073662,
+              "phase_total_samples_ms": [
+                3630.073662,
+                3479.960253,
+                3790.47125,
+                4158.483242,
+                3489.319166
+              ],
+              "min_step_ms": 11.513459,
+              "max_step_ms": 29.611917
+            }
+          },
+          "overhead_fraction": -0.024463665945277602
+        }
+      ],
+      "components": [
+        {
+          "phase": "prefill",
+          "component": "embedding",
+          "median_phase_total_ms": 0.21175
+        },
+        {
+          "phase": "prefill",
+          "component": "layer",
+          "median_phase_total_ms": 162.064378
+        },
+        {
+          "phase": "prefill",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 0.04429300000001035
+        },
+        {
+          "phase": "prefill",
+          "component": "to-wire",
+          "median_phase_total_ms": 0.341084
+        },
+        {
+          "phase": "prefill",
+          "component": "validation",
+          "median_phase_total_ms": 0.756042
+        },
+        {
+          "phase": "decode",
+          "component": "embedding",
+          "median_phase_total_ms": 44.014084
+        },
+        {
+          "phase": "decode",
+          "component": "layer",
+          "median_phase_total_ms": 3472.502495
+        },
+        {
+          "phase": "decode",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 9.94279799999999
+        },
+        {
+          "phase": "decode",
+          "component": "to-wire",
+          "median_phase_total_ms": 47.884209
+        },
+        {
+          "phase": "decode",
+          "component": "validation",
+          "median_phase_total_ms": 53.472046
+        }
+      ]
+    },
+    {
+      "name": "mlx-final",
+      "artifact": "mlx-final.json.gz",
+      "artifact_digest": "e8e9bbb5b99191e4e4eac5ac11c58ace3de8908a42aefc0a3c9e43bb539edd83",
+      "archive_sha256": "1c42431f01d336ad11095b5f9c7355d9f4487ca2814ef9ad2e60e048fc2ad355",
+      "conditions": {
+        "measured_at": "2026-09-08T21:51:49.997549Z",
+        "warmup_cycles": 2,
+        "measured_cycles": 5,
+        "process_policy": "loaded-stage-paired-passes",
+        "concurrent_load": "macOS desktop and existing applications; no competing inference",
+        "notes": [
+          "Paired identical synthetic inputs; completed native work timed.",
+          "External physical telemetry disabled during timing."
+        ]
+      },
+      "environment": {
+        "backend": "mlx",
+        "device_identity": "68bd9e58566b92ea39397ad31a8edd2b203d4d165c69ad2cb43845f188f5b741",
+        "device_name": "Apple Metal; Apple M3 Pro; Mac15,6",
+        "backend_version": "0.32.2",
+        "driver_version": "os-bundled",
+        "allocator": "mlx-metal",
+        "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 2936012800}}",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "binary_digest": "260fa3e77797f796f222bc63973c440cd6683af1f7dbbfb82644f2bb176ff9ed",
+        "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+        "os": "macOS-26.5.1-arm64-arm-64bit;kernel=Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:06 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6030"
+      },
+      "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "mlx",
+        "layer_start": 14,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "dtype": "F16",
+      "transport_mode": "pageable",
+      "admission_capacity": {
+        "host": 0,
+        "device": 0,
+        "pinned": 0,
+        "unified": 2936012800
+      },
+      "physical_preflight": {
+        "host_budget": {
+          "available_bytes": 4593614848,
+          "extra_overhead_bytes": 67108864,
+          "headroom_bytes": 268435456,
+          "safety_fraction": 0.1
+        },
+        "device_budget": null
+      },
+      "comparisons": [
+        {
+          "phase": "prefill",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 124.29525,
+              "median_phase_total_ms": 124.29525,
+              "phase_total_samples_ms": [
+                118.847125,
+                126.431708,
+                117.761208,
+                124.29525,
+                150.692292
+              ],
+              "min_step_ms": 117.761208,
+              "max_step_ms": 150.692292
+            },
+            "component-synchronized": {
+              "median_step_ms": 127.599167,
+              "median_phase_total_ms": 127.599167,
+              "phase_total_samples_ms": [
+                134.317709,
+                122.734125,
+                127.599167,
+                125.693208,
+                139.132667
+              ],
+              "min_step_ms": 122.734125,
+              "max_step_ms": 139.132667
+            }
+          },
+          "overhead_fraction": 0.026581200810167793
+        },
+        {
+          "phase": "decode",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 15.286333,
+              "median_phase_total_ms": 3899.4463690000002,
+              "phase_total_samples_ms": [
+                3873.856449,
+                3899.4463690000002,
+                3891.128383,
+                3961.238879,
+                4043.25945
+              ],
+              "min_step_ms": 13.752833,
+              "max_step_ms": 41.109959
+            },
+            "component-synchronized": {
+              "median_step_ms": 16.3875,
+              "median_phase_total_ms": 4216.466669,
+              "phase_total_samples_ms": [
+                4199.139549,
+                4503.348421,
+                4216.466669,
+                4145.96816,
+                4220.248539
+              ],
+              "min_step_ms": 13.88575,
+              "max_step_ms": 32.982
+            }
+          },
+          "overhead_fraction": 0.08129879731652756
+        }
+      ],
+      "components": [
+        {
+          "phase": "prefill",
+          "component": "final_norm",
+          "median_phase_total_ms": 0.243667
+        },
+        {
+          "phase": "prefill",
+          "component": "from-wire",
+          "median_phase_total_ms": 1.13625
+        },
+        {
+          "phase": "prefill",
+          "component": "layer",
+          "median_phase_total_ms": 122.872251
+        },
+        {
+          "phase": "prefill",
+          "component": "lm_head",
+          "median_phase_total_ms": 2.697875
+        },
+        {
+          "phase": "prefill",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 0.049044999999978245
+        },
+        {
+          "phase": "prefill",
+          "component": "sampling",
+          "median_phase_total_ms": 0.206333
+        },
+        {
+          "phase": "prefill",
+          "component": "validation",
+          "median_phase_total_ms": 0.554792
+        },
+        {
+          "phase": "decode",
+          "component": "final_norm",
+          "median_phase_total_ms": 54.132087
+        },
+        {
+          "phase": "decode",
+          "component": "from-wire",
+          "median_phase_total_ms": 43.140531
+        },
+        {
+          "phase": "decode",
+          "component": "layer",
+          "median_phase_total_ms": 3350.483601
+        },
+        {
+          "phase": "decode",
+          "component": "lm_head",
+          "median_phase_total_ms": 652.069877
+        },
+        {
+          "phase": "decode",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 9.782633000000045
+        },
+        {
+          "phase": "decode",
+          "component": "sampling",
+          "median_phase_total_ms": 52.275509
+        },
+        {
+          "phase": "decode",
+          "component": "validation",
+          "median_phase_total_ms": 52.696414
+        }
+      ]
+    },
+    {
+      "name": "cuda-first",
+      "artifact": "cuda-first.json.gz",
+      "artifact_digest": "ff995707cff3dcae713bb47d84dc664b0f7ad7fa500f413dd8f908c6dcf1fa70",
+      "archive_sha256": "b094cf7b1268ecf662e63c3108a4800c0e6fea9dc6d1d866ce1f2ee15c8a182d",
+      "conditions": {
+        "measured_at": "2026-09-08T21:43:57.202811Z",
+        "warmup_cycles": 2,
+        "measured_cycles": 5,
+        "process_policy": "loaded-stage-paired-passes",
+        "concurrent_load": "Fedora desktop and existing Java server; no competing inference",
+        "notes": [
+          "Paired identical synthetic inputs; completed native work timed.",
+          "External physical telemetry disabled during timing."
+        ]
+      },
+      "environment": {
+        "backend": "cuda",
+        "device_identity": "990156b249be4d66021af471128ff7e45c1ab85ea575bc5ede4edfbecf28e6a4",
+        "device_name": "NVIDIA GeForce RTX 3060 Ti",
+        "backend_version": "2.13.0",
+        "driver_version": "NVIDIA 610.57.04; CUDA API 13030",
+        "allocator": "native",
+        "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 2147483648, \"host\": 2147483648, \"pinned\": 0, \"unified\": 0}}",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "binary_digest": "8148c798478a53fa92ea32de449e52887f4a9d19073a89307eeb7db0880907fd",
+        "compiler": "14.4.0",
+        "os": "Linux-7.1.9-200.fc44.x86_64-x86_64-with-glibc2.43;kernel=#1 SMP PREEMPT_DYNAMIC Wed Aug 19 17:41:40 UTC 2026"
+      },
+      "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+      "assignment": {
+        "stage_index": 0,
+        "worker_id": "cuda",
+        "layer_start": 0,
+        "layer_end": 14,
+        "owns_token_embedding": true,
+        "owns_final_norm": false,
+        "owns_lm_head": false,
+        "owns_sampling": false
+      },
+      "dtype": "F16",
+      "transport_mode": "pageable",
+      "admission_capacity": {
+        "host": 2147483648,
+        "device": 2147483648,
+        "pinned": 0,
+        "unified": 0
+      },
+      "physical_preflight": {
+        "host_budget": {
+          "available_bytes": 7866142720,
+          "extra_overhead_bytes": 268435456,
+          "headroom_bytes": 1073741824,
+          "safety_fraction": 0.1
+        },
+        "device_budget": {
+          "available_bytes": 8057257984,
+          "extra_overhead_bytes": 268435456,
+          "headroom_bytes": 536870912,
+          "safety_fraction": 0.1
+        }
+      },
+      "comparisons": [
+        {
+          "phase": "prefill",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 25.637836,
+              "median_phase_total_ms": 25.637836,
+              "phase_total_samples_ms": [
+                25.657706,
+                25.632676,
+                25.645156,
+                25.635166,
+                25.637836
+              ],
+              "min_step_ms": 25.632676,
+              "max_step_ms": 25.657706
+            },
+            "component-synchronized": {
+              "median_step_ms": 25.838418,
+              "median_phase_total_ms": 25.838418,
+              "phase_total_samples_ms": [
+                25.798898,
+                25.838418,
+                25.760598,
+                25.840338,
+                25.846579
+              ],
+              "min_step_ms": 25.760598,
+              "max_step_ms": 25.846579
+            }
+          },
+          "overhead_fraction": 0.00782367123340677
+        },
+        {
+          "phase": "decode",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 7.888475,
+              "median_phase_total_ms": 2015.863307,
+              "phase_total_samples_ms": [
+                2012.18115,
+                2047.092398,
+                2015.863307,
+                2011.588698,
+                2020.987282
+              ],
+              "min_step_ms": 7.764922,
+              "max_step_ms": 9.511684
+            },
+            "component-synchronized": {
+              "median_step_ms": 8.296129,
+              "median_phase_total_ms": 2118.434562,
+              "phase_total_samples_ms": [
+                2113.924656,
+                2120.580922,
+                2111.168433,
+                2120.042741,
+                2118.434562
+              ],
+              "min_step_ms": 8.176177,
+              "max_step_ms": 8.764075
+            }
+          },
+          "overhead_fraction": 0.050882048720181317
+        }
+      ],
+      "components": [
+        {
+          "phase": "prefill",
+          "component": "embedding",
+          "median_phase_total_ms": 0.042321
+        },
+        {
+          "phase": "prefill",
+          "component": "layer",
+          "median_phase_total_ms": 25.429943
+        },
+        {
+          "phase": "prefill",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 0.005560000000002674
+        },
+        {
+          "phase": "prefill",
+          "component": "to-wire",
+          "median_phase_total_ms": 0.284133
+        },
+        {
+          "phase": "prefill",
+          "component": "validation",
+          "median_phase_total_ms": 0.050811
+        },
+        {
+          "phase": "decode",
+          "component": "embedding",
+          "median_phase_total_ms": 5.732458
+        },
+        {
+          "phase": "decode",
+          "component": "layer",
+          "median_phase_total_ms": 2089.05503
+        },
+        {
+          "phase": "decode",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 1.2924710000000168
+        },
+        {
+          "phase": "decode",
+          "component": "to-wire",
+          "median_phase_total_ms": 11.766633
+        },
+        {
+          "phase": "decode",
+          "component": "validation",
+          "median_phase_total_ms": 10.566984
+        }
+      ]
+    },
+    {
+      "name": "cuda-final",
+      "artifact": "cuda-final.json.gz",
+      "artifact_digest": "dbdc61b5f4f46283ebe1179f39b77629f10b235c9aa24590fd9de528d4b5fea0",
+      "archive_sha256": "072532c5ef5ae1bc14caf8d318d500ce0b3d1529a053ded865d0b60bc56f10b6",
+      "conditions": {
+        "measured_at": "2026-09-08T21:44:31.758308Z",
+        "warmup_cycles": 2,
+        "measured_cycles": 5,
+        "process_policy": "loaded-stage-paired-passes",
+        "concurrent_load": "Fedora desktop and existing Java server; no competing inference",
+        "notes": [
+          "Paired identical synthetic inputs; completed native work timed.",
+          "External physical telemetry disabled during timing."
+        ]
+      },
+      "environment": {
+        "backend": "cuda",
+        "device_identity": "990156b249be4d66021af471128ff7e45c1ab85ea575bc5ede4edfbecf28e6a4",
+        "device_name": "NVIDIA GeForce RTX 3060 Ti",
+        "backend_version": "2.13.0",
+        "driver_version": "NVIDIA 610.57.04; CUDA API 13030",
+        "allocator": "native",
+        "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 2147483648, \"host\": 2147483648, \"pinned\": 0, \"unified\": 0}}",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "binary_digest": "8148c798478a53fa92ea32de449e52887f4a9d19073a89307eeb7db0880907fd",
+        "compiler": "14.4.0",
+        "os": "Linux-7.1.9-200.fc44.x86_64-x86_64-with-glibc2.43;kernel=#1 SMP PREEMPT_DYNAMIC Wed Aug 19 17:41:40 UTC 2026"
+      },
+      "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+      "assignment": {
+        "stage_index": 1,
+        "worker_id": "cuda",
+        "layer_start": 14,
+        "layer_end": 28,
+        "owns_token_embedding": false,
+        "owns_final_norm": true,
+        "owns_lm_head": true,
+        "owns_sampling": true
+      },
+      "dtype": "F16",
+      "transport_mode": "pageable",
+      "admission_capacity": {
+        "host": 2147483648,
+        "device": 2147483648,
+        "pinned": 0,
+        "unified": 0
+      },
+      "physical_preflight": {
+        "host_budget": {
+          "available_bytes": 7729008640,
+          "extra_overhead_bytes": 268435456,
+          "headroom_bytes": 1073741824,
+          "safety_fraction": 0.1
+        },
+        "device_budget": {
+          "available_bytes": 8057257984,
+          "extra_overhead_bytes": 268435456,
+          "headroom_bytes": 536870912,
+          "safety_fraction": 0.1
+        }
+      },
+      "comparisons": [
+        {
+          "phase": "prefill",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 26.419195,
+              "median_phase_total_ms": 26.419195,
+              "phase_total_samples_ms": [
+                26.419195,
+                26.411475,
+                26.431455,
+                26.442615,
+                26.405435
+              ],
+              "min_step_ms": 26.405435,
+              "max_step_ms": 26.442615
+            },
+            "component-synchronized": {
+              "median_step_ms": 26.598368,
+              "median_phase_total_ms": 26.598368,
+              "phase_total_samples_ms": [
+                26.646688,
+                26.603428,
+                26.596117,
+                26.598368,
+                26.591108
+              ],
+              "min_step_ms": 26.591108,
+              "max_step_ms": 26.646688
+            }
+          },
+          "overhead_fraction": 0.006781925035944658
+        },
+        {
+          "phase": "decode",
+          "modes": {
+            "whole-stage": {
+              "median_step_ms": 8.678553,
+              "median_phase_total_ms": 2215.454115,
+              "phase_total_samples_ms": [
+                2235.758105,
+                2216.091839,
+                2215.454115,
+                2215.01294,
+                2210.642961
+              ],
+              "min_step_ms": 8.542212,
+              "max_step_ms": 9.694146
+            },
+            "component-synchronized": {
+              "median_step_ms": 9.141199,
+              "median_phase_total_ms": 2336.416227,
+              "phase_total_samples_ms": [
+                2338.977224,
+                2330.732175,
+                2336.416227,
+                2332.590574,
+                2336.47311
+              ],
+              "min_step_ms": 9.029967,
+              "max_step_ms": 11.086433
+            }
+          },
+          "overhead_fraction": 0.054599240481223
+        }
+      ],
+      "components": [
+        {
+          "phase": "prefill",
+          "component": "final_norm",
+          "median_phase_total_ms": 0.047861
+        },
+        {
+          "phase": "prefill",
+          "component": "from-wire",
+          "median_phase_total_ms": 0.188242
+        },
+        {
+          "phase": "prefill",
+          "component": "layer",
+          "median_phase_total_ms": 25.492915
+        },
+        {
+          "phase": "prefill",
+          "component": "lm_head",
+          "median_phase_total_ms": 0.786799
+        },
+        {
+          "phase": "prefill",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 0.007039999999999935
+        },
+        {
+          "phase": "prefill",
+          "component": "sampling",
+          "median_phase_total_ms": 0.0282
+        },
+        {
+          "phase": "prefill",
+          "component": "validation",
+          "median_phase_total_ms": 0.04888
+        },
+        {
+          "phase": "decode",
+          "component": "final_norm",
+          "median_phase_total_ms": 11.801534
+        },
+        {
+          "phase": "decode",
+          "component": "from-wire",
+          "median_phase_total_ms": 12.897628
+        },
+        {
+          "phase": "decode",
+          "component": "layer",
+          "median_phase_total_ms": 2092.861231
+        },
+        {
+          "phase": "decode",
+          "component": "lm_head",
+          "median_phase_total_ms": 199.735372
+        },
+        {
+          "phase": "decode",
+          "component": "runtime_overhead",
+          "median_phase_total_ms": 1.495574999999988
+        },
+        {
+          "phase": "decode",
+          "component": "sampling",
+          "median_phase_total_ms": 7.007148
+        },
+        {
+          "phase": "decode",
+          "component": "validation",
+          "median_phase_total_ms": 10.564497
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "profile_digest": "7cfc541fd8227070410b69a466182a783e92ede747afcdc362c62ada1ce2517f",
+      "qualified": true,
+      "error": null,
+      "buckets": [
+        {
+          "phase": "prefill",
+          "payload_bytes": 1048576,
+          "count": 5,
+          "round_trip_median_ms": 149.807209,
+          "round_trip_min_ms": 138.334208,
+          "round_trip_max_ms": 209.040292,
+          "sender_encode_median_ms": 0.335625,
+          "exchange_median_ms": 150.141292
+        },
+        {
+          "phase": "decode",
+          "payload_bytes": 2048,
+          "count": 1275,
+          "round_trip_median_ms": 46.062875,
+          "round_trip_min_ms": 42.579625,
+          "round_trip_max_ms": 84.919542,
+          "sender_encode_median_ms": 0.003917,
+          "exchange_median_ms": 46.064541999999996
+        }
+      ],
+      "attribution": "Exchange = sender encode + native RPC round trip including feedback. GPU conversion and model compute are excluded. Never halve RTT or add feedback again.",
+      "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
+      "name": "mlx-cuda",
+      "artifact": "mlx-cuda-link.json.gz",
+      "archive_sha256": "c4b8180386a2540fe366149c94f91fd7672978e73bf7c2ea1f7985c4a98efde2",
+      "source": {
+        "worker_id": "mlx-host",
+        "binary_digest": "292e0cf68d65cb2b8fe4c4be278b1884062487173c2568fd27e98c7e8c5475a9",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7036000",
+        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "os": "Darwin 25.5.0 arm64",
+        "endpoint": "100.68.43.49:50543"
+      },
+      "target": {
+        "worker_id": "cuda-host",
+        "binary_digest": "c766929bb72ff94fbc3c7c097f2aa47c2df55f7eb8d4c9c45744e79cc51e075a",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "14.4.0",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7035001",
+        "host": "anthonypc",
+        "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
+        "endpoint": "100.86.45.68:50543"
+      },
+      "prompt_tokens": 512,
+      "output_tokens": 256,
+      "hidden_size": 1024,
+      "warmup_cycles": 2,
+      "measured_cycles": 5,
+      "connection_type": "direct",
+      "path_observations": 168,
+      "channel_ready_ms": 104.625625,
+      "stream_setup_median_ms": 44.841125,
+      "stream_teardown_median_ms": 48.8215
+    },
+    {
+      "profile_digest": "0c117b622e993a3ceb10053887d8a3c267315b8191a83c60dbc13805ed16958b",
+      "qualified": true,
+      "error": null,
+      "buckets": [
+        {
+          "phase": "prefill",
+          "payload_bytes": 1048576,
+          "count": 5,
+          "round_trip_median_ms": 208.324429,
+          "round_trip_min_ms": 186.331972,
+          "round_trip_max_ms": 256.556185,
+          "sender_encode_median_ms": 0.537086,
+          "exchange_median_ms": 208.866986
+        },
+        {
+          "phase": "decode",
+          "payload_bytes": 2048,
+          "count": 1275,
+          "round_trip_median_ms": 46.209251,
+          "round_trip_min_ms": 42.264623,
+          "round_trip_max_ms": 347.57137,
+          "sender_encode_median_ms": 0.0009,
+          "exchange_median_ms": 46.210151
+        }
+      ],
+      "attribution": "Exchange = sender encode + native RPC round trip including feedback. GPU conversion and model compute are excluded. Never halve RTT or add feedback again.",
+      "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
+      "name": "cuda-mlx",
+      "artifact": "cuda-mlx-link.json.gz",
+      "archive_sha256": "085315bb23e4f192188e75e60491eaeda55d8aea659a1da0b13235604966b2ae",
+      "source": {
+        "worker_id": "cuda-host",
+        "binary_digest": "c766929bb72ff94fbc3c7c097f2aa47c2df55f7eb8d4c9c45744e79cc51e075a",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "14.4.0",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7035001",
+        "host": "anthonypc",
+        "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
+        "endpoint": "100.86.45.68:50543"
+      },
+      "target": {
+        "worker_id": "mlx-host",
+        "binary_digest": "292e0cf68d65cb2b8fe4c4be278b1884062487173c2568fd27e98c7e8c5475a9",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7036000",
+        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "os": "Darwin 25.5.0 arm64",
+        "endpoint": "100.68.43.49:50543"
+      },
+      "prompt_tokens": 512,
+      "output_tokens": 256,
+      "hidden_size": 1024,
+      "warmup_cycles": 2,
+      "measured_cycles": 5,
+      "connection_type": "direct",
+      "path_observations": 179,
+      "channel_ready_ms": 151.651611,
+      "stream_setup_median_ms": 46.504005,
+      "stream_teardown_median_ms": 49.44967
+    },
+    {
+      "profile_digest": "9b465347d2852e2f503c007b5e3b6e221624f0432609981b3443023c40211c21",
+      "qualified": true,
+      "error": null,
+      "buckets": [
+        {
+          "phase": "prefill",
+          "payload_bytes": 2621440,
+          "count": 5,
+          "round_trip_median_ms": 254.807375,
+          "round_trip_min_ms": 203.290167,
+          "round_trip_max_ms": 300.836375,
+          "sender_encode_median_ms": 1.159833,
+          "exchange_median_ms": 256.144208
+        },
+        {
+          "phase": "decode",
+          "payload_bytes": 5120,
+          "count": 1275,
+          "round_trip_median_ms": 46.695042,
+          "round_trip_min_ms": 42.942625,
+          "round_trip_max_ms": 200.164208,
+          "sender_encode_median_ms": 0.004875,
+          "exchange_median_ms": 46.701251
+        }
+      ],
+      "attribution": "Exchange = sender encode + native RPC round trip including feedback. GPU conversion and model compute are excluded. Never halve RTT or add feedback again.",
+      "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
+      "name": "mlx-cuda-4b",
+      "artifact": "mlx-cuda-4b-link.json.gz",
+      "archive_sha256": "f69f4a7f61a519f79041171c82c2bf3a99486cf6c5d11490346b53eca49a1f3e",
+      "source": {
+        "worker_id": "mlx-host",
+        "binary_digest": "292e0cf68d65cb2b8fe4c4be278b1884062487173c2568fd27e98c7e8c5475a9",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7036000",
+        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "os": "Darwin 25.5.0 arm64",
+        "endpoint": "100.68.43.49:50543"
+      },
+      "target": {
+        "worker_id": "cuda-host",
+        "binary_digest": "c766929bb72ff94fbc3c7c097f2aa47c2df55f7eb8d4c9c45744e79cc51e075a",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "14.4.0",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7035001",
+        "host": "anthonypc",
+        "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
+        "endpoint": "100.86.45.68:50543"
+      },
+      "prompt_tokens": 512,
+      "output_tokens": 256,
+      "hidden_size": 2560,
+      "warmup_cycles": 2,
+      "measured_cycles": 5,
+      "connection_type": "direct",
+      "path_observations": 163,
+      "channel_ready_ms": 87.465209,
+      "stream_setup_median_ms": 49.263042,
+      "stream_teardown_median_ms": 46.450292
+    },
+    {
+      "profile_digest": "e1a9f2b056214a5de3806a56a68fbfaa5b5bf63c2fee1c38b5f790ac54f5496f",
+      "qualified": true,
+      "error": null,
+      "buckets": [
+        {
+          "phase": "prefill",
+          "payload_bytes": 2621440,
+          "count": 5,
+          "round_trip_median_ms": 268.938967,
+          "round_trip_min_ms": 202.848033,
+          "round_trip_max_ms": 394.724253,
+          "sender_encode_median_ms": 1.228835,
+          "exchange_median_ms": 270.152062
+        },
+        {
+          "phase": "decode",
+          "payload_bytes": 5120,
+          "count": 1275,
+          "round_trip_median_ms": 48.362307,
+          "round_trip_min_ms": 43.55022,
+          "round_trip_max_ms": 108.61426,
+          "sender_encode_median_ms": 0.00136,
+          "exchange_median_ms": 48.364597
+        }
+      ],
+      "attribution": "Exchange = sender encode + native RPC round trip including feedback. GPU conversion and model compute are excluded. Never halve RTT or add feedback again.",
+      "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
+      "name": "cuda-mlx-4b",
+      "artifact": "cuda-mlx-4b-link.json.gz",
+      "archive_sha256": "c0b69bafbe9ea77df16a409f5058071647d59fe0af48b65d244d098a4e3cd188",
+      "source": {
+        "worker_id": "cuda-host",
+        "binary_digest": "c766929bb72ff94fbc3c7c097f2aa47c2df55f7eb8d4c9c45744e79cc51e075a",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "14.4.0",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7035001",
+        "host": "anthonypc",
+        "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
+        "endpoint": "100.86.45.68:50543"
+      },
+      "target": {
+        "worker_id": "mlx-host",
+        "binary_digest": "292e0cf68d65cb2b8fe4c4be278b1884062487173c2568fd27e98c7e8c5475a9",
+        "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3",
+        "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
+        "grpc_version": "56.0.0",
+        "protobuf_version": "7036000",
+        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "os": "Darwin 25.5.0 arm64",
+        "endpoint": "100.68.43.49:50543"
+      },
+      "prompt_tokens": 512,
+      "output_tokens": 256,
+      "hidden_size": 2560,
+      "warmup_cycles": 2,
+      "measured_cycles": 5,
+      "connection_type": "direct",
+      "path_observations": 185,
+      "channel_ready_ms": 87.560263,
+      "stream_setup_median_ms": 44.851536,
+      "stream_teardown_median_ms": 49.336929
+    }
+  ],
+  "scope": "Synthetic stage compute on real Qwen3-0.6B weights and transport-only F16 payloads. No measured planner or 4B model qualification.",
+  "worker_aliases": {
+    "mlx-host": "mlx",
+    "cuda-host": "cuda"
+  }
+}

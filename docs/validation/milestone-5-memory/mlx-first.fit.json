@@ -1,0 +1,18 @@
+{
+  "assessment": {
+    "device_envelope_bytes": null,
+    "host_envelope_bytes": 3101137214,
+    "reasons": [],
+    "status": "safe"
+  },
+  "device_budget": null,
+  "host_budget": {
+    "available_bytes": 4593745920,
+    "extra_overhead_bytes": 268435456,
+    "headroom_bytes": 268435456,
+    "safety_fraction": 0.1
+  },
+  "observed_at": "2026-09-08T16:07:42.088072+00:00",
+  "profile_digest": "5e654b0d016f6382ab07fc23c06665d56c59e0ba8af99d7364a56cd8a803070c",
+  "schema_version": "1.0"
+}

@@ -1,0 +1,387 @@
+{
+  "diagnostic_only": true,
+  "source_revision": "sources-sha256:4745cd1091f777633df94b8ce0485e2bb3b107d528e1668d790e353801e21ae7",
+  "executor_digest": "11c1b303e7b9abf4c37612debfcec5c9b09c44a3bcea421a12e5be6f9ed61e5e",
+  "requests": [
+    {
+      "candidate_id": "mlx--cuda-m001",
+      "evidence_digest": "341dd0358a63cf493e68d4e0e58d984e36c9095aff30682cd59bff565eabc5fb",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "health": {
+        "cancel": {
+          "cleaned": true,
+          "passed": true,
+          "phase": "complete",
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "timeout_seconds": 180
+        },
+        "deadline": {
+          "cleaned": true,
+          "error_detail": "CANCELLED",
+          "passed": true,
+          "phase": "complete",
+          "received": 126,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "rpc_status": "DEADLINE_EXCEEDED",
+          "timeout_seconds": 11.456668812315911
+        }
+      }
+    },
+    {
+      "candidate_id": "cuda--mlx-m001",
+      "evidence_digest": "5c4b42087c4d219bc82e152322a332be0f90c2153a08844b3221d6f3259610e8",
+      "exact_requests": 3,
+      "cleanup_passed": true,
+      "health": {
+        "cancel": {
+          "cleaned": true,
+          "passed": true,
+          "phase": "complete",
+          "received": 1,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "timeout_seconds": 180
+        },
+        "deadline": {
+          "cleaned": true,
+          "error_detail": "CANCELLED",
+          "passed": true,
+          "phase": "complete",
+          "received": 127,
+          "recovered_ids": [
+            12305,
+            23966,
+            458,
+            22978
+          ],
+          "rpc_status": "DEADLINE_EXCEEDED",
+          "timeout_seconds": 23.420500375330448
+        }
+      }
+    }
+  ],
+  "health_pairs": [
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 11.456668812315911,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 105,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 11.456668812315911,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 120,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 11.456668812315911,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 130,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 11.456668812315911,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 130,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 11.456668812315911,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 126,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 23.420500375330448,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "Deadline Exceeded",
+        "received": 129,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 23.420500375330448,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 126,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 23.420500375330448,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "Deadline Exceeded",
+        "received": 125,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 23.420500375330448,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 128,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    },
+    {
+      "cancel": {
+        "phase": "complete",
+        "timeout_seconds": 180,
+        "passed": true,
+        "received": 1,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      },
+      "deadline": {
+        "phase": "complete",
+        "timeout_seconds": 23.420500375330448,
+        "passed": true,
+        "rpc_status": "DEADLINE_EXCEEDED",
+        "error_detail": "CANCELLED",
+        "received": 127,
+        "cleaned": true,
+        "recovered_ids": [
+          12305,
+          23966,
+          458,
+          22978
+        ]
+      }
+    }
+  ],
+  "trace_sha256": "f3474c6d0bc80ae34a39569043d4aef7a7f02ca4560fb19208594d591c64d269",
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stdout": "success\n",
+    "stderr": ""
+  }
+}

@@ -1,0 +1,776 @@
+{
+  "schema_version": "1.0",
+  "audited_at": "2026-09-10T04:06:30.807698+00:00",
+  "scope": "Sealed assignment-profile validation, not independent inference-sweep acceptance",
+  "counts": {
+    "cuda": {
+      "memory": 54,
+      "compute-run": 54
+    },
+    "mlx": {
+      "memory": 30,
+      "compute-run": 29
+    }
+  },
+  "cuda_archive_sha256": "f8df00fc8228358ce9e7fd02516d4ee32d1c86b7b3f09506651e06fd45b6d897",
+  "coverage": [
+    {
+      "worker": "cuda",
+      "split": 1,
+      "role": "first",
+      "memory": "dee2649465d59e0f83508fa30dcfe131b21f3802cb42537742e2876a44beea4e",
+      "compute": "85173e6d74dce94ec5a4b1884da7e4842a840137e796760dcf69777022c03cf0"
+    },
+    {
+      "worker": "cuda",
+      "split": 1,
+      "role": "final",
+      "memory": "7c388b75b92935b18364d8f620b988eab85ba97b75cf92fb6346620e21d7b29b",
+      "compute": "77186ce47ed3e1ab2e663d2bcce1188877a6f1ef5315be2efd2727ebc69911e3"
+    },
+    {
+      "worker": "cuda",
+      "split": 2,
+      "role": "first",
+      "memory": "4d31279f28462ae676e01135736f308f881bb1dd784429a876aea289434a401e",
+      "compute": "402ae927eb24ac852ece30b0d82732045a17e5067e840bfb0f1e783349c5a4ec"
+    },
+    {
+      "worker": "cuda",
+      "split": 2,
+      "role": "final",
+      "memory": "53fc40a474a0607d3389006e1e8ad47de425d86fe6f204be03629e219474f821",
+      "compute": "34d5e277cfe9a2a4b8188281d53b56b2c94f2f8d2e987e7d58ee24356702eca8"
+    },
+    {
+      "worker": "cuda",
+      "split": 3,
+      "role": "first",
+      "memory": "e2cb90c0f99f79e0ae286ee88bc7be10ae235a675cf1d9a168af05343758ed44",
+      "compute": "9d002ce4e96e20877bcac33f2cd26fa56d0c9267ffce631017dd331266d28a5c"
+    },
+    {
+      "worker": "cuda",
+      "split": 3,
+      "role": "final",
+      "memory": "64f2857c58bd6802dc610881fe6bbd6c5dfc7cce673410699f2c35777e60d9c4",
+      "compute": "f16d35ec1756da33c98039cdd3380effab165d44bf9fa4279607bb74a351553d"
+    },
+    {
+      "worker": "cuda",
+      "split": 4,
+      "role": "first",
+      "memory": "f7e3e21878d0c8a29d4c164dd2a73da3a74436e61b6b109947bdea1ff8d9a0af",
+      "compute": "158264a5245f47e4fd01960c4aaf3a6ebcce68c4c16c525e86d05d446ed6bd39"
+    },
+    {
+      "worker": "cuda",
+      "split": 4,
+      "role": "final",
+      "memory": "44db509b22b130bd2ede5dceb6ab26e5139de72fcf508bfb0d27d09fbd4bc691",
+      "compute": "30faed64f89b8d1f50d629684af34145792e5f191d187d8091b4f263482124ef"
+    },
+    {
+      "worker": "cuda",
+      "split": 5,
+      "role": "first",
+      "memory": "1a7046876f0c42cf9354021587385f5b33233d300b6d5a82e43f760768651bff",
+      "compute": "d0ad8795d50e148cabab69e63e8586cfb4e61a0258d5d443f58835658b814215"
+    },
+    {
+      "worker": "cuda",
+      "split": 5,
+      "role": "final",
+      "memory": "b72ae9ffb122b5664ff0d9c543e87571e9abcebf053ddb1553b44afd04c5139a",
+      "compute": "c56ce933ebb9aeb9442e2335e4b4d7953acc24ebf5f05f889d14180b1e73c671"
+    },
+    {
+      "worker": "cuda",
+      "split": 6,
+      "role": "first",
+      "memory": "6a0952e8ddaccc2554f09414f1724826930b6a626bce2922e374728c5e6ac521",
+      "compute": "9d4389e8fde3b8e3502d22eb48ef29e84c994b4ec3e2e4d2945eca4e683fb2a1"
+    },
+    {
+      "worker": "cuda",
+      "split": 6,
+      "role": "final",
+      "memory": "acee7ba3ee80ae8b63e65b45537719f16ca7ab82763d88f13d2f17db3eb64ccc",
+      "compute": "780e475512a06fbd8d582ad9b20d15287940fe500110566b584fa76740da3dac"
+    },
+    {
+      "worker": "cuda",
+      "split": 7,
+      "role": "first",
+      "memory": "13020f8432022d9da565f6dd9a9da7801f5137865f00f32d136e774ca12c371f",
+      "compute": "3a00f194fbd13086d37cc11065755b1c2d5cab293d6c79e9c1ad9622cef7da02"
+    },
+    {
+      "worker": "cuda",
+      "split": 7,
+      "role": "final",
+      "memory": "f2afa49531fe6815ce5b7e30ef46bc39f96124fbd8511fad5e04af24e58aef54",
+      "compute": "70f030570b62ce0240ce8f443be6ff0770ecda08a79692c5fdb3f739c0a7bd22"
+    },
+    {
+      "worker": "cuda",
+      "split": 8,
+      "role": "first",
+      "memory": "0440805fa4c453762cc1f831a2bf69be0ce75b6cc02f4bb8c04714fb6c78c446",
+      "compute": "4648090472a303138f1997ef735f18a5d6a303e7c897c84b8a6a8477d7f3cf26"
+    },
+    {
+      "worker": "cuda",
+      "split": 8,
+      "role": "final",
+      "memory": "375dcbce912348c91a177f905d0d1620d40ed0bb19ff93690cad3a5746337a7e",
+      "compute": "6b68b4677fa48d52603876469201a32809aac77f8f7d7461e43ceb6f07c7159d"
+    },
+    {
+      "worker": "cuda",
+      "split": 9,
+      "role": "first",
+      "memory": "46f99682ac00ec81adcafdcd553668d9f9f2ed60070684cf5f0712c1049fd2d5",
+      "compute": "a2003abd9a648d6ad85fd6a2709c6912454e4949b2b533d2b9683e03db8ebd67"
+    },
+    {
+      "worker": "cuda",
+      "split": 9,
+      "role": "final",
+      "memory": "9542de9541a15666f55964d0461d88adce8428a40f0bc7c15b0bdfa008d5433e",
+      "compute": "65f243a2d479b0af741ab6f385659730fd54800c997ad694bc8683d8747c6c7c"
+    },
+    {
+      "worker": "cuda",
+      "split": 10,
+      "role": "first",
+      "memory": "9f1ebf9a182319c386a0c365a05b5675b3e7d489a07237f0e009db18d8a9cafb",
+      "compute": "c6bac230215a8eb3af1ebefbe89ffd35c1ae37f77a89e7ac092ed38d4ad7c435"
+    },
+    {
+      "worker": "cuda",
+      "split": 10,
+      "role": "final",
+      "memory": "0dededed9ddf08e129663a3a018df5cf05b31e69428e8c6361b40b5bb27485ac",
+      "compute": "cbfc0248b321feee6dfeeca3b22cd3c974c0f62c63baa8f99d229c9e4bd099c5"
+    },
+    {
+      "worker": "cuda",
+      "split": 11,
+      "role": "first",
+      "memory": "0119481d8952ab4ef913d781f0f7d5749ea3ff70deb10158c4c88c21bd79f2c9",
+      "compute": "c5f04f685d80141579a0d22c0e28002ff6563ae483ed35297000c1f0158f36f5"
+    },
+    {
+      "worker": "cuda",
+      "split": 11,
+      "role": "final",
+      "memory": "ab1571e620ad40870b2e36d3dd6fedb07881e1be39a21a94161f32fa827925d9",
+      "compute": "b7338892395fb0109435e81c0de3ea77af8e88f2a3ee2f4711342df2bf206fcd"
+    },
+    {
+      "worker": "cuda",
+      "split": 12,
+      "role": "first",
+      "memory": "426c91440e5b3afb17e3dbe3824680676a5b62c32d4f84b8e18a67bc46a062cb",
+      "compute": "6fcae9d6a799fcbb981b256770498444ff425024f084d99418ddff85631d33a9"
+    },
+    {
+      "worker": "cuda",
+      "split": 12,
+      "role": "final",
+      "memory": "5e38f2a2cbcdad4a976224bf6ac154e5a247966580fce0c7db02653af2cf78d7",
+      "compute": "4d3d53e64392a2a000def2c09eff462fd02a2fbbacf19d23963ef27d97c945e5"
+    },
+    {
+      "worker": "cuda",
+      "split": 13,
+      "role": "first",
+      "memory": "d7c97003b9d4cf94379a3601d3419eedfa70f013e1a16502e2a568b3c51f32ed",
+      "compute": "8015af91b21a234ca20f7611ec99c29b265d873ca326bcedea4bd2e02ad65901"
+    },
+    {
+      "worker": "cuda",
+      "split": 13,
+      "role": "final",
+      "memory": "a585ec621a494911634ab6e870a740f79d7c56b028b02a2414aea4cbc60e13f0",
+      "compute": "f333079984576cd6ded76b2f1bfe3753bf76157f5864935bb2cd944adde9f672"
+    },
+    {
+      "worker": "cuda",
+      "split": 14,
+      "role": "first",
+      "memory": "18b396a5fc3953fbe70dc4dfd1c1d4bdf7468250420e6bde96ee3bb12b5d639b",
+      "compute": "a5eb092d9d5e4f8f0b6b7e3005205547729d757939b276a8c3be5d1d06358a2d"
+    },
+    {
+      "worker": "cuda",
+      "split": 14,
+      "role": "final",
+      "memory": "ec7fc73246aad85841aa248647a8fd7386d121410029241872e1ef98576dd31a",
+      "compute": "e4ef248b49a016d90e0e18d3655f511bc07fb6355b7c946f2bb05668a0bb6007"
+    },
+    {
+      "worker": "cuda",
+      "split": 15,
+      "role": "first",
+      "memory": "9a4d29e9a484a0790279cc55b4e7588de4ce35359b0da9d949caef3e193a8d5b",
+      "compute": "847f386288832584be03690da59e5368401cbc41ca1a399c88c475fe5d639362"
+    },
+    {
+      "worker": "cuda",
+      "split": 15,
+      "role": "final",
+      "memory": "7fa450b3f5ecf89bfea3f758f3d340715257ae64c81e03dfd6bce7ee8015bf20",
+      "compute": "260d114ea3f3f21b4d3f0b609edb6d6b21a014c95de55fdb85ae5560922ce95a"
+    },
+    {
+      "worker": "cuda",
+      "split": 16,
+      "role": "first",
+      "memory": "0dce0858e37862bcb78f526f0ac809490b75d744faf29f12fb26217bd574a2b7",
+      "compute": "01ca37e91c34fe2d54b72439fe1e6ccc2308fd5e3b4b6f1d7c8a5583a41cab1c"
+    },
+    {
+      "worker": "cuda",
+      "split": 16,
+      "role": "final",
+      "memory": "0a1a7a7806b541c743f5f1eb87b9f2507205cb60a3f1c0a6daa91101267a3367",
+      "compute": "92bd65826e88081f0cea170794dffacfe2a79d9177670f92ed1b84455949457d"
+    },
+    {
+      "worker": "cuda",
+      "split": 17,
+      "role": "first",
+      "memory": "28ff50c1cbf96c0a15ebe0218d70b23a99c4180120be973328a72409d1e7f41c",
+      "compute": "395e62a9c61022ec54d9617e5f832756cbd1c320386b029864ff8615b00e52c0"
+    },
+    {
+      "worker": "cuda",
+      "split": 17,
+      "role": "final",
+      "memory": "ec87bc86101932f3bd9cdf042ad39eb5fe738d838693adc17fdeded20a803f61",
+      "compute": "39c84d90129b262bfe25f2ae977f1aa0a1845758e6bebcc0cd9b428c31a93dc9"
+    },
+    {
+      "worker": "cuda",
+      "split": 18,
+      "role": "first",
+      "memory": "519a7fa0c5eb0a5522cd6329a9ed1ba73bdb568c476b3f1d81b7fb7a91cf3526",
+      "compute": "fd2cbb8363023e132a1be01285e481f09a9cfffe86cf1b454df6e5687a7c1a11"
+    },
+    {
+      "worker": "cuda",
+      "split": 18,
+      "role": "final",
+      "memory": "0f8fbe6e39b71d521df5247dd580e586452f3ef0e750e128c9c3aaa7bd848b0b",
+      "compute": "33e39e00a9040082c544e4486c39df76caa149b82867f6d5c7aa9f0ad45da32c"
+    },
+    {
+      "worker": "cuda",
+      "split": 19,
+      "role": "first",
+      "memory": "2122fa0f11829c2e64a9d5470410e5dcc42c5e4803d6ad85612df13fe9387cda",
+      "compute": "7b18a2cde50a7c4f797358ec1b99c50967f06bc7d4e62bef64a78dde3b8a72e0"
+    },
+    {
+      "worker": "cuda",
+      "split": 19,
+      "role": "final",
+      "memory": "3f40c5ca3c19f102388927b3f4e67411d022a722d6066f0b282f25b67ea55f6b",
+      "compute": "a8e10e46934c71e49e6a84db0dd3621bc41c0a9c14dc93aef610498efa9456ca"
+    },
+    {
+      "worker": "cuda",
+      "split": 20,
+      "role": "first",
+      "memory": "1e3455aac97aa3e41590179353500f62e7f439327959e2c09e89b2167495b4f3",
+      "compute": "203ebc1a94422ac51c25f86828a452e6f1709f5825b73c9470f22f15b4766e6e"
+    },
+    {
+      "worker": "cuda",
+      "split": 20,
+      "role": "final",
+      "memory": "2bc63b8210ebfdf4466f83ed0266be84fd042c027f706343ee563345b84086d6",
+      "compute": "c335f573431b32a08b94dbd4b3ee5d19d397eab963a289e0030d566765b56c5f"
+    },
+    {
+      "worker": "cuda",
+      "split": 21,
+      "role": "first",
+      "memory": "868e953c0e72cf121d9c67ed098de4ee017a0eab849bfdc68f99ce737a677a50",
+      "compute": "e6b944e68249d26794469c132be004cc06b7c23107c50f0a6b93b5be5c9c5cf0"
+    },
+    {
+      "worker": "cuda",
+      "split": 21,
+      "role": "final",
+      "memory": "e5e97f98c9689009ec4fe93e3cfc40096a36d94fdc90ea853b42e90480e12e0d",
+      "compute": "c0d8fed638c20618ed1af550639288c95ae719226a2da521e52a2967ff8ab16f"
+    },
+    {
+      "worker": "cuda",
+      "split": 22,
+      "role": "first",
+      "memory": "549ca2c71b8094e6b6b3ea7a640ee915a185c124cd0adc0b12278633a0d144e5",
+      "compute": "64fd4b7bb5782459d9eeaf48343477ff6074dcd59ef277e0b7f22eeb8b7720ad"
+    },
+    {
+      "worker": "cuda",
+      "split": 22,
+      "role": "final",
+      "memory": "0ce40db939e033cc1f72c24cde0dc447fbb259571704416b850eda3bc09a04ac",
+      "compute": "e57ef563140135533961eb92eadb50ad949c31213bcbbf0e3d35eb041f3b0e86"
+    },
+    {
+      "worker": "cuda",
+      "split": 23,
+      "role": "first",
+      "memory": "25a08037500411b541bc3439b6ed2a8c3e2a08760eaa8eaff26af1722446861f",
+      "compute": "2f458256376c532ea54bd341166ec0fe8988f40b3fb700f024b22d6bf65894a6"
+    },
+    {
+      "worker": "cuda",
+      "split": 23,
+      "role": "final",
+      "memory": "57a867292e55ca91967f9328bb44e418dfff90410091362d50c04144b3406a11",
+      "compute": "15a15024fe429fc33527951814df98fc5437a61d547a15aba6d9d50127ec9513"
+    },
+    {
+      "worker": "cuda",
+      "split": 24,
+      "role": "first",
+      "memory": "f60d0a3aad48c1f78aab6b8982023cba969c073bc892854e4f4735b1249e36fd",
+      "compute": "eba0dff614b92c87ddc717a34563cad8848b795d3be59aadc104c43e40956281"
+    },
+    {
+      "worker": "cuda",
+      "split": 24,
+      "role": "final",
+      "memory": "56484aa12eca9a18d7e43eb3e13d688e02405bdaf602553c054715ee0c078ad9",
+      "compute": "ad3cd1c7ffa5317c22008542724b51601ec8f0fc9eff88340b75f620d9469fdf"
+    },
+    {
+      "worker": "cuda",
+      "split": 25,
+      "role": "first",
+      "memory": "a41ca663bdf99a46be137147a05f9215834219b9f2b246468aff0933db98553a",
+      "compute": "3ff989add5b1aca811fb6d60cc2ce4bcdb73fcc5fedf14c326d5746f58b6f439"
+    },
+    {
+      "worker": "cuda",
+      "split": 25,
+      "role": "final",
+      "memory": "bbdd53fa8cebdcf584004194b3f51f3a489c1aef93de9bb2d22709cd5c449b4b",
+      "compute": "f1e6b1a9b5b20a10d741900602491167a0604d58b0e33536a7eb4a30ff6c485b"
+    },
+    {
+      "worker": "cuda",
+      "split": 26,
+      "role": "first",
+      "memory": "b4b80d442bb1725177ac4d8b4c2c5c4961a9bc6b3f0296081f8f5b8990831d13",
+      "compute": "5d48d26fac43dfb03e8c1387233e1333b921aa33e707720a7ca5136f47b32d41"
+    },
+    {
+      "worker": "cuda",
+      "split": 26,
+      "role": "final",
+      "memory": "217b34019e02ab272529f310820b4b9dad4c00902b8c9e934d70d01aa5435aff",
+      "compute": "7c69f1b9d034a9137dd7302363ee57c7ce6c88bca57f6bda90f38f11efeb0fea"
+    },
+    {
+      "worker": "cuda",
+      "split": 27,
+      "role": "first",
+      "memory": "9cc4278986c7aabb299601caee0cc45d154b068fdae69c8ea31a97de430c48e9",
+      "compute": "ef7a5282bbebbdae224b4f5dcc6e8eb38ec7e5801029c887b9cad504de055f96"
+    },
+    {
+      "worker": "cuda",
+      "split": 27,
+      "role": "final",
+      "memory": "0a90a5e08440bbcd86a1c2ae33e75ebcf6c977ddd9fddbdc2574c31e50ee1a3e",
+      "compute": "a67fa31d809fbd31c919fc4e46e5e198784fcd05ee36ccf1d8cbd40bf8ed3f94"
+    },
+    {
+      "worker": "mlx",
+      "split": 1,
+      "role": "first",
+      "memory": "f653deaf8330e1a364ac4e11e7d2af32f802472a62d93c61b46043d4dcbe7bca",
+      "compute": "a4e4a2e2f7d0af7f4d3e7c994d4d269de90a9095c8b92026f222ad348c706f25"
+    },
+    {
+      "worker": "mlx",
+      "split": 1,
+      "role": "final",
+      "memory": "cf1003631df12d4186cc02c9cdb6b34ed0fde8a9e9fa96aa7cfb4dda76972117",
+      "compute": "789aaf0bd073363229332e56374e85c25f5ac3365bd0f1cf45b34137cb660e5b"
+    },
+    {
+      "worker": "mlx",
+      "split": 2,
+      "role": "first",
+      "memory": "74b27697adb781daa8c53b28e279919868dbf24619541999d3c793c87e56db5a",
+      "compute": "2b272f16bfb9c163bd66de4aaf50091f7945981d5edf9898e8d68a81726a634c"
+    },
+    {
+      "worker": "mlx",
+      "split": 2,
+      "role": "final",
+      "memory": "4aba2b61c34ff77314cf498eb66b385e9c359d1491a85ccc74a311b49cd7e3b6",
+      "compute": "537a1fa4c0e6a10f09f9f86c71f8e8fcae22af024411bce66a83979356e73320"
+    },
+    {
+      "worker": "mlx",
+      "split": 3,
+      "role": "first",
+      "memory": "802c276fb9a99ae3a1dcade57c58827cab289a7c9b5f9af65390074456c542ad",
+      "compute": "f7973ae230f57444833b87e247b91b73eeef678b597e496e71accef5ca3201a2"
+    },
+    {
+      "worker": "mlx",
+      "split": 3,
+      "role": "final",
+      "memory": "cc09fe95c702123853bc1557726ae8e6064ddac0db8c48fc8a32c5ce28cbbf2b",
+      "compute": "e035246b24928f2e0fde301227ba3a87fa15b2f7f1f738e9c4dbb4c1cea3c0d1"
+    },
+    {
+      "worker": "mlx",
+      "split": 4,
+      "role": "first",
+      "memory": "edde45ce07750c02781435417e18e2c78bc3551e7950ddc3590d2843d4b9b280",
+      "compute": "d11e6b9afa463e0c44543907780f3bce485bc10f582cc56b3104b390385acd3a"
+    },
+    {
+      "worker": "mlx",
+      "split": 4,
+      "role": "final",
+      "memory": "7d73b75f9e535cd0eaaaccfb186ae6e9f67b04ab325f7cb3bba6656707ce8b23",
+      "compute": "69569c4d7fe35c90e70da7d665df75e01776aebe287bc2e157e364b6fe908cb7"
+    },
+    {
+      "worker": "mlx",
+      "split": 5,
+      "role": "first",
+      "memory": "37f8bfc4e56100132a0f9ff94ec7e42affe5235ab9ca6126b23e115e42849c6d",
+      "compute": "38e9eb87648b82d5b9ffb475542009843dfc448077b35c715637f01cefb41b04"
+    },
+    {
+      "worker": "mlx",
+      "split": 5,
+      "role": "final",
+      "memory": "5b75e8c51eba8a5ec4bede3919caea22572206998acfe5fd231e1187212a417b",
+      "compute": "777676efee1e63ae2dfb469dd803c745a3630a10534fa1d907905b7aebd50b62"
+    },
+    {
+      "worker": "mlx",
+      "split": 6,
+      "role": "first",
+      "memory": "33eead3323399d040ac530b1da4aefc2e0bf3a430f7cdba488575993d21c5552",
+      "compute": "2d921e9dcb53eb539e85648980381c4cb17f0779ed57aa7c928065432b51ffad"
+    },
+    {
+      "worker": "mlx",
+      "split": 6,
+      "role": "final",
+      "memory": "29474f3f6418e6472275517606f4e66f478b8123da34d6dd1f2a85f7e419835a",
+      "compute": "9e7469817fef79623ae09d2a2c95265d4fc31db16b878581d5c79966e1e063b5"
+    },
+    {
+      "worker": "mlx",
+      "split": 7,
+      "role": "first",
+      "memory": "13d9aa1e37121fb91189e97f4e25af07d75ebf1710af113f1c17126256582fd3",
+      "compute": "5e126b51459b75e38347e7495ffd21c4f58fd8ac9310ae1f7a07e398c9c1f2bf"
+    },
+    {
+      "worker": "mlx",
+      "split": 7,
+      "role": "final",
+      "memory": "5c7209fe6ef6bdf7eacc931b40c302165052ab407f4df35f43b5fe7434f390eb",
+      "compute": "5124237783c6788b521ee404e1dbaf77dc16346bee0ffc0baa22c48fb5440972"
+    },
+    {
+      "worker": "mlx",
+      "split": 8,
+      "role": "first",
+      "memory": "5cf4424401ff8baa73fad867c4ba6e3c86e28c620efd1ef37f168f231c79a78f",
+      "compute": "198ebcc71671a5d9a413583242fd5b64bf005e5444c1771d5ce7ebca06a1bf81"
+    },
+    {
+      "worker": "mlx",
+      "split": 8,
+      "role": "final",
+      "memory": "b103b52ad5ddc3bbe19b572b86ac845c1893712af39f5d082ed62d083795c3f3",
+      "compute": "e640aa58b47daeb7557ff7e20458117f116d926f98c7ef6da421375682c82bca"
+    },
+    {
+      "worker": "mlx",
+      "split": 9,
+      "role": "first",
+      "memory": "208bbb68f881fb8ee4558e7cd6c479dc4eb29760e00d521533e2d158e359f369",
+      "compute": "901553f05a93a7e6b4887e117ec77bbbb59e50e2375f025e87e6a29a30e61167"
+    },
+    {
+      "worker": "mlx",
+      "split": 9,
+      "role": "final",
+      "memory": "65c67ae395b548193c07f070cf9a97aeb8e62634418a0e391ce7a1cbdd7ce83e",
+      "compute": "249dc915157a92842c76da38affebc52fe290194af0fcb66cc86dcc67b7bbf27"
+    },
+    {
+      "worker": "mlx",
+      "split": 10,
+      "role": "first",
+      "memory": "c2b4ada4789c9e284976a0b94119a20f802f278c9f00179e7ebf2d1d3b214a64",
+      "compute": "b0891bdee7eb0c96e52a4246bdcd3a11e8c024ea09e2d8e1d15565b4b3ecd91f"
+    },
+    {
+      "worker": "mlx",
+      "split": 10,
+      "role": "final",
+      "memory": "9e9fa561323967797fa5ee5eb2ff76225a6d694cd18193a33783053ad2add9bc",
+      "compute": "b9876d03a0e27272d2ec9c2f3187fd9bb6e525fd731285a20bbc0eb2066d6ab5"
+    },
+    {
+      "worker": "mlx",
+      "split": 11,
+      "role": "first",
+      "memory": "1dbca2bb9c058cd62711d74253a11b4caef10a94993ff651a137b60b68abe20b",
+      "compute": "52106daf8fc678c46b25373ff09c986ab5d3d8aed621da6447824d38c8f18f2f"
+    },
+    {
+      "worker": "mlx",
+      "split": 11,
+      "role": "final",
+      "memory": "796c4459bcad5cc976dc2f1ec90bb95a6f3ee1d108e4ab9c92f002a5177cdeea",
+      "compute": "27b739a333556d543d3459b1a8407aa654df38da9d4e98d5199fe3bba3b04f45"
+    },
+    {
+      "worker": "mlx",
+      "split": 12,
+      "role": "first",
+      "memory": "381c0f1013bfbfc1601af119bee86a3ccd82a9cbd32049850adc5e2d311b654f",
+      "compute": "1de3918fd408ed3a91cae6345490624202965d324cbf55f42ae1635295e44dac"
+    },
+    {
+      "worker": "mlx",
+      "split": 12,
+      "role": "final",
+      "memory": "707aa8611a1bad13e8cbf5b45d250080e982e6ce0cccf911dd2b13219ffd4942",
+      "compute": "947ce86b5cbee866138ce11fb8942fea544de91a8eb910d7a46e9cfb39c01d2d"
+    },
+    {
+      "worker": "mlx",
+      "split": 13,
+      "role": "first",
+      "memory": "a8b9382a6e0d8573d06a1777b34078af1977fe17a219a0958248afb77b2528bc",
+      "compute": "466ddf091389548d610305d2e7246fb4bdb778aa7b790641389ce424e928f20e"
+    },
+    {
+      "worker": "mlx",
+      "split": 13,
+      "role": "final",
+      "memory": "8f4a5c7c9930b06bc44bf8f40e6b50d8f9791800500adaf70dc1f47b2cdf8eff",
+      "compute": "1888d738a58a4d5ebe9c9425fbcb05658452b1f516b48973bc0e684b47a2a646"
+    },
+    {
+      "worker": "mlx",
+      "split": 14,
+      "role": "first",
+      "memory": "23a45059e2eafe247e6667efdab8cfc204c615743732b9922f0a677086f5cbb3",
+      "compute": "80528bde3c2280d36e11a07a845e35e58cedff307ec6f539229a1009f8908c6a"
+    },
+    {
+      "worker": "mlx",
+      "split": 14,
+      "role": "final",
+      "memory": "d29963f66827f819fd6584c7147f372cf5b1e94a1bc54b9e2b37e67ba024fc65",
+      "compute": "117c6abc80992c19ec73fadae52c61fbf72566db023e8a09f89286e896ac03fb"
+    },
+    {
+      "worker": "mlx",
+      "split": 15,
+      "role": "first",
+      "memory": "2c99833570f2ac7ab4c3980be1c3ff10d729528cda05807c5c84d01146770239",
+      "compute": "c466d391d18c63cc4965411cacdf88904f7760468a1d43805fdf1b9f9efd582b"
+    },
+    {
+      "worker": "mlx",
+      "split": 15,
+      "role": "final",
+      "memory": "f2a401a4a6826c1d3692f7e23a055244dd198e021de7152a01a2a6cf83dd719d",
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 16,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 16,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 17,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 17,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 18,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 18,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 19,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 19,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 20,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 20,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 21,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 21,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 22,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 22,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 23,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 23,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 24,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 24,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 25,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 25,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 26,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 26,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 27,
+      "role": "first",
+      "memory": null,
+      "compute": null
+    },
+    {
+      "worker": "mlx",
+      "split": 27,
+      "role": "final",
+      "memory": null,
+      "compute": null
+    }
+  ],
+  "acceptance_status": "pending",
+  "regret": null
+}

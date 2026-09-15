@@ -181,6 +181,22 @@ class Workers:
         for sink in self._sinks:
             sink.close()
 
+    def restart(self, index: int) -> None:
+        """Restart one process at its existing endpoint, without restoring a deployment."""
+        previous = self.processes[index]
+        previous.terminate()
+        previous.wait(timeout=5)
+        process = subprocess.Popen(
+            previous.args, stdout=subprocess.DEVNULL, stderr=self._sinks[index]
+        )
+        self.processes[index] = process
+        self.channels[index].close()
+        name = list(self.endpoints)[index]
+        channel = grpc.insecure_channel(self.endpoints[name])
+        self.channels[index] = channel
+        self.controls[index] = control_pb2_grpc.WorkerControlStub(channel)
+        self._await_ready(name, process, channel)
+
     def __enter__(self) -> Workers:
         return self
 

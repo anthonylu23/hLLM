@@ -157,7 +157,8 @@ class StageMessage(_message.Message):
     def __init__(self, open_sequence: _Optional[_Union[SequenceOpen, _Mapping]] = ..., tensor: _Optional[_Union[TensorEnvelope, _Mapping]] = ..., sampled_token: _Optional[_Union[SampledToken, _Mapping]] = ..., terminate: _Optional[_Union[SequenceTermination, _Mapping]] = ..., error: _Optional[_Union[StageError, _Mapping]] = ...) -> None: ...
 
 class GenerationRequest(_message.Message):
-    __slots__ = ("deployment_id", "request_id", "token_ids", "maximum_new_tokens", "deployment_version", "stop_token_ids", "deadline_unix_ms")
+    __slots__ = ("capture_timing", "deployment_id", "request_id", "token_ids", "maximum_new_tokens", "deployment_version", "stop_token_ids", "deadline_unix_ms")
+    CAPTURE_TIMING_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
     REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
     TOKEN_IDS_FIELD_NUMBER: _ClassVar[int]
@@ -165,6 +166,7 @@ class GenerationRequest(_message.Message):
     DEPLOYMENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     STOP_TOKEN_IDS_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_UNIX_MS_FIELD_NUMBER: _ClassVar[int]
+    capture_timing: bool
     deployment_id: str
     request_id: str
     token_ids: _containers.RepeatedScalarFieldContainer[int]
@@ -172,7 +174,7 @@ class GenerationRequest(_message.Message):
     deployment_version: int
     stop_token_ids: _containers.RepeatedScalarFieldContainer[int]
     deadline_unix_ms: int
-    def __init__(self, deployment_id: _Optional[str] = ..., request_id: _Optional[str] = ..., token_ids: _Optional[_Iterable[int]] = ..., maximum_new_tokens: _Optional[int] = ..., deployment_version: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
+    def __init__(self, capture_timing: _Optional[bool] = ..., deployment_id: _Optional[str] = ..., request_id: _Optional[str] = ..., token_ids: _Optional[_Iterable[int]] = ..., maximum_new_tokens: _Optional[int] = ..., deployment_version: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
 
 class PrefillComplete(_message.Message):
     __slots__ = ("prompt_tokens",)
@@ -181,12 +183,16 @@ class PrefillComplete(_message.Message):
     def __init__(self, prompt_tokens: _Optional[int] = ...) -> None: ...
 
 class TokenEvent(_message.Message):
-    __slots__ = ("token_id", "token_position")
+    __slots__ = ("native_elapsed_ms", "native_request_setup_ms", "token_id", "token_position")
+    NATIVE_ELAPSED_MS_FIELD_NUMBER: _ClassVar[int]
+    NATIVE_REQUEST_SETUP_MS_FIELD_NUMBER: _ClassVar[int]
     TOKEN_ID_FIELD_NUMBER: _ClassVar[int]
     TOKEN_POSITION_FIELD_NUMBER: _ClassVar[int]
+    native_elapsed_ms: float
+    native_request_setup_ms: float
     token_id: int
     token_position: int
-    def __init__(self, token_id: _Optional[int] = ..., token_position: _Optional[int] = ...) -> None: ...
+    def __init__(self, native_elapsed_ms: _Optional[float] = ..., native_request_setup_ms: _Optional[float] = ..., token_id: _Optional[int] = ..., token_position: _Optional[int] = ...) -> None: ...
 
 class UsageEvent(_message.Message):
     __slots__ = ("prompt_tokens", "generated_tokens")

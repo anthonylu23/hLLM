@@ -39,6 +39,9 @@ struct DenseSource {
   bool final{};
   bool tied_head{};
   runtime::DataType execution_dtype{};
+  runtime::DataType weight_dtype{runtime::DataType::kF32};
+  // Maximum simultaneous F32 weight casts during one evaluated layer or head.
+  std::size_t weight_cast_workspace_bytes{};
   std::size_t float32_weight_bytes{};
   std::size_t largest_payload_bytes{};
   std::size_t largest_float32_tensor_bytes{};

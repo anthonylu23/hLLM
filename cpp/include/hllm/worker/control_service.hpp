@@ -30,6 +30,14 @@ struct WorkerConfig {
 struct LoadedDeployment {
   v1::LoadStageRequest spec;
   std::unique_ptr<runtime::StageBackend> backend;
+
+  // Retain connection/flow-control state across requests, but never retain a
+  // request context or stream. The deployment lease bounds channel lifetime.
+  std::shared_ptr<grpc::Channel> downstream_channel();
+
+ private:
+  std::once_flag downstream_once_;
+  std::shared_ptr<grpc::Channel> downstream_channel_;
 };
 
 struct ActiveRequest {
@@ -52,6 +60,7 @@ class ControlService final : public v1::WorkerControl::Service {
  public:
   ControlService(WorkerConfig config, std::unique_ptr<runtime::BackendFactory> factory);
   grpc::Status GetCapabilities(grpc::ServerContext*, const v1::Empty*, v1::Capabilities*) override;
+  grpc::Status GetQualificationState(grpc::ServerContext*, const v1::Empty*, v1::QualificationState*) override;
   grpc::Status LoadStage(grpc::ServerContext*, const v1::LoadStageRequest*,
                          v1::LoadStageResponse*) override;
   grpc::Status UnloadStage(grpc::ServerContext*, const v1::UnloadStageRequest*,

@@ -1,0 +1,31 @@
+{
+  "audited_at": "2026-09-11T09:43:46.938544+00:00",
+  "method": "Independent eager F32 full reference history, each boundary rounded to real F16 wire bytes, replayed through unchanged F16 production-stage diagnostic binaries and original caps.",
+  "results": [
+    {
+      "suffix": "mlx-final-1",
+      "boundary_after_layer": 0,
+      "exact": true,
+      "mismatches": [],
+      "boundary_sha256": "dc1ac43c025d22f21f934160a08f8141da61f2c1dd7bd73fc1737fd75b84c343",
+      "result_sha256": "f3ee5895ee546f21f31da1ed5ea9f5458b5f359589bb8cc744f8190456f7a6e0"
+    },
+    {
+      "suffix": "cuda-final-17",
+      "boundary_after_layer": 16,
+      "exact": true,
+      "mismatches": [],
+      "boundary_sha256": "4d6a0b240f119ffdea26723c1ecd993a6a60c6ad0389347eedb0ac3b889eaf75",
+      "result_sha256": "464ce269eae2e42a9647378869efd1fe91f0ff37fc23c66d4069be7347e3f3c1"
+    },
+    {
+      "suffix": "cuda-final-19",
+      "boundary_after_layer": 18,
+      "exact": true,
+      "mismatches": [],
+      "boundary_sha256": "454f475bc65b4ffa6e52c60fd0fae2f354c46e6ae505ed18b63cf5886cee5c68",
+      "result_sha256": "919989dc31eb6c8d6d2f6ec93a1a74c5f1a28576a7e5d5ea4386a533521e3501"
+    }
+  ],
+  "interpretation": "All three suffixes recover exact256 tokens with oracle prefixes. Prefix numerical differences affect the three narrow-margin decisions; this does not identify a specific faulty operation or establish suffix numerical equivalence."
+}

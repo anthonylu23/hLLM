@@ -1,0 +1,20 @@
+{
+  "updated_at": "2026-09-12T20:25:27.649253+00:00",
+  "acceptance_status": "pending",
+  "selected_candidate_id": "mlx--cuda-m001",
+  "candidate_count": 54,
+  "measured_candidates": 54,
+  "plan_digest": "83a6251f044ab3d2e9b03c45c951655e723a4e6bb40a5d843646e70f870a44f4",
+  "bundle_digest": "eb2b5b9c42ebeedac4751e484decdfe4c373a6df6a74062258d7695d6f48f183",
+  "exact_activation_tokens": 256,
+  "unload_verified_by_activation_driver": true,
+  "max_planner_rss_kib": 273368,
+  "files_sha256": {
+    "report.json": "4f76425be26a309f64eb05600cadc0cb8dbff606917747ea77f69c35f3245cbe",
+    "plan.json": "429a441f5b95d4d7f907e2f14411e9f5ec4b06db8f0a4035ac8962b4e13419d0",
+    "bundle.json": "f048e7ea27e28c2d0c78b3219cf61ecf366b2a8951a2fdc39dccca9cc810546e",
+    "activation.json": "f8ca125cd6587511309c0cc46a87cbe2c8b0cea2d93aa9b7a26d80c6f7be1d18",
+    "complete.json": "e5ce8362fc3bf4b9f052fbc04207dc5ec462ba5ce491879eab20e2f065124851"
+  },
+  "next_step": "Five fresh selected-candidate diagnostic timing jobs, then a new independent sweep if stable."
+}

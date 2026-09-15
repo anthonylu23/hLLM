@@ -1,0 +1,75 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "exact_digest_checks": 1542,
+  "samples": [
+    {
+      "index": 0,
+      "pair": 0,
+      "payload_bytes": 2048,
+      "prefill_ms": 393.2229159399867,
+      "decode_median_ms": 54.278312949463725,
+      "decode_max_ms": 426.34212505072355,
+      "decode_over150ms": 1,
+      "run_sha256": "de1348acb9da689c8bc9ab1f0a314221561fd6cc008cdc1ee4ac0059e02644e5"
+    },
+    {
+      "index": 1,
+      "pair": 0,
+      "payload_bytes": 1024,
+      "prefill_ms": 431.3119170255959,
+      "decode_median_ms": 53.70535398833454,
+      "decode_max_ms": 265.4189998283982,
+      "decode_over150ms": 2,
+      "run_sha256": "a9f3290190362fb81fbf7b1aa0aee7bce915fb539f34fb98727e71e19cdb524a"
+    },
+    {
+      "index": 2,
+      "pair": 1,
+      "payload_bytes": 1024,
+      "prefill_ms": 446.51991594582796,
+      "decode_median_ms": 54.242749931290746,
+      "decode_max_ms": 263.8035831041634,
+      "decode_over150ms": 3,
+      "run_sha256": "f3997b5fade1fb682e6872b39276edbbd98be52ee8bd83492b2117f6afaa7964"
+    },
+    {
+      "index": 3,
+      "pair": 1,
+      "payload_bytes": 2048,
+      "prefill_ms": 637.9185421392322,
+      "decode_median_ms": 54.16743736714125,
+      "decode_max_ms": 436.99470767751336,
+      "decode_over150ms": 1,
+      "run_sha256": "fc1ce1f3941c0ec6ae61544e3f2307a9349b68cc6795db1e28d569c5f8a65263"
+    },
+    {
+      "index": 4,
+      "pair": 2,
+      "payload_bytes": 2048,
+      "prefill_ms": 412.15054085478187,
+      "decode_median_ms": 54.2989787645638,
+      "decode_max_ms": 437.31462489813566,
+      "decode_over150ms": 5,
+      "run_sha256": "4cda842c394f03dc6b9d937278ffd1b63727dc4d2719a92a2039e682658392ff"
+    },
+    {
+      "index": 5,
+      "pair": 2,
+      "payload_bytes": 1024,
+      "prefill_ms": 398.16399989649653,
+      "decode_median_ms": 54.29681250825524,
+      "decode_max_ms": 267.21770921722054,
+      "decode_over150ms": 4,
+      "run_sha256": "feff68a69fd8cce141786737127af93f1701a6727c06ec4cc56bd747fa21b3b2"
+    }
+  ],
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stdout": "success\n",
+    "stderr": ""
+  },
+  "conclusion": "TCP_NODELAY payload exchanges reproduce264\u2013437ms stalls withoutgRPC/model. Both1024and2048byte payloads affected; splittingactivation into smallerTCPpayloads is not supported as a completefix. TypicalmedianRTT~54ms.",
+  "limits": "Smallsequentialcomparison; no physicalfaultlocation. Successfuldriver assertions verifyallpayloadhashes; perexchangehashes notretained.",
+  "next": "ReviewM5acceptancecode independently while investigating narrowlyscopedtransportoptions. No unsupportedproductiontuning orrelaxedacceptancegates."
+}

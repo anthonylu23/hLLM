@@ -19,8 +19,16 @@ def _stage_line(stage: StageMemory) -> str:
 
 def _candidate_summary(candidate: PlanCandidate) -> str:
     if candidate.feasible:
-        return f"rank {candidate.rank}, score {candidate.score:.4f}"
-    return ", ".join(candidate.rejection_reasons)
+        detail = f"rank {candidate.rank}, score {candidate.score:.4f}"
+        if candidate.performance and candidate.performance.generation_ms is not None:
+            detail += (
+                f", TTFT {candidate.performance.ttft_ms:.2f} ms, "
+                f"generation {candidate.performance.generation_ms:.2f} ms"
+            )
+        return detail
+    return (
+        candidate.measurement_status + ": " if candidate.measurement_status else ""
+    ) + ", ".join(candidate.rejection_reasons)
 
 
 def explain_report(report: PlanningReport, *, rejected_limit: int = 8) -> str:

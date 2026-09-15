@@ -1,0 +1,31 @@
+{
+  "audited_at": "2026-09-11T09:01:34.650593+00:00",
+  "sweep_digest": "4d5853bfee46b958a5ee1f4e6b6e9b40a1da55a4ec5e73f7431516f21ca1f2bf",
+  "executor_digest": "a636e16185c6439d785da5e893279669a251324bc239735b59fc44ee94138e8e",
+  "bundle_digest": "fc160c2d2e447adb0b2833f3b8d571c2ff83f057d48702a944e072733f50e447",
+  "selected_candidate": "mlx--cuda-m003",
+  "successful_jobs": 7,
+  "failed_job": "r000-c006",
+  "failed_candidate": "cuda--mlx-m001",
+  "phase": "first warmup",
+  "first_mismatch_index": 145,
+  "expected_token": 2487,
+  "actual_token": 4034,
+  "failure_evidence_digest": "7208a055578effca9c2780738385c9e35f8a433c53899e162b9aa14bb7ffda2b",
+  "diagnostic_reproduced": true,
+  "diagnostic_logits": {
+    "expected_token": 18.0625,
+    "actual_token": 18.078125
+  },
+  "diagnostic_sha256": {
+    "cuda.spec.json": "14e51816df02d1ef10558f2808427919170fa721112c9fdb5fb3e9b59aedd6b1",
+    "cuda.json": "e8920d4e9c582807da935c64d8957ad6e77b1bc7c0f64c363321736ff63c517a",
+    "mlx.json": "5edc28c68b894db6d83ff5c7f86113e97243e8dd47a7423a037c4925c60941e9",
+    "mlx.spec.json": "07868f0aa65f00d2f989b3b86ecb06783711cc7c7185284ee0161fd6d6ea3091"
+  },
+  "owned_processes_exited": true,
+  "firewall_cleanup_returncode": 0,
+  "normal_unload_proven_for_failed_job": false,
+  "interpretation": "SiLU change fixes the earlier split25 failure but does not establish exact F32-reference agreement for every F16 placement. Corrected reverse split1 fails at the same narrow-margin position; standalone boundary replay reproduces it. No new production change or gate relaxation is justified by this result alone.",
+  "acceptance_status": "incomplete: correctness gate failed; no complete coverage or regret qualification"
+}

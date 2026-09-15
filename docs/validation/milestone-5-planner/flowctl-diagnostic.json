@@ -1,0 +1,41 @@
+{
+  "diagnostic_only": true,
+  "accepted": false,
+  "exact_requests": 3,
+  "evidence_digest": "3bd894e5cd1f7acd814f6a6900392710dca0bdd6a3a66fca7e2ef99e4311b1b9",
+  "evidence_digest_verified": true,
+  "cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "hosts": {
+    "mlx": {
+      "log_sha256": "af67f41971a2aa42617d76ddbe1fe92401c7ff7ed42a531ed54bb3c00e5a2891",
+      "enabled_tracers": [
+        "I0000 00:00:1789357572.383060 90600568 trace.cc:91] gRPC Tracers: flowctl, bdp_estimator"
+      ],
+      "window_updates": [
+        "I0000 00:00:1789357573.032948 90600581 flow_control.cc:258] [flowctl] UPDATE SETTING INITIAL_WINDOW_SIZE from 65535 to 4194304",
+        "I0000 00:00:1789357579.262087 90600582 flow_control.cc:258] [flowctl] UPDATE SETTING INITIAL_WINDOW_SIZE from 65535 to 4194304",
+        "I0000 00:00:1789357580.357063 90600579 flow_control.cc:258] [flowctl] UPDATE SETTING INITIAL_WINDOW_SIZE from 65535 to 4194304"
+      ],
+      "unknown_tracer_warnings": []
+    },
+    "cuda": {
+      "log_sha256": "f2bbbe3a1987de47085275fc1af7ec71c68d9dbbf328cbe3f807339585c8e6b0",
+      "enabled_tracers": [
+        "I0000 00:00:1789357574.544649  932745 trace.cc:91] gRPC Tracers: flowctl, bdp_estimator"
+      ],
+      "window_updates": [
+        "I0000 00:00:1789357576.006830  932767 flow_control.cc:258] [flowctl] UPDATE SETTING INITIAL_WINDOW_SIZE from 65535 to 4194304",
+        "I0000 00:00:1789357576.274151  932775 flow_control.cc:258] [flowctl] UPDATE SETTING INITIAL_WINDOW_SIZE from 65535 to 4194304",
+        "I0000 00:00:1789357580.388264  932766 flow_control.cc:258] [flowctl] UPDATE SETTING INITIAL_WINDOW_SIZE from 65535 to 4194304"
+      ],
+      "unknown_tracer_warnings": []
+    }
+  },
+  "conclusion": "Both hosts log initial-window growth from65535 to4194304 bytes; no later initial-window reductions appear in these worker logs. This weakens a persistently small HTTP2window explanation. Multiple connections exist and these setting lines lack connection IDs; do not claim per-stream attribution from them alone.",
+  "next": "Investigate connection-specific TCP delivery/retransmission and scheduling during prefill and long decode waits. Preserve production settings; larger initial-window change was not supported by paired comparison."
+}

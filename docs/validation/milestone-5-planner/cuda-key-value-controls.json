@@ -1,0 +1,21 @@
+{
+  "scope": "Same saved forward4 boundary; isolated CUDA controls; configuredcaps unchanged",
+  "results": [
+    {
+      "promoted_cache": "key",
+      "exact_tokens": 256,
+      "cache_bytes_per_key_value_pair": 6,
+      "raw_sha256": "06b06c1ded75a75c0ca130ead782d812810faaec6f03f2f64a7aceefb4fefac1",
+      "source_sha256": "a075207df69a6d206e3beccfb4be6413ec768e6832fb9aa5120f55ff43ff10ce"
+    },
+    {
+      "promoted_cache": "value",
+      "exact_tokens": 256,
+      "cache_bytes_per_key_value_pair": 6,
+      "raw_sha256": "0250249ff5809122f86bedee85bc86ebc92031c518ba41e2dba906dfc201d0df",
+      "source_sha256": "85cb91e72b8d733b69c86078ee0ad35b6c8c0e3df7cb8c5c682bc6dcb06d8ddf"
+    }
+  ],
+  "interpretation": "Either key-only orvalue-onlypromotion is sufficient torestoreexact256 inthiscase. Neitheruniquelyisolates onefault. Thesecontrols changeKVprecision and do notqualifyF16KV.",
+  "production_change": false
+}

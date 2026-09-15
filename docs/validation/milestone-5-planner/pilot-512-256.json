@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "reported_at": "2026-09-10T01:16:40.025391+00:00",
+  "scope": "explicit split-14 pre-selection pilot; not automatic selection or independent acceptance sweep",
+  "workload": {
+    "schema_version": "1.0",
+    "workload_id": "milestone-5-512-256",
+    "prompt_tokens": 512,
+    "output_tokens": 256,
+    "concurrency": 1,
+    "total_cached_tokens": 768,
+    "kv_overhead_factor": 1.1,
+    "kv_dtype": "F16",
+    "activation_dtype": "F16"
+  },
+  "runs": [
+    {
+      "direction": "mlx-cuda",
+      "split_layer": 14,
+      "status": "measured",
+      "cleanup_passed": true,
+      "raw_evidence_digest": "72410de4e38a29fb4e62143a8d5a3d3d9599fcc03e4a4033bc9c7afaac059b52",
+      "raw_evidence_sha256": "c42533fbbd4ad9bf1e535c96c87e3c58abc2c4b9b7784555568b95755785ae13",
+      "samples": [
+        {
+          "role": "warmup",
+          "output_tokens": 256,
+          "exact_reference_agreement": true,
+          "ttft_ms": 1221.7120002023876,
+          "last_token_ms": 29774.862125050277,
+          "terminal_ms": 29837.084125261754,
+          "native_request_setup_ms": 103.799625
+        },
+        {
+          "role": "warmup",
+          "output_tokens": 256,
+          "exact_reference_agreement": true,
+          "ttft_ms": 939.1973749734461,
+          "last_token_ms": 29275.805875193328,
+          "terminal_ms": 29335.716042201966,
+          "native_request_setup_ms": 106.066833
+        },
+        {
+          "role": "pilot-timed",
+          "output_tokens": 256,
+          "exact_reference_agreement": true,
+          "ttft_ms": 1015.8099168911576,
+          "last_token_ms": 32354.739458765835,
+          "terminal_ms": 32433.236374985427,
+          "native_request_setup_ms": 129.445542
+        }
+      ],
+      "memory_fit": {
+        "mlx": {
+          "device_envelope_bytes": null,
+          "host_envelope_bytes": 2619812977,
+          "reasons": [],
+          "status": "safe"
+        },
+        "cuda": {
+          "device_envelope_bytes": 1463392666,
+          "host_envelope_bytes": 1911979213,
+          "reasons": [],
+          "status": "safe"
+        }
+      }
+    },
+    {
+      "direction": "cuda-mlx",
+      "split_layer": 14,
+      "status": "measured",
+      "cleanup_passed": true,
+      "raw_evidence_digest": "16dd045d1a42f83a054111887a0ab9bf13832a51a0c302131159a35127a5d1ae",
+      "raw_evidence_sha256": "3875bfcbdb4adead3484632f10f3f47359f0b87daa6b69332e7412456a058431",
+      "samples": [
+        {
+          "role": "warmup",
+          "output_tokens": 256,
+          "exact_reference_agreement": true,
+          "ttft_ms": 1649.2894999682903,
+          "last_token_ms": 28524.280916899443,
+          "terminal_ms": 28586.06812497601,
+          "native_request_setup_ms": 101.794206
+        },
+        {
+          "role": "warmup",
+          "output_tokens": 256,
+          "exact_reference_agreement": true,
+          "ttft_ms": 787.2892920859158,
+          "last_token_ms": 27532.041625119746,
+          "terminal_ms": 27591.63370821625,
+          "native_request_setup_ms": 111.173249
+        },
+        {
+          "role": "pilot-timed",
+          "output_tokens": 256,
+          "exact_reference_agreement": true,
+          "ttft_ms": 1327.471666969359,
+          "last_token_ms": 27381.585916969925,
+          "terminal_ms": 27439.918708987534,
+          "native_request_setup_ms": 109.529979
+        }
+      ],
+      "memory_fit": {
+        "mlx": {
+          "device_envelope_bytes": null,
+          "host_envelope_bytes": 3067978251,
+          "reasons": [],
+          "status": "safe"
+        },
+        "cuda": {
+          "device_envelope_bytes": 1463392666,
+          "host_envelope_bytes": 1912177460,
+          "reasons": [],
+          "status": "safe"
+        }
+      }
+    }
+  ],
+  "acceptance_status": "pending",
+  "selected_plan": null,
+  "regret": null
+}

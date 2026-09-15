@@ -63,11 +63,13 @@ class MlxStage final : public ReferenceStage {
         final_(source.final),
         tied_(source.tied_head),
         dtype_(source.execution_dtype == runtime::DataType::kF16 ? mx::float16 : mx::float32),
+        weight_dtype_(source.weight_dtype == runtime::DataType::kF16 ? mx::float16 : mx::float32),
+        cast_workspace_(source.weight_cast_workspace_bytes),
         stream_(execution_stream()) {
     if (std::endian::native != std::endian::little) {
       throw runtime::Error::incompatible_worker("MLX boundary transfer requires a little-endian host");
     }
-    bytes_ = mul(source.float32_weight_bytes / sizeof(float), element_bytes());
+    bytes_ = mul(source.float32_weight_bytes / sizeof(float), weight_dtype_ == mx::float16 ? 2U : 4U);
     // Source bytes, decoded floats, MLX copied F32 input and conversion can
     // coexist. All are charged to the same physical-memory domain.
     runtime::require_memory({0U, 0U, 0U,
@@ -82,7 +84,7 @@ class MlxStage final : public ReferenceStage {
     completed(stream_, [&] {
       for (const auto& [name, tensor] : source.tensors) {
         auto host = source.read_float32(name);
-        if (dtype_ == mx::float16) {
+        if (weight_dtype_ == mx::float16) {
           for (auto value : host) {
             if ((runtime::float_to_float16(value) & 0x7c00U) == 0x7c00U) {
               throw runtime::Error::incompatible_worker(
@@ -94,7 +96,7 @@ class MlxStage final : public ReferenceStage {
         for (auto size : tensor.shape) shape.push_back(dimension(size));
         // Iterator construction copies, so checkpoint buffers never outlive
         // their owner through a lazy graph. Evaluate one weight at a time.
-        auto value = mx::astype(mx::array(host.begin(), shape), dtype_);
+        auto value = mx::astype(mx::array(host.begin(), shape), weight_dtype_);
         value.eval();
         weights_.emplace(name, std::move(value));
       }
@@ -122,7 +124,7 @@ class MlxStage final : public ReferenceStage {
     // slice_update may copy the complete cache; do not assume in-place reuse.
     auto workspace = add(add(add(add(linear, attention), cache), transport),
                          add(mul(vocab_, 32U), 8U * 1024U * 1024U));
-    return {{0U, 0U, 0U, cache}, {0U, 0U, 0U, workspace}};
+    return {{0U, 0U, 0U, cache}, {0U, 0U, 0U, add(workspace, cast_workspace_)}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens));
@@ -147,6 +149,12 @@ class MlxStage final : public ReferenceStage {
                                const std::atomic_bool& cancelled) const override {
     return run(std::move(input), position, state, cancelled, nullptr);
   }
+  runtime::StageOutput execute_profiled(runtime::StageInput input, std::size_t position,
+      runtime::SequenceState& state, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming& timing) const override {
+    timing = {};
+    return run(std::move(input), position, state, cancelled, nullptr, &timing);
+  }
   runtime::StageOutput execute_traced(runtime::StageInput input, std::size_t position,
                                       runtime::SequenceState& state,
                                       const std::atomic_bool& cancelled,
@@ -157,7 +165,7 @@ class MlxStage final : public ReferenceStage {
 
  private:
   std::size_t element_bytes() const { return dtype_ == mx::float16 ? 2U : 4U; }
-  const mx::array& weight(const std::string& name) const { return weights_.at(name); }
+  mx::array weight(const std::string& name) const { return mx::astype(weights_.at(name), dtype_); }
   mx::array norm(const mx::array& input, const mx::array& scale) const {
     auto value = mx::astype(input, mx::float32);
     return mx::astype(value * mx::rsqrt(mx::mean(mx::square(value), -1, true) +
@@ -226,7 +234,11 @@ class MlxStage final : public ReferenceStage {
     hidden = hidden + project(attended, "self_attn.o_proj");
     auto post = norm(hidden, weight(prefix + "post_attention_layernorm.weight"));
     auto gate = project(post, "mlp.gate_proj");
-    auto gated = (gate * mx::sigmoid(gate)) * project(post, "mlp.up_proj");
+    // Round SiLU once, matching a fused activation. Rounding sigmoid to F16
+    // before multiplying accumulates avoidable error across decoder layers.
+    auto gate32 = mx::astype(gate, mx::float32);
+    auto silu = mx::astype(gate32 * mx::sigmoid(gate32), dtype_);
+    auto gated = silu * project(post, "mlp.up_proj");
     hidden = hidden + project(gated, "mlp.down_proj");
     // Bound lazy graph lifetime to a layer, including cache updates. This also
     // provides a cancellation checkpoint after actual device completion.
@@ -235,7 +247,7 @@ class MlxStage final : public ReferenceStage {
   }
   runtime::StageOutput run(runtime::StageInput input, std::size_t position,
                            runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
-                           ExecutionTrace* trace) const {
+                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr) const {
     std::scoped_lock lock(device_mutex());
     auto* state = dynamic_cast<MlxSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
@@ -250,6 +262,7 @@ class MlxStage final : public ReferenceStage {
     running(cancelled);
     try {
       return completed(stream_, [&]() -> runtime::StageOutput {
+        runtime::PhaseTimer timer(timing, [&] { mx::synchronize(stream_); });
         auto hidden = [&]() -> mx::array {
           if (tokens) {
             std::vector<std::int32_t> ids;
@@ -257,8 +270,8 @@ class MlxStage final : public ReferenceStage {
               if (id >= vocab_) throw runtime::Error::invalid_request("token ID exceeds vocabulary");
               ids.push_back(dimension(id));
             }
-            return mx::take(weight("model.embed_tokens.weight"),
-                            mx::array(ids.begin(), {dimension(count)}), 0);
+            return mx::astype(mx::take(weights_.at("model.embed_tokens.weight"),
+                            mx::array(ids.begin(), {dimension(count)}), 0), dtype_);
           }
           const auto& boundary = std::get<runtime::BoundaryActivation>(input);
           if (boundary.width != hidden_size() ||
@@ -280,10 +293,13 @@ class MlxStage final : public ReferenceStage {
           return mx::astype(mx::array(values.begin(), {dimension(count), dimension(hidden_size())}),
                             dtype_);
         }();
+        if (timing) mx::eval(hidden);
+        timer.mark(tokens ? "embedding" : "from-wire");
         for (auto index = start_; index < end_; ++index) {
           running(cancelled);
           auto& cache = state->caches.at(index - start_);
           hidden = layer(std::move(hidden), index, position, cache);
+          timer.mark("layer", index);
           if (trace) {
             trace->layers.push_back(snapshot(hidden));
             trace->keys.push_back(
@@ -294,15 +310,20 @@ class MlxStage final : public ReferenceStage {
         }
         finite(hidden);
         running(cancelled);
+        timer.mark("validation");
         runtime::StageOutput result;
         if (final_) {
           auto last = norm(slice_axis(hidden, 0, hidden.shape(0) - 1, hidden.shape(0)),
                            weight("model.norm.weight"));
+          if (timing) mx::eval(last);
+          timer.mark("final_norm");
           auto logits = mx::matmul(
               last, mx::transpose(weight(tied_ ? "model.embed_tokens.weight" : "lm_head.weight")));
           finite(logits);
+          timer.mark("lm_head");
           if (trace) trace->last_logits = snapshot(logits);
           result = runtime::SampledToken{mx::argmax(logits, -1).item<std::uint32_t>()};
+          timer.mark("sampling");
         } else {
           auto boundary = mx::contiguous(mx::astype(hidden, mx::float16));
           finite(boundary);
@@ -311,6 +332,7 @@ class MlxStage final : public ReferenceStage {
               count, hidden_size(), std::vector<std::byte>(mul(mul(count, hidden_size()), 2U))};
           std::memcpy(output.payload.data(), boundary.data<mx::float16_t>(), output.payload.size());
           result = std::move(output);
+          timer.mark("to-wire");
         }
         running(cancelled);
         state->length += count;
@@ -325,6 +347,8 @@ class MlxStage final : public ReferenceStage {
   std::size_t vocab_, start_, end_;
   bool first_, final_, tied_;
   mx::Dtype dtype_;
+  mx::Dtype weight_dtype_;
+  std::size_t cast_workspace_;
   mx::Stream stream_;
   std::size_t bytes_{};
   std::map<std::string, mx::array> weights_;

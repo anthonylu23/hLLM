@@ -1,0 +1,12 @@
+{
+  "scope": "Isolated MLX F32 layer intermediates; stored weights, KV and wire F16; unchanged configured caps",
+  "production_change": false,
+  "reverse_split1_exact": true,
+  "steps": 256,
+  "sha256": {
+    "stage.cpp": "bfa687de7e3d6829390cbeb2827c2ee127a3a99d062da9ab4e556b49a2bcaf31",
+    "hllm-boundary-trace-mlx-internal-f32": "e33cbc3584ee9d5ef61d559187034f97fc371782ae3945895068299385b1e417",
+    "reverse1.json": "5a82bc3bc5c2489d71e8ba2e88c16850b984421a10baaab1689846fb8fb7059e"
+  },
+  "next": "All54 diagnostic matrix running. Needs execution semantics review and fresh memory/performance qualification before any adoption."
+}

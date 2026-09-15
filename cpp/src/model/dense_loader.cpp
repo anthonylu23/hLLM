@@ -27,6 +27,13 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
        request.plan().execution_dtype() != v1::DATA_TYPE_F16)) {
     throw runtime::Error::incompatible_worker("invalid stage index or unsupported execution dtype");
   }
+  const auto& plan = request.plan();
+  const bool mixed = plan.has_weight_dtype();
+  if (mixed != (plan.schema_version().major() == 1U && plan.schema_version().minor() == 2U) ||
+      (mixed && (plan.weight_dtype() != v1::DATA_TYPE_F16 ||
+                 plan.execution_dtype() != v1::DATA_TYPE_F32))) {
+    throw runtime::Error::incompatible_worker("unsupported resident/execution precision contract");
+  }
   const auto& manifest = request.manifest();
   const auto& descriptor = manifest.architecture();
   // Explicit architecture registry; unrelated families need their own
@@ -90,6 +97,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   source.execution_dtype = request.plan().execution_dtype() == v1::DATA_TYPE_F16
                                ? runtime::DataType::kF16
                                : runtime::DataType::kF32;
+  source.weight_dtype = mixed ? runtime::DataType::kF16 : source.execution_dtype;
   const bool first = request.stage_index() == 0U;
   const bool final =
       request.stage_index() + 1U == static_cast<std::uint32_t>(request.plan().stages_size());
@@ -164,6 +172,7 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
   }
   auto& files = source.files;
 
+  std::map<int, std::size_t> cast_groups;
   for (const auto& [name, spec] : expected) {
     const auto found = records.find(name);
     if (found == records.end()) {
@@ -212,6 +221,12 @@ DenseSource inspect_dense_stage(const v1::LoadStageRequest& request,
     source.largest_float32_tensor_bytes =
         std::max(source.largest_float32_tensor_bytes, multiply(elements, sizeof(float)));
     source.tensors.emplace(name, TensorSource{record.file(), spec.shape, tensor.dtype});
+    if (mixed && (spec.layer >= 0 || source.final)) {
+      // Non-layer tensors form the head group; embedding lookup itself is F16.
+      cast_groups[spec.layer] = add(cast_groups[spec.layer], multiply(elements, sizeof(float)));
+      source.weight_cast_workspace_bytes =
+          std::max(source.weight_cast_workspace_bytes, cast_groups[spec.layer]);
+    }
   }
   if (redundant_tied_head) {
     const auto& embedding = files.at(records.at("model.embed_tokens.weight")->file())

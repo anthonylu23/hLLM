@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import struct
+import time
 from pathlib import Path
 
 import grpc
@@ -15,6 +16,7 @@ from hllm_control.proto import (
     execution_pb2,
     execution_pb2_grpc,
 )
+from hllm_control.wire import deployment_plan_to_proto, model_manifest_to_proto
 
 from tests.process_contracts import (
     check_admission_rollback,
@@ -130,6 +132,69 @@ def test_client_cancellation_and_worker_loss_cleanup(tmp_path: Path) -> None:
 
 def test_stage_protocol_rejects_wrong_order_and_disconnects(tmp_path: Path) -> None:
     check_stage_protocol(tmp_path, Workers)
+
+
+def test_generation_recovers_after_downstream_restart_without_reloading_upstream(tmp_path):
+    manifest = write_model(tmp_path)
+    deployment = plan(manifest)
+    with Workers(tmp_path) as workers:
+        upstream_pid = workers.processes[0].pid
+        with DeploymentSession(manifest, deployment, workers.endpoints) as session:
+            expected = tokens(session, count=4)
+            for _ in range(2):
+                workers.processes[1].kill()
+                workers.processes[1].wait(timeout=5)
+                with pytest.raises(grpc.RpcError) as failure:
+                    tokens(session, count=4, timeout=0.5)
+                assert failure.value.code() in (
+                    grpc.StatusCode.UNAVAILABLE,
+                    grpc.StatusCode.DEADLINE_EXCEEDED,
+                )
+                memory = workers.controls[0].GetMemoryReport(common_pb2.Empty(), timeout=2)
+                assert memory.active_requests == 0
+                assert memory.reserved_cache_bytes == 0
+                assert memory.reserved_workspace_bytes == 0
+                assert memory.loaded_weight_bytes > 0
+
+                workers.restart(1)
+                empty = workers.controls[1].GetMemoryReport(common_pb2.Empty(), timeout=2)
+                assert empty.loaded_weight_bytes == 0
+                loaded = workers.controls[1].LoadStage(
+                    control_pb2.LoadStageRequest(
+                        plan=deployment_plan_to_proto(deployment),
+                        manifest=model_manifest_to_proto(manifest),
+                        stage_index=1,
+                        stage_endpoints=[
+                            control_pb2.StageEndpoint(
+                                stage_index=s.stage_index,
+                                worker_id=s.worker_id,
+                                endpoint=workers.endpoints[s.worker_id],
+                            )
+                            for s in deployment.stages
+                        ],
+                    ),
+                    timeout=5,
+                )
+                assert loaded.accepted, loaded.detail
+                # Serving retains fail-fast semantics while the cached channel
+                # reconnects. Only the test retries, with a bounded recovery window.
+                until = time.monotonic() + 10
+                while True:
+                    try:
+                        assert tokens(session, count=4, timeout=2) == expected
+                        # The controller's separate control channel must also
+                        # reconnect before its best-effort unload on context exit.
+                        assert all(r.active_requests == 0 for r in session.memory_reports())
+                        break
+                    except grpc.RpcError as error:
+                        assert error.code() == grpc.StatusCode.UNAVAILABLE
+                        assert time.monotonic() < until, "cached downstream channel did not recover"
+                        wait_clean(workers)
+                        time.sleep(0.05)
+                assert workers.processes[0].pid == upstream_pid
+                wait_clean(workers)
+                assert tokens(session, count=4) == expected
+        wait_clean(workers, loaded=False)
 
 
 def test_idle_stage_deadline_and_control_cancellation(tmp_path: Path) -> None:
@@ -274,3 +339,119 @@ def test_transmitted_prefill_matches_float16_transformers_oracle(tmp_path: Path)
 
 def test_downstream_memory_rejection_preserves_status_and_releases_driver(tmp_path: Path) -> None:
     check_admission_rollback(tmp_path, Workers)
+
+
+@pytest.mark.parametrize("delay_direction", ["activation", "feedback"])
+def test_delayed_boundary_preserves_tokens_deadline_and_recovery(
+    tmp_path: Path, delay_direction: str
+) -> None:
+    """Controlled WAN-like delays, without relying on an external network path."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    from hllm_control.wire import deployment_plan_to_proto, model_manifest_to_proto
+
+    manifest = write_model(tmp_path)
+    with Workers(tmp_path) as workers:
+        with DeploymentSession(manifest, plan(manifest, None), workers.endpoints) as session:
+            expected = tokens(session, count=4)
+        wait_clean(workers, loaded=False)
+        downstream = execution_pb2_grpc.StageExecutionStub(workers.channels[1])
+        mode = {"expire": False}
+
+        def delay(context, step):
+            duration = 0.6 if mode["expire"] else 0.053 + (0.35 if step == 1 else 0)
+            until = time.monotonic() + duration
+            while context.is_active() and time.monotonic() < until:
+                time.sleep(0.005)
+
+        class DelayedRelay(execution_pb2_grpc.StageExecutionServicer):
+            def Execute(self, request_iterator, context):
+                def forward():
+                    step = 0
+                    for message in request_iterator:
+                        if message.HasField("tensor") and delay_direction == "activation":
+                            delay(context, step)
+                            step += 1
+                        if not context.is_active():
+                            return
+                        yield message
+
+                call = downstream.Execute(forward(), timeout=5)
+                context.add_callback(call.cancel)
+                try:
+                    step = 0
+                    for message in call:
+                        if message.HasField("sampled_token") and delay_direction == "feedback":
+                            delay(context, step)
+                            step += 1
+                        if not context.is_active():
+                            return
+                        yield message
+                finally:
+                    call.cancel()
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            server = grpc.server(executor)
+            execution_pb2_grpc.add_StageExecutionServicer_to_server(DelayedRelay(), server)
+            port = server.add_insecure_port("127.0.0.1:0")
+            server.start()
+            wire_plan = plan(manifest)
+            endpoints = [
+                control_pb2.StageEndpoint(
+                    stage_index=i,
+                    worker_id=name,
+                    endpoint=workers.endpoints[name] if i == 0 else f"127.0.0.1:{port}",
+                )
+                for i, name in enumerate(("cpu-a", "cpu-b"))
+            ]
+            try:
+                for i, control in enumerate(workers.controls):
+                    loaded = control.LoadStage(
+                        control_pb2.LoadStageRequest(
+                            manifest=model_manifest_to_proto(manifest),
+                            plan=deployment_plan_to_proto(wire_plan),
+                            stage_index=i,
+                            stage_endpoints=endpoints,
+                        ),
+                        timeout=5,
+                    )
+                    assert loaded.accepted, loaded.detail
+                stub = execution_pb2_grpc.GenerationStub(workers.channels[0])
+
+                def generate(request_id, deadline_seconds):
+                    return stub.Generate(
+                        execution_pb2.GenerationRequest(
+                            deployment_id=wire_plan.plan_id,
+                            deployment_version=1,
+                            request_id=request_id,
+                            token_ids=[1, 4, 2],
+                            maximum_new_tokens=4,
+                            deadline_unix_ms=int((time.time() + deadline_seconds) * 1000),
+                        ),
+                        timeout=5,
+                    )
+
+                for request_id in ("delayed", "recovery"):
+                    events = list(generate(request_id, 3))
+                    assert [e.token.token_id for e in events if e.HasField("token")] == expected
+                    assert events[-1].terminal.state == execution_pb2.TERMINAL_STATE_COMPLETED
+                    wait_clean(workers)
+                    if request_id == "delayed":
+                        mode["expire"] = True
+                        with pytest.raises(grpc.RpcError) as error:
+                            list(generate("deadline-during-stall", 0.2))
+                        assert error.value.code() == grpc.StatusCode.DEADLINE_EXCEEDED
+                        wait_clean(workers)
+                        mode["expire"] = False
+                for control in workers.controls:
+                    control.UnloadStage(
+                        control_pb2.UnloadStageRequest(
+                            plan_id=wire_plan.plan_id,
+                            deployment_version=1,
+                        ),
+                        timeout=5,
+                    )
+                wait_clean(workers, loaded=False)
+            finally:
+                server.stop(0).wait()

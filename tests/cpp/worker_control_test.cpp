@@ -14,6 +14,62 @@
 namespace hllm::worker {
 namespace {
 
+TEST(WorkerControlTest, CpuRejectsMixedPrecisionBeforeLoading) {
+  const test::ModelFixture model;
+  auto factory = cpu::make_backend_factory();
+  EXPECT_FALSE(factory->capabilities().supports_mixed_precision);
+  auto request = model.load();
+  request.mutable_plan()->mutable_schema_version()->set_minor(2U);
+  request.mutable_plan()->set_weight_dtype(v1::DATA_TYPE_F16);
+  EXPECT_THROW(static_cast<void>(factory->load(request, model.root, {1'000'000U, 0U, 0U})), std::exception);
+  ControlService service({.worker_id = "cpu-a", .endpoint = "127.0.0.1:50051",
+                          .model_root = model.root, .host_memory_capacity_bytes = 1'000'000U},
+                         std::move(factory));
+  grpc::ServerContext context;
+  v1::LoadStageResponse rejected;
+  ASSERT_TRUE(service.LoadStage(&context, &request, &rejected).ok());
+  EXPECT_FALSE(rejected.accepted());
+  EXPECT_EQ(rejected.error().code(), v1::ERROR_CODE_INCOMPATIBLE_WORKER);
+}
+
+TEST(WorkerControlTest, VersionedPlanErrorsAreIncompatibleAndLeaveWorkerUnloaded) {
+  const test::ModelFixture model;
+  ControlService service({"cpu-a", "127.0.0.1:50051", model.root, 1'000'000U},
+                         cpu::make_backend_factory());
+  for (int scenario = 0; scenario < 6; ++scenario) {
+    SCOPED_TRACE(scenario);
+    auto request = model.load();
+    auto* plan = request.mutable_plan();
+    if (scenario < 4) {
+      plan->mutable_schema_version()->set_minor(1U);
+      plan->set_planning_mode("measured");
+      plan->set_workload_digest(std::string(64, 'a'));
+      plan->set_profile_bundle_digest(std::string(64, 'b'));
+    }
+    switch (scenario) {
+      case 0: plan->clear_workload_digest(); break;
+      case 1: plan->set_profile_bundle_digest("invalid"); break;
+      case 2: plan->mutable_schema_version()->set_minor(0U); break;
+      case 3: break;  // Valid measured identities, but the old plan hash is invalid.
+      case 4: plan->set_workload_digest(std::string(64, 'a')); break;
+      case 5: plan->mutable_schema_version()->set_minor(1U); break;
+    }
+    v1::LoadStageResponse rejected;
+    ASSERT_TRUE(service.LoadStage(nullptr, &request, &rejected).ok());
+    EXPECT_FALSE(rejected.accepted());
+    EXPECT_EQ(rejected.error().code(), v1::ERROR_CODE_INCOMPATIBLE_WORKER);
+    if (scenario == 5) EXPECT_NE(rejected.detail().find("schema version"), std::string::npos);
+    v1::MemoryReport memory;
+    ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &memory).ok());
+    EXPECT_EQ(memory.loaded_weight_bytes(), 0U);
+    EXPECT_EQ(memory.active_requests(), 0U);
+  }
+  auto valid = model.load();
+  v1::LoadStageResponse accepted;
+  ASSERT_TRUE(service.LoadStage(nullptr, &valid, &accepted).ok());
+  EXPECT_TRUE(accepted.accepted()) << accepted.detail();
+}
+
 TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
   const test::ModelFixture model;
   ControlService service(

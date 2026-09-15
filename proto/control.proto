@@ -8,7 +8,30 @@ import "placement.proto";
 import "profile.proto";
 
 message Capabilities { WorkerProfile worker = 1; }
-message LinkQualificationRequest { string target_worker_id = 1; }
+message QualificationState {
+  optional uint64 available_host_bytes = 1;
+  optional uint64 available_device_bytes = 2;
+  string backend_version = 3;
+  string driver_version = 4;
+  string allocator = 5;
+  string binary_digest = 6;
+  string device_identity = 7;
+  uint64 process_id = 8;
+  string boundary_transport_mode = 9;
+  optional string pytorch_alloc_conf = 10;
+  optional string pytorch_cuda_alloc_conf = 11;
+  string device_fingerprint = 12;
+}
+// Only the isolated profiling service implements these diagnostic RPCs.
+message LinkQualificationRequest {
+  string target_worker_id = 1; // Resolved through the server's explicit peer allowlist.
+  uint32 prompt_tokens = 2;
+  uint32 hidden_size = 3;
+  uint32 output_tokens = 4;
+  uint32 warmup_cycles = 5;
+  uint32 measured_cycles = 6;
+  uint32 timeout_ms = 7;
+}
 message StageEndpoint {
   uint32 stage_index = 1;
   string worker_id = 2;
@@ -76,6 +99,8 @@ message HealthResponse { bool serving = 1; string detail = 2; }
 
 service WorkerControl {
   rpc GetCapabilities(Empty) returns (Capabilities);
+  rpc GetQualificationState(Empty) returns (QualificationState);
+  rpc GetLinkProbeInfo(Empty) returns (LinkProbeIdentity);
   rpc QualifyLink(LinkQualificationRequest) returns (LinkProfile);
   rpc LoadStage(LoadStageRequest) returns (LoadStageResponse);
   rpc UnloadStage(UnloadStageRequest) returns (Empty);

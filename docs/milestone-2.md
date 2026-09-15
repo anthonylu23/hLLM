@@ -210,13 +210,16 @@ faults must release reservations and permit reload plus a fresh request;
 worker loss must release the survivor. Malformed/stale stage messages and
 admission/load rollback reuse the CPU suite against mixed workers.
 
-Generation deadlines first cancel the peer call and give the handler up to
-100 ms to return its deadline status. Forcing `ServerContext::TryCancel()`
-immediately can replace that status with `CANCELLED`; a bounded fallback is
-retained for blocked writes. An idle downstream stage still uses transport
-cancellation to unblock a synchronous read. Non-preemptible kernels or stalled
-client writes can require that fallback; CUDA kernels cannot be forcibly stopped
-at the application deadline.
+Generation deadlines cancel the peer call and mark the request cancelled. Slow
+compute unwind retains `DEADLINE_EXCEEDED`: the watchdog only forces the client
+transport closed after 100 ms when a client write is still in progress. Writers
+publish their active flag before checking cancellation, preventing a new write
+from starting after the watchdog decides that no transport wakeup is needed.
+Forced cancellation of a stalled client write can still report `CANCELLED`.
+An idle downstream stage uses transport cancellation to unblock a synchronous
+read. CUDA kernels cannot be forcibly stopped at the application deadline; their
+request reservations remain owned until execution unwinds. Control and client
+cancellation continue to interrupt transport immediately.
 
 Native tests inject pinned allocation/event failures through private CUDA call
 wrappers and inject a reservation failure after allocating a real CUDA sequence.

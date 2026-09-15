@@ -1,0 +1,118 @@
+{
+  "audited_at": "2026-09-11T09:42:33.736590+00:00",
+  "controls": {
+    "f32": {
+      "raw_sha256": "409ff84042b25b50f1b2b8c1d7eebc108e60d5e9a70513283341567d413f5546",
+      "dtype": "f32",
+      "steps": 256,
+      "tf32": false,
+      "attention": "eager",
+      "mismatches": [],
+      "points": [
+        {
+          "index": 145,
+          "argmax": 2487,
+          "top_ids": [
+            2487,
+            4034,
+            44909,
+            1352,
+            6787
+          ],
+          "top_values": [
+            18.07433319091797,
+            18.06853675842285,
+            17.944210052490234,
+            16.887664794921875,
+            16.15028190612793
+          ],
+          "pair_logits": {
+            "2487": 18.07433319091797,
+            "4034": 18.06853675842285
+          }
+        },
+        {
+          "index": 200,
+          "argmax": 2525,
+          "top_ids": [
+            2525,
+            3055,
+            1012,
+            2115,
+            2581
+          ],
+          "top_values": [
+            20.971105575561523,
+            20.96918487548828,
+            20.42881202697754,
+            19.399810791015625,
+            18.263057708740234
+          ],
+          "pair_logits": {
+            "2525": 20.971105575561523,
+            "3055": 20.96918487548828
+          }
+        }
+      ],
+      "peak_cuda_allocated": 2582474752,
+      "torch": "2.13.0+cu130"
+    },
+    "f16": {
+      "raw_sha256": "77f85c80f36c71439049f48c508ddecd2181f0e1e900fdaca911f72922d25506",
+      "dtype": "f16",
+      "steps": 256,
+      "tf32": false,
+      "attention": "eager",
+      "mismatches": [],
+      "points": [
+        {
+          "index": 145,
+          "argmax": 2487,
+          "top_ids": [
+            2487,
+            4034,
+            44909,
+            1352,
+            6787
+          ],
+          "top_values": [
+            18.078125,
+            18.078125,
+            17.953125,
+            16.90625,
+            16.140625
+          ],
+          "pair_logits": {
+            "2487": 18.078125,
+            "4034": 18.078125
+          }
+        },
+        {
+          "index": 200,
+          "argmax": 2525,
+          "top_ids": [
+            2525,
+            3055,
+            1012,
+            2115,
+            2581
+          ],
+          "top_values": [
+            20.96875,
+            20.96875,
+            20.4375,
+            19.40625,
+            18.265625
+          ],
+          "pair_logits": {
+            "2525": 20.96875,
+            "3055": 20.96875
+          }
+        }
+      ],
+      "peak_cuda_allocated": 1303140864,
+      "torch": "2.13.0+cu130"
+    }
+  },
+  "conclusion": "Independent eager F32 and F16 both match all256 exact teacher-forced tokens. At output indices145 and200 the F32 top-two margins are approximately0.00579643 and0.00192070; both pairs tie in F16 and first-index argmax chooses the reference. No tolerance or tie-breaking change is applied."
+}

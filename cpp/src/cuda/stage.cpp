@@ -94,6 +94,8 @@ class CudaStage final : public ReferenceStage {
         tied_(source.tied_head),
         pinned_(pinned),
         dtype_(source.execution_dtype == runtime::DataType::kF16 ? at::kHalf : at::kFloat),
+        weight_dtype_(source.weight_dtype == runtime::DataType::kF16 ? at::kHalf : at::kFloat),
+        cast_workspace_(source.weight_cast_workspace_bytes),
         stream_(execution_stream(device_id)) {
     if (std::endian::native != std::endian::little) {
       throw runtime::Error::incompatible_worker(
@@ -103,7 +105,7 @@ class CudaStage final : public ReferenceStage {
       throw runtime::Error::incompatible_worker(
           "pinned transfer mode requires pinned host capacity");
     }
-    bytes_ = source.float32_weight_bytes / sizeof(float) * element_bytes();
+    bytes_ = mul(source.float32_weight_bytes / sizeof(float), weight_dtype_ == at::kHalf ? 2U : 4U);
     // Reserve the source payload plus conversion/upload temporaries in each
     // domain. Uploads block; no full-model CPU replica is retained.
     runtime::require_memory(
@@ -121,7 +123,7 @@ class CudaStage final : public ReferenceStage {
     completed(stream_, [&] {
       for (const auto& [name, tensor] : source.tensors) {
         auto host = source.read_float32(name);
-        if (dtype_ == at::kHalf) {
+        if (weight_dtype_ == at::kHalf) {
           for (const auto value : host) {
             if ((runtime::float_to_float16(value) & 0x7c00U) == 0x7c00U) {
               throw runtime::Error::incompatible_worker(
@@ -134,7 +136,7 @@ class CudaStage final : public ReferenceStage {
           shape.push_back(dimension(size));
         }
         auto weight = at::from_blob(host.data(), shape, at::TensorOptions().dtype(at::kFloat))
-                          .to(options(), false, true);
+                          .to(options().dtype(weight_dtype_), false, true);
         weights_.emplace(name, std::move(weight));
       }
       return true;
@@ -164,7 +166,7 @@ class CudaStage final : public ReferenceStage {
     const auto device = add(add(add(linear, attention), mul(vocab_, 32U)), 8U * 1024U * 1024U);
     const auto host = add(add(mul(mul(tokens, hidden_size()), 6U), mul(tokens, 16U)), 65536U);
     const auto staging = staging_bytes(tokens);
-    return {{0U, cache, 0U}, {add(host, staging), device, staging}};
+    return {{0U, cache, 0U}, {add(host, staging), add(device, cast_workspace_), staging}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens));
@@ -189,6 +191,12 @@ class CudaStage final : public ReferenceStage {
                                const std::atomic_bool& cancelled) const override {
     return run(std::move(input), position, state, cancelled, nullptr);
   }
+  runtime::StageOutput execute_profiled(runtime::StageInput input, std::size_t position,
+      runtime::SequenceState& state, const std::atomic_bool& cancelled,
+      runtime::ExecutionTiming& timing) const override {
+    timing = {};
+    return run(std::move(input), position, state, cancelled, nullptr, &timing);
+  }
   runtime::StageOutput execute_traced(runtime::StageInput input, std::size_t position,
                                       runtime::SequenceState& state,
                                       const std::atomic_bool& cancelled,
@@ -207,7 +215,7 @@ class CudaStage final : public ReferenceStage {
   at::TensorOptions options() const {
     return at::TensorOptions().device(stream_.device()).dtype(dtype_);
   }
-  const at::Tensor& weight(const std::string& name) const { return weights_.at(name); }
+  at::Tensor weight(const std::string& name) const { return weights_.at(name).to(dtype_); }
   at::Tensor norm(const at::Tensor& input, const at::Tensor& scale) const {
     auto value = input.to(at::kFloat);
     return (value * at::rsqrt(value.square().mean(-1, true) + config_.rms_norm_epsilon))
@@ -274,7 +282,7 @@ class CudaStage final : public ReferenceStage {
   }
   runtime::StageOutput run(runtime::StageInput input, std::size_t position,
                            runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
-                           ExecutionTrace* trace) const {
+                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr) const {
     std::scoped_lock lock(mutex_);
     auto* state = dynamic_cast<CudaSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
@@ -290,6 +298,7 @@ class CudaStage final : public ReferenceStage {
     running(cancelled);
     try {
       return completed(stream_, [&]() -> runtime::StageOutput {
+        runtime::PhaseTimer timer(timing, [&] { stream_.synchronize(); });
         at::Tensor hidden;
         if (tokens) {
           std::vector<std::int64_t> ids;
@@ -302,7 +311,7 @@ class CudaStage final : public ReferenceStage {
           auto index = at::from_blob(ids.data(), {dimension(ids.size())},
                                      at::TensorOptions().dtype(at::kLong))
                            .to(stream_.device(), at::kLong, false, true);
-          hidden = weight("model.embed_tokens.weight").index_select(0, index);
+          hidden = weights_.at("model.embed_tokens.weight").index_select(0, index).to(dtype_);
         } else {
           const auto& boundary = std::get<runtime::BoundaryActivation>(input);
           if (boundary.width != hidden_size() ||
@@ -323,9 +332,11 @@ class CudaStage final : public ReferenceStage {
           }
           finite(hidden);
         }
+        timer.mark(tokens ? "embedding" : "from-wire");
         for (auto index = start_; index < end_; ++index) {
           running(cancelled);
           hidden = layer(std::move(hidden), index, position, state->caches.at(index - start_));
+          timer.mark("layer", index);
           if (trace) {
             trace->layers.push_back(snapshot(hidden));
             trace->keys.push_back(snapshot(
@@ -336,17 +347,21 @@ class CudaStage final : public ReferenceStage {
         }
         finite(hidden);
         running(cancelled);
+        timer.mark("validation");
         runtime::StageOutput result;
         if (final_) {
           auto last = norm(hidden.slice(0, hidden.size(0) - 1), weight("model.norm.weight"));
+          timer.mark("final_norm");
           auto logits =
               at::matmul(last, weight(tied_ ? "model.embed_tokens.weight" : "lm_head.weight").t());
           finite(logits);
+          timer.mark("lm_head");
           if (trace) {
             trace->last_logits = snapshot(logits);
           }
           result = runtime::SampledToken{
               static_cast<std::uint64_t>(logits.argmax(-1).item<std::int64_t>())};
+          timer.mark("sampling");
         } else {
           auto boundary = hidden.to(at::kHalf);
           finite(boundary);
@@ -361,6 +376,7 @@ class CudaStage final : public ReferenceStage {
             std::memcpy(output.payload.data(), host.const_data_ptr(), output.payload.size());
           }
           result = std::move(output);
+          timer.mark("to-wire");
         }
         running(cancelled);
         state->length += count;
@@ -378,6 +394,8 @@ class CudaStage final : public ReferenceStage {
   std::size_t vocab_, start_, end_;
   bool first_, final_, tied_, pinned_;
   at::ScalarType dtype_;
+  at::ScalarType weight_dtype_;
+  std::size_t cast_workspace_;
   c10::cuda::CUDAStream stream_;
   std::size_t bytes_{};
   std::map<std::string, at::Tensor> weights_;

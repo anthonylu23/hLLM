@@ -1,0 +1,112 @@
+{
+  "recorded_utc": "2026-09-14T15:30:52.171002+00:00",
+  "accepted": false,
+  "diagnostic_only": true,
+  "summary": {
+    "diagnostic_only": true,
+    "accepted": false,
+    "completed": true,
+    "sent": 600,
+    "exact_echoes": 595,
+    "missing_after_2s_drain": 5,
+    "duplicates": 0,
+    "invalid": 0,
+    "median_ms": 54.285875000005035,
+    "max_ms": 139.77820800000273,
+    "over150ms": 0,
+    "server_echoed": 595,
+    "payload_bytes": 1024,
+    "pacing_ms": 100
+  },
+  "missing_sequences": [
+    18,
+    184,
+    580,
+    591,
+    596
+  ],
+  "capture_unique_counts": {
+    "mac0": 600,
+    "mac1": 595,
+    "cuda0": 595,
+    "cuda1": 595
+  },
+  "both_capture_helpers_completed": true,
+  "capture_exit_codes": [
+    0,
+    0
+  ],
+  "firewall_cleanup_passed": true,
+  "owned_processes_absent": true,
+  "transport_metric_deltas": {
+    "mac": {
+      "magicsock_update_endpoints": 3.0,
+      "magicsock_disco_sent_pong": 27.0,
+      "magicsock_disco_recv_pong": 23.0,
+      "magicsock_disco_sent_ping": 26.0,
+      "magicsock_disco_recv_ping": 27.0,
+      "magicsock_send_udp": 2576.0,
+      "magicsock_restun_calls": 3.0,
+      "magicsock_disco_send_derp": 1.0,
+      "tstun_out_to_wg": 2576.0,
+      "magicsock_send_data_ipv6": 2576.0,
+      "magicsock_send_data": 2576.0,
+      "magicsock_disco_sent_callmemaybe": 1.0,
+      "magicsock_recv_data_bytes_ipv6": 3478896.0,
+      "magicsock_send_data_bytes_ipv6": 860976.0,
+      "magicsock_disco_recv_udp": 50.0,
+      "magicsock_disco_send_udp": 53.0,
+      "magicsock_disco_sent_udp": 53.0,
+      "tstun_in_from_wg": 3796.0,
+      "magicsock_disco_sent_derp": 1.0,
+      "magicsock_send_derp_queued": 1.0,
+      "magicsock_recv_data_ipv6": 3796.0
+    },
+    "cuda": {
+      "magicsock_update_endpoints": 4.0,
+      "magicsock_disco_recv_callmemaybe": 1.0,
+      "magicsock_disco_sent_pong": 24.0,
+      "magicsock_disco_recv_pong": 27.0,
+      "tstun_in_from_wg_drop": 1949.0,
+      "magicsock_disco_sent_ping": 28.0,
+      "magicsock_disco_recv_ping": 24.0,
+      "magicsock_send_udp": 3796.0,
+      "magicsock_disco_recv_derp": 1.0,
+      "magicsock_restun_calls": 4.0,
+      "tstun_out_to_wg": 3796.0,
+      "magicsock_send_data_ipv6": 3796.0,
+      "magicsock_send_data": 3796.0,
+      "magicsock_recv_data_bytes_ipv6": 852912.0,
+      "magicsock_send_data_bytes_ipv6": 3479104.0,
+      "magicsock_disco_recv_udp": 51.0,
+      "magicsock_disco_send_udp": 52.0,
+      "magicsock_disco_sent_udp": 52.0,
+      "tstun_in_from_wg": 2544.0,
+      "magicsock_recv_data_ipv6": 2544.0
+    }
+  },
+  "conclusion": "Clean capture confirmation reproduces five missing Mac-to-PC probes. All 600 are visible at Mac FromLocal, while the same 595 appear at PC FromPeer, PC FromLocal and Mac FromPeer. No additional return-path loss is observed in this run.",
+  "metric_interpretation": "Mac transport drop/error counters did not increase. PC tstun_in_from_wg_drop rose by 1949, but is daemon-wide and also counts packets handled by internal netstack rather than delivered to the OS. It is not evidence that the five probes were rejected by a firewall. No increment in PC filter-drop counters was observed.",
+  "limits": "Capture has no independent drop counter. No physical-link attribution or cross-host one-way latency claim. Diagnostic workload is not acceptance evidence. capture02 stopped before probes because remote metrics required sudo; capture03 used existing sudo authorization without changing operator settings.",
+  "sources": [
+    "https://github.com/tailscale/tailscale/blob/v1.102.3/net/packet/capture.go",
+    "https://github.com/tailscale/tailscale/blob/v1.102.3/net/tstun/wrap.go"
+  ],
+  "artifact_sha256": {
+    "summary.json": "30f86294f7c37ab503824f5ca57be5e95a36358bf87f1b3d28a6b32cabb9cf59",
+    "mac-metrics-path-after.json": "355ea9b77f2fc3d4eb8c9d434dc8797c4917d4923e21576a4fe3e59f8de81535",
+    "mac-capture.jsonl": "67fafb485326c990cf8aba5119140dbddf64ca5a5fb79a346378af5706095bdf",
+    "mac-metrics-path-before.json": "e0bf8031183207e31cc25704e8a706b6323f85a09e8f6d92d7359ac9c38ac4b1",
+    "path-after.json": "3f4c793a73305133c02161f9f0797acac9e5cdcbc636522e78b8d29e8c0a72ae",
+    "firewall-cleanup.json": "141ad2719a09aa6202c9fee44f253fda8cf5805d282e9de6d75bcf8c401c6962",
+    "capture-exits.json": "4f4ef56ec5dfda1532daaf29e876af3bad61321526c130cf56c5448de7ec07fc",
+    "samples.json": "59541bef06879a70fc84cd8f2edf9c7dd16b3d9cefcb2b58da13ada81cb95604",
+    "cuda-capture.jsonl": "8d986c60119d65bf8bbb1496ddeb3498421c7219f2265a8b6b01f38cb323c612",
+    "cuda-metrics-path-before.json": "106ad1f951a331febe19365152c5d585c4e963724534023c29fd168faa17af3d",
+    "cuda-metrics-path-after.json": "ac5bccb69cd37b812fde4e08e6f33c0c0db9a6dabfb32595cc10a5674a8d980b",
+    "server-summary.json": "283f9066b366bea014dca425c55eb0cf196ed24c5da936a517ac1dd33ab849f1",
+    "path-before.json": "836fda5ea408f56b3cb1d4e6b9109f74e499dd82f69260701830a891215b4bff",
+    "progress.json": "1c1e543d35b603478bd3fc9bcaedcd2c406e35fa85f14b2eeca6e4569aa10ea0"
+  },
+  "next": "The bounded delivery investigation has reproduced the issue sufficiently; do not loop identical network tests. Continue independent M5 code/evidence audit and investigate only concrete, reversible path or transport options with an explicit hypothesis. Production timing and full acceptance remain pending."
+}

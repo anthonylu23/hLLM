@@ -1,0 +1,13 @@
+{
+  "source_digest": "dae30ab1c1c9e2a567c48327f31f93697c167a6cd38ac88004cff6efbf4fe718",
+  "files": {
+    "python/hllm_control/profiling/__init__.py": "75a80b419987b9f20163a4009a52b2f773275510d83321705656871dedd1d821",
+    "python/hllm_control/profiling/compute.py": "e75a98e828d07da2cd28275b674e6a3b17fce9af13b4bf4777fd8e600f34bcc1",
+    "python/hllm_control/profiling/link.py": "f00711661c21ab05cbf09293b6f90f06d7cb8f459b1ef75aafffdcc21c936fa5",
+    "python/hllm_control/profiling/memory.py": "6f29d20a0161566347940423e3cb8aec2b4c73a18424114d07fb89f85a550736",
+    "python/hllm_control/profiling/models.py": "6b69da964fead9cb0bd4c28993540ea618012545cc42d821955511604e419cfd",
+    "python/hllm_control/profiling/runner.py": "adc9d45e05db45422b5f0b8fada85deb29652d65ec4bbd2d4eef5d72ff6ea6ca",
+    "python/hllm_control/serialization.py": "06073344123e688ea30572a6ea19e3484ed9b3462965e63144f0ec733714332c",
+    "python/hllm_control/cli.py": "04e6706f46e15975bff247328895ad13c097c12c813818c087660d89da0fb133"
+  }
+}

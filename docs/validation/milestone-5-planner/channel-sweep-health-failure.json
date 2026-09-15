@@ -1,0 +1,373 @@
+{
+  "accepted": false,
+  "sweep": "sweep-channel-01",
+  "runtime_commit": "6b9aeb8",
+  "completed_job_results": 56,
+  "placements_with_one_exact_measurement": 54,
+  "exact_full_requests": 168,
+  "failure": {
+    "cancel": {
+      "cleaned": true,
+      "passed": true,
+      "phase": "complete",
+      "received": 1,
+      "recovered_ids": [
+        12305,
+        23966,
+        458,
+        22978
+      ],
+      "timeout_seconds": 180
+    },
+    "deadline": {
+      "error_detail": "Cancelled on the server side",
+      "passed": false,
+      "phase": "generate",
+      "received": 124,
+      "rpc_status": "CANCELLED",
+      "timeout_seconds": 11.439262187574059
+    }
+  },
+  "failed_job_cleanup_verified": false,
+  "owned_workers_retired": true,
+  "firewall_cleanup_returncode": 0,
+  "jobs": [
+    {
+      "job": "r000-c000",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "532e6cae52f9015177c70f836fe5d5a13c6c3f1626980562c7574ae443921517"
+    },
+    {
+      "job": "r000-c001",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "3c4e50bac4930f2cbc2487745173b2f2e625b3401aa404259291fd44036f2dcf"
+    },
+    {
+      "job": "r000-c002",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "8b4d318caff9da787a3819a6593e3f0c264226fff9fb4e594b6938c4d5dcbbcf"
+    },
+    {
+      "job": "r000-c003",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "a5c35d507910f030ff378b52f6161df2d20c4a69f0ecdd8c14953a4765a3a55a"
+    },
+    {
+      "job": "r000-c004",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "8a3b260e0d9b36efcef5aafff436c93c48ae06097a9f5eab7792541b61884184"
+    },
+    {
+      "job": "r000-c005",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "8d33de5699c403f78e6431f1ba212975f04a0bda1e3a3081484f7a6deacfe137"
+    },
+    {
+      "job": "r000-c006",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "a907c49fe99b56814dc57d940bfe3cc610aa28155272c8fa22fcc166104b80c0"
+    },
+    {
+      "job": "r000-c007",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "222c66e1e33155d0e60f303554e22b77a1962fc632063098c53cb08de44799ec"
+    },
+    {
+      "job": "r000-c008",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "3f27d6446d8b6fe74c7d8c080a0a12c759d1411f5c1f4e95d4ff6c211b146011"
+    },
+    {
+      "job": "r000-c009",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "8a944d5adbc0a837920e0a1e46222de2144c096cc31724058e4f7878ccc873fd"
+    },
+    {
+      "job": "r000-c010",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "f3eb7dbeb22465dad0ecd91abf754e4db9d7f15998e06774325df0936bf27a9e"
+    },
+    {
+      "job": "r000-c011",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "3525d315e5699fe65d770e36ca54643ca74c2344f1e6b2c35d615bc152509bc5"
+    },
+    {
+      "job": "r000-c012",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "67412417f8eb6206a5c569d4cbd262a19dfe1775f6f77a1b66f57f7d19c99ac8"
+    },
+    {
+      "job": "r000-c013",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "13d6ce4964c268b17ccdea2b5f48785fdaf8d464f1d1ac7ac7ba77932389d761"
+    },
+    {
+      "job": "r000-c014",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "e406686ea1318f8bb2b21d82c646dd0c828b3fdbd5414ee2e009b10229899b6c"
+    },
+    {
+      "job": "r000-c015",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "d40bb5962743c752ba4b6eb4a96c2feb35240e5ab259581409cf8290b5af8c16"
+    },
+    {
+      "job": "r000-c016",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "ad4e67a07beb239bf75478ea3e4208fab916e5daed81704553cfeb02567ff13e"
+    },
+    {
+      "job": "r000-c017",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "bbf3930f60a994421811817435d33cad08cb8cc5b7efe19d5452378afc33f707"
+    },
+    {
+      "job": "r000-c018",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "85b55d10c7a025c8f5208d6067fe3861e36149b1f7a5f2435ee018073af1754b"
+    },
+    {
+      "job": "r000-c019",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "d2d01a7bc40205978335afdf26a7df412a544e18ca1bd717eeef1471fd0d8490"
+    },
+    {
+      "job": "r000-c020",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "5d5a65adf442d8307c54288b022ae379746aa513e250f3f714b8f0b7c511711d"
+    },
+    {
+      "job": "r000-c021",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "dd2a8254c8918855eed6ea610d94d01d6313a86b10b4b272fc2fc1bac3b4fe92"
+    },
+    {
+      "job": "r000-c022",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "5f868fba91838212428bbc55e0c2b1e3a24e86629be1de564f461eae30629ab3"
+    },
+    {
+      "job": "r000-c023",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "44c0f9a74ec89558907c0eb9c6912f36b3b23588bab760dacd769e803235455e"
+    },
+    {
+      "job": "r000-c024",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "c86c7880d3bf8e2357fbb17bdc6eda4855f9bea2b412bf2047568500d04ac058"
+    },
+    {
+      "job": "r000-c025",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "e26e6160aeeeb416d8bffcd82163a74e7621e7d5e2a1602ebf3e794e8226ccad"
+    },
+    {
+      "job": "r000-c026",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "b59da7e77c22093ab344718024fe67195ea4d1d54bc35247df12d85dbada52ff"
+    },
+    {
+      "job": "r000-c027",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "da7ac8c1a6dbb39545c42fc41e648ae8aff147c779b382c7de7a908ec3becfe6"
+    },
+    {
+      "job": "r000-c028",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "44b1513ed390760f66c85c8dfee80d1ad47de9d820bd3a3c39df018c339c4abf"
+    },
+    {
+      "job": "r000-c029",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "834adfdb163a017308e639552b7fb1b32aef3aa2cac1be449442e4d3490e45ef"
+    },
+    {
+      "job": "r000-c030",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "de613e7c38bf3172ac8e05822b06f09bf6c93c82c0e4e0274fe3f4de73db77a8"
+    },
+    {
+      "job": "r000-c031",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "109ceb052fd64e2c439fd03676743aa25cc311f96e11c954563f409f00f12446"
+    },
+    {
+      "job": "r000-c032",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "99640f2b68ef0b2798bdee45e9b626a08b67950dd6ff299a2e0e883f01ceb07a"
+    },
+    {
+      "job": "r000-c033",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "01f69681e974e25bb18f0baa911e30a6f2e864fc2550bb4f4fec9f41121c36b3"
+    },
+    {
+      "job": "r000-c034",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "e0d2d4939076d33401a8ec921d6158c56497eaf2077abc9ddf0c309209edbd05"
+    },
+    {
+      "job": "r000-c035",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "1d7a364bad5441df929e0474c0e3997d4992f84f9feb7c8d1515653dc34befb7"
+    },
+    {
+      "job": "r000-c036",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "09d9755ea28585a7f8e9788bf6a8f19e121c3386c44118e9da7dca322d89087b"
+    },
+    {
+      "job": "r000-c037",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "46538738176fb46a533f075b049a20110f8e687972f9919fc23b1d6cd98d28e3"
+    },
+    {
+      "job": "r000-c038",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "9ba3f00dfbe063869e70d244bc74cf79777e30ca0ac8bb089b20482287b88c3e"
+    },
+    {
+      "job": "r000-c039",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "59d35a970959b75ca95485869014ecc1367f3f48bfbb490a1331e99185ebc850"
+    },
+    {
+      "job": "r000-c040",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "221638596219ea9694269c6d19790cf6f364dab2527127b12d2d2db5974ad469"
+    },
+    {
+      "job": "r000-c041",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "7b5da9b371918cb83412e38c384e60c55ed3d4fde8a74f707bb8097e05abeb44"
+    },
+    {
+      "job": "r000-c042",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "db0400fb73b784c6c72ceb2f46ce699e1b8d68f148a19f76803b1bc7f271f7f7"
+    },
+    {
+      "job": "r000-c043",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "8fc743efc157312d581d10c17752e0c62fc047ae14d68190121eed80098def3d"
+    },
+    {
+      "job": "r000-c044",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "fa294067ef0d63a1356d40d0b35e3f0b12cec8e4b749a243500f064d426ea811"
+    },
+    {
+      "job": "r000-c045",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "7774cbadc41e38bf9728652cf158876e982843c3ebec8319384d5e00a93e7e0c"
+    },
+    {
+      "job": "r000-c046",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "8a51dd4fa59555fbe970847340b8d8a37f28ee3f9f9e6a332803b8187e1668b7"
+    },
+    {
+      "job": "r000-c047",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "93b929031473eed0b37691d488a856f282c66db82f29647ad3c95977be4128e0"
+    },
+    {
+      "job": "r000-c048",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "5bfd501a729af2dd4b0ce61b1ac34ffe7202ccb35be3f0ee1056ab54e1162727"
+    },
+    {
+      "job": "r000-c049",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "0236f421068bef95172ac666e67413b908e93f10c85cd4aa5bee7a1bfa878cb0"
+    },
+    {
+      "job": "r000-c050",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "36b91f5521bff1211b1414c590cd53de0d8973d9addac2a3c604a4c69159aa03"
+    },
+    {
+      "job": "r000-c051",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "d8ccaab4cf59dda2bf57e5f4705cca6eb2f3d3463197e8029e5ec27a9fcdfb4e"
+    },
+    {
+      "job": "r000-c052",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "20360a345d250e567c7dc8f93ede21eea1b93652a21b616399e9d1a3cb1b5a89"
+    },
+    {
+      "job": "r000-c053",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "c27d5a34fed7a95fbad0b7a4ecb5211f3a44987c63f5a4a5f316119e3ee9cd29"
+    },
+    {
+      "job": "r000-reference-after",
+      "status": "unknown",
+      "cleanup_passed": false,
+      "evidence_digest": "489f4c9569aef4aa1e76516d40c02c3dd19b5294c773d729324f56054c06066e"
+    },
+    {
+      "job": "r000-reference-before",
+      "status": "measured",
+      "cleanup_passed": true,
+      "evidence_digest": "c981fcac81f941d9292bab88d657a9a8fd58226c73efad83b4f24f2a8218d7f2"
+    }
+  ],
+  "next": "Investigate deadline status cancellation path with deterministic regression coverage; do not resume this failed sweep as passing."
+}

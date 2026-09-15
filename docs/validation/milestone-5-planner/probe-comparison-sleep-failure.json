@@ -1,0 +1,24 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "attempt": "network-probe-comparison-02",
+  "completed_timing_jobs": 0,
+  "completed_warmups": 1,
+  "status": "unknown",
+  "detail": "_MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"Stream removed (recvmsg:Connection reset by peer (54))\"\n\tdebug_error_string = \"UNAVAILABLE:Stream removed (recvmsg:Connection reset by peer (54))\"\n>",
+  "evidence_digest": "0a267a50fa955635c839330e22f7dc24692be0567989812da6ae71b94d6c3a75",
+  "evidence_digest_verified": true,
+  "job_cleanup_verified": false,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "owned_workers_subsequently_absent": true,
+  "power_log": [
+    "2026-09-13 13:30:31 -0400 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using AC (Charge:100%) 114 secs  ",
+    "2026-09-13 13:32:25 -0400 DarkWake            \tDarkWake from Deep Idle [CDNPB] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty nub-spmi-a1.0x3F/ Using AC (Charge:100%) 45 secs   "
+  ],
+  "interpretation": "System sleep overlaps the failed generation. This supports investigating sleep as a connection-failure contributor; it does not establish the cause of earlier timing drift.",
+  "next": "Repeat the same six-job probe comparison with process-scoped caffeinate -is held for both conditions. Preserve all failed attempts. No acceptance claim from this diagnostic."
+}

@@ -1,0 +1,356 @@
+{
+  "audited_at": "2026-09-12T05:27:48.927521+00:00",
+  "placements": 54,
+  "exact_placements": 54,
+  "exact_outputs": 13824,
+  "prompt_tokens": 512,
+  "output_tokens": 256,
+  "concurrency": 1,
+  "capacity": 768,
+  "effective_precision": {
+    "resident_weights": "F16",
+    "layer_intermediates": "F32",
+    "kv": "F32",
+    "wire": "F16"
+  },
+  "all_raw_hashes_verified": true,
+  "all_plan_pairs_and_caps_verified": true,
+  "cached_prefixes_verified": 9,
+  "binary_sha256": {
+    "mlx": "a3b470d37fbd65c39302af7a73b53baa1ff10e4e5645a3fa1fd0185f908ea9e8",
+    "cuda": "209e8246652b86edad4080c3b76694478e8c1e402b3528becd9242fdc048013c"
+  },
+  "history_sha256": "fb20e2f3c22703f0551bb8c9bcf9ebb0b327ed2a605770e83564a181abb44b35",
+  "results": [
+    {
+      "candidate": "cuda--mlx-m001",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "05e514856bf104616390554fd1b8557f88fb6b6485d04f290d2a41ea4567b57e"
+    },
+    {
+      "candidate": "cuda--mlx-m002",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "5dfb336aca21774d3d0db1f4b8d9b99383efb5ecb5d5b82ecc95a08e7faf1c59"
+    },
+    {
+      "candidate": "cuda--mlx-m003",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "98a22c0ad7e6d324b6b15567981f553eb537b07499188d19ff2b28dd10ce4474"
+    },
+    {
+      "candidate": "cuda--mlx-m004",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "be36f2cdeacaca99ce91263b20985f16646f7977c42ed4308c751c06c6a3cae1"
+    },
+    {
+      "candidate": "cuda--mlx-m005",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "f80938f26ec0a0220b68bf916c857e8c5184918d91e1c944d4be90913a508ec5"
+    },
+    {
+      "candidate": "cuda--mlx-m006",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "1c456ef563d281dc2f0b32c4f32cf1d96ba6e9cabb56e09bdb93b80a9f00360a"
+    },
+    {
+      "candidate": "cuda--mlx-m007",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "777b7f0eee7c36259b4b46b8ce4573ee4eca33cf8ff7e0a270d1f692c7969f9d"
+    },
+    {
+      "candidate": "cuda--mlx-m008",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "842f91e9bddf5327e6133cc461461137264f91a4c9ff1e8ad833e31d9dd4ebb6"
+    },
+    {
+      "candidate": "cuda--mlx-m009",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "da62f87b6535d9f5d6176028f501bffe5472489b1dd49bb5ad9e3fb7f0cd8ee1"
+    },
+    {
+      "candidate": "cuda--mlx-m010",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "77917175f36144c905df6c09d8e0dde5b99ec136b9ed3bc34965bf37be235b56"
+    },
+    {
+      "candidate": "cuda--mlx-m011",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "4654ebf3d2699dbe5fca47570c0b30bffd833595ac92a9f0ebc6f2321dd0cb93"
+    },
+    {
+      "candidate": "cuda--mlx-m012",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "dd2b7bec1276e3c23abf7c16312ece7ffa9562fc643be90f5d72b98a3c4ef6c9"
+    },
+    {
+      "candidate": "cuda--mlx-m013",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "99175435cd91820ba4db13768d245cdcbf5f0d548fc645aead2d06d87844ca8b"
+    },
+    {
+      "candidate": "cuda--mlx-m014",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "cbe514659dee9c26322882517f4aa34e6efacaa14eab04b9634c5506b64c7ffe"
+    },
+    {
+      "candidate": "cuda--mlx-m015",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "1b5d8a2581e6e1e9fa25034f0aa650c62148e8ce27d0048e8a446ef03e702d54"
+    },
+    {
+      "candidate": "cuda--mlx-m016",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "29a0ac168312bba33cbd9b19b6ddda692417cfb49be942682c52f21100158d6f"
+    },
+    {
+      "candidate": "cuda--mlx-m017",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "51bd3b88836885b723fc66efc5214b570a8a26c90de3ba7884814baa97d6a7af"
+    },
+    {
+      "candidate": "cuda--mlx-m018",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "ca6091dc629535cabf60662bb8e56af4da2f49b0c16cbc94705586b41f05f8bf"
+    },
+    {
+      "candidate": "cuda--mlx-m019",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "d8b8f0f1c29522f74d693c64c8f9e67a3cb00f794a58be2b1dd47afccfdaf9e7"
+    },
+    {
+      "candidate": "cuda--mlx-m020",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "c324478b3fe2790d9a12746e960ad05a12432011b24a0450233dd9e890397b29"
+    },
+    {
+      "candidate": "cuda--mlx-m021",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "63d130c4323e2cbdc25a64d594a1f0c77350c3a87d281de2afa53d802cd57038"
+    },
+    {
+      "candidate": "cuda--mlx-m022",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "ae632ed540a3e531d7adc378a6e331eb481af9fc5874d292b7a7de4235baf26b"
+    },
+    {
+      "candidate": "cuda--mlx-m023",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "18254e8c2dfdf2d135361ef628358fb32a42ba512b8712454d0f2bf9bf6b3493"
+    },
+    {
+      "candidate": "cuda--mlx-m024",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "34e93fc8c9e2f5e7e611572f0f0f660f974df52ffdd870c19317126930747adc"
+    },
+    {
+      "candidate": "cuda--mlx-m025",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "9c7b730989ae373d6700bb2080575fec996fe1b7009c5ec3eb31afa7698c8bd7"
+    },
+    {
+      "candidate": "cuda--mlx-m026",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "5dd19b8eaacecf063c5e808675f3b45afd4341f5bcb4f21b833de54d52b78b45"
+    },
+    {
+      "candidate": "cuda--mlx-m027",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "d81550b6caea139fb6320657905d7d42728ed6368f2655b139ec66eb85df1aef"
+    },
+    {
+      "candidate": "mlx--cuda-m001",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "78396d7553dd0b9a2e078c70932dab5d3622eb1e8c9aad95693a479253103aba"
+    },
+    {
+      "candidate": "mlx--cuda-m002",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "69f35708918a0368c3da9c4e06237b1ed3db35359eb019dc23301474854fdd6b"
+    },
+    {
+      "candidate": "mlx--cuda-m003",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "2b38d8aed9212e5a32f7d20aa61494475fe724c601597702de13732a0650daee"
+    },
+    {
+      "candidate": "mlx--cuda-m004",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "ad28d4b05a90ebb119757e41c50605ddc81c7df5fe9bb2c8aa3a29a0e9f713c8"
+    },
+    {
+      "candidate": "mlx--cuda-m005",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "0b2a1bab47a9799e482c81bca56a721cbe731db40e65ee001adcad024dacf018"
+    },
+    {
+      "candidate": "mlx--cuda-m006",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "9f25b0922e711afe2051f56f9aec488dd880b82bdecbcf41c797365f1926d16b"
+    },
+    {
+      "candidate": "mlx--cuda-m007",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "4886e6ddfb2091e022fd29b5bd13147d452b7cf4db39f51656af6b259fdcb47e"
+    },
+    {
+      "candidate": "mlx--cuda-m008",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "99c32c7846b66695c0493085acf321da8188b758d8cbc936e43cde33c89423d1"
+    },
+    {
+      "candidate": "mlx--cuda-m009",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "af60e9bb5fff248a834ec66bce1c1249b5cd4201abaaf4bb4c7ef0f80ed3fe1b"
+    },
+    {
+      "candidate": "mlx--cuda-m010",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "0befa6e5784b9a04d773c3b239de97a7ae71bc11f5d33c8a35a12824ced74454"
+    },
+    {
+      "candidate": "mlx--cuda-m011",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "209a0e722a08c050b10e74210890d7970a61f17a81cb0e52a04c4bc369f81117"
+    },
+    {
+      "candidate": "mlx--cuda-m012",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "e40de75963a807222e0d947b1d9001fcbaadcf1a0c39b94ed053af15ad1e2759"
+    },
+    {
+      "candidate": "mlx--cuda-m013",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "bb839a01838ba68df78467dd4db308d60d6a094bba760e8f44d4995c05dd28ea"
+    },
+    {
+      "candidate": "mlx--cuda-m014",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "1c10659ba6eac46f2e34c8e70ed9359596df11da5b12119f78640d0bd23b01fb"
+    },
+    {
+      "candidate": "mlx--cuda-m015",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "235b5a408d7f15a633b93b59f481afa73092244a2892847b9a3f562b68fc449d"
+    },
+    {
+      "candidate": "mlx--cuda-m016",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "21cfad98cd28603e7d2063a730b00062d43eb53f1f800de4f2bf17da2132a3fa"
+    },
+    {
+      "candidate": "mlx--cuda-m017",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "f32217f712c67018deb1cbcbe7b47578e81d23ad4fc7b450cb6aa860cc9af453"
+    },
+    {
+      "candidate": "mlx--cuda-m018",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "0f6afc39a3b40f321e5a8b7c165d4181d36b424bb5858e075a6db6f000dbb9f7"
+    },
+    {
+      "candidate": "mlx--cuda-m019",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "ae008bcd9de52f9523273a20e65a91e805ffbfd9d3299faa1d1d945d51b80815"
+    },
+    {
+      "candidate": "mlx--cuda-m020",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "9b6ee270e27f3ae6b7c98fe9de69fd93c79c3cd72486b681038db459f572eaa5"
+    },
+    {
+      "candidate": "mlx--cuda-m021",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "2d1a33a29244a4ed04747aa43c26b958319389411cf4783ee2cb334914023399"
+    },
+    {
+      "candidate": "mlx--cuda-m022",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "a063b6a3d1c1c3844395ff7d4294eca56690b72081f1d636b2e5faf1cec6ec74"
+    },
+    {
+      "candidate": "mlx--cuda-m023",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "5a1a42e0cfc2081629079f8c03b2bdfecf029c4b54faf3d1e57473d8b582cce3"
+    },
+    {
+      "candidate": "mlx--cuda-m024",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "03086cf1f3c9d5a34f0c0e8134d228dfc913a72e4d161f9b7271f2d32c882f3c"
+    },
+    {
+      "candidate": "mlx--cuda-m025",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-01",
+      "audit_sha256": "ccd288a133e0f07da01b0cd04ee1ef154660b25626aa0cba24cfd0b25603303f"
+    },
+    {
+      "candidate": "mlx--cuda-m026",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "8781e5d16629956360fea8a9035631f538278a1ac19e31318903f604128d618d"
+    },
+    {
+      "candidate": "mlx--cuda-m027",
+      "exact_tokens": 256,
+      "attempt": "correctness-kv-f32-03",
+      "audit_sha256": "2d29cff80fbd316f41fd5c0a0ede65f6cbc1e7472e16cbf4095a4bad6afd4567"
+    }
+  ],
+  "limitations": [
+    "Teacher-forced diagnostic, not independent production serving/timing qualification.",
+    "Copied-stage binaries override F16 load-spec arithmetic/cache semantics; must not be adopted or represented as F16 execution/KV acceptance.",
+    "Diagnostic hashes and input checks do not replace a newly frozen production sweep executor and fresh profiles."
+  ],
+  "milestone_accepted": false
+}

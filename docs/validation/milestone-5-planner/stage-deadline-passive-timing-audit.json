@@ -1,0 +1,129 @@
+{
+  "candidate_id": "mlx--cuda-m001",
+  "comparison_only": true,
+  "completed": true,
+  "diagnostic_only": true,
+  "drift_fraction": 0.22616925558079215,
+  "exact_full_requests": 15,
+  "limit": 0.1,
+  "samples": [
+    {
+      "evidence_digest": "a853d4b0b959c9a068c8c46da163f7e1803701ea2cb9e4bf8df7e71c725feeae",
+      "generation_ms": 22987.296040635556,
+      "job": "stability-00",
+      "native_setup_ms": 0.393041,
+      "native_ttft_ms": 393.68975,
+      "ttft_ms": 395.5635828897357,
+      "native_decode_ms": 22592.303,
+      "cuda_window": {
+        "samples": 12,
+        "rtt_ms_min": 51.241,
+        "rtt_ms_max": 58.118,
+        "gpu_clock_mhz_min": 1665.0,
+        "gpu_clock_mhz_max": 1665.0,
+        "gpu_temp_c_max": 54.0,
+        "receive_out_of_order_delta_between_samples": 2.0
+      },
+      "mac_free_plus_inactive_min_bytes": 5779406848
+    },
+    {
+      "evidence_digest": "796299c4da4ae00799834c4409341ade736129a8fd0f20a236f187b38fd94f6a",
+      "generation_ms": 25918.84154174477,
+      "job": "stability-01",
+      "native_setup_ms": 0.328167,
+      "native_ttft_ms": 1968.063,
+      "ttft_ms": 1970.1997078955173,
+      "native_decode_ms": 23948.874000000003,
+      "cuda_window": {
+        "samples": 13,
+        "rtt_ms_min": 53.181,
+        "rtt_ms_max": 61.069,
+        "gpu_clock_mhz_min": 1665.0,
+        "gpu_clock_mhz_max": 1695.0,
+        "gpu_temp_c_max": 50.0,
+        "receive_out_of_order_delta_between_samples": 6.0
+      },
+      "mac_free_plus_inactive_min_bytes": 5717721088
+    },
+    {
+      "evidence_digest": "d7ee3933b84fc8a5269ccf95c28e44f780e3883a59a662c0c40bb143d7f9ddd0",
+      "generation_ms": 22403.92995811999,
+      "job": "stability-02",
+      "native_setup_ms": 0.217958,
+      "native_ttft_ms": 342.201167,
+      "ttft_ms": 344.34908302500844,
+      "native_decode_ms": 22059.724458,
+      "cuda_window": {
+        "samples": 11,
+        "rtt_ms_min": 51.046,
+        "rtt_ms_max": 59.617,
+        "gpu_clock_mhz_min": 1665.0,
+        "gpu_clock_mhz_max": 1665.0,
+        "gpu_temp_c_max": 49.0,
+        "receive_out_of_order_delta_between_samples": 2.0
+      },
+      "mac_free_plus_inactive_min_bytes": 5655314432
+    },
+    {
+      "evidence_digest": "8b37bfa467c6453a52094aa94d4e76584ff945e216a05835d39b413a5f06486c",
+      "generation_ms": 22995.356749743223,
+      "job": "stability-03",
+      "native_setup_ms": 0.190292,
+      "native_ttft_ms": 1394.031875,
+      "ttft_ms": 1395.5481247976422,
+      "native_decode_ms": 21600.008208,
+      "cuda_window": {
+        "samples": 12,
+        "rtt_ms_min": 50.378,
+        "rtt_ms_max": 54.03,
+        "gpu_clock_mhz_min": 1665.0,
+        "gpu_clock_mhz_max": 1665.0,
+        "gpu_temp_c_max": 49.0,
+        "receive_out_of_order_delta_between_samples": 4.0
+      },
+      "mac_free_plus_inactive_min_bytes": 5857968128
+    },
+    {
+      "evidence_digest": "ad2f6be406fa96e0d31d5444dfc275ebe0ca51d6fca3d0e81b843206636ef244",
+      "generation_ms": 21138.061832636595,
+      "job": "stability-04",
+      "native_setup_ms": 0.157041,
+      "native_ttft_ms": 447.743583,
+      "ttft_ms": 448.6514166928828,
+      "native_decode_ms": 20689.499292,
+      "cuda_window": {
+        "samples": 10,
+        "rtt_ms_min": 51.016,
+        "rtt_ms_max": 55.72,
+        "gpu_clock_mhz_min": 1665.0,
+        "gpu_clock_mhz_max": 1920.0,
+        "gpu_temp_c_max": 49.0,
+        "receive_out_of_order_delta_between_samples": 2.0
+      },
+      "mac_free_plus_inactive_min_bytes": 4905582592
+    }
+  ],
+  "telemetry_instrumented": true,
+  "accepted": false,
+  "evidence_digests_verified": true,
+  "cleanup_verified": true,
+  "firewall_cleanup": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "success\n"
+  },
+  "findings": [
+    "All15 full requests match independent reference; all evidence digests and cleanup verified.",
+    "Slowest timed job01 takes25.919s versus21.138s for job04. Both prefill and decode contribute.",
+    "CUDA samples do not show sustained reduced clocks in the slow job:1665\u20131695MHz, maximum50C. Coarse sampling cannot rule out brief compute delays.",
+    "Receive out-of-order counter increments occur in both faster and slower jobs and are not a direct loss measurement. The sampled socket RTT ranges overlap. No causal attribution from these counters alone.",
+    "Do not treat this instrumented diagnostic as acceptance or discard the failed plain gate."
+  ],
+  "limitations": [
+    "Host wall-clock offset was not independently measured; cross-host request-window alignment is approximate.",
+    "Two-second sampling cannot resolve individual80ms token steps.",
+    "Socket selected by highest cumulative bytes received among port50546 connections; raw tuples retained privately.",
+    "Mac TCP counters are host-global and cannot identify request-level retransmission."
+  ],
+  "next": "Add isolated buffered per-stage compute/read/write timing to diagnostic binaries, with monotonic durations and request IDs. First verify trace invariants and exact outputs; compare stage time versus transport wait for long prefill and decode gaps. Keep production binaries frozen and do not change acceptance limits."
+}

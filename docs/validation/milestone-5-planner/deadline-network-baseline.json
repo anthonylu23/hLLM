@@ -1,0 +1,39 @@
+{
+  "diagnostic_only": true,
+  "runs": [
+    {
+      "run": "network-idle-01",
+      "probe_results": 281,
+      "timeouts": 3,
+      "rtt_min_median_max_ms": [
+        47,
+        53.0,
+        90
+      ]
+    },
+    {
+      "run": "timing-telemetry-01",
+      "probe_results": 437,
+      "timeouts": 8,
+      "rtt_min_median_max_ms": [
+        46,
+        52,
+        101
+      ]
+    },
+    {
+      "run": "timing-telemetry-02",
+      "probe_results": 446,
+      "timeouts": 6,
+      "rtt_min_median_max_ms": [
+        45,
+        52.0,
+        90
+      ]
+    }
+  ],
+  "findings": [
+    "Timeouts also occur without inference. These small sequential samples do not establish a workload-dependent timeout increase.",
+    "Tailscale probe loss is not proof of generation TCP loss. Next collect socket-scoped TCP telemetry during timestamped generation to distinguish this hypothesis."
+  ]
+}

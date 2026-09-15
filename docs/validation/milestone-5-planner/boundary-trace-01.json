@@ -1,0 +1,60 @@
+{
+  "status": "exact-token acceptance remains failed",
+  "method": "Export/replay actual contiguous F16 boundary bytes for the exact 512-token prompt and 145 teacher-forced reference outputs. Trace only final step; production binaries unchanged.",
+  "first_mismatch_output_index": 145,
+  "native_replay_matches_all_prior_145_tokens": true,
+  "expected_token": 2487,
+  "divergent_token": 4034,
+  "native_boundary_equals_traced_mlx_output": true,
+  "boundary_relative_l2_vs_f32": 0.0011186143161640981,
+  "controls": [
+    {
+      "prefix": "native MLX F16",
+      "suffix": "native CUDA F16",
+      "argmax": 4034,
+      "expected_token_logit": 18.0625,
+      "divergent_token_logit": 18.078125,
+      "relative_logit_l2_vs_f32": 0.001031712360222465
+    },
+    {
+      "prefix": "native MLX F16",
+      "suffix": "native CUDA F32",
+      "argmax": 4034,
+      "expected_token_logit": 18.067821502685547,
+      "divergent_token_logit": 18.07392120361328,
+      "relative_logit_l2_vs_f32": 0.0008280044596091674
+    },
+    {
+      "prefix": "independent F32 rounded to F16 boundary",
+      "suffix": "native CUDA F32",
+      "argmax": 2487,
+      "expected_token_logit": 18.073455810546875,
+      "divergent_token_logit": 18.0683650970459,
+      "relative_logit_l2_vs_f32": 0.00010096292153461916
+    },
+    {
+      "prefix": "independent F32 rounded to F16 boundary",
+      "suffix": "native CUDA F16",
+      "argmax": 2487,
+      "expected_token_logit": 18.0625,
+      "divergent_token_logit": 18.0625,
+      "relative_logit_l2_vs_f32": 0.0005574224468544956
+    }
+  ],
+  "interpretation": "For this history, replacing the native F16 MLX prefix with an independent F32 prefix restores the correct token under either CUDA suffix precision. Increasing only CUDA suffix precision does not. This localizes the decisive difference to prefix numerical values, without establishing a particular faulty MLX operation. Small aggregate errors still fail the declared exact-token gate.",
+  "mlx_f32_diagnostic": "Rejected by unchanged 3.25 GiB unified admission cap; no cap increase or acceptance configuration change.",
+  "artifacts": {
+    "cuda-f32.json": "8b2733233ab914d9033d018d5eb315822b59b2b69c60f03f6596910a23109959",
+    "cuda-f32.spec.json": "14315d40ed75b180d2d86de8d24a42d0b43da6a6be8a8a5ddfdbb1aa871a25b5",
+    "cuda.json": "1a55c4de377e0029aa1306a5077b3a6bdfa2d7635c939a67950ee14c259931b6",
+    "cuda.spec.json": "86ba766b109af5528d3de02f177b8975f631e0edd01a4fd6bbbba743a081ef9a",
+    "history.json": "d73b6c8047e02675d6e96b1acb855169342156dd5842f6b72a4c98a82fb3dc37",
+    "mlx-f32.spec.json": "a13153e43a5ccf6c4a8c28203ad1a0f715e3916023660e7070bf88a08736a1e0",
+    "mlx.json": "3a37826b50a0c64880a422d8f868a6b053fe128cb7504ec9feabcaafb8ac042e",
+    "mlx.spec.json": "9a095ef12ce7171deb3fd2e4c707fc3e5f9e37761a6979a788084e95552e8cc8",
+    "oracle-boundary.json": "328b997b4dce44cbdaf9f2c6feaacb64b15fbb7fb03ac91624906d19be606ed7",
+    "oracle-cuda-f16.json": "005559608ddfc52ef5179aae954313067371dcc58b11c1e30d1758b857e22f69",
+    "oracle-cuda-f32.json": "4d0a54ed9647d3161929113c12f5f248f353b074b5466c35e3bf164a8bb9d298"
+  },
+  "next_step": "User preference requested: keep strict gate and investigate precision changes, or explicitly define separate tolerance-based F16 qualification. Default remains strict; no sweep restart."
+}

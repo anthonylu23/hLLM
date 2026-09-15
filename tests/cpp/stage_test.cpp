@@ -11,9 +11,17 @@
 #include "hllm/runtime/half.hpp"
 #include "hllm/runtime/safetensors.hpp"
 #include "model_fixture.hpp"
+#include "profiling_contract.hpp"
 
 namespace hllm::cpu {
 namespace {
+
+TEST(CpuStageTest, ProfilingPreservesNonzeroBoundaryAndDecodeOutputs) {
+  const test::ModelFixture fixture;
+  auto first = load_stage(fixture.load(0U), fixture.root, 1'000'000U);
+  auto last = load_stage(fixture.load(1U), fixture.root, 1'000'000U);
+  test::paired_timing_contract(*first, *last);
+}
 
 TEST(CpuStageTest, LoadedPayloadsMatchIndependentTransformersAtBothLayerBoundaries) {
   const test::ModelFixture fixture;

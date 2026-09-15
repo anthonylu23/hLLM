@@ -1,0 +1,89 @@
+{
+  "diagnostic_only": true,
+  "telemetry_instrumented": false,
+  "runtime_commit": "6b9aeb8",
+  "summary": {
+    "candidate_id": "mlx--cuda-m001",
+    "completed": true,
+    "diagnostic_only": true,
+    "drift_fraction": 0.07607724281889183,
+    "exact_full_requests": 15,
+    "limit": 0.1,
+    "samples": [
+      {
+        "evidence_digest": "0187ed870a41ad168375ad5ff4c4cdaf29961ba974f63fb18787a66d427dc911",
+        "generation_ms": 21112.788666971028,
+        "job": "stability-00",
+        "native_setup_ms": 0.349583,
+        "native_ttft_ms": 371.196791,
+        "ttft_ms": 372.6491671986878
+      },
+      {
+        "evidence_digest": "623475990612741788aa8f1f4603c47d51989e6d432f94317454413a197d7df8",
+        "generation_ms": 21412.36695786938,
+        "job": "stability-01",
+        "native_setup_ms": 0.163166,
+        "native_ttft_ms": 418.800083,
+        "ttft_ms": 419.5853751152754
+      },
+      {
+        "evidence_digest": "c2364533e7d66f5237b99e1741580d874f530693c1de3bce63b5bfc5e2409cdd",
+        "generation_ms": 21384.18775005266,
+        "job": "stability-02",
+        "native_setup_ms": 0.203791,
+        "native_ttft_ms": 347.643291,
+        "ttft_ms": 349.64495804160833
+      },
+      {
+        "evidence_digest": "5db94d97ca0571fb23c40d1e9a1652f64717de79f28ec72721039faad740ad12",
+        "generation_ms": 22340.441040694714,
+        "job": "stability-03",
+        "native_setup_ms": 0.355083,
+        "native_ttft_ms": 1217.259333,
+        "ttft_ms": 1219.3794576451182
+      },
+      {
+        "evidence_digest": "127a08958b8df0cdff1e27f6ee00e7b8994dd95ffb27d814e87f63dac86b84fc",
+        "generation_ms": 22718.99141697213,
+        "job": "stability-04",
+        "native_setup_ms": 0.207876,
+        "native_ttft_ms": 638.904209,
+        "ttft_ms": 641.006666701287
+      }
+    ],
+    "timing_gate_passed": true
+  },
+  "jobs": [
+    {
+      "job": "stability-00",
+      "evidence_digest": "0187ed870a41ad168375ad5ff4c4cdaf29961ba974f63fb18787a66d427dc911",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job": "stability-01",
+      "evidence_digest": "623475990612741788aa8f1f4603c47d51989e6d432f94317454413a197d7df8",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job": "stability-02",
+      "evidence_digest": "c2364533e7d66f5237b99e1741580d874f530693c1de3bce63b5bfc5e2409cdd",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job": "stability-03",
+      "evidence_digest": "5db94d97ca0571fb23c40d1e9a1652f64717de79f28ec72721039faad740ad12",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    },
+    {
+      "job": "stability-04",
+      "evidence_digest": "127a08958b8df0cdff1e27f6ee00e7b8994dd95ffb27d814e87f63dac86b84fc",
+      "exact_requests": 3,
+      "cleanup_passed": true
+    }
+  ],
+  "next": "Fresh profiles, calibration, selection and independent acceptance sweep; pilot samples are not acceptance evidence."
+}

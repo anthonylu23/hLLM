@@ -1,0 +1,18 @@
+{
+  "accepted": false,
+  "diagnostic_only": true,
+  "exact_full_requests": 6,
+  "health_pairs": 10,
+  "exact_recovery_prefixes": 20,
+  "cleanup_passed": true,
+  "jobs": [
+    {
+      "candidate": "mlx--cuda-m001",
+      "evidence_digest": "e5de6af632ae2dfa244e00401541e16a49e0f70d612ea5ebbf835d8101367f2e"
+    },
+    {
+      "candidate": "cuda--mlx-m001",
+      "evidence_digest": "5b89481763311b2fbcd266c71a883f51bd2eeb48753e6755192cefe2e49c2b89"
+    }
+  ]
+}

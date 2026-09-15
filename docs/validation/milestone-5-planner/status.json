@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "implementation": "M5.1\u2013M5.6 implemented",
+  "acceptance_status": "deferred",
+  "accepted": false,
+  "updated_at": "2026-09-14T17:19:45.155578+00:00",
+  "decision": "User elected to move on after bounded code investigation; WAN performance qualification remains unmet.",
+  "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+  "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+  "candidate_count": 54,
+  "selected_plan": null,
+  "regret": null,
+  "workload": {
+    "prompt_tokens": 512,
+    "output_tokens": 256,
+    "cache_capacity": 768,
+    "concurrency": 1,
+    "weight_dtype": "F16",
+    "execution_dtype": "F32",
+    "kv_dtype": "F32",
+    "activation_dtype": "F16"
+  },
+  "blockers": [
+    "Production reference timing drift has not passed consistently on the NYC\u2013Texas Tailscale path.",
+    "Fresh full independent sweep and <=15% observed/95% bootstrap regret qualification remain incomplete.",
+    "Separate final acceptance audit remains deferred."
+  ],
+  "verification": {
+    "python_and_cpu_integration_tests_passed": 118,
+    "targeted_native_channel_deadline_tests_passed": 7,
+    "ruff": "pass",
+    "pyright": "pass",
+    "controlled_delay_directions": [
+      "activation",
+      "feedback"
+    ]
+  },
+  "historical_status_file": "status-before-wan-deferral.json",
+  "closeout_report": "../milestone-5-wan-closeout.md",
+  "four_b_status": "unqualified",
+  "32k_status": "unqualified"
+}

@@ -1,0 +1,12 @@
+{
+  "accepted": false,
+  "attempt": "planning-channel-01",
+  "measured_candidates": 27,
+  "unknown_candidates": 27,
+  "unknown_direction": "cuda-to-mlx",
+  "reason": "qualified path mismatch",
+  "finding": "The direct IPv6 endpoint of the Mac changed between link qualification and planning. Peer identity and direct connection type remained unchanged, but the strict endpoint match correctly rejected the older evidence.",
+  "activation_performed": false,
+  "firewall_cleanup_returncode": 0,
+  "next": "Refresh links and immediately run selection with new immutable artifacts; preserve endpoint matching and all old evidence."
+}

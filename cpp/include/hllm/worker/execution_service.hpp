@@ -1,11 +1,11 @@
 #pragma once
 
 #include "execution.grpc.pb.h"
+#include "hllm/worker/boundary_codec.hpp"
 #include "hllm/worker/control_service.hpp"
 
 namespace hllm::worker {
 
-inline constexpr int kMaximumRpcBytes = 16 * 1024 * 1024;
 
 class GenerationService final : public v1::Generation::Service {
  public:

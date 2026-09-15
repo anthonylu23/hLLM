@@ -1,0 +1,67 @@
+{
+  "admission_capacity": {
+    "device": 2147483648,
+    "host": 2147483648,
+    "pinned": 0,
+    "unified": 0
+  },
+  "device_budget": {
+    "available_bytes": 8057257984,
+    "extra_overhead_bytes": 268435456,
+    "headroom_bytes": 536870912,
+    "safety_fraction": 0.1
+  },
+  "host_budget": {
+    "available_bytes": 7866142720,
+    "extra_overhead_bytes": 268435456,
+    "headroom_bytes": 1073741824,
+    "safety_fraction": 0.1
+  },
+  "key": {
+    "assignment": {
+      "layer_end": 14,
+      "layer_start": 0,
+      "owns_final_norm": false,
+      "owns_lm_head": false,
+      "owns_sampling": false,
+      "owns_token_embedding": true,
+      "stage_index": 0,
+      "worker_id": "cuda"
+    },
+    "checkpoint_digest": "67fe922338ff99bbe7ae0875e3e18f51e5ee3beb9d6ee10de25b83f277cbe6e6",
+    "environment": {
+      "allocator": "pending",
+      "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 2147483648, \"host\": 2147483648, \"pinned\": 0, \"unified\": 0}}",
+      "backend": "cuda",
+      "backend_version": "pending",
+      "binary_digest": "8148c798478a53fa92ea32de449e52887f4a9d19073a89307eeb7db0880907fd",
+      "compiler": "pending",
+      "device_identity": "pending",
+      "device_name": "pending",
+      "driver_version": "pending",
+      "os": "Linux-7.1.9-200.fc44.x86_64-x86_64-with-glibc2.43;kernel=#1 SMP PREEMPT_DYNAMIC Wed Aug 19 17:41:40 UTC 2026",
+      "source_revision": "5c205f6cdba5fa5d69d18de1cff93b320dc5d403+sources-sha256:62338723e823aac768bcf6e378b4411a0f16f312b1eb14c4cc503ce53bcf25a3"
+    },
+    "execution_dtype": "F16",
+    "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+    "input_kind": "synthetic-shape",
+    "manifest_digest": "5454f39eff20ee2d250e9786ff862c2c85549b38ee31e54425e2a31cdbe924c8",
+    "transport_mode": "pageable",
+    "workload": {
+      "activation_dtype": "F16",
+      "concurrency": 1,
+      "kv_dtype": "F16",
+      "kv_overhead_factor": 1.1,
+      "output_tokens": 256,
+      "prompt_tokens": 512,
+      "schema_version": "1.0",
+      "total_cached_tokens": 768,
+      "workload_id": "milestone-5-512-256"
+    },
+    "workload_digest": "99b2cb44c09576465253366e0de039bd539ac61bbdefdc666072cdd8576f69ef"
+  },
+  "observed_at": "2026-09-08T21:43:57.197434+00:00",
+  "reasons": [],
+  "schema_version": "1.0",
+  "status": "accepted"
+}

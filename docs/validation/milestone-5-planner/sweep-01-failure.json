@@ -1,0 +1,44 @@
+{
+  "sweep_digest": "e41c8eeed20d5f2787d7f3791a35307f54deb86759373f7f0a631585b0ec1fd3",
+  "failed_candidate": "mlx--cuda-m025",
+  "failed_job": "r000-c010",
+  "failed_phase": "first warmup",
+  "first_mismatch_output_index": 145,
+  "successful_jobs": 11,
+  "failed_jobs": 1,
+  "status": "correctness failure; acceptance incomplete",
+  "firewall_cleanup_verified": true,
+  "owned_workers_exited": true,
+  "diagnostics": [
+    {
+      "dtype": "f32",
+      "artifact_sha256": "8de804e5b4a186b1424db82c5ab803480d72c8cf3438e5cf1ca14ad2d2ced223",
+      "prompt_tokens": 512,
+      "output_index": 145,
+      "position": 656,
+      "argmax_from_saved_logits_first_index": 2487,
+      "topk_selected_index": 2487,
+      "top2_margin": 0.0057964324951171875,
+      "expected_token": 2487,
+      "observed_mixed_token": 4034,
+      "expected_logit": 18.07433319091797,
+      "observed_mixed_token_logit": 18.06853675842285
+    },
+    {
+      "dtype": "f16",
+      "artifact_sha256": "26f4bcb3d5ba016d432c2bcd632d35cdc11a94a92b1c02de14ed4d01509ce534",
+      "prompt_tokens": 512,
+      "output_index": 145,
+      "position": 656,
+      "argmax_from_saved_logits_first_index": 2487,
+      "topk_selected_index": 4034,
+      "top2_margin": 0.0,
+      "expected_token": 2487,
+      "observed_mixed_token": 4034,
+      "expected_logit": 18.078125,
+      "observed_mixed_token_logit": 18.078125
+    }
+  ],
+  "interpretation": "F32 top-two margin is small and F16 rounds the competing scores to a tie. This is evidence of numerical sensitivity, not proof of the mixed-backend root cause and not grounds to relax exact equality. Diagnostic argmax is recomputed from saved logits because the earlier tool used topk for tied indices.",
+  "next_step": "Trace the exact teacher-forced history through MLX layers 0-24 and CUDA layers 25-27, compare boundary activations and final logits, then fix or explicitly resolve the exact-token acceptance policy before a new sweep."
+}
