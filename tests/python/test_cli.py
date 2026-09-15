@@ -1,11 +1,40 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 from hllm_control.cli import app
 from hllm_control.models import ModelManifest, PlanningReport
 from hllm_control.serialization import read_artifact
 from typer.testing import CliRunner
+
+
+def test_module_and_installed_cli_register_all_commands() -> None:
+    expected = (
+        "prepare",
+        "plan",
+        "explain",
+        "generate",
+        "profile-memory",
+        "profile-compute",
+        "serve-link-probe",
+        "profile-link",
+        "qualify-sweep",
+        "seal-profile-bundle",
+        "freeze-sweep",
+    )
+    for command in (
+        [sys.executable, "-m", "hllm_control.cli"],
+        [str(Path(sys.executable).with_name("hllm"))],
+    ):
+        help_result = subprocess.run(
+            [*command, "--help"], capture_output=True, text=True, check=True, timeout=10
+        )
+        for name in expected:
+            assert name in help_result.stdout
+        for name in ("qualify-sweep", "seal-profile-bundle", "freeze-sweep"):
+            subprocess.run([*command, name, "--help"], capture_output=True, check=True, timeout=10)
 
 
 def test_prepare_plan_and_explain_cli(tiny_model: Path, tmp_path: Path) -> None:

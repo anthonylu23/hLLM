@@ -73,9 +73,7 @@ def plan_command(
         load_links(links_path) if links_path else (),
         load_workload(workload_path),
         settings,
-        profile_bundle=read_profile_bundle(profile_bundle_path)
-        if profile_bundle_path
-        else None,
+        profile_bundle=read_profile_bundle(profile_bundle_path) if profile_bundle_path else None,
     )
     write_artifact(report_path, report)
     if report.plan is None:
@@ -120,9 +118,7 @@ def generate_command(
         manifest,
         plan,
         {w.worker_id: w.endpoint for w in workers},
-        profile_bundle=read_profile_bundle(profile_bundle_path)
-        if profile_bundle_path
-        else None,
+        profile_bundle=read_profile_bundle(profile_bundle_path) if profile_bundle_path else None,
     ) as session:
         events = session.generate(tokens, maximum_new_tokens=maximum_new_tokens, timeout=timeout)
         try:
@@ -337,10 +333,6 @@ def profile_link_command(
         raise typer.Exit(2)
 
 
-if __name__ == "__main__":
-    app()
-
-
 @app.command("qualify-sweep")
 def qualify_sweep_command(
     spec_path: Annotated[Path, typer.Option("--spec", exists=True, dir_okay=False)],
@@ -426,3 +418,7 @@ def freeze_sweep_command(
     )
     write_exclusive(output, content.model_dump(mode="json"))
     typer.echo(f"Frozen selection inputs: {output}")
+
+
+if __name__ == "__main__":
+    app()
