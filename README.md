@@ -41,7 +41,8 @@ integration (5.5) and the independent sweep runner (5.6) are implemented; the fu
 and [current validation/gates](docs/validation/milestone-5-planner.md).
 Qwen3-4B-Base is blocked by the current Mac load preflight and remains unqualified.
 The [Milestone 5 implementation plan](docs/milestone-5-implementation-plan.md) defines
-the remaining slices and the initial 512-prompt/256-output, concurrency-1 workload.
+the implemented slices, deferred acceptance gates, and the initial
+512-prompt/256-output, concurrency-1 workload.
 Later milestones cover continuous batching (6) and ROCm with additional stages (7);
 see [the full project specification](SPEC.md).
 
@@ -112,8 +113,9 @@ uv run hllm plan \
 ```
 
 The checked-in memory budgets remain conservative configured estimates. Link RTT and
-effective directional throughput are point-in-time observations from the test pair;
-[Milestone 5](docs/milestone-5.md) replaces them with measured profiles.
+effective directional throughput are point-in-time observations from the test pair.
+For measured selection, use the [Milestone 5 placement workflow](docs/milestone-5-placement.md)
+with a compatible profile bundle and the measured objective settings.
 
 See [the model/backend extension boundaries](docs/model-extensibility.md),
 [Qwen3 support and validation](docs/qwen3.md), and

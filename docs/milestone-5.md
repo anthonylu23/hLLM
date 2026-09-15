@@ -64,10 +64,10 @@ and NVIDIA process usage. Compare fresh processes with the same checkpoint, work
 execution dtype and allocator configuration; preserve the source revision and toolchain
 in the measurement report. Do not extrapolate 0.6B results to 4B or arbitrary contexts.
 
-## Next implementation steps
+## Implementation status and deferred qualification
 
 The [implementation plan](milestone-5-implementation-plan.md) tracks six
-implementation slices and their outstanding qualification:
+implemented slices and their outstanding qualification:
 
 1. **Implemented:** versioned measured profiles, compatibility checks and workload fixtures.
 2. **Implemented:** assignment dry-load/context memory measurements and physical-fit checks.
@@ -82,7 +82,10 @@ qualification target. Develop and qualify the profiling pipeline on 0.6B, then a
 the larger target's physical fit before attempting its qualification. The proposed
 acceptance objective and detailed validation gates are recorded in the plan.
 
-Next: collect production setup calibration and compatible current-build profiles for
-all splits, freeze the automatic selection, then execute the 54-candidate 0.6B sweep
-when conservative Mac headroom permits. The separate 4B fit gate and 32K-capacity
-qualification remain pending; neither is implied by the tiny runner smoke test.
+Qualification is paused. Resume only after a justified transport improvement or a
+changed, measurably stable operating condition, following the
+[closeout restart gates](validation/milestone-5-wan-closeout.md#deferred-gates-and-restart-point).
+That requires current-build profiles and setup calibration, a new frozen selection,
+the exhaustive 0.6B sweep, and the final acceptance audit. The separate 4B fit gate
+and 32K-capacity qualification remain pending. Next development scope is to be agreed;
+the roadmap's Milestone 6 covers continuous batching and serving.

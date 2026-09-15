@@ -1,7 +1,9 @@
 # Measured profiles and native probes (M5.1–5.4)
 
 Measured-profile contracts and isolated memory, compute/conversion and directional
-transport profilers are implemented. Automatic measured placement is still M5.5 work.
+transport profilers are implemented. The [placement workflow](milestone-5-placement.md)
+consumes these profiles for automatic selection and independent qualification.
+WAN performance acceptance is [deferred](validation/milestone-5-wan-closeout.md).
 
 ## Profile contracts
 
@@ -30,12 +32,15 @@ there is no interpolation or configured fallback. Timing-profile lookups additio
 require the complete measurement `scope` (the measurement JSON without `samples_ms`),
 so direction, payload, component, context and endpoint environment cannot be ignored.
 Callers may impose an explicit maximum measurement age. These are compatibility
-primitives for M5.5; `hllm plan` does not consume them yet.
+primitives used by measured placement; `hllm plan --profile-bundle` consumes a sealed
+bundle of compatible evidence. See the placement workflow for bundle construction.
 
-The dedicated workload is `examples/workloads/milestone-5.yaml`: 512 prompt tokens,
+The original workload is `examples/workloads/milestone-5.yaml`: 512 prompt tokens,
 256 generated tokens, concurrency 1, 768-token capacity and F16 execution/KV/boundary.
-The objective fixture records TTFT weight 1 and ITL weight 255 for later measured
-integration. It remains in feasibility mode until that implementation exists.
+The objective fixture uses measured mode with TTFT weight 1 and ITL weight 255.
+The approved acceptance target uses `milestone-5-mixed.yaml` and
+`milestone-5-mixed-objective.yaml` instead: F16 resident weights, F32 execution/KV,
+and F16 boundaries, with the same request dimensions and objective weights.
 `interactive.yaml` retains its separate 32,768-token capacity target.
 
 ## Native process probe

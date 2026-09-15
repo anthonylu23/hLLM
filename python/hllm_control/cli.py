@@ -1,4 +1,4 @@
-"""Model preparation, placement, and native CPU generation."""
+"""Model preparation, measured placement, native generation, and qualification."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from hllm_control.serialization import read_artifact, write_artifact
 app = typer.Typer(
     name="hllm",
     no_args_is_help=True,
-    help="Prepare model manifests and create heterogeneous deployment plans.",
+    help="Prepare, profile, plan, and run heterogeneous model deployments.",
 )
 
 
@@ -106,7 +106,7 @@ def generate_command(
     maximum_new_tokens: Annotated[int, typer.Option("--max-new-tokens", min=1)] = 32,
     timeout: Annotated[float, typer.Option(min=0.001, max=3600)] = 60,
 ) -> None:
-    """Load CPU stages, stream greedy token IDs, and unload the deployment."""
+    """Load native stages, stream greedy token IDs, and unload the deployment."""
     manifest = read_artifact(manifest_path, ModelManifest)
     plan = read_artifact(plan_path, DeploymentPlan)
     workers = load_workers(workers_path)

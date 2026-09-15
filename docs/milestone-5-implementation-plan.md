@@ -245,8 +245,10 @@ not CI tests with hard speed thresholds. Update implementation status after each
 
 M5.5 measured integration and the M5.6 independent runner are implemented; see the
 [placement workflow](milestone-5-placement.md) and
-[validation/gates](validation/milestone-5-planner.md). Next are current-build profile
-coverage, production setup calibration, and the full 0.6B hardware sweep.
+[validation/gates](validation/milestone-5-planner.md). Acceptance is deferred under
+the [WAN closeout](validation/milestone-5-wan-closeout.md). On an explicit restart,
+current-build profile coverage, production setup calibration, the full 0.6B hardware
+sweep, and a final audit are required.
 M5.1–5.4 are implemented; their
 [profiling workflow](milestone-5-profiling.md),
 [memory evidence](validation/milestone-5-memory.md), and
