@@ -379,16 +379,15 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         peer_failure(*peer, "cannot open downstream sequence");
       }
     }
-    auto emit = [&](const v1::GenerationEvent& event) {
-      struct Writing {
-        std::atomic_bool& flag;
-        explicit Writing(std::atomic_bool& value) : flag(value) { flag.store(true); }
-        ~Writing() { flag.store(false); }
-      } writing(client_write);
-      check_running(*active, *context);
+    auto write_event = [&](const v1::GenerationEvent& event) {
       if (!writer->Write(event)) {
         throw std::runtime_error("generation client disconnected");
       }
+    };
+    auto emit = [&](const v1::GenerationEvent& event) {
+      ActiveIo writing(client_write);
+      check_running(*active, *context);
+      write_event(event);
     };
     const auto setup_ms = request->capture_timing() ? std::chrono::duration<double, std::milli>(
         std::chrono::steady_clock::now() - timing_start - (acquire_end - acquire_start)).count() : 0.0;
@@ -474,15 +473,19 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
       }
     }
     watchdog.stop();
+    check_running(*active, *context);
+    // Generation and downstream acknowledgment have completed. Commit the
+    // outcome before releasing sequence state; slow cleanup or a late control
+    // cancellation must not change it while usage/terminal events are written.
     control_.release(active);
     v1::GenerationEvent event;
     event.set_request_id(request->request_id());
     event.mutable_usage()->set_prompt_tokens(static_cast<std::uint64_t>(request->token_ids_size()));
     event.mutable_usage()->set_generated_tokens(generated);
-    emit(event);
+    write_event(event);
     event.clear_usage();
     event.mutable_terminal()->set_state(v1::TERMINAL_STATE_COMPLETED);
-    emit(event);
+    write_event(event);
     return grpc::Status::OK;
   } catch (const std::exception& error) {
     return failure(error, active);

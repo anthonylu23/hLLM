@@ -15,6 +15,7 @@ struct ExecutionState {
   std::atomic_bool delay_decode{true};
   std::atomic_size_t steps{0U};
   std::chrono::milliseconds unwind{250};
+  std::chrono::milliseconds cleanup_delay{0};
 };
 
 // A private backend simulates non-preemptible work without a GPU or timing hooks
@@ -30,7 +31,12 @@ class DeadlineStage final : public runtime::StageBackend {
     return {{10U, 0U, 0U}, {10U, 0U, 0U}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t) const override {
-    return std::make_unique<runtime::SequenceState>();
+    struct DelayedCleanup final : runtime::SequenceState {
+      std::chrono::milliseconds delay;
+      explicit DelayedCleanup(std::chrono::milliseconds value) : delay(value) {}
+      ~DelayedCleanup() override { std::this_thread::sleep_for(delay); }
+    };
+    return std::make_unique<DelayedCleanup>(state_->cleanup_delay);
   }
   runtime::StageOutput execute(runtime::StageInput, std::size_t position,
                                runtime::SequenceState&, const std::atomic_bool& cancelled) const override {
@@ -219,6 +225,36 @@ TEST_F(GenerationDeadlineTest, SlowDecodeUnwindPreservesDeadlineStatus) {
   EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::DEADLINE_EXCEEDED);
   EXPECT_EQ(tokens, 1);
   clean();
+  recover_and_unload();
+}
+
+TEST_F(GenerationDeadlineTest, CompletedGenerationSurvivesDeadlineDuringCleanup) {
+  state->delay_decode = false;
+  state->cleanup_delay = 750ms;
+  grpc::ClientContext context;
+  context.set_deadline(std::chrono::system_clock::now() + 5s);
+  auto call = stub->Generate(&context, request(1U, 500ms));
+  v1::GenerationEvent event;
+  int tokens = 0, usage = 0, terminal = 0;
+  while (call->Read(&event)) {
+    if (event.has_token()) { ++tokens; EXPECT_EQ(event.token().token_id(), 1U); }
+    if (event.has_usage()) {
+      ++usage;
+      EXPECT_EQ(event.usage().generated_tokens(), 1U);
+      EXPECT_EQ(event.usage().prompt_tokens(), 1U);
+      clean();
+    }
+    if (event.has_terminal()) {
+      ++terminal;
+      EXPECT_EQ(event.terminal().state(), v1::TERMINAL_STATE_COMPLETED);
+    }
+  }
+  EXPECT_TRUE(call->Finish().ok());
+  EXPECT_EQ(tokens, 1);
+  EXPECT_EQ(usage, 1);
+  EXPECT_EQ(terminal, 1);
+  clean();
+  state->cleanup_delay = 0ms;
   recover_and_unload();
 }
 
