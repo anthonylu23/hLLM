@@ -54,11 +54,14 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
   const bool measured = plan.planning_mode() == "measured";
   if (measured && (plan.schema_version().minor() != (mixed ? 2U : 1U) ||
                   !digest(plan.workload_digest()) || !digest(plan.profile_bundle_digest()))) {
-    throw std::invalid_argument("measured plan requires versioned workload/profile identities");
+    throw runtime::Error::incompatible_worker(
+        "measured plan requires versioned workload/profile identities");
   }
-  if (!measured && ((!mixed && plan.schema_version().minor() != 0U) ||
-                    !plan.workload_digest().empty() || !plan.profile_bundle_digest().empty())) {
-    throw std::invalid_argument("feasibility plan cannot carry measured identities");
+  if (!measured && !mixed && plan.schema_version().minor() != 0U) {
+    throw runtime::Error::incompatible_worker("unsupported feasibility plan schema version");
+  }
+  if (!measured && (!plan.workload_digest().empty() || !plan.profile_bundle_digest().empty())) {
+    throw runtime::Error::incompatible_worker("feasibility plan cannot carry measured identities");
   }
   if (measured || mixed) {
     nlohmann::json stages = nlohmann::json::array();
@@ -83,7 +86,7 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
       unsigned_plan["profile_bundle_digest"] = nullptr;
     }
     if (text_digest(unsigned_plan.dump()) != plan.plan_digest() || plan.plan_id() != "plan-" + plan.plan_digest().substr(0, 16)) {
-      throw std::invalid_argument("versioned plan hash mismatch");
+      throw runtime::Error::incompatible_worker("versioned plan hash mismatch");
     }
   }
   if (std::find(capabilities.architectures.begin(), capabilities.architectures.end(),

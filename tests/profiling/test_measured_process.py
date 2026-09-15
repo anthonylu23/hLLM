@@ -11,7 +11,7 @@ import pytest
 from hllm_control.models import Backend, DType, PlanningMode, WorkloadProfile
 from hllm_control.profiling.models import MemoryAmounts, digest
 from hllm_control.profiling.runner import checkpoint_digest
-from hllm_control.proto import control_pb2
+from hllm_control.proto import common_pb2, control_pb2
 from hllm_control.qualification.native import NativeExecutor, NativeWorker
 from hllm_control.qualification.sweep import Reference, SweepContent, freeze, placements, run
 from hllm_control.serialization import sha256_file
@@ -72,6 +72,7 @@ def test_native_identity_measured_hash_and_sweep(tmp_path: Path):
         rejected = workers.controls[0].LoadStage(request, timeout=10)
         assert not rejected.accepted
         assert "hash mismatch" in rejected.detail
+        assert rejected.error.code == common_pb2.ERROR_CODE_INCOMPATIBLE_WORKER
     oracle = json.loads(
         (Path(__file__).parents[1] / "fixtures/qwen3/tiny-reference.json").read_text()
     )
