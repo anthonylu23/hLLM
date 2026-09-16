@@ -731,10 +731,11 @@ GET  /metrics
 Initial generation support:
 
 - Streaming and non-streaming output.
-- Greedy, temperature, top-p, and top-k sampling.
+- Greedy by default, with configurable temperature, top-p, top-k and per-request seeds.
 - Stop token IDs and stop strings.
 - Maximum generated tokens.
-- Optional limited top-k log probabilities.
+- Optional selected-token log probabilities and up to five alternatives; semantics and
+  text/UTF-8 limits are documented in [Milestone 6](docs/milestone-6.md).
 
 Unsupported OpenAI parameters return an explicit error and are never silently ignored.
 
@@ -1003,6 +1004,12 @@ a measured <=15% regret result remain required. See the [WAN closeout](docs/vali
 
 ### Milestone 6 — continuous batching
 
+Concurrent serving includes per-request memory admission and sampling, optional chunked
+prefill, and bounded ready-work decode batching on MLX/pageable CUDA. CPU and pinned CUDA
+retain serial execution. See [implementation and limits](docs/milestone-6.md) and
+[workload-specific qualification](docs/validation/milestone-6.md). The original greedy-first
+decision was followed by the user-approved sampling and scheduling work.
+
 - Add native prefill and decode queues.
 - Pipeline multiple microbatches.
 - Add fairness, backpressure, cancellation, and admission limits.
@@ -1095,7 +1102,6 @@ a measured <=15% regret result remain required. See the [WAN closeout](docs/vali
 ## 30. Open questions
 
 - Which native Safetensors reader or internal audited implementation should be standardized?
-- Should stage zero or the controller own the canonical sampling RNG seed sequence?
 - What cross-backend numerical thresholds define official support?
 - What unified-memory headroom should be recommended for each Mac memory tier?
 - When should the runtime duplicate tied embeddings to improve stage balance?
