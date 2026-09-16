@@ -103,6 +103,8 @@ grpc::Status failure(const std::exception& error, grpc::ServerContext& context,
         return {grpc::StatusCode::RESOURCE_EXHAUSTED, error.what()};
       case rt::ErrorCode::kDeadlineExceeded:
         return {grpc::StatusCode::DEADLINE_EXCEEDED, error.what()};
+      case rt::ErrorCode::kCancelled:
+        return {grpc::StatusCode::CANCELLED, error.what()};
       case rt::ErrorCode::kInternal: break;
     }
   }

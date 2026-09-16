@@ -14,12 +14,12 @@ void validate_identity(const std::string& deployment, std::uint64_t version,
 }
 runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
                                           const BoundaryIdentity& identity, std::uint64_t sequence,
-                                          std::size_t position) {
+                                          std::size_t position, bool prefill) {
   validate_identity(tensor.deployment_id(), tensor.deployment_version(), tensor.request_id(),
                     tensor.microbatch_id(), identity);
   if (tensor.sequence_number() != sequence || tensor.first_position() != position ||
-      tensor.phase() !=
-          (sequence == 0U ? v1::EXECUTION_PHASE_PREFILL : v1::EXECUTION_PHASE_DECODE) ||
+      tensor.phase() != ((sequence == 0U || prefill) ? v1::EXECUTION_PHASE_PREFILL
+                                                     : v1::EXECUTION_PHASE_DECODE) ||
       tensor.dtype() != v1::DATA_TYPE_F16 || tensor.layout() != "dense_row_major_le" ||
       !tensor.checksum().empty()) {
     throw runtime::Error::invalid_request(
@@ -32,7 +32,8 @@ runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
       tensor.request_id(),
       tensor.microbatch_id(),
       tensor.sequence_number(),
-      sequence == 0U ? runtime::ExecutionPhase::kPrefill : runtime::ExecutionPhase::kDecode,
+      (sequence == 0U || prefill) ? runtime::ExecutionPhase::kPrefill
+                                  : runtime::ExecutionPhase::kDecode,
       tensor.first_position(),
       {tensor.sequence_lengths().begin(), tensor.sequence_lengths().end()},
       {tensor.cache_slot_ids().begin(), tensor.cache_slot_ids().end()},
@@ -63,7 +64,7 @@ runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope& tensor,
 
 v1::StageMessage encode_tensor(const runtime::BoundaryActivation& hidden,
                                const BoundaryIdentity& identity, std::uint64_t sequence,
-                               std::size_t position) {
+                               std::size_t position, bool prefill) {
   if (hidden.payload.size() > static_cast<std::size_t>(kMaximumRpcBytes / 2)) {
     throw runtime::Error::resource_exhausted("prefill activation exceeds transport limit");
   }
@@ -74,7 +75,8 @@ v1::StageMessage encode_tensor(const runtime::BoundaryActivation& hidden,
   tensor->set_deployment_version(identity.deployment_version);
   tensor->set_request_id(identity.request_id);
   tensor->set_sequence_number(sequence);
-  tensor->set_phase(sequence == 0U ? v1::EXECUTION_PHASE_PREFILL : v1::EXECUTION_PHASE_DECODE);
+  tensor->set_phase((sequence == 0U || prefill) ? v1::EXECUTION_PHASE_PREFILL
+                                                : v1::EXECUTION_PHASE_DECODE);
   tensor->set_first_position(position);
   tensor->add_sequence_lengths(hidden.tokens);
   tensor->add_cache_slot_ids(0U);

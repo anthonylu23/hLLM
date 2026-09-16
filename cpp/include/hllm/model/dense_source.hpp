@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -53,6 +55,11 @@ struct DenseSource {
 
   // Call only after admitting load memory. Reading an embedding also verifies
   // any redundant tied head against its raw buffer before conversion.
+  // At most 1 MiB source + 2 MiB F32 conversion + 1 MiB tied-head comparison.
+  static constexpr std::size_t conversion_chunk_bytes = 1024U * 1024U;
+  [[nodiscard]] std::size_t conversion_workspace_bytes() const;
+  void for_each_float32_chunk(const std::string& name,
+                              const std::function<void(std::span<const float>)>& consume) const;
   [[nodiscard]] std::vector<float> read_float32(const std::string& name) const;
 };
 

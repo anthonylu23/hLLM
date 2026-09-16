@@ -24,6 +24,8 @@ add_executable(
   llama_test.cpp
   qwen3_test.cpp
   stage_test.cpp
+  scheduler_test.cpp
+  sampling_test.cpp
   safetensors_test.cpp
   tensor_envelope_test.cpp
   worker_control_test.cpp
@@ -170,3 +172,16 @@ add_test(NAME MeasuredPlannerIntegration
     ${HLLM_UV_EXECUTABLE} run pytest tests/profiling/test_measured_process.py -q)
 set_tests_properties(MeasuredPlannerIntegration PROPERTIES
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 90)
+
+foreach(backend IN ITEMS mlx cuda)
+  if(TARGET hllm-worker-${backend})
+    add_test(NAME ConcurrentPipeline-${backend}
+      COMMAND ${CMAKE_COMMAND} -E env
+        HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+        HLLM_ACCELERATOR_WORKER=$<TARGET_FILE:hllm-worker-${backend}>
+        HLLM_ACCELERATOR_BACKEND=${backend}
+        ${HLLM_UV_EXECUTABLE} run pytest tests/concurrency -q)
+    set_tests_properties(ConcurrentPipeline-${backend} PROPERTIES
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180 LABELS "${backend};hardware")
+  endif()
+endforeach()

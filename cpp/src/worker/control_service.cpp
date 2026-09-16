@@ -3,12 +3,13 @@
 #include <algorithm>
 #include <cstdlib>
 #include <limits>
+#include <nlohmann/json.hpp>
 #include <set>
 #include <stdexcept>
 
+#include "hllm/runtime/checked_size.hpp"
 #include "hllm/runtime/error.hpp"
 #include "qualification.hpp"
-#include <nlohmann/json.hpp>
 
 namespace hllm::worker {
 namespace {
@@ -23,6 +24,8 @@ v1::ErrorCode wire_code(runtime::ErrorCode code) {
       return v1::ERROR_CODE_RESOURCE_EXHAUSTED;
     case runtime::ErrorCode::kDeadlineExceeded:
       return v1::ERROR_CODE_DEADLINE_EXCEEDED;
+    case runtime::ErrorCode::kCancelled:
+      return v1::ERROR_CODE_CANCELLED;
     case runtime::ErrorCode::kInternal:
       break;
   }
@@ -186,6 +189,9 @@ ControlService::ControlService(WorkerConfig config,
       (capacity_.unified_bytes == 0U || capacity_.host_bytes != 0U || capacity_.device_bytes != 0U)) {
     throw std::invalid_argument("unified backend requires one unified memory budget");
   }
+  if (config_.maximum_active_requests == 0U || config_.maximum_active_requests > 64U) {
+    throw std::invalid_argument("maximum active requests must be between 1 and 64");
+  }
   config_.model_root = std::filesystem::canonical(config_.model_root);
   reservation_reaper_ = std::jthread([this](std::stop_token stop) {
     while (!stop.stop_requested()) {
@@ -201,6 +207,12 @@ grpc::Status ControlService::GetCapabilities(grpc::ServerContext*, const v1::Emp
   auto* profile = out->mutable_worker();
   profile->mutable_schema_version()->set_major(1U);
   profile->set_worker_id(config_.worker_id);
+  profile->set_maximum_active_requests(config_.maximum_active_requests);
+  profile->set_maximum_cached_tokens(config_.maximum_cached_tokens);
+  profile->set_supports_chunked_prefill(true);
+  profile->set_supports_sampling(true);
+  profile->set_supports_logprobs(true);
+  profile->set_maximum_decode_batch(config_.maximum_decode_batch);
   profile->set_endpoint(config_.endpoint);
   profile->set_backend(capabilities_.kind);
   profile->set_supports_mixed_precision(capabilities_.supports_mixed_precision);
@@ -256,11 +268,16 @@ grpc::Status ControlService::GetQualificationState(grpc::ServerContext*, const v
 }
 
 void ControlService::prune_expired() {
-  if (active_ && std::chrono::system_clock::now() >= active_->deadline) {
-    active_->cancelled.store(true);
-    if (!active_->running) {
-      active_.reset();
+  for (auto it = active_.begin(); it != active_.end();) {
+    auto& request = it->second;
+    if (std::chrono::system_clock::now() >= request->deadline) {
+      request->cancelled.store(true);
+      if (!request->running && !request->allocating) {
+        it = active_.erase(it);
+        continue;
+      }
     }
+    ++it;
   }
 }
 bool ControlService::deployment_matches(const std::string& id, std::uint64_t version) const {
@@ -286,6 +303,7 @@ grpc::Status ControlService::LoadStage(grpc::ServerContext*, const v1::LoadStage
     validate_plan(*request, config_.worker_id, capabilities_);
     auto next = std::make_shared<LoadedDeployment>();
     next->spec = *request;
+    next->scheduler.configure(config_.maximum_decode_batch);
     next->backend = factory_->load(*request, config_.model_root, capacity_);
     if (!next->backend) {
       throw runtime::Error::internal("backend factory returned no stage");
@@ -307,7 +325,8 @@ grpc::Status ControlService::LoadStage(grpc::ServerContext*, const v1::LoadStage
 }
 
 std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, std::size_t tokens,
-                                                       std::uint64_t deadline_ms) {
+                                                       std::uint64_t deadline_ms,
+                                                       std::unique_lock<std::mutex>& lock) {
   prune_expired();
   if (id.empty() || id.size() > 256U) {
     throw runtime::Error::invalid_request("invalid request ID");
@@ -325,45 +344,72 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
     }
     deadline = std::chrono::system_clock::time_point(std::chrono::milliseconds(deadline_ms));
   }
-  if (active_) {
-    if (active_->id != id) {
-      throw runtime::Error::resource_exhausted("worker already has an active request");
+  if (const auto found = active_.find(id); found != active_.end()) {
+    auto& existing = found->second;
+    if (existing->allocating) {
+      throw runtime::Error::resource_exhausted("request allocation is in progress");
     }
-    if (active_->maximum_tokens != tokens || active_->cancelled.load()) {
+    if (existing->maximum_tokens != tokens || existing->cancelled.load()) {
       throw runtime::Error::invalid_request("conflicting request reservation retry");
     }
-    if (!active_->running) {
-      active_->deadline = std::min(active_->deadline, deadline);
-    }
-    return active_;
+    if (!existing->running) existing->deadline = std::min(existing->deadline, deadline);
+    return existing;
+  }
+  if (active_.size() >= config_.maximum_active_requests) {
+    throw runtime::Error::resource_exhausted("worker active request limit reached");
   }
   const auto memory = deployment_->backend->sequence_memory(tokens);
-  runtime::require_memory(memory.cache, capacity_);
-  runtime::require_memory(memory.workspace, capacity_);
-  runtime::require_memory(runtime::add_memory(deployment_->backend->weight_memory(),
-                                              runtime::add_memory(memory.cache, memory.workspace)),
-                          capacity_);
+  auto required = runtime::add_memory(deployment_->backend->weight_memory(),
+                                      runtime::add_memory(memory.cache, memory.workspace));
+  auto cached_tokens = tokens;
+  for (const auto& [identifier, request] : active_) {
+    required = runtime::add_memory(
+        required, runtime::add_memory(request->memory.cache, request->memory.workspace));
+    cached_tokens = runtime::checked_add(cached_tokens, request->maximum_tokens);
+  }
+  if (config_.maximum_cached_tokens && cached_tokens > config_.maximum_cached_tokens) {
+    throw runtime::Error::resource_exhausted("worker cached token limit reached");
+  }
+  runtime::require_memory(required, capacity_);
   auto next = std::make_shared<ActiveRequest>();
   next->id = id;
   next->maximum_tokens = tokens;
   next->deadline = deadline;
   next->memory = memory;
-  next->sequence = deployment_->backend->allocate_sequence(tokens);
-  if (!next->sequence) {
-    throw runtime::Error::internal("backend returned no sequence state");
+  next->allocating = true;
+  active_.emplace(id, next);
+  const auto deployment = deployment_;
+  // Reserve capacity before allocating, but never block cancellation/telemetry
+  // on a backend device lock or a slow allocation.
+  lock.unlock();
+  try {
+    next->sequence = deployment->backend->allocate_sequence(tokens);
+    if (!next->sequence) throw runtime::Error::internal("backend returned no sequence state");
+  } catch (...) {
+    lock.lock();
+    active_.erase(id);
+    throw;
   }
-  active_ = next;
+  lock.lock();
+  next->allocating = false;
+  if (next->cancelled.load() || std::chrono::system_clock::now() >= next->deadline) {
+    active_.erase(id);
+    if (std::chrono::system_clock::now() >= next->deadline) {
+      throw runtime::Error::deadline_exceeded("reservation expired during allocation");
+    }
+    throw runtime::Error::cancelled("reservation cancelled during allocation");
+  }
   return next;
 }
 
 ExecutionLease ControlService::acquire(const std::string& id, std::uint64_t version,
                                        const std::string& request, std::size_t tokens,
                                        std::uint64_t deadline, std::uint32_t required_stage) {
-  std::scoped_lock lock(mutex_);
+  std::unique_lock lock(mutex_);
   if (!deployment_matches(id, version) || deployment_->spec.stage_index() != required_stage) {
     throw runtime::Error::invalid_request("stale deployment or incorrect execution stage");
   }
-  auto state = reserve(request, tokens, deadline);
+  auto state = reserve(request, tokens, deadline, lock);
   if (state->running) {
     throw runtime::Error::resource_exhausted("request already executing");
   }
@@ -372,25 +418,25 @@ ExecutionLease ControlService::acquire(const std::string& id, std::uint64_t vers
 }
 void ControlService::release(const std::shared_ptr<ActiveRequest>& state) {
   std::scoped_lock lock(mutex_);
-  if (active_ == state) {
-    // The caller has stopped using the backend state before admission is
-    // reopened.
-    active_->sequence.reset();
-    active_.reset();
+  const auto found = active_.find(state->id);
+  if (found != active_.end() && found->second == state) {
+    // All compute and transport using this sequence have finished.
+    state->sequence.reset();
+    active_.erase(found);
   }
 }
 
 grpc::Status ControlService::ReserveRequest(grpc::ServerContext*,
                                             const v1::ReserveRequestMessage* request,
                                             v1::ReserveResponse* response) {
-  std::scoped_lock lock(mutex_);
+  std::unique_lock lock(mutex_);
   if (!deployment_matches(request->plan_id(), request->deployment_version())) {
     reject(response, v1::ERROR_CODE_STALE_DEPLOYMENT, "stale deployment");
     return grpc::Status::OK;
   }
   try {
     static_cast<void>(reserve(request->request_id(), request->maximum_total_tokens(),
-                              request->deadline_unix_ms()));
+                              request->deadline_unix_ms(), lock));
     response->set_accepted(true);
     response->set_detail("backend sequence allocated and workspace reserved");
   } catch (const runtime::Error& error) {
@@ -409,11 +455,10 @@ grpc::Status ControlService::CancelRequest(grpc::ServerContext*,
   if (!deployment_matches(request->plan_id(), request->deployment_version())) {
     return {grpc::StatusCode::FAILED_PRECONDITION, "stale deployment"};
   }
-  if (active_ && active_->id == request->request_id()) {
-    active_->cancelled.store(true);
-    if (!active_->running) {
-      active_.reset();
-    }
+  const auto found = active_.find(request->request_id());
+  if (found != active_.end()) {
+    found->second->cancelled.store(true);
+    if (!found->second->running && !found->second->allocating) active_.erase(found);
   }
   return grpc::Status::OK;
 }
@@ -427,7 +472,7 @@ grpc::Status ControlService::UnloadStage(grpc::ServerContext*,
   if (!deployment_matches(request->plan_id(), request->deployment_version())) {
     return {grpc::StatusCode::FAILED_PRECONDITION, "stale deployment"};
   }
-  if (active_) {
+  if (!active_.empty()) {
     return {grpc::StatusCode::FAILED_PRECONDITION, "deployment has an active request"};
   }
   deployment_.reset();
@@ -439,8 +484,12 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
   prune_expired();
   const auto weights =
       deployment_ ? deployment_->backend->weight_memory() : runtime::MemoryAmounts{};
-  const auto cache = active_ ? active_->memory.cache : runtime::MemoryAmounts{};
-  const auto workspace = active_ ? active_->memory.workspace : runtime::MemoryAmounts{};
+  runtime::MemoryAmounts cache{}, workspace{};
+  for (const auto& [identifier, request] : active_) {
+    response->add_active_request_ids(identifier);
+    cache = runtime::add_memory(cache, request->memory.cache);
+    workspace = runtime::add_memory(workspace, request->memory.workspace);
+  }
   const auto report_domain = [&](v1::MemoryDomain domain, std::size_t capacity, std::size_t weight,
                                  std::size_t cached, std::size_t work) {
     if (capacity == 0U) {
@@ -468,13 +517,24 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
   response->set_reserved_cache_bytes(cache.host_bytes + cache.device_bytes + cache.unified_bytes);
   response->set_reserved_workspace_bytes(workspace.host_bytes + workspace.device_bytes +
                                          workspace.unified_bytes);
-  response->set_active_requests(active_ ? 1U : 0U);
+  response->set_active_requests(active_.size());
   return grpc::Status::OK;
 }
 grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,
                                         v1::WorkerMetrics* response) {
   response->set_worker_id(config_.worker_id);
   response->clear_allocator();
+  {
+    std::scoped_lock lock(mutex_);
+    const auto metrics = deployment_ ? deployment_->scheduler.metrics() : SchedulerMetrics{};
+    response->set_queued_prefills(metrics.queued_prefills);
+    response->set_queued_decodes(metrics.queued_decodes);
+    response->set_executing_microbatches(metrics.executing);
+    response->set_completed_steps(metrics.completed_steps);
+    response->set_queue_wait_ms(metrics.queue_wait_ms);
+    response->set_decode_batches(metrics.decode_batches);
+    response->set_largest_decode_batch(metrics.largest_decode_batch);
+  }
   if (const auto metrics = factory_->allocator_metrics()) {
     auto* allocator = response->mutable_allocator();
     allocator->set_domain(capabilities_.primary_memory_domain);

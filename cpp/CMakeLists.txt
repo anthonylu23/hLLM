@@ -18,6 +18,8 @@ add_library(
   src/model/dense_source.cpp
   src/buffer.cpp
   src/half.cpp
+  src/sampling.cpp
+  src/decode_batch.cpp
   src/safetensors.cpp
   src/tensor_envelope.cpp
 )
@@ -56,7 +58,7 @@ target_link_libraries(hllm_cpu_backend PUBLIC hllm_dense_loader hllm_project_opt
 add_library(hllm::cpu_backend ALIAS hllm_cpu_backend)
 
 find_package(OpenSSL REQUIRED)
-add_library(hllm_worker_runtime src/worker/control_service.cpp src/worker/execution_service.cpp src/worker/boundary_codec.cpp)
+add_library(hllm_worker_runtime src/worker/scheduler.cpp src/worker/control_service.cpp src/worker/execution_service.cpp src/worker/boundary_codec.cpp)
 target_include_directories(
   hllm_worker_runtime
   PUBLIC

@@ -12,7 +12,8 @@ struct BoundaryIdentity {
   std::size_t hidden_size;
 };
 runtime::BoundaryActivation decode_tensor(const v1::TensorEnvelope&, const BoundaryIdentity&,
-                                          std::uint64_t sequence, std::size_t position);
+                                          std::uint64_t sequence, std::size_t position,
+                                          bool prefill = false);
 v1::StageMessage encode_tensor(const runtime::BoundaryActivation&, const BoundaryIdentity&,
-                               std::uint64_t sequence, std::size_t position);
+                               std::uint64_t sequence, std::size_t position, bool prefill = false);
 }  // namespace hllm::worker

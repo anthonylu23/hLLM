@@ -112,7 +112,9 @@ TEST(CpuStageTest, RedundantTiedHeadMustMatchWithoutDuplicateResidency) {
     const test::ModelFixture baseline(true, true, storage);
     const test::ModelFixture duplicate(true, true, storage, true);
     const auto source = model::inspect_dense_stage(duplicate.load(0U, false), duplicate.root);
-    const auto without_verification = source.float32_weight_bytes + source.largest_payload_bytes + 65536U;
+    const auto without_verification = source.float32_weight_bytes +
+                                      source.conversion_workspace_bytes() -
+                                      source.verification_workspace_bytes + 65536U;
     try {
       static_cast<void>(load_stage(duplicate.load(0U, false), duplicate.root, without_verification));
       FAIL() << "verification scratch was not included in load admission";
