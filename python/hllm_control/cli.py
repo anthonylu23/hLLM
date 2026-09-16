@@ -420,5 +420,57 @@ def freeze_sweep_command(
     typer.echo(f"Frozen selection inputs: {output}")
 
 
+@app.command("serve")
+def serve_command(
+    manifest_path: Annotated[Path, typer.Option("--manifest", exists=True, dir_okay=False)],
+    plan_path: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    workers_path: Annotated[Path, typer.Option("--workers", exists=True, dir_okay=False)],
+    tokenizer_root: Annotated[Path, typer.Option(exists=True, file_okay=False)],
+    profile_bundle_path: Annotated[
+        Path | None, typer.Option("--profile-bundle", exists=True, dir_okay=False)
+    ] = None,
+    model_name: Annotated[str | None, typer.Option()] = None,
+    host: Annotated[str, typer.Option()] = "127.0.0.1",
+    port: Annotated[int, typer.Option(min=1, max=65535)] = 8000,
+    maximum_active_requests: Annotated[
+        int, typer.Option("--max-active-requests", min=1, max=64)
+    ] = 4,
+    maximum_queued_requests: Annotated[
+        int, typer.Option("--max-queued-requests", min=0, max=1024)
+    ] = 16,
+    timeout: Annotated[float, typer.Option(min=0.001, max=3600)] = 60,
+    prefill_chunk_tokens: Annotated[int, typer.Option(min=0, max=65536)] = 0,
+) -> None:
+    """Serve text/chat completions using one persistent native deployment."""
+    import uvicorn
+
+    from hllm_control.serving.app import create_app
+    from hllm_control.serving.runtime import ServingRuntime
+    from hllm_control.serving.tokenizer import TextTokenizer
+
+    manifest = read_artifact(manifest_path, ModelManifest)
+    plan = read_artifact(plan_path, DeploymentPlan)
+    workers = load_workers(workers_path)
+    session = DeploymentSession(
+        manifest,
+        plan,
+        {w.worker_id: w.endpoint for w in workers},
+        profile_bundle=read_profile_bundle(profile_bundle_path) if profile_bundle_path else None,
+    )
+    application = create_app(
+        ServingRuntime(session, maximum_active_requests, prefill_chunk_tokens=prefill_chunk_tokens),
+        TextTokenizer(tokenizer_root, manifest.config.vocabulary_size),
+        model_name=model_name,
+        maximum_queued=maximum_queued_requests,
+        timeout=timeout,
+    )
+    uvicorn.run(
+        application,
+        host=host,
+        port=port,
+        limit_concurrency=maximum_active_requests + maximum_queued_requests + 16,
+    )
+
+
 if __name__ == "__main__":
     app()
