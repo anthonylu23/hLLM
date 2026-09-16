@@ -50,6 +50,7 @@ def test_protobuf_contracts_compile(tmp_path: Path) -> None:
     stage_message = messages["hllm.v1.StageMessage"]
     assert {field.name for field in stage_message.field} == {
         "open_sequence",
+        "prefill_progress",
         "tensor",
         "sampled_token",
         "terminate",

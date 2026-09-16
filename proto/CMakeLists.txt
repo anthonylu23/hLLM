@@ -51,4 +51,13 @@ target_link_libraries(
 )
 target_compile_features(hllm_proto PUBLIC cxx_std_20)
 
+# Protobuf container annotations must agree between generated code and its
+# callers. Mixing instrumented callers with uninstrumented generated templates
+# can report container overflows on valid message copies.
+if(HLLM_ENABLE_SANITIZERS)
+  target_compile_options(hllm_proto PRIVATE
+    -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(hllm_proto PUBLIC -fsanitize=address,undefined)
+endif()
+
 add_library(hllm::proto ALIAS hllm_proto)
