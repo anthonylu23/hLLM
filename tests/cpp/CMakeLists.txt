@@ -42,6 +42,12 @@ target_link_libraries(
 )
 gtest_discover_tests(hllm_runtime_common_tests)
 
+# Keep global allocation fault injection out of the shared GoogleTest process.
+add_executable(hllm_scheduler_allocation_test scheduler_allocation_test.cpp)
+target_link_libraries(hllm_scheduler_allocation_test PRIVATE hllm::worker_runtime hllm_project_options)
+add_test(NAME SchedulerAllocationFailure COMMAND hllm_scheduler_allocation_test)
+set_tests_properties(SchedulerAllocationFailure PROPERTIES TIMEOUT 20)
+
 target_compile_definitions(hllm_runtime_common_tests PRIVATE
   HLLM_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures"
 )

@@ -94,6 +94,8 @@ def test_concurrent_mixed_soak_and_cancellation(tmp_path: Path, reverse: bool) -
 
 @pytest.mark.parametrize("reverse", [False, True])
 def test_sampled_requests_reproduce_under_concurrency(tmp_path: Path, reverse: bool) -> None:
+    # Exact equality is qualified for this tiny fixture, not arbitrary checkpoints:
+    # batch-dependent rounding can change seeded choices (see the M6 sweep report).
     from hllm_control.proto import execution_pb2
 
     assert ACCELERATOR is not None
