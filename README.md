@@ -50,7 +50,8 @@ Configurable sampling, bounded log probabilities, opt-in chunked prefill and dec
 batching are implemented. Bounded weight conversion reduces MLX load admission;
 4B execution remains unqualified. See the [qualification report](docs/validation/milestone-6.md)
 and [focused validation sweep](docs/validation/milestone-6-sweep.md), including the observed
-batch-dependent seeded-sampling limit. ROCm and additional stages
+batch-dependent seeded-sampling limit. The [PR review follow-up](docs/validation/milestone-6-pr-review.md)
+records scheduler allocation-failure and streaming-retention fixes. ROCm and additional stages
 remain Milestone 7 in [the full project specification](SPEC.md).
 
 ## Development setup
