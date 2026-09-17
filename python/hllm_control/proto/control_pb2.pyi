@@ -151,20 +151,22 @@ class DomainMemoryUsage(_message.Message):
     def __init__(self, domain: _Optional[_Union[_profile_pb2.MemoryDomain, str]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ...) -> None: ...
 
 class MemoryReport(_message.Message):
-    __slots__ = ("budgets", "loaded_weight_bytes", "reserved_cache_bytes", "reserved_workspace_bytes", "active_requests", "domain_usage")
+    __slots__ = ("budgets", "loaded_weight_bytes", "reserved_cache_bytes", "reserved_workspace_bytes", "active_requests", "domain_usage", "active_request_ids")
     BUDGETS_FIELD_NUMBER: _ClassVar[int]
     LOADED_WEIGHT_BYTES_FIELD_NUMBER: _ClassVar[int]
     RESERVED_CACHE_BYTES_FIELD_NUMBER: _ClassVar[int]
     RESERVED_WORKSPACE_BYTES_FIELD_NUMBER: _ClassVar[int]
     ACTIVE_REQUESTS_FIELD_NUMBER: _ClassVar[int]
     DOMAIN_USAGE_FIELD_NUMBER: _ClassVar[int]
+    ACTIVE_REQUEST_IDS_FIELD_NUMBER: _ClassVar[int]
     budgets: _containers.RepeatedCompositeFieldContainer[_profile_pb2.MemoryBudget]
     loaded_weight_bytes: int
     reserved_cache_bytes: int
     reserved_workspace_bytes: int
     active_requests: int
     domain_usage: _containers.RepeatedCompositeFieldContainer[DomainMemoryUsage]
-    def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ..., active_requests: _Optional[int] = ..., domain_usage: _Optional[_Iterable[_Union[DomainMemoryUsage, _Mapping]]] = ...) -> None: ...
+    active_request_ids: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ..., active_requests: _Optional[int] = ..., domain_usage: _Optional[_Iterable[_Union[DomainMemoryUsage, _Mapping]]] = ..., active_request_ids: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class AllocatorMetrics(_message.Message):
     __slots__ = ("domain", "active_bytes", "cached_bytes", "peak_bytes")
@@ -179,12 +181,26 @@ class AllocatorMetrics(_message.Message):
     def __init__(self, domain: _Optional[_Union[_profile_pb2.MemoryDomain, str]] = ..., active_bytes: _Optional[int] = ..., cached_bytes: _Optional[int] = ..., peak_bytes: _Optional[int] = ...) -> None: ...
 
 class WorkerMetrics(_message.Message):
-    __slots__ = ("worker_id", "allocator")
+    __slots__ = ("worker_id", "allocator", "queued_prefills", "queued_decodes", "executing_microbatches", "completed_steps", "queue_wait_ms", "decode_batches", "largest_decode_batch")
     WORKER_ID_FIELD_NUMBER: _ClassVar[int]
     ALLOCATOR_FIELD_NUMBER: _ClassVar[int]
+    QUEUED_PREFILLS_FIELD_NUMBER: _ClassVar[int]
+    QUEUED_DECODES_FIELD_NUMBER: _ClassVar[int]
+    EXECUTING_MICROBATCHES_FIELD_NUMBER: _ClassVar[int]
+    COMPLETED_STEPS_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_WAIT_MS_FIELD_NUMBER: _ClassVar[int]
+    DECODE_BATCHES_FIELD_NUMBER: _ClassVar[int]
+    LARGEST_DECODE_BATCH_FIELD_NUMBER: _ClassVar[int]
     worker_id: str
     allocator: AllocatorMetrics
-    def __init__(self, worker_id: _Optional[str] = ..., allocator: _Optional[_Union[AllocatorMetrics, _Mapping]] = ...) -> None: ...
+    queued_prefills: int
+    queued_decodes: int
+    executing_microbatches: int
+    completed_steps: int
+    queue_wait_ms: float
+    decode_batches: int
+    largest_decode_batch: int
+    def __init__(self, worker_id: _Optional[str] = ..., allocator: _Optional[_Union[AllocatorMetrics, _Mapping]] = ..., queued_prefills: _Optional[int] = ..., queued_decodes: _Optional[int] = ..., executing_microbatches: _Optional[int] = ..., completed_steps: _Optional[int] = ..., queue_wait_ms: _Optional[float] = ..., decode_batches: _Optional[int] = ..., largest_decode_batch: _Optional[int] = ...) -> None: ...
 
 class HealthResponse(_message.Message):
     __slots__ = ("serving", "detail")

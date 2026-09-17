@@ -30,8 +30,26 @@ TERMINAL_STATE_CANCELLED: TerminalState
 TERMINAL_STATE_DEADLINE_EXCEEDED: TerminalState
 TERMINAL_STATE_FAILED: TerminalState
 
+class SamplingOptions(_message.Message):
+    __slots__ = ("temperature", "top_p", "top_k", "seed", "return_logprobs", "top_logprobs")
+    TEMPERATURE_FIELD_NUMBER: _ClassVar[int]
+    TOP_P_FIELD_NUMBER: _ClassVar[int]
+    TOP_K_FIELD_NUMBER: _ClassVar[int]
+    SEED_FIELD_NUMBER: _ClassVar[int]
+    RETURN_LOGPROBS_FIELD_NUMBER: _ClassVar[int]
+    TOP_LOGPROBS_FIELD_NUMBER: _ClassVar[int]
+    temperature: float
+    top_p: float
+    top_k: int
+    seed: int
+    return_logprobs: bool
+    top_logprobs: int
+    def __init__(self, temperature: _Optional[float] = ..., top_p: _Optional[float] = ..., top_k: _Optional[int] = ..., seed: _Optional[int] = ..., return_logprobs: _Optional[bool] = ..., top_logprobs: _Optional[int] = ...) -> None: ...
+
 class SequenceOpen(_message.Message):
-    __slots__ = ("protocol_version", "deployment_id", "deployment_version", "request_id", "microbatch_id", "maximum_total_tokens", "maximum_new_tokens", "stop_token_ids", "deadline_unix_ms")
+    __slots__ = ("sampling", "prompt_tokens", "protocol_version", "deployment_id", "deployment_version", "request_id", "microbatch_id", "maximum_total_tokens", "maximum_new_tokens", "stop_token_ids", "deadline_unix_ms")
+    SAMPLING_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     PROTOCOL_VERSION_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -41,6 +59,8 @@ class SequenceOpen(_message.Message):
     MAXIMUM_NEW_TOKENS_FIELD_NUMBER: _ClassVar[int]
     STOP_TOKEN_IDS_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_UNIX_MS_FIELD_NUMBER: _ClassVar[int]
+    sampling: SamplingOptions
+    prompt_tokens: int
     protocol_version: int
     deployment_id: str
     deployment_version: int
@@ -50,7 +70,7 @@ class SequenceOpen(_message.Message):
     maximum_new_tokens: int
     stop_token_ids: _containers.RepeatedScalarFieldContainer[int]
     deadline_unix_ms: int
-    def __init__(self, protocol_version: _Optional[int] = ..., deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., maximum_total_tokens: _Optional[int] = ..., maximum_new_tokens: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
+    def __init__(self, sampling: _Optional[_Union[SamplingOptions, _Mapping]] = ..., prompt_tokens: _Optional[int] = ..., protocol_version: _Optional[int] = ..., deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., maximum_total_tokens: _Optional[int] = ..., maximum_new_tokens: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
 
 class TensorEnvelope(_message.Message):
     __slots__ = ("protocol_version", "deployment_id", "request_id", "microbatch_id", "sequence_number", "phase", "first_position", "sequence_lengths", "cache_slot_ids", "shape", "dtype", "layout", "payload_length", "checksum", "payload", "deployment_version")
@@ -88,8 +108,18 @@ class TensorEnvelope(_message.Message):
     deployment_version: int
     def __init__(self, protocol_version: _Optional[int] = ..., deployment_id: _Optional[str] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., sequence_number: _Optional[int] = ..., phase: _Optional[_Union[ExecutionPhase, str]] = ..., first_position: _Optional[int] = ..., sequence_lengths: _Optional[_Iterable[int]] = ..., cache_slot_ids: _Optional[_Iterable[int]] = ..., shape: _Optional[_Iterable[int]] = ..., dtype: _Optional[_Union[_common_pb2.DataType, str]] = ..., layout: _Optional[str] = ..., payload_length: _Optional[int] = ..., checksum: _Optional[bytes] = ..., payload: _Optional[bytes] = ..., deployment_version: _Optional[int] = ...) -> None: ...
 
+class TokenLogProbability(_message.Message):
+    __slots__ = ("token_id", "logprob")
+    TOKEN_ID_FIELD_NUMBER: _ClassVar[int]
+    LOGPROB_FIELD_NUMBER: _ClassVar[int]
+    token_id: int
+    logprob: float
+    def __init__(self, token_id: _Optional[int] = ..., logprob: _Optional[float] = ...) -> None: ...
+
 class SampledToken(_message.Message):
-    __slots__ = ("deployment_id", "deployment_version", "request_id", "microbatch_id", "sequence_number", "token_position", "token_id")
+    __slots__ = ("logprob", "top_logprobs", "deployment_id", "deployment_version", "request_id", "microbatch_id", "sequence_number", "token_position", "token_id")
+    LOGPROB_FIELD_NUMBER: _ClassVar[int]
+    TOP_LOGPROBS_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
@@ -97,6 +127,8 @@ class SampledToken(_message.Message):
     SEQUENCE_NUMBER_FIELD_NUMBER: _ClassVar[int]
     TOKEN_POSITION_FIELD_NUMBER: _ClassVar[int]
     TOKEN_ID_FIELD_NUMBER: _ClassVar[int]
+    logprob: float
+    top_logprobs: _containers.RepeatedCompositeFieldContainer[TokenLogProbability]
     deployment_id: str
     deployment_version: int
     request_id: str
@@ -104,7 +136,7 @@ class SampledToken(_message.Message):
     sequence_number: int
     token_position: int
     token_id: int
-    def __init__(self, deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., sequence_number: _Optional[int] = ..., token_position: _Optional[int] = ..., token_id: _Optional[int] = ...) -> None: ...
+    def __init__(self, logprob: _Optional[float] = ..., top_logprobs: _Optional[_Iterable[_Union[TokenLogProbability, _Mapping]]] = ..., deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., sequence_number: _Optional[int] = ..., token_position: _Optional[int] = ..., token_id: _Optional[int] = ...) -> None: ...
 
 class SequenceTermination(_message.Message):
     __slots__ = ("deployment_id", "deployment_version", "request_id", "microbatch_id", "state", "error", "prompt_tokens", "generated_tokens")
@@ -142,22 +174,42 @@ class StageError(_message.Message):
     error: _common_pb2.RuntimeError
     def __init__(self, deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., sequence_number: _Optional[int] = ..., error: _Optional[_Union[_common_pb2.RuntimeError, _Mapping]] = ...) -> None: ...
 
+class PrefillProgress(_message.Message):
+    __slots__ = ("deployment_id", "deployment_version", "request_id", "microbatch_id", "sequence_number", "next_position")
+    DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    DEPLOYMENT_VERSION_FIELD_NUMBER: _ClassVar[int]
+    REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
+    MICROBATCH_ID_FIELD_NUMBER: _ClassVar[int]
+    SEQUENCE_NUMBER_FIELD_NUMBER: _ClassVar[int]
+    NEXT_POSITION_FIELD_NUMBER: _ClassVar[int]
+    deployment_id: str
+    deployment_version: int
+    request_id: str
+    microbatch_id: int
+    sequence_number: int
+    next_position: int
+    def __init__(self, deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., sequence_number: _Optional[int] = ..., next_position: _Optional[int] = ...) -> None: ...
+
 class StageMessage(_message.Message):
-    __slots__ = ("open_sequence", "tensor", "sampled_token", "terminate", "error")
+    __slots__ = ("open_sequence", "tensor", "sampled_token", "terminate", "error", "prefill_progress")
     OPEN_SEQUENCE_FIELD_NUMBER: _ClassVar[int]
     TENSOR_FIELD_NUMBER: _ClassVar[int]
     SAMPLED_TOKEN_FIELD_NUMBER: _ClassVar[int]
     TERMINATE_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
+    PREFILL_PROGRESS_FIELD_NUMBER: _ClassVar[int]
     open_sequence: SequenceOpen
     tensor: TensorEnvelope
     sampled_token: SampledToken
     terminate: SequenceTermination
     error: StageError
-    def __init__(self, open_sequence: _Optional[_Union[SequenceOpen, _Mapping]] = ..., tensor: _Optional[_Union[TensorEnvelope, _Mapping]] = ..., sampled_token: _Optional[_Union[SampledToken, _Mapping]] = ..., terminate: _Optional[_Union[SequenceTermination, _Mapping]] = ..., error: _Optional[_Union[StageError, _Mapping]] = ...) -> None: ...
+    prefill_progress: PrefillProgress
+    def __init__(self, open_sequence: _Optional[_Union[SequenceOpen, _Mapping]] = ..., tensor: _Optional[_Union[TensorEnvelope, _Mapping]] = ..., sampled_token: _Optional[_Union[SampledToken, _Mapping]] = ..., terminate: _Optional[_Union[SequenceTermination, _Mapping]] = ..., error: _Optional[_Union[StageError, _Mapping]] = ..., prefill_progress: _Optional[_Union[PrefillProgress, _Mapping]] = ...) -> None: ...
 
 class GenerationRequest(_message.Message):
-    __slots__ = ("capture_timing", "deployment_id", "request_id", "token_ids", "maximum_new_tokens", "deployment_version", "stop_token_ids", "deadline_unix_ms")
+    __slots__ = ("sampling", "prefill_chunk_tokens", "capture_timing", "deployment_id", "request_id", "token_ids", "maximum_new_tokens", "deployment_version", "stop_token_ids", "deadline_unix_ms")
+    SAMPLING_FIELD_NUMBER: _ClassVar[int]
+    PREFILL_CHUNK_TOKENS_FIELD_NUMBER: _ClassVar[int]
     CAPTURE_TIMING_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
     REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
@@ -166,6 +218,8 @@ class GenerationRequest(_message.Message):
     DEPLOYMENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     STOP_TOKEN_IDS_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_UNIX_MS_FIELD_NUMBER: _ClassVar[int]
+    sampling: SamplingOptions
+    prefill_chunk_tokens: int
     capture_timing: bool
     deployment_id: str
     request_id: str
@@ -174,7 +228,7 @@ class GenerationRequest(_message.Message):
     deployment_version: int
     stop_token_ids: _containers.RepeatedScalarFieldContainer[int]
     deadline_unix_ms: int
-    def __init__(self, capture_timing: _Optional[bool] = ..., deployment_id: _Optional[str] = ..., request_id: _Optional[str] = ..., token_ids: _Optional[_Iterable[int]] = ..., maximum_new_tokens: _Optional[int] = ..., deployment_version: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
+    def __init__(self, sampling: _Optional[_Union[SamplingOptions, _Mapping]] = ..., prefill_chunk_tokens: _Optional[int] = ..., capture_timing: _Optional[bool] = ..., deployment_id: _Optional[str] = ..., request_id: _Optional[str] = ..., token_ids: _Optional[_Iterable[int]] = ..., maximum_new_tokens: _Optional[int] = ..., deployment_version: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
 
 class PrefillComplete(_message.Message):
     __slots__ = ("prompt_tokens",)
@@ -183,16 +237,20 @@ class PrefillComplete(_message.Message):
     def __init__(self, prompt_tokens: _Optional[int] = ...) -> None: ...
 
 class TokenEvent(_message.Message):
-    __slots__ = ("native_elapsed_ms", "native_request_setup_ms", "token_id", "token_position")
+    __slots__ = ("logprob", "top_logprobs", "native_elapsed_ms", "native_request_setup_ms", "token_id", "token_position")
+    LOGPROB_FIELD_NUMBER: _ClassVar[int]
+    TOP_LOGPROBS_FIELD_NUMBER: _ClassVar[int]
     NATIVE_ELAPSED_MS_FIELD_NUMBER: _ClassVar[int]
     NATIVE_REQUEST_SETUP_MS_FIELD_NUMBER: _ClassVar[int]
     TOKEN_ID_FIELD_NUMBER: _ClassVar[int]
     TOKEN_POSITION_FIELD_NUMBER: _ClassVar[int]
+    logprob: float
+    top_logprobs: _containers.RepeatedCompositeFieldContainer[TokenLogProbability]
     native_elapsed_ms: float
     native_request_setup_ms: float
     token_id: int
     token_position: int
-    def __init__(self, native_elapsed_ms: _Optional[float] = ..., native_request_setup_ms: _Optional[float] = ..., token_id: _Optional[int] = ..., token_position: _Optional[int] = ...) -> None: ...
+    def __init__(self, logprob: _Optional[float] = ..., top_logprobs: _Optional[_Iterable[_Union[TokenLogProbability, _Mapping]]] = ..., native_elapsed_ms: _Optional[float] = ..., native_request_setup_ms: _Optional[float] = ..., token_id: _Optional[int] = ..., token_position: _Optional[int] = ...) -> None: ...
 
 class UsageEvent(_message.Message):
     __slots__ = ("prompt_tokens", "generated_tokens")

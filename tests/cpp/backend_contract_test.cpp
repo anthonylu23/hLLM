@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+#include <future>
 #include <limits>
 
 #include "hllm/runtime/error.hpp"
@@ -13,6 +15,7 @@ struct AllocationPlan {
   runtime::MemoryAmounts weights{20U, 100U, 0U};
   runtime::SequenceMemory sequence{{0U, 200U, 0U}, {50U, 100U, 40U}};
   int allocations{0};
+  std::function<void()> on_allocate;
 };
 
 class TestStage final : public runtime::StageBackend {
@@ -25,6 +28,7 @@ class TestStage final : public runtime::StageBackend {
   runtime::SequenceMemory sequence_memory(std::size_t) const override { return plan_->sequence; }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t) const override {
     ++plan_->allocations;
+    if (plan_->on_allocate) plan_->on_allocate();
     return std::make_unique<runtime::SequenceState>();
   }
   runtime::StageOutput execute(runtime::StageInput, std::size_t, runtime::SequenceState&,
@@ -233,6 +237,63 @@ TEST(BackendContractTest, RejectsOverflowAndUnaccountedPinnedMemory) {
   EXPECT_THROW((ControlService({"cpu-a", "localhost", model.root, maximum, 1U, 0U},
                                std::make_unique<TestFactory>(std::make_shared<AllocationPlan>()))),
                std::invalid_argument);
+}
+
+TEST(BackendContractTest, CancellationAndTelemetryStayResponsiveDuringAllocation) {
+  using namespace std::chrono_literals;
+  const test::ModelFixture model;
+  auto allocation = std::make_shared<AllocationPlan>();
+  std::promise<void> started, release;
+  auto gate = release.get_future().share();
+  allocation->on_allocate = [&] {
+    started.set_value();
+    gate.wait();
+  };
+  ControlService service({.worker_id = "cpu-a",
+                          .endpoint = "127.0.0.1:50051",
+                          .model_root = model.root,
+                          .host_memory_capacity_bytes = 10'000U,
+                          .device_memory_capacity_bytes = 10'000U,
+                          .pinned_host_memory_capacity_bytes = 1000U,
+                          .maximum_active_requests = 2U},
+                         std::make_unique<TestFactory>(allocation));
+  auto load = model.load();
+  v1::LoadStageResponse loaded;
+  service.LoadStage(nullptr, &load, &loaded);
+  ASSERT_TRUE(loaded.accepted());
+  auto pending = std::async(std::launch::async, [&] {
+    v1::ReserveRequestMessage request;
+    request.set_plan_id("plan-1");
+    request.set_deployment_version(1U);
+    request.set_request_id("allocating");
+    request.set_maximum_total_tokens(16U);
+    v1::ReserveResponse response;
+    service.ReserveRequest(nullptr, &request, &response);
+    return response;
+  });
+  EXPECT_EQ(started.get_future().wait_for(2s), std::future_status::ready);
+  auto cancel = std::async(std::launch::async, [&] {
+    v1::Empty empty;
+    v1::MemoryReport memory;
+    service.GetMemoryReport(nullptr, &empty, &memory);
+    EXPECT_EQ(memory.active_requests(), 1U);
+    v1::CancelRequestMessage request;
+    request.set_plan_id("plan-1");
+    request.set_deployment_version(1U);
+    request.set_request_id("allocating");
+    return service.CancelRequest(nullptr, &request, &empty);
+  });
+  EXPECT_EQ(cancel.wait_for(1s), std::future_status::ready);
+  release.set_value();
+  EXPECT_TRUE(cancel.get().ok());
+  const auto response = pending.get();
+  EXPECT_FALSE(response.accepted());
+  EXPECT_EQ(response.error().code(), v1::ERROR_CODE_CANCELLED);
+  v1::Empty empty;
+  v1::MemoryReport memory;
+  service.GetMemoryReport(nullptr, &empty, &memory);
+  EXPECT_EQ(memory.active_requests(), 0U);
+  EXPECT_EQ(memory.reserved_cache_bytes(), 0U);
 }
 
 }  // namespace

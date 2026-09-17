@@ -24,6 +24,8 @@ add_executable(
   llama_test.cpp
   qwen3_test.cpp
   stage_test.cpp
+  scheduler_test.cpp
+  sampling_test.cpp
   safetensors_test.cpp
   tensor_envelope_test.cpp
   worker_control_test.cpp
@@ -39,6 +41,12 @@ target_link_libraries(
     hllm_project_options
 )
 gtest_discover_tests(hllm_runtime_common_tests)
+
+# Keep global allocation fault injection out of the shared GoogleTest process.
+add_executable(hllm_scheduler_allocation_test scheduler_allocation_test.cpp)
+target_link_libraries(hllm_scheduler_allocation_test PRIVATE hllm::worker_runtime hllm_project_options)
+add_test(NAME SchedulerAllocationFailure COMMAND hllm_scheduler_allocation_test)
+set_tests_properties(SchedulerAllocationFailure PROPERTIES TIMEOUT 20)
 
 target_compile_definitions(hllm_runtime_common_tests PRIVATE
   HLLM_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures"
@@ -170,3 +178,16 @@ add_test(NAME MeasuredPlannerIntegration
     ${HLLM_UV_EXECUTABLE} run pytest tests/profiling/test_measured_process.py -q)
 set_tests_properties(MeasuredPlannerIntegration PROPERTIES
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 90)
+
+foreach(backend IN ITEMS mlx cuda)
+  if(TARGET hllm-worker-${backend})
+    add_test(NAME ConcurrentPipeline-${backend}
+      COMMAND ${CMAKE_COMMAND} -E env
+        HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+        HLLM_ACCELERATOR_WORKER=$<TARGET_FILE:hllm-worker-${backend}>
+        HLLM_ACCELERATOR_BACKEND=${backend}
+        ${HLLM_UV_EXECUTABLE} run pytest tests/concurrency -q)
+    set_tests_properties(ConcurrentPipeline-${backend} PROPERTIES
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180 LABELS "${backend};hardware")
+  endif()
+endforeach()

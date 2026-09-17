@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -14,6 +15,7 @@
 
 #include "control.grpc.pb.h"
 #include "hllm/runtime/backend_factory.hpp"
+#include "hllm/worker/scheduler.hpp"
 
 namespace hllm::worker {
 
@@ -25,11 +27,15 @@ struct WorkerConfig {
   std::uint64_t device_memory_capacity_bytes{0U};
   std::uint64_t pinned_host_memory_capacity_bytes{0U};
   std::uint64_t unified_memory_capacity_bytes{0U};
+  std::size_t maximum_active_requests{1U};
+  std::size_t maximum_decode_batch{1U};
+  std::size_t maximum_cached_tokens{0U};  // Zero uses memory-domain admission only.
 };
 
 struct LoadedDeployment {
   v1::LoadStageRequest spec;
   std::unique_ptr<runtime::StageBackend> backend;
+  StageScheduler scheduler;
 
   // Retain connection/flow-control state across requests, but never retain a
   // request context or stream. The deployment lease bounds channel lifetime.
@@ -47,6 +53,7 @@ struct ActiveRequest {
   runtime::SequenceMemory memory;
   std::unique_ptr<runtime::SequenceState> sequence;
   std::atomic_bool cancelled{false};
+  bool allocating{false};  // Protected by the control mutex.
   bool running{false};  // Protected by the control mutex; sequence has one
                         // execution owner.
 };
@@ -83,14 +90,15 @@ class ControlService final : public v1::WorkerControl::Service {
  private:
   void prune_expired();
   bool deployment_matches(const std::string&, std::uint64_t) const;
-  std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::uint64_t);
+  std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::uint64_t,
+                                         std::unique_lock<std::mutex>&);
   WorkerConfig config_;
   std::unique_ptr<runtime::BackendFactory> factory_;
   runtime::MemoryAmounts capacity_;
   runtime::BackendCapabilities capabilities_;
   mutable std::mutex mutex_;
   std::shared_ptr<LoadedDeployment> deployment_;
-  std::shared_ptr<ActiveRequest> active_;
+  std::map<std::string, std::shared_ptr<ActiveRequest>> active_;
   std::jthread reservation_reaper_;
 };
 

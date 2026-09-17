@@ -5,11 +5,16 @@ description = "Heterogeneous LLM inference runtime"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+  "anyio>=4,<5",
+  "fastapi>=0.115,<1",
   "grpcio>=1.74,<2",
+  "jinja2>=3.1.6,<4",
   "protobuf>=6.31,<7",
   "pydantic>=2.12,<3",
   "pyyaml>=6.0.2,<7",
+  "tokenizers>=0.23,<1",
   "typer>=0.16,<1",
+  "uvicorn>=0.34,<1",
 ]
 
 [project.scripts]
@@ -19,6 +24,7 @@ hllm = "hllm_control.cli:app"
 dev = [
   "cmake>=3.31,<5",
   "grpcio-tools>=1.74,<2",
+  "httpx>=0.28,<1",
   "hypothesis>=6.138,<7",
   "ninja>=1.11,<2",
   "pyright>=1.1.404,<2",
@@ -55,6 +61,7 @@ include = [
   "tests/cuda",
   "tests/mlx",
   "tests/profiling",
+  "tests/concurrency",
   "tests/process_helpers.py",
   "tests/process_contracts.py",
   "scripts/validation",

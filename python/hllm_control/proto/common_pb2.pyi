@@ -42,6 +42,7 @@ class ErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ERROR_CODE_WORKER_UNAVAILABLE: _ClassVar[ErrorCode]
     ERROR_CODE_BACKEND_ERROR: _ClassVar[ErrorCode]
     ERROR_CODE_TRANSPORT_ERROR: _ClassVar[ErrorCode]
+    ERROR_CODE_CANCELLED: _ClassVar[ErrorCode]
 DATA_TYPE_UNSPECIFIED: DataType
 DATA_TYPE_BOOL: DataType
 DATA_TYPE_U8: DataType
@@ -71,6 +72,7 @@ ERROR_CODE_DEADLINE_EXCEEDED: ErrorCode
 ERROR_CODE_WORKER_UNAVAILABLE: ErrorCode
 ERROR_CODE_BACKEND_ERROR: ErrorCode
 ERROR_CODE_TRANSPORT_ERROR: ErrorCode
+ERROR_CODE_CANCELLED: ErrorCode
 
 class Empty(_message.Message):
     __slots__ = ()

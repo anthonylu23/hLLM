@@ -59,6 +59,10 @@ an arbitrary-length RSS/cache plateau; the native lifecycle regressions and prio
 
 ## Larger target preflight
 
+**Historical loader:** the M6 [bounded-conversion follow-up](milestone-6.md#memory-and-loading)
+reduces the endpoint load-admission term. The figures below remain the original M5
+assessment; they are not measurements of the new loader. Actual 4B execution is still unqualified.
+
 The [4B assessment](milestone-5-memory/qwen3-4b-preflight.json) uses the existing
 metadata-only shape fixture for `Qwen/Qwen3-4B-Base` revision
 `906bfd4b4dc7f14ee4320094d8b41684abff8539`. No 4B checkpoint payload was loaded.

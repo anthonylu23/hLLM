@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "hllm/runtime/memory.hpp"
+#include "hllm/runtime/sampling.hpp"
 #include "hllm/runtime/timing.hpp"
 
 namespace hllm::runtime {
@@ -23,15 +24,26 @@ struct BoundaryActivation {
 struct TokenInput {
   std::vector<std::uint64_t> ids;
 };
-struct SampledToken {
-  std::uint64_t id;
-};
 using StageInput = std::variant<TokenInput, BoundaryActivation>;
-using StageOutput = std::variant<BoundaryActivation, SampledToken>;
+struct PrefillProgress {};
+using StageOutput = std::variant<BoundaryActivation, SampledToken, PrefillProgress>;
 
 struct SequenceState {
+  SamplingOptions sampling;
+  bool prefilling{false};
+  bool prefill_only{false};
+  std::uint64_t generated_index{0};
   virtual ~SequenceState() = default;
 };
+
+struct DecodeBatchItem {
+  StageInput input;
+  std::size_t position;
+  SequenceState* sequence;
+  const std::atomic_bool* cancelled;
+};
+StageInput combine_decode_inputs(const std::vector<DecodeBatchItem>& items);
+std::vector<StageOutput> split_decode_boundary(BoundaryActivation output);
 
 class StageBackend {
  public:
@@ -50,6 +62,15 @@ class StageBackend {
   [[nodiscard]] virtual StageOutput execute(StageInput input, std::size_t first_position,
                                             SequenceState& state,
                                             const std::atomic_bool& cancelled) const = 0;
+  virtual bool supports_decode_batch() const { return false; }
+  virtual std::vector<StageOutput> execute_decode_batch(std::vector<DecodeBatchItem> items) const {
+    std::vector<StageOutput> outputs;
+    for (auto& item : items) {
+      outputs.push_back(
+          execute(std::move(item.input), item.position, *item.sequence, *item.cancelled));
+    }
+    return outputs;
+  }
   // Opt-in diagnostics for dedicated profiling processes. Serving uses execute().
   [[nodiscard]] virtual StageOutput execute_profiled(StageInput, std::size_t,
       SequenceState&, const std::atomic_bool&, ExecutionTiming&) const {

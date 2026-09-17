@@ -83,6 +83,7 @@ message MemoryReport {
   uint64 reserved_workspace_bytes = 4;
   uint64 active_requests = 5;
   repeated DomainMemoryUsage domain_usage = 6;
+  repeated string active_request_ids = 7;
 }
 // Process-wide framework allocations; separate from model reservation accounting.
 message AllocatorMetrics {
@@ -94,6 +95,13 @@ message AllocatorMetrics {
 message WorkerMetrics {
   string worker_id = 1;
   optional AllocatorMetrics allocator = 2;
+  uint64 queued_prefills = 3;
+  uint64 queued_decodes = 4;
+  uint64 executing_microbatches = 5;
+  uint64 completed_steps = 6;
+  double queue_wait_ms = 7;
+  uint64 decode_batches = 8;
+  uint64 largest_decode_batch = 9;
 }
 message HealthResponse { bool serving = 1; string detail = 2; }
 

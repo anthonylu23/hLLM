@@ -166,7 +166,8 @@ class CudaStage final : public ReferenceStage {
     const auto device = add(add(add(linear, attention), mul(vocab_, 32U)), 8U * 1024U * 1024U);
     const auto host = add(add(mul(mul(tokens, hidden_size()), 6U), mul(tokens, 16U)), 65536U);
     const auto staging = staging_bytes(tokens);
-    return {{0U, cache, 0U}, {add(host, staging), add(device, cast_workspace_), staging}};
+    return {{0U, cache, 0U},
+            {add(add(host, staging), mul(vocab_, 32U)), add(device, cast_workspace_), staging}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens));
@@ -185,6 +186,32 @@ class CudaStage final : public ReferenceStage {
       }
       return state;
     });
+  }
+  bool supports_decode_batch() const override { return !pinned_; }
+  std::vector<runtime::StageOutput> execute_decode_batch(
+      std::vector<runtime::DecodeBatchItem> items) const override {
+    if (!supports_decode_batch())
+      return runtime::StageBackend::execute_decode_batch(std::move(items));
+    auto combined = runtime::combine_decode_inputs(items);
+    std::vector<CudaSequence*> batch;
+    for (auto& item : items) {
+      auto* member = dynamic_cast<CudaSequence*>(item.sequence);
+      if (!member || member->owner != this || member->failed || member->length != item.position ||
+          member->length >= member->capacity) {
+        throw runtime::Error::invalid_request("invalid decode batch sequence state");
+      }
+      batch.push_back(member);
+    }
+    // An in-flight GPU batch is non-preemptible. Each caller checks its own
+    // cancellation afterward; one cancelled member must not abort its peers.
+    std::atomic_bool uncancelled{false};
+    std::vector<runtime::StageOutput> outputs;
+    auto result = run(std::move(combined), batch.front()->length, *batch.front(), uncancelled,
+                      nullptr, nullptr, batch, &outputs);
+    if (auto* boundary = std::get_if<runtime::BoundaryActivation>(&result)) {
+      return runtime::split_decode_boundary(std::move(*boundary));
+    }
+    return outputs;
   }
   runtime::StageOutput execute(runtime::StageInput input, std::size_t position,
                                runtime::SequenceState& state,
@@ -236,26 +263,9 @@ class CudaStage final : public ReferenceStage {
     auto b = input.slice(-1, half).to(at::kFloat);
     return at::cat({a * cosine - b * sine, b * cosine + a * sine}, -1).to(dtype_);
   }
-  at::Tensor layer(at::Tensor hidden, std::size_t index, std::size_t position, Cache& cache) const {
-    const auto prefix = "model.layers." + std::to_string(index) + ".";
-    const auto project = [&](const at::Tensor& input, const std::string& name) {
-      return at::matmul(input, weight(prefix + name + ".weight").t());
-    };
-    const auto count = hidden.size(0);
-    auto normalized = norm(hidden, weight(prefix + "input_layernorm.weight"));
-    auto queries =
-        project(normalized, "self_attn.q_proj")
-            .view({count, dimension(config_.attention_heads), dimension(config_.head_dimension)});
-    auto keys =
-        project(normalized, "self_attn.k_proj")
-            .view({count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
-    auto values =
-        project(normalized, "self_attn.v_proj")
-            .view({count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
-    if (config_.query_key_norm) {
-      queries = norm(queries, weight(prefix + "self_attn.q_norm.weight"));
-      keys = norm(keys, weight(prefix + "self_attn.k_norm.weight"));
-    }
+  at::Tensor attend(at::Tensor queries, at::Tensor keys, at::Tensor values, std::size_t position,
+                    Cache& cache) const {
+    const auto count = queries.size(0);
     queries = rope(queries, position).transpose(0, 1);
     keys = rope(keys, position).transpose(0, 1);
     const auto past = dimension(position);
@@ -275,6 +285,40 @@ class CudaStage final : public ReferenceStage {
                         .transpose(0, 1)
                         .contiguous()
                         .view({count, dimension(config_.attention_heads * config_.head_dimension)});
+    return attended;
+  }
+  at::Tensor layer(at::Tensor hidden, std::size_t index, std::size_t position, Cache& cache,
+                   const std::vector<CudaSequence*>& batch = {}) const {
+    const auto prefix = "model.layers." + std::to_string(index) + ".";
+    const auto project = [&](const at::Tensor& input, const std::string& name) {
+      return at::matmul(input, weight(prefix + name + ".weight").t());
+    };
+    const auto count = hidden.size(0);
+    auto normalized = norm(hidden, weight(prefix + "input_layernorm.weight"));
+    auto queries =
+        project(normalized, "self_attn.q_proj")
+            .view({count, dimension(config_.attention_heads), dimension(config_.head_dimension)});
+    auto keys =
+        project(normalized, "self_attn.k_proj")
+            .view({count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
+    auto values =
+        project(normalized, "self_attn.v_proj")
+            .view({count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
+    if (config_.query_key_norm) {
+      queries = norm(queries, weight(prefix + "self_attn.q_norm.weight"));
+      keys = norm(keys, weight(prefix + "self_attn.k_norm.weight"));
+    }
+    at::Tensor attended = [&]() {
+      if (batch.empty()) return attend(queries, keys, values, position, cache);
+      std::vector<at::Tensor> rows;
+      for (std::size_t i = 0; i < batch.size(); ++i) {
+        rows.push_back(attend(queries.slice(0, dimension(i), dimension(i + 1U)),
+                              keys.slice(0, dimension(i), dimension(i + 1U)),
+                              values.slice(0, dimension(i), dimension(i + 1U)), batch[i]->length,
+                              batch[i]->caches.at(index - start_)));
+      }
+      return at::cat(rows, 0);
+    }();
     hidden = hidden + project(attended, "self_attn.o_proj");
     auto post = norm(hidden, weight(prefix + "post_attention_layernorm.weight"));
     auto gated = at::silu(project(post, "mlp.gate_proj")) * project(post, "mlp.up_proj");
@@ -282,7 +326,9 @@ class CudaStage final : public ReferenceStage {
   }
   runtime::StageOutput run(runtime::StageInput input, std::size_t position,
                            runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
-                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr) const {
+                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr,
+                           const std::vector<CudaSequence*>& batch = {},
+                           std::vector<runtime::StageOutput>* batch_outputs = nullptr) const {
     std::scoped_lock lock(mutex_);
     auto* state = dynamic_cast<CudaSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
@@ -292,7 +338,7 @@ class CudaStage final : public ReferenceStage {
     const auto count =
         tokens ? tokens->ids.size() : std::get<runtime::BoundaryActivation>(input).tokens;
     if ((tokens != nullptr) != first_ || count == 0U || position > state->capacity ||
-        count > state->capacity - position) {
+        (batch.empty() && count > state->capacity - position)) {
       throw runtime::Error::invalid_request("invalid CUDA stage input or context capacity");
     }
     running(cancelled);
@@ -335,7 +381,8 @@ class CudaStage final : public ReferenceStage {
         timer.mark(tokens ? "embedding" : "from-wire");
         for (auto index = start_; index < end_; ++index) {
           running(cancelled);
-          hidden = layer(std::move(hidden), index, position, state->caches.at(index - start_));
+          hidden =
+              layer(std::move(hidden), index, position, state->caches.at(index - start_), batch);
           timer.mark("layer", index);
           if (trace) {
             trace->layers.push_back(snapshot(hidden));
@@ -349,8 +396,11 @@ class CudaStage final : public ReferenceStage {
         running(cancelled);
         timer.mark("validation");
         runtime::StageOutput result;
-        if (final_) {
-          auto last = norm(hidden.slice(0, hidden.size(0) - 1), weight("model.norm.weight"));
+        if (final_ && state->prefill_only) {
+          result = runtime::PrefillProgress{};
+        } else if (final_) {
+          auto last = norm(batch.empty() ? hidden.slice(0, hidden.size(0) - 1) : hidden,
+                           weight("model.norm.weight"));
           timer.mark("final_norm");
           auto logits =
               at::matmul(last, weight(tied_ ? "model.embed_tokens.weight" : "lm_head.weight").t());
@@ -359,8 +409,20 @@ class CudaStage final : public ReferenceStage {
           if (trace) {
             trace->last_logits = snapshot(logits);
           }
-          result = runtime::SampledToken{
-              static_cast<std::uint64_t>(logits.argmax(-1).item<std::int64_t>())};
+          auto select = [&](const at::Tensor& row, CudaSequence* member) {
+            if (member->sampling.temperature == 0.0 && !member->sampling.return_logprobs) {
+              return runtime::SampledToken{static_cast<std::uint64_t>(row.argmax(-1).item<std::int64_t>())};
+            }
+            return runtime::sample_token(snapshot(row), member->sampling, member->generated_index++);
+          };
+          if (batch.empty()) {
+            result = select(logits, state);
+          } else {
+            for (std::size_t i = 0; i < batch.size(); ++i) {
+              batch_outputs->push_back(select(logits.slice(0, dimension(i), dimension(i + 1U)), batch[i]));
+            }
+            result = runtime::PrefillProgress{};
+          }
           timer.mark("sampling");
         } else {
           auto boundary = hidden.to(at::kHalf);
@@ -379,13 +441,17 @@ class CudaStage final : public ReferenceStage {
           timer.mark("to-wire");
         }
         running(cancelled);
-        state->length += count;
+        if (batch.empty())
+          state->length += count;
+        else
+          for (auto* member : batch) ++member->length;
         return result;
       });
     } catch (...) {
       // An interrupted layer may have written part of its cache. Never resume
       // such a state; normal request cleanup destroys it after stream completion.
       state->failed = true;
+      for (auto* member : batch) member->failed = true;
       throw;
     }
   }

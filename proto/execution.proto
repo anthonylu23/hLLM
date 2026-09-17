@@ -18,7 +18,18 @@ enum TerminalState {
   TERMINAL_STATE_FAILED = 4;
 }
 
+message SamplingOptions {
+  double temperature = 1;
+  double top_p = 2;
+  uint64 top_k = 3;
+  optional uint64 seed = 4;
+  bool return_logprobs = 5;
+  uint32 top_logprobs = 6;
+}
+
 message SequenceOpen {
+  optional SamplingOptions sampling = 10;
+  uint64 prompt_tokens = 11;
   uint32 protocol_version = 1;
   string deployment_id = 2;
   uint64 deployment_version = 3;
@@ -49,7 +60,14 @@ message TensorEnvelope {
   uint64 deployment_version = 16;
 }
 
+message TokenLogProbability {
+  uint64 token_id = 1;
+  double logprob = 2;
+}
+
 message SampledToken {
+  optional double logprob = 8;
+  repeated TokenLogProbability top_logprobs = 9;
   string deployment_id = 1;
   uint64 deployment_version = 2;
   string request_id = 3;
@@ -79,6 +97,15 @@ message StageError {
   RuntimeError error = 6;
 }
 
+message PrefillProgress {
+  string deployment_id = 1;
+  uint64 deployment_version = 2;
+  string request_id = 3;
+  uint64 microbatch_id = 4;
+  uint64 sequence_number = 5;
+  uint64 next_position = 6;
+}
+
 message StageMessage {
   oneof body {
     SequenceOpen open_sequence = 1;
@@ -86,10 +113,13 @@ message StageMessage {
     SampledToken sampled_token = 3;
     SequenceTermination terminate = 4;
     StageError error = 5;
+    PrefillProgress prefill_progress = 6;
   }
 }
 
 message GenerationRequest {
+  optional SamplingOptions sampling = 9;
+  uint32 prefill_chunk_tokens = 10;
   bool capture_timing = 8;
   string deployment_id = 1;
   string request_id = 2;
@@ -105,6 +135,8 @@ message PrefillComplete {
 }
 
 message TokenEvent {
+  optional double logprob = 5;
+  repeated TokenLogProbability top_logprobs = 6;
   optional double native_elapsed_ms = 3;
   optional double native_request_setup_ms = 4;
   uint64 token_id = 1;

@@ -1,5 +1,8 @@
 #include "hllm/runtime/safetensors.hpp"
 
+#include <gtest/gtest.h>
+
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -7,8 +10,6 @@
 #include <fstream>
 #include <string>
 #include <utility>
-
-#include <gtest/gtest.h>
 
 namespace hllm::runtime {
 namespace {
@@ -86,5 +87,51 @@ TEST(SafetensorsFileTest, RejectsZeroLengthTensorStartingBeyondPayload) {
   EXPECT_THROW(static_cast<void>(SafetensorsFile(file.path())), SafetensorsError);
 }
 
+}  // namespace
+}  // namespace hllm::runtime
+
+#include "hllm/model/dense_source.hpp"
+
+namespace hllm::runtime {
+namespace {
+TEST(DenseSourceTest, ConvertsAcrossChunkBoundaryAndDetectsLateTiedHeadCorruption) {
+  const auto bytes = model::DenseSource::conversion_chunk_bytes + 16U;
+  const auto elements = bytes / 2U;
+  std::string payload;
+  for (std::size_t i = 0; i < elements; ++i) payload += std::string("\x80\x3f", 2U);  // BF16 1.0
+  auto head = payload;
+  head.back() = '\0';
+  const auto header =
+      std::string("{\"model.embed_tokens.weight\":{\"dtype\":\"BF16\",\"shape\":[") +
+      std::to_string(elements) + "],\"data_offsets\":[0," + std::to_string(bytes) +
+      "]},\"lm_head.weight\":{\"dtype\":\"BF16\",\"shape\":[" + std::to_string(elements) +
+      "],\"data_offsets\":[" + std::to_string(bytes) + "," + std::to_string(bytes * 2U) + "]}}";
+  const TemporarySafetensors file(header, payload + head);
+  model::DenseSource source;
+  source.files.emplace("weights", SafetensorsFile(file.path()));
+  source.tensors.emplace("model.embed_tokens.weight",
+                         model::TensorSource{"weights", {elements}, DataType::kBF16});
+  source.largest_payload_bytes = bytes;
+  source.verification_workspace_bytes = model::DenseSource::conversion_chunk_bytes;
+  std::size_t seen = 0, calls = 0;
+  source.for_each_float32_chunk("model.embed_tokens.weight", [&](std::span<const float> chunk) {
+    ++calls;
+    seen += chunk.size();
+    EXPECT_LE(chunk.size(), model::DenseSource::conversion_chunk_bytes / 2U);
+    EXPECT_TRUE(std::all_of(chunk.begin(), chunk.end(), [](float value) { return value == 1.0F; }));
+  });
+  EXPECT_EQ(seen, elements);
+  EXPECT_EQ(calls, 2U);
+  source.redundant_head_file = "weights";
+  EXPECT_THROW(source.for_each_float32_chunk("model.embed_tokens.weight", [](auto) {}), Error);
+  // Metadata was valid when inspected; a later truncation must still fail while
+  // reading the second conversion chunk, rather than accepting a partial tensor.
+  source.redundant_head_file.reset();
+  std::filesystem::resize_file(file.path(), std::filesystem::file_size(file.path()) - bytes - 1U);
+  calls = 0;
+  EXPECT_THROW(source.for_each_float32_chunk("model.embed_tokens.weight", [&](auto) { ++calls; }),
+               Error);
+  EXPECT_EQ(calls, 1U);
+}
 }  // namespace
 }  // namespace hllm::runtime

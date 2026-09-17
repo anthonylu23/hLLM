@@ -44,6 +44,12 @@ message WorkerProfile {
   repeated DataType supported_execution_dtypes = 7;
   // Supports schema 1.2 F16 resident weights / F32 execution and KV / F16 wire.
   bool supports_mixed_precision = 16;
+  uint64 maximum_active_requests = 17;
+  uint64 maximum_cached_tokens = 18;
+  bool supports_chunked_prefill = 19;
+  bool supports_sampling = 20;
+  uint64 maximum_decode_batch = 21;
+  bool supports_logprobs = 22;
   repeated MemoryBudget memory_budgets = 8;
   uint64 fixed_workspace_bytes = 9;
   uint32 activation_buffer_count = 10;

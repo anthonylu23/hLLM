@@ -35,6 +35,9 @@ struct Arguments {
   std::uint64_t memory_limit_bytes{0U};
   std::uint64_t device_memory_limit_bytes{0U};
   std::uint64_t pinned_memory_limit_bytes{0U};
+  std::uint64_t maximum_active_requests{1U};
+  std::uint64_t maximum_decode_batch{1U};
+  std::uint64_t maximum_cached_tokens{0U};
   int device_id{0};
   bool pinned{false};
 };
@@ -43,7 +46,7 @@ struct Arguments {
   std::uint64_t parsed = 0U;
   const auto result = std::from_chars(value.data(), value.data() + value.size(), parsed);
   if (result.ec != std::errc{} || result.ptr != value.data() + value.size() || parsed == 0U) {
-    throw std::invalid_argument("memory limit must be a positive integer");
+    throw std::invalid_argument("limit must be a positive integer");
   }
   return parsed;
 }
@@ -62,6 +65,14 @@ struct Arguments {
       arguments.worker_id = value;
     } else if (flag == "--model-root") {
       arguments.model_root = value;
+    } else if (flag == "--max-active-requests") {
+      arguments.maximum_active_requests = parse_u64(value);
+    } else if (flag == "--max-decode-batch") {
+      arguments.maximum_decode_batch = parse_u64(value);
+      if (arguments.maximum_decode_batch > 8U)
+        throw std::invalid_argument("decode batch exceeds 8");
+    } else if (flag == "--max-cached-tokens") {
+      arguments.maximum_cached_tokens = parse_u64(value);
     } else if (flag == "--memory-limit-bytes") {
       arguments.memory_limit_bytes = parse_u64(value);
 #ifdef HLLM_WORKER_CUDA
@@ -100,6 +111,9 @@ struct Arguments {
     throw std::invalid_argument("CUDA worker requires --device-memory-limit-bytes");
   }
 #endif
+  if (arguments.maximum_decode_batch > arguments.maximum_active_requests) {
+    throw std::invalid_argument("decode batch exceeds active request limit");
+  }
   return arguments;
 }
 
@@ -130,6 +144,9 @@ int main(const int argc, char** const argv) {
 #ifdef HLLM_WORKER_MLX
             .unified_memory_capacity_bytes = arguments.memory_limit_bytes,
 #endif
+            .maximum_active_requests = arguments.maximum_active_requests,
+            .maximum_decode_batch = arguments.maximum_decode_batch,
+            .maximum_cached_tokens = arguments.maximum_cached_tokens,
         },
         std::move(factory));
 

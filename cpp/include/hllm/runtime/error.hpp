@@ -12,6 +12,7 @@ enum class ErrorCode {
   kIncompatibleWorker,  // this worker cannot load or execute the described stage
   kResourceExhausted,   // a memory budget or transport limit would be exceeded
   kDeadlineExceeded,    // the request's deadline has already passed
+  kCancelled,           // cancelled before an execution lease was acquired
   kInternal,            // an invariant the worker relies on was violated
 };
 
@@ -34,6 +35,7 @@ class Error : public std::runtime_error {
   static Error deadline_exceeded(const std::string& message) {
     return {ErrorCode::kDeadlineExceeded, message};
   }
+  static Error cancelled(const std::string& message) { return {ErrorCode::kCancelled, message}; }
   static Error internal(const std::string& message) { return {ErrorCode::kInternal, message}; }
 
  private:

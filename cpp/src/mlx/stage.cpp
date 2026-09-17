@@ -70,34 +70,48 @@ class MlxStage final : public ReferenceStage {
       throw runtime::Error::incompatible_worker("MLX boundary transfer requires a little-endian host");
     }
     bytes_ = mul(source.float32_weight_bytes / sizeof(float), weight_dtype_ == mx::float16 ? 2U : 4U);
-    // Source bytes, decoded floats, MLX copied F32 input and conversion can
-    // coexist. All are charged to the same physical-memory domain.
-    runtime::require_memory({0U, 0U, 0U,
-                             add(bytes_, add(add(add(source.largest_payload_bytes, source.verification_workspace_bytes),
-                                                 mul(source.largest_float32_tensor_bytes, 3U)),
-                                             65536U))},
-                            capacity);
+    // Convert bounded source chunks directly into the resident weight dtype.
+    // Admission includes all final weights, the largest converted host tensor,
+    // bounded conversion/comparison chunks and fixed loader scratch.
+    const auto largest_converted = mul(source.largest_float32_tensor_bytes / sizeof(float),
+                                       weight_dtype_ == mx::float16 ? 2U : 4U);
+    runtime::require_memory(
+        {0U, 0U, 0U,
+         add(bytes_, add(largest_converted, add(source.conversion_workspace_bytes(), 65536U)))},
+        capacity);
     for (const auto& [name, tensor] : source.tensors) {
       static_cast<void>(name);
       for (auto size : tensor.shape) static_cast<void>(dimension(size));
     }
     completed(stream_, [&] {
       for (const auto& [name, tensor] : source.tensors) {
-        auto host = source.read_float32(name);
-        if (weight_dtype_ == mx::float16) {
-          for (auto value : host) {
-            if ((runtime::float_to_float16(value) & 0x7c00U) == 0x7c00U) {
-              throw runtime::Error::incompatible_worker(
-                  "weight is not representable as finite F16: " + name);
-            }
-          }
-        }
         mx::Shape shape;
-        for (auto size : tensor.shape) shape.push_back(dimension(size));
-        // Iterator construction copies, so checkpoint buffers never outlive
-        // their owner through a lazy graph. Evaluate one weight at a time.
-        auto value = mx::astype(mx::array(host.begin(), shape), weight_dtype_);
-        value.eval();
+        std::size_t elements = 1;
+        for (auto size : tensor.shape) {
+          shape.push_back(dimension(size));
+          elements = mul(elements, size);
+        }
+        auto convert = [&]<class T>() {
+          std::vector<T> host;
+          host.reserve(elements);
+          source.for_each_float32_chunk(name, [&](std::span<const float> chunk) {
+            for (auto value : chunk) {
+              if constexpr (sizeof(T) == 2) {
+                if ((runtime::float_to_float16(value) & 0x7c00U) == 0x7c00U) {
+                  throw runtime::Error::incompatible_worker(
+                      "weight is not representable as finite F16: " + name);
+                }
+              }
+              host.push_back(static_cast<T>(value));
+            }
+          });
+          // Iterator construction copies; evaluate before releasing host data.
+          auto value = mx::array(host.begin(), shape);
+          value.eval();
+          return value;
+        };
+        auto value = weight_dtype_ == mx::float16 ? convert.template operator()<mx::float16_t>()
+                                                  : convert.template operator()<float>();
         weights_.emplace(name, std::move(value));
       }
       return true;
@@ -123,7 +137,7 @@ class MlxStage final : public ReferenceStage {
     auto transport = add(mul(mul(tokens, hidden_size()), 12U), mul(tokens, 16U));
     // slice_update may copy the complete cache; do not assume in-place reuse.
     auto workspace = add(add(add(add(linear, attention), cache), transport),
-                         add(mul(vocab_, 32U), 8U * 1024U * 1024U));
+                         add(mul(vocab_, 64U), 8U * 1024U * 1024U));
     return {{0U, 0U, 0U, cache}, {0U, 0U, 0U, add(workspace, cast_workspace_)}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
@@ -143,6 +157,32 @@ class MlxStage final : public ReferenceStage {
       }
       return state;
     });
+  }
+  bool supports_decode_batch() const override { return true; }
+  std::vector<runtime::StageOutput> execute_decode_batch(
+      std::vector<runtime::DecodeBatchItem> items) const override {
+    if (!supports_decode_batch())
+      return runtime::StageBackend::execute_decode_batch(std::move(items));
+    auto combined = runtime::combine_decode_inputs(items);
+    std::vector<MlxSequence*> batch;
+    for (auto& item : items) {
+      auto* member = dynamic_cast<MlxSequence*>(item.sequence);
+      if (!member || member->owner != this || member->failed || member->length != item.position ||
+          member->length >= member->capacity) {
+        throw runtime::Error::invalid_request("invalid decode batch sequence state");
+      }
+      batch.push_back(member);
+    }
+    // An in-flight GPU batch is non-preemptible. Each caller checks its own
+    // cancellation afterward; one cancelled member must not abort its peers.
+    std::atomic_bool uncancelled{false};
+    std::vector<runtime::StageOutput> outputs;
+    auto result = run(std::move(combined), batch.front()->length, *batch.front(), uncancelled,
+                      nullptr, nullptr, batch, &outputs);
+    if (auto* boundary = std::get_if<runtime::BoundaryActivation>(&result)) {
+      return runtime::split_decode_boundary(std::move(*boundary));
+    }
+    return outputs;
   }
   runtime::StageOutput execute(runtime::StageInput input, std::size_t position,
                                runtime::SequenceState& state,
@@ -187,26 +227,9 @@ class MlxStage final : public ReferenceStage {
     auto b = mx::astype(slice_axis(input, 2, half, 2 * half), mx::float32);
     return mx::astype(mx::concatenate({a * cosine - b * sine, b * cosine + a * sine}, -1), dtype_);
   }
-  mx::array layer(mx::array hidden, std::size_t index, std::size_t position, Cache& cache) const {
-    auto prefix = "model.layers." + std::to_string(index) + ".";
-    auto project = [&](const mx::array& input, const std::string& name) {
-      return mx::matmul(input, mx::transpose(weight(prefix + name + ".weight")));
-    };
-    auto count = hidden.shape(0);
-    auto normalized = norm(hidden, weight(prefix + "input_layernorm.weight"));
-    auto queries =
-        mx::reshape(project(normalized, "self_attn.q_proj"),
-                    {count, dimension(config_.attention_heads), dimension(config_.head_dimension)});
-    auto keys =
-        mx::reshape(project(normalized, "self_attn.k_proj"),
-                    {count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
-    auto values =
-        mx::reshape(project(normalized, "self_attn.v_proj"),
-                    {count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
-    if (config_.query_key_norm) {
-      queries = norm(queries, weight(prefix + "self_attn.q_norm.weight"));
-      keys = norm(keys, weight(prefix + "self_attn.k_norm.weight"));
-    }
+  mx::array attend(mx::array queries, mx::array keys, mx::array values, std::size_t position,
+                   Cache& cache) const {
+    const auto count = queries.shape(0);
     queries = mx::transpose(rope(queries, position), {1, 0, 2});
     keys = mx::transpose(rope(keys, position), {1, 0, 2});
     auto past = dimension(position);
@@ -231,6 +254,40 @@ class MlxStage final : public ReferenceStage {
                                              dtype_),
                                   {1, 0, 2}),
                     {count, dimension(mul(config_.attention_heads, config_.head_dimension))});
+    return attended;
+  }
+  mx::array layer(mx::array hidden, std::size_t index, std::size_t position, Cache& cache,
+                  const std::vector<MlxSequence*>& batch = {}) const {
+    auto prefix = "model.layers." + std::to_string(index) + ".";
+    auto project = [&](const mx::array& input, const std::string& name) {
+      return mx::matmul(input, mx::transpose(weight(prefix + name + ".weight")));
+    };
+    auto count = hidden.shape(0);
+    auto normalized = norm(hidden, weight(prefix + "input_layernorm.weight"));
+    auto queries =
+        mx::reshape(project(normalized, "self_attn.q_proj"),
+                    {count, dimension(config_.attention_heads), dimension(config_.head_dimension)});
+    auto keys =
+        mx::reshape(project(normalized, "self_attn.k_proj"),
+                    {count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
+    auto values =
+        mx::reshape(project(normalized, "self_attn.v_proj"),
+                    {count, dimension(config_.key_value_heads), dimension(config_.head_dimension)});
+    if (config_.query_key_norm) {
+      queries = norm(queries, weight(prefix + "self_attn.q_norm.weight"));
+      keys = norm(keys, weight(prefix + "self_attn.k_norm.weight"));
+    }
+    mx::array attended = [&]() {
+      if (batch.empty()) return attend(queries, keys, values, position, cache);
+      std::vector<mx::array> rows;
+      for (std::size_t i = 0; i < batch.size(); ++i) {
+        rows.push_back(attend(slice_axis(queries, 0, dimension(i), dimension(i + 1U)),
+                              slice_axis(keys, 0, dimension(i), dimension(i + 1U)),
+                              slice_axis(values, 0, dimension(i), dimension(i + 1U)),
+                              batch[i]->length, batch[i]->caches.at(index - start_)));
+      }
+      return mx::concatenate(rows, 0);
+    }();
     hidden = hidden + project(attended, "self_attn.o_proj");
     auto post = norm(hidden, weight(prefix + "post_attention_layernorm.weight"));
     auto gate = project(post, "mlp.gate_proj");
@@ -243,11 +300,17 @@ class MlxStage final : public ReferenceStage {
     // Bound lazy graph lifetime to a layer, including cache updates. This also
     // provides a cancellation checkpoint after actual device completion.
     mx::eval(hidden, cache.keys, cache.values);
+    for (auto* member : batch) {
+      auto& owned = member->caches.at(index - start_);
+      mx::eval(owned.keys, owned.values);
+    }
     return hidden;
   }
   runtime::StageOutput run(runtime::StageInput input, std::size_t position,
                            runtime::SequenceState& opaque, const std::atomic_bool& cancelled,
-                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr) const {
+                           ExecutionTrace* trace, runtime::ExecutionTiming* timing = nullptr,
+                           const std::vector<MlxSequence*>& batch = {},
+                           std::vector<runtime::StageOutput>* batch_outputs = nullptr) const {
     std::scoped_lock lock(device_mutex());
     auto* state = dynamic_cast<MlxSequence*>(&opaque);
     if (!state || state->owner != this || state->failed || position != state->length) {
@@ -256,7 +319,7 @@ class MlxStage final : public ReferenceStage {
     auto* tokens = std::get_if<runtime::TokenInput>(&input);
     auto count = tokens ? tokens->ids.size() : std::get<runtime::BoundaryActivation>(input).tokens;
     if ((tokens != nullptr) != first_ || count == 0U || position > state->capacity ||
-        count > state->capacity - position) {
+        (batch.empty() && count > state->capacity - position)) {
       throw runtime::Error::invalid_request("invalid MLX stage input or context capacity");
     }
     running(cancelled);
@@ -298,7 +361,7 @@ class MlxStage final : public ReferenceStage {
         for (auto index = start_; index < end_; ++index) {
           running(cancelled);
           auto& cache = state->caches.at(index - start_);
-          hidden = layer(std::move(hidden), index, position, cache);
+          hidden = layer(std::move(hidden), index, position, cache, batch);
           timer.mark("layer", index);
           if (trace) {
             trace->layers.push_back(snapshot(hidden));
@@ -312,9 +375,12 @@ class MlxStage final : public ReferenceStage {
         running(cancelled);
         timer.mark("validation");
         runtime::StageOutput result;
-        if (final_) {
-          auto last = norm(slice_axis(hidden, 0, hidden.shape(0) - 1, hidden.shape(0)),
-                           weight("model.norm.weight"));
+        if (final_ && state->prefill_only) {
+          result = runtime::PrefillProgress{};
+        } else if (final_) {
+          auto last = norm(
+              batch.empty() ? slice_axis(hidden, 0, hidden.shape(0) - 1, hidden.shape(0)) : hidden,
+              weight("model.norm.weight"));
           if (timing) mx::eval(last);
           timer.mark("final_norm");
           auto logits = mx::matmul(
@@ -322,7 +388,20 @@ class MlxStage final : public ReferenceStage {
           finite(logits);
           timer.mark("lm_head");
           if (trace) trace->last_logits = snapshot(logits);
-          result = runtime::SampledToken{mx::argmax(logits, -1).item<std::uint32_t>()};
+          auto select = [&](const mx::array& row, MlxSequence* member) {
+            if (member->sampling.temperature == 0.0 && !member->sampling.return_logprobs) {
+              return runtime::SampledToken{mx::argmax(row, -1).item<std::uint32_t>()};
+            }
+            return runtime::sample_token(snapshot(row), member->sampling, member->generated_index++);
+          };
+          if (batch.empty()) {
+            result = select(logits, state);
+          } else {
+            for (std::size_t i = 0; i < batch.size(); ++i) {
+              batch_outputs->push_back(select(slice_axis(logits, 0, dimension(i), dimension(i + 1U)), batch[i]));
+            }
+            result = runtime::PrefillProgress{};
+          }
           timer.mark("sampling");
         } else {
           auto boundary = mx::contiguous(mx::astype(hidden, mx::float16));
@@ -335,11 +414,15 @@ class MlxStage final : public ReferenceStage {
           timer.mark("to-wire");
         }
         running(cancelled);
-        state->length += count;
+        if (batch.empty())
+          state->length += count;
+        else
+          for (auto* member : batch) ++member->length;
         return result;
       });
     } catch (...) {
       state->failed = true;
+      for (auto* member : batch) member->failed = true;
       throw;
     }
   }

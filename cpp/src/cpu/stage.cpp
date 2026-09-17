@@ -56,8 +56,7 @@ class DenseStage final : public ReferenceStage {
                 multiply(multiply(config.attention_heads, config.head_dimension), 12U)),
             add(multiply(config.intermediate_size, 6U), 4U));
     const auto workspace =
-        add(add(multiply(multiply(tokens, width), sizeof(float)), multiply(vocab, sizeof(float))),
-            65536U);
+        add(add(multiply(multiply(tokens, width), sizeof(float)), multiply(vocab, 32U)), 65536U);
     return {{.host_bytes = cache}, {.host_bytes = workspace}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
@@ -151,7 +150,9 @@ class DenseStage final : public ReferenceStage {
     hidden = forward_profiled(std::move(hidden), position, state, cancelled, timing);
     timer.restart();
     if (final_stage) {
-      if (!timing) return runtime::SampledToken{sample(hidden)};
+      if (state.prefill_only) return runtime::PrefillProgress{};
+      if (!timing && state.sampling.temperature == 0.0 && !state.sampling.return_logprobs)
+        return runtime::SampledToken{sample(hidden)};
       Matrix last(1U, hidden.width);
       std::copy_n(hidden.values.end() - static_cast<std::ptrdiff_t>(hidden.width), hidden.width,
                   last.values().begin());
@@ -159,9 +160,10 @@ class DenseStage final : public ReferenceStage {
       timer.mark("final_norm");
       auto logits = linear(normalized, tied_head ? embedding : head);
       timer.mark("lm_head");
-      const auto token = greedy_sample_last(logits);
+      const auto token =
+          runtime::sample_token(logits.values(), state.sampling, state.generated_index++);
       timer.mark("sampling");
-      return runtime::SampledToken{token};
+      return token;
     }
     runtime::BoundaryActivation output{hidden.tokens, hidden.width,
                                        std::vector<std::byte>(multiply(hidden.values.size(), 2U))};
@@ -199,7 +201,8 @@ std::unique_ptr<ReferenceStage> load_stage(const v1::LoadStageRequest& request,
       source.weight_dtype != runtime::DataType::kF32) {
     throw runtime::Error::incompatible_worker("CPU execution requires F32");
   }
-  if (add(add(source.float32_weight_bytes, add(source.largest_payload_bytes, source.verification_workspace_bytes)), 65536U) > memory_limit) {
+  if (add(add(source.float32_weight_bytes, source.conversion_workspace_bytes()), 65536U) >
+      memory_limit) {
     throw runtime::Error::resource_exhausted("stage loading exceeds host memory budget");
   }
   auto stage = std::make_unique<DenseStage>();

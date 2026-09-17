@@ -58,7 +58,9 @@ TEST(WorkerControlTest, VersionedPlanErrorsAreIncompatibleAndLeaveWorkerUnloaded
     ASSERT_TRUE(service.LoadStage(nullptr, &request, &rejected).ok());
     EXPECT_FALSE(rejected.accepted());
     EXPECT_EQ(rejected.error().code(), v1::ERROR_CODE_INCOMPATIBLE_WORKER);
-    if (scenario == 5) EXPECT_NE(rejected.detail().find("schema version"), std::string::npos);
+    if (scenario == 5) {
+      EXPECT_NE(rejected.detail().find("schema version"), std::string::npos);
+    }
     v1::MemoryReport memory;
     ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &memory).ok());
     EXPECT_EQ(memory.loaded_weight_bytes(), 0U);
@@ -264,4 +266,88 @@ TEST(WorkerControlTest, RejectsOversizedAndConflictingReservationsAndReportsAllo
   EXPECT_GT(report.reserved_workspace_bytes(), 0U);
 }
 }  // namespace
+}  // namespace hllm::worker
+
+namespace hllm::worker {
+TEST(WorkerConcurrencyTest, AccountsCombinedReservationsAndCancelsOnlyOneRequest) {
+  const test::ModelFixture model;
+  ControlService service({.worker_id = "cpu-a",
+                          .endpoint = "127.0.0.1:50051",
+                          .model_root = model.root,
+                          .host_memory_capacity_bytes = 1'000'000U,
+                          .maximum_active_requests = 3U,
+                          .maximum_cached_tokens = 32U},
+                         cpu::make_backend_factory());
+  grpc::ServerContext context;
+  auto load = model.load();
+  v1::LoadStageResponse loaded;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &loaded).ok());
+  ASSERT_TRUE(loaded.accepted());
+  v1::ReserveRequestMessage request;
+  request.set_plan_id("plan-1");
+  request.set_deployment_version(1U);
+  request.set_maximum_total_tokens(16U);
+  request.set_request_id("a");
+  v1::ReserveResponse accepted;
+  service.ReserveRequest(&context, &request, &accepted);
+  ASSERT_TRUE(accepted.accepted());
+  v1::Empty empty;
+  v1::MemoryReport one;
+  service.GetMemoryReport(&context, &empty, &one);
+  request.set_request_id("b");
+  service.ReserveRequest(&context, &request, &accepted);
+  ASSERT_TRUE(accepted.accepted());
+  v1::MemoryReport two;
+  service.GetMemoryReport(&context, &empty, &two);
+  EXPECT_EQ(two.active_requests(), 2U);
+  EXPECT_EQ(two.loaded_weight_bytes(), one.loaded_weight_bytes());
+  EXPECT_EQ(two.reserved_cache_bytes(), 2U * one.reserved_cache_bytes());
+  EXPECT_EQ(two.reserved_workspace_bytes(), 2U * one.reserved_workspace_bytes());
+  request.set_request_id("c");
+  service.ReserveRequest(&context, &request, &accepted);
+  EXPECT_FALSE(accepted.accepted());
+  EXPECT_EQ(accepted.error().code(), v1::ERROR_CODE_RESOURCE_EXHAUSTED);
+  v1::CancelRequestMessage cancel;
+  cancel.set_plan_id("plan-1");
+  cancel.set_deployment_version(1U);
+  cancel.set_request_id("a");
+  service.CancelRequest(&context, &cancel, &empty);
+  v1::MemoryReport remaining;
+  service.GetMemoryReport(&context, &empty, &remaining);
+  EXPECT_EQ(remaining.active_requests(), 1U);
+  EXPECT_EQ(remaining.reserved_cache_bytes(), one.reserved_cache_bytes());
+  auto lease = service.acquire("plan-1", 1U, "b", 16U, 0U, 0U);
+  EXPECT_FALSE(lease.request->cancelled.load());
+  service.release(lease.request);
+  v1::MemoryReport clean;
+  service.GetMemoryReport(&context, &empty, &clean);
+  EXPECT_EQ(clean.active_requests(), 0U);
+  EXPECT_EQ(clean.reserved_cache_bytes(), 0U);
+}
+
+TEST(WorkerConcurrencyTest, CombinedMemoryAdmissionRejectsSecondRequest) {
+  const test::ModelFixture model;
+  auto factory = cpu::make_backend_factory();
+  const auto load = model.load();
+  auto stage = factory->load(load, model.root, {1'000'000U, 0U, 0U});
+  const auto memory = stage->sequence_memory(16U);
+  const auto limit = runtime::add_memory(stage->weight_memory(),
+                                         runtime::add_memory(memory.cache, memory.workspace))
+                         .host_bytes;
+  ControlService service({.worker_id = "cpu-a",
+                          .endpoint = "127.0.0.1:50051",
+                          .model_root = model.root,
+                          .host_memory_capacity_bytes = limit,
+                          .maximum_active_requests = 2U},
+                         std::move(factory));
+  grpc::ServerContext context;
+  v1::LoadStageResponse loaded;
+  service.LoadStage(&context, &load, &loaded);
+  ASSERT_TRUE(loaded.accepted());
+  auto first = service.acquire("plan-1", 1U, "a", 16U, 0U, 0U);
+  EXPECT_THROW(static_cast<void>(service.acquire("plan-1", 1U, "b", 16U, 0U, 0U)), runtime::Error);
+  service.release(first.request);
+  auto second = service.acquire("plan-1", 1U, "b", 16U, 0U, 0U);
+  service.release(second.request);
+}
 }  // namespace hllm::worker

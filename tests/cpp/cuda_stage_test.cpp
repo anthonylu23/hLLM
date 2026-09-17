@@ -3,6 +3,7 @@
 #include <array>
 #include <limits>
 
+#include "decode_batch_contract.hpp"
 #include "hllm/cpu/stage.hpp"
 #include "hllm/cuda/backend.hpp"
 #include "hllm/cuda/stage.hpp"
@@ -29,6 +30,17 @@ std::vector<float> oracle_rows(const nlohmann::json& tensor, std::size_t positio
   const auto values = tensor.at("values").get<std::vector<float>>();
   return {values.begin() + static_cast<std::ptrdiff_t>(position * width),
           values.begin() + static_cast<std::ptrdiff_t>((position + count) * width)};
+}
+
+TEST(CudaStageTest, RaggedDecodeBatchPreservesIndependentPositionsAndSampling) {
+  const test::ModelFixture fixture;
+  auto factory = make_backend_factory();
+  for (auto dtype : {v1::DATA_TYPE_F32, v1::DATA_TYPE_F16}) {
+    auto request = fixture.load(0U, false);
+    request.mutable_plan()->set_execution_dtype(dtype);
+    auto stage = factory->load(request, fixture.root, kBudget);
+    test::decode_batch_contract(*stage);
+  }
 }
 
 TEST(CudaStageTest, MixedPrecisionAccountsForResidentWeightsCachesAndCastWorkspace) {
