@@ -346,7 +346,8 @@ def create_app(
                                     "native token omitted requested log probabilities"
                                 )
                             entry = token_logprobs(metadata, tokenizer, len(output.decoded))
-                            logprob_records.append(entry)
+                            if not options.stream:
+                                logprob_records.append(entry)
                             details = [entry]
                         if token in stops:
                             finish_reason = "stop"
@@ -354,7 +355,7 @@ def create_app(
                                 yield chunk("", details=details)
                             continue  # Drain native terminal acknowledgment before success.
                         text = output.push(token)
-                        if text:
+                        if text and not options.stream:
                             pieces.append(text)
                         if text or details is not None:
                             yield chunk(text, details=details)
@@ -363,7 +364,8 @@ def create_app(
                             break
                     text = output.finish()
                     if text:
-                        pieces.append(text)
+                        if not options.stream:
+                            pieces.append(text)
                         yield chunk(text)
                     if output.stopped:
                         finish_reason = "stop"
@@ -386,9 +388,6 @@ def create_app(
             except (asyncio.CancelledError, GeneratorExit):
                 if not succeeded:
                     metrics.cancelled += 1
-                raise
-            except ApiError:
-                metrics.cancelled += 1
                 raise
             except Exception as error:
                 metrics.failed += 1

@@ -3,7 +3,9 @@
 Status: serving, configurable sampling, chunked prefill, bounded decode batching and
 bounded weight conversion are implemented. Greedy decoding remains the default.
 See [qualification results](validation/milestone-6.md) for the precise workloads and
-remaining limits. M5 WAN performance acceptance remains deferred.
+remaining limits. The [PR review follow-up](validation/milestone-6-pr-review.md) covers
+allocation-failure handling and streaming-retention regressions. M5 WAN performance
+acceptance remains deferred.
 
 ## Serving
 
@@ -90,8 +92,14 @@ characters for partial UTF-8 tokens; chat `bytes` is null rather than invented b
 No full-vocabulary logits leave the worker. Probability metadata is bounded to one selected
 token and five alternatives per generated token.
 
-Other supported options are `max_tokens`, `stream`, `stream_options.include_usage`,
+Other supported options are `max_tokens` (default 32, range 1–1,000,000), `stream`,
+`stream_options.include_usage`,
 `stop` (up to four nonempty strings of at most 256 characters), and `stop_token_ids`.
+At most 32 explicit stop token IDs are accepted. Prompts and individual chat messages
+are limited to 1,000,000 characters, with at most 256 messages per chat request; the
+1 MiB request-body bound can impose a tighter limit. Prompt plus requested output must
+also fit the model context. Serving timeouts and native application deadlines are
+bounded to one hour.
 Native EOS IDs are the default; an explicit empty token-stop list disables them. Stop
 strings are removed from text even across token boundaries. Usage counts tokens consumed
 for stop detection. Finish reasons are `stop` and `length`. Unknown options, tools and
@@ -138,7 +146,10 @@ starts. Other native failures return 503. Streaming errors include an `error` ob
 `[DONE]` when the connection remains writable.
 
 JSON bodies are limited to 1 MiB before parsing. Streaming consumes native events directly,
-with no unbounded producer queue. Slow clients retain their slot and native deadline.
+with no unbounded producer queue. Emitted probability records and response text pieces
+are only accumulated for non-streaming responses; incremental decoding retains its
+own token/text history for final decoding verification. Slow clients retain their slot
+and native deadline.
 Disconnect cancels the generation RPC, asks each worker to cancel the request, and polls
 its active request ID until retirement. This cleanup is shielded from repeated ASGI
 cancellation before reusing the HTTP slot. Unconfirmed cleanup makes health and admissions

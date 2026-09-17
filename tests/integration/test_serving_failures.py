@@ -104,7 +104,29 @@ def test_active_and_queued_requests_retire(tmp_path: Path, failure: str) -> None
                         if failure == "shutdown":
                             server.should_exit = True
                             await serving
-                            await asyncio.gather(active, queued, return_exceptions=True)
+                            active_result, queued_result = await asyncio.gather(
+                                active, queued, return_exceptions=True
+                            )
+                            # Forced shutdown may break the transport or deliver an
+                            # SSE error before closing. Neither is successful generation.
+                            if not isinstance(active_result, httpx.RemoteProtocolError):
+                                assert isinstance(active_result, tuple)
+                                status, lines = active_result
+                                assert status == 200
+                                events = [
+                                    json.loads(line[6:])
+                                    for line in lines
+                                    if line.startswith("data: ") and line != "data: [DONE]"
+                                ]
+                                assert any("error" in event for event in events)
+                                assert not any(
+                                    choice.get("finish_reason") in ("stop", "length")
+                                    for event in events
+                                    for choice in event.get("choices", [])
+                                )
+                                assert "data: [DONE]" in lines
+                            assert isinstance(queued_result, httpx.Response)
+                            assert queued_result.status_code in (500, 503)
                             assert not runtime.calls
                             wait_clean(workers, loaded=False)
                         elif failure == "worker_loss":

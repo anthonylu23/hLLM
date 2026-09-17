@@ -304,3 +304,79 @@ def test_socket_disconnect_overload_and_recovery(tmp_path: Path) -> None:
                 thread.join(timeout=15)
                 assert not thread.is_alive()
         wait_clean(workers, loaded=False)
+
+
+def test_http_stop_paths_and_usage(tmp_path: Path) -> None:
+    from hllm_control.prepare.manifest import prepare_model
+
+    manifest = write_model(tmp_path)
+    native = Tokenizer(models.WordLevel({f"t{i}": i for i in range(11)}, unk_token="t0"))
+    native.pre_tokenizer = pre_tokenizers.Whitespace()
+    native.decoder = decoders.WordPiece(prefix="##", cleanup=False)
+    native.save(str(tmp_path / "tokenizer.json"))
+    with Workers(tmp_path) as workers:
+        with DeploymentSession(manifest, plan(manifest), workers.endpoints) as reference:
+            ids = [
+                event.token.token_id
+                for event in reference.generate([1, 2, 3], maximum_new_tokens=5, stop_token_ids=[])
+                if event.HasField("token")
+            ]
+        # Make the first predicted token the model's real default EOS. Regenerate
+        # the manifest so the native workers and HTTP layer share the same config.
+        config = json.loads((tmp_path / "config.json").read_text())
+        config["eos_token_id"] = ids[0]
+        (tmp_path / "config.json").write_text(json.dumps(config))
+        manifest = prepare_model(tmp_path)
+        runtime = ServingRuntime(DeploymentSession(manifest, plan(manifest), workers.endpoints), 1)
+        app = create_app(runtime, TextTokenizer(tmp_path, 11), model_name="tiny", timeout=10)
+        with TestClient(app) as client:
+            cases = [
+                ({}, "", 1, "stop"),
+                ({"stop_token_ids": [ids[0]]}, "", 1, "stop"),
+                ({"stop_token_ids": []}, native.decode(ids), 5, "length"),
+                (
+                    {"stop_token_ids": [], "stop": native.decode(ids[:2])},
+                    "",
+                    2,
+                    "stop",
+                ),
+            ]
+            for stream in (False, True):
+                for options, expected, consumed, finish in cases:
+                    response = client.post(
+                        "/v1/completions",
+                        json={
+                            "model": "tiny",
+                            "prompt": "t1 t2 t3",
+                            "max_tokens": 5,
+                            "stream": stream,
+                            **({"stream_options": {"include_usage": True}} if stream else {}),
+                            **options,
+                        },
+                    )
+                    assert response.status_code == 200, response.text
+                    if stream:
+                        lines = [
+                            line[6:]
+                            for line in response.text.splitlines()
+                            if line.startswith("data: ")
+                        ]
+                        assert lines[-1] == "[DONE]"
+                        events = [json.loads(line) for line in lines[:-1]]
+                        choices = [event["choices"][0] for event in events if event["choices"]]
+                        text = "".join(choice["text"] for choice in choices)
+                        reason = choices[-1]["finish_reason"]
+                        usage = events[-1]["usage"]
+                    else:
+                        body = response.json()
+                        text = body["choices"][0]["text"]
+                        reason = body["choices"][0]["finish_reason"]
+                        usage = body["usage"]
+                    assert (text, reason) == (expected, finish)
+                    assert usage == {
+                        "prompt_tokens": 3,
+                        "completion_tokens": consumed,
+                        "total_tokens": 3 + consumed,
+                    }
+                    wait_clean(workers)
+        wait_clean(workers, loaded=False)
