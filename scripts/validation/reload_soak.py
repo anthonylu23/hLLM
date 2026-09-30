@@ -332,22 +332,33 @@ def main() -> None:
                         )
                         if tokens != expected:
                             raise RuntimeError("independent reference mismatch")
+                    # Like request rows, the probe aliases its live token list so a
+                    # mismatch or stream failure leaves the observed prefix in the report.
+                    tokens = []
+                    probe: dict = dict(
+                        expected_prefix=expected[:3], generated_ids=tokens, exact_prefix_match=False
+                    )
+                    record["cancellation"] = probe
                     stream = session.generate(
                         ids,
                         maximum_new_tokens=len(expected),
                         stop_token_ids=[],
                         timeout=args.timeout,
                     )
-                    tokens = []
                     try:
                         for event in stream:
                             if event.HasField("token"):
                                 tokens.append(event.token.token_id)
                             if len(tokens) == 3:
                                 break
+                    except BaseException as error:
+                        probe["error"] = f"{type(error).__name__}: {error}"
+                        raise
                     finally:
                         stream.close()
-                    if tokens != expected[:3]:
+                        save()
+                    probe["exact_prefix_match"] = tokens == expected[:3]
+                    if not probe["exact_prefix_match"]:
                         raise RuntimeError("cancellation prefix mismatch")
                     record["after_cancel"] = clean("cancel-cleanup")
                 record["after_unload"] = clean("unloaded", True)

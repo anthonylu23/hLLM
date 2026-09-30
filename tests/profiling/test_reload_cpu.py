@@ -117,6 +117,9 @@ def test_cpu_rehearsal_reload_cancel_unload(rehearsal, monkeypatch):
         assert all(r["assessment"]["status"] == "safe" for r in cycle["preflight"].values())
         assert all(r["assessment"]["policy"] == "cpu-rss-v1" for r in cycle["preflight"].values())
         assert "after_cancel" in cycle and "after_unload_idle" in cycle
+        assert cycle["cancellation"]["exact_prefix_match"]
+        assert cycle["cancellation"]["generated_ids"] == cycle["cancellation"]["expected_prefix"]
+        assert len(cycle["cancellation"]["generated_ids"]) == 3
     wait_clean(workers, loaded=False)
     observations = [
         json.loads(r) for r in (root / "output.observations.jsonl").read_text().splitlines()
@@ -166,7 +169,12 @@ def test_cpu_rehearsal_rejects_bad_evidence_before_loading(rehearsal, fault):
         reload_soak.main()
     wait_clean(workers, loaded=False)
     if fault != "workload":
-        assert not json.loads((root / "output.json").read_text())["completed"]
+        report = json.loads((root / "output.json").read_text())
+        assert not report["completed"]
+        # Rejected before any stage load: no cycle reached its after-load snapshot.
+        assert report["cycles"] and all("after_load" not in c for c in report["cycles"])
+        observations = (root / "output.observations.jsonl").read_text().splitlines()
+        assert "after-load" not in {json.loads(r)["phase"] for r in observations}
 
 
 @pytest.mark.parametrize("fault", ["tokens", "worker-loss"])

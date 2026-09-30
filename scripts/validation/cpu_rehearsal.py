@@ -12,6 +12,10 @@ from pathlib import Path
 
 from scripts.validation import resource_guard
 
+# Reported to CTest through SKIP_RETURN_CODE: the guard refused to start, so the
+# rehearsal neither passed nor failed. Any other failure keeps a failing status.
+SKIPPED = 77
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -47,6 +51,10 @@ def main() -> int:
                 str(run / "junit.xml"),
             ]
         )
+    except resource_guard.PreflightRefused as error:
+        result = SKIPPED
+        report["skipped"] = f"resource guard refused to start: {error}"
+        print(report["skipped"], file=sys.stderr)
     except Exception as error:
         result = 125
         report["error"] = f"{type(error).__name__}: {error}"
