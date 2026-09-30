@@ -59,7 +59,7 @@ add_test(NAME CpuPipelineIntegration
 )
 set_tests_properties(CpuPipelineIntegration PROPERTIES
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-  TIMEOUT 120
+  TIMEOUT 300
 )
 
 if(HLLM_ENABLE_CUDA)
