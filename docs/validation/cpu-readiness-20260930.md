@@ -18,8 +18,9 @@ fresh two-host 4B qualification is still pending GPU availability.
   and a separate report scope. Default F16 qualification is unchanged. The same CPU
   implementation supplies rehearsal tokens; these are not an independent oracle.
 - Added a reusable 180-second guarded runner and `CpuReloadRehearsal` CTest entry.
-  Each invocation preserves a fresh evidence directory. Preflight exceptions now
-  also produce a machine-readable failure result with exit code 125.
+  Each invocation preserves a fresh evidence directory. A resource-guard refusal
+  to start exits 77, which the CTest entry declares as a skip; any other preflight
+  or wrapper exception produces a machine-readable failure result with exit code 125.
 - Added a [concurrency-two design](../concurrency-qualification.md) covering shared
   weights, independent KV reservations, per-worker overlap, combined physical fit,
   cancellation and immutable evidence. No concurrency-two implementation or capacity
@@ -66,15 +67,37 @@ harness, and documentation/evidence commits on `codex/4b-qualification`.
 
 The [initial hosted CI run](https://github.com/anthonylu23/hLLM/actions/runs/36670443273)
 passed Python checks; the native dependency/build/test job was still running when
-this report was written. Do not treat an in-progress job as passed. The isolated
-Fedora result from September 28 remains historical evidence for that recipe.
+this report was first written. The isolated Fedora result from September 28 remains
+historical evidence for that recipe.
+
+**Hosted results (completed later on September 30).** Both hosted runs finished red
+on one test. On `codex/cpu-ci` the native job passed 77 of 78 CTest entries; on this
+branch's head (`6b06e1e`, [run 36671209116](https://github.com/anthonylu23/hLLM/actions/runs/36671209116))
+it passed 80 of 81, including **`CpuReloadRehearsal` in 22.07 seconds**, which is the
+hosted execution of the default-mode/F32 rejection assertions. The single failure in
+both runs was `CpuPipelineIntegration`: `test_module_cli_registers_serve` compared
+`serve --help` text that Typer renders with terminal escape codes under
+`GITHUB_ACTIONS`. The native dependency build took about 48 of the job's 52 minutes
+and its cache was never saved because the job failed. These are fixed in the stacked
+CI PR [#19](https://github.com/anthonylu23/hLLM/pull/19) (escape-free comparison,
+cache saved after the dependency build, pull-request-only branch triggers, 90-minute
+job and 300-second CTest budgets).
+
+**Hardening after review.** The stacked hardening branch adds: frozen sweeps record
+the bundle's explicit MLX fit policies and refuse an executor or probe that applied a
+different one; explicit policies are rejected on CPU/CUDA workers; `profile-memory`
+prints the applied policy and fallback notes; the cancellation probe keeps its
+observed prefix in failed reports; a guard refusal is a CTest skip rather than a
+failure; and historical-evidence tests replay the fit formula instead of passing
+vacuously. See the [footprint policy notes](footprint-policy.md).
 
 ## Next steps
 
-1. Finish hosted Ubuntu checks and resolve any failures before merging CI.
+1. Land the stacked CI fixes ([PR #19](https://github.com/anthonylu23/hLLM/pull/19))
+   and confirm a green hosted run with a populated native dependency cache.
 2. Review the qualification draft separately; preserve its conservative default.
-3. Run the CPU rehearsal's final revision when pressure is normal, or use its hosted
-   CTest result. Do not repeatedly retry unchanged local resource conditions.
+3. Use the hosted `CpuReloadRehearsal` result as the rehearsal evidence; rerun locally
+   only when Mac pressure is normal. A guard refusal now reports as a skip.
 4. When both hosts have capacity, refresh the profiles and run the six-cycle baseline
    serving soak in the [overnight backlog](../overnight-backlog.md). September 28
    profiles are historical and exceed the 24-hour freshness limit.

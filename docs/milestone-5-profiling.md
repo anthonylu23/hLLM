@@ -174,6 +174,18 @@ retain the conservative default and historical bundle serialization. New fit fie
 are optional when reading historical fit reports. Changing policy requires resealing
 the bundle/replanning or freezing a new sweep; do not edit frozen identities in place.
 
+Policy consistency is enforced along the sweep path. `freeze-sweep` records the
+bundle's explicit per-worker policies in the frozen sweep (`mlx_fit_policies`, omitted
+when every worker is conservative, so historical sweep digests are unchanged) and
+refuses an executor whose worker policies differ; `NativeExecutor` repeats that check
+and also verifies that each probe's recorded `requested_mlx_policy` matches the worker
+before re-assessing its evidence. Sweep summaries state the bound policies in
+`memory_basis`, so predicted and observed envelopes are never compared across
+formulas. An explicit policy on a CPU or CUDA worker binding, native worker or memory
+exclusion is rejected rather than silently changing digests while being ignored.
+`profile-memory` prints the applied policy, the requested MLX policy and any fallback
+notes alongside the status.
+
 Tiny native CPU/MLX checks cover the implementation; no new full-checkpoint fit,
 larger-context, reverse-order or concurrency qualification is claimed yet.
 

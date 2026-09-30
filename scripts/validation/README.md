@@ -11,8 +11,11 @@ the ordered 4B work and current machine-specific paths.
 It records system availability, new swap-outs and Mac pressure every approximately
 two seconds. It stops on less than 1 GiB available, more than 256 MiB new swap-out
 over a 60-second window, 16 seconds of non-normal Mac pressure, sampling failure,
-or its time limit. Startup also rejects non-normal Mac pressure. TERM, INT and HUP
-retire the owned group. Every log is exclusive: existing evidence is never replaced.
+or its time limit. Startup also rejects non-normal Mac pressure, raising
+`PreflightRefused` before anything is spawned. TERM, INT and HUP retire the owned
+group; a leader that outlives SIGKILL does not suppress the final `exit` record.
+Exit status is 124 when a stop condition ended the run, otherwise the child's status.
+Every log is exclusive: existing evidence is never replaced.
 
 ```bash
 cc -O2 -Wall -Wextra -Werror scripts/validation/process_footprint.c -o build/process-footprint
@@ -118,7 +121,9 @@ runs are separate. The dependency configure explicitly sets a CMake 3.5 policy
 floor because the pinned c-ares submodule otherwise fails with CMake 4.
 The [September 28 Linux run](../../docs/validation/qwen3-4b-fit-20260928.md) built
 these dependencies from source and passed all 80 CPU CTest entries. Hosted Actions
-remains a separate check; the native job permits 60 minutes for a cold build.
+first ran on September 30 (see the [readiness report](../../docs/validation/cpu-readiness-20260930.md));
+the native job permits 90 minutes for a cold build and saves the dependency cache
+as soon as that build succeeds.
 Sources for the workflow setup are the official
 [setup-uv instructions](https://github.com/astral-sh/setup-uv) and
 [gRPC build instructions](https://github.com/grpc/grpc/blob/master/BUILDING.md).
@@ -139,7 +144,10 @@ log, JUnit results and pytest artifacts (profiles, plans, tokens, worker logs,
 soak reports and observations). The 180-second guard owns the pytest process group
 and both tiny CPU workers; fixture teardown closes workers on ordinary failures.
 The guard enforces the same availability, swap and pressure limits as other runs.
-This is a serial, tiny-model procedure test, not a 4B memory benchmark.
+If it refuses to start, the wrapper exits 77 and CTest reports the entry as skipped
+(`SKIP_RETURN_CODE 77`); any other wrapper failure exits 125 and fails. Both write
+`result.json` with the reason. This is a serial, tiny-model procedure test, not a
+4B memory benchmark.
 
 The harness's explicit `--cpu-rehearsal` mode requires uniform F32, CPU profiles
 and a reference labeled `producer.purpose="cpu-rehearsal"`. Reports carry
@@ -147,8 +155,9 @@ and a reference labeled `producer.purpose="cpu-rehearsal"`. Reports carry
 and is not an independent numerical oracle. The default harness still requires
 F16 and retains the existing qualification checks. Fault tests cover stale/future
 profiles, changed binary/cap/workload, token mismatch and a lost worker. Partial
-request tokens and per-worker cleanup observations remain in failed reports;
-an unreachable worker is not reported as cleaned up.
+request tokens, the cancellation probe's expected and observed prefix, and per-worker
+cleanup observations remain in failed reports; an unreachable worker is not reported
+as cleaned up.
 
 Concurrency-two evidence is a separate [design](../../docs/concurrency-qualification.md),
 not a relaxation of the current concurrency-one profile format.
