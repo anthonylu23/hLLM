@@ -89,7 +89,12 @@ different one; explicit policies are rejected on CPU/CUDA workers; `profile-memo
 prints the applied policy and fallback notes; the cancellation probe keeps its
 observed prefix in failed reports; a guard refusal is a CTest skip rather than a
 failure; and historical-evidence tests replay the fit formula instead of passing
-vacuously. See the [footprint policy notes](footprint-policy.md).
+vacuously. See the [footprint policy notes](footprint-policy.md). The first hosted
+run of that branch failed its new native assertion that the RSS lifetime peak covers
+the current RSS: on the Ubuntu runner `ru_maxrss` trailed `/proc/self/statm` by 16 to
+36 pages (both are approximate per-CPU counters). The observer now folds the current
+value and earlier reported peaks into the reported peak, so the coherence rule the
+footprint policy relies on holds by construction on every platform.
 
 ## Next steps
 

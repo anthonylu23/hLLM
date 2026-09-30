@@ -80,7 +80,11 @@ Memory artifacts with native process observations use schema **1.3**, profiler
 validate with their original hashes; missing observations are not backfilled.
 Every phase records `process_memory` immediately after reading allocator counters:
 PID, `observed_at_unix_ns`, RSS, RSS lifetime peak, physical footprint and physical
-footprint lifetime peak. The legacy RSS fields use that same observation.
+footprint lifetime peak. The legacy RSS fields use that same observation. The reported
+RSS lifetime peak is the maximum of `ru_maxrss`, the current RSS in the same
+observation and the peaks this process reported earlier: Linux reads both counters
+through approximate per-CPU accounting, so a raw `ru_maxrss` can trail the current
+RSS by a few pages, which would otherwise fail the coherence rules below.
 
 On macOS, `proc_pid_rusage(RUSAGE_INFO_V4)` supplies resident size and physical
 footprint, including OS-accounted compressed memory. `getrusage` supplies RSS high
