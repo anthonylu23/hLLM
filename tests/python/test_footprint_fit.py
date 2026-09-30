@@ -162,12 +162,42 @@ def test_policy_does_not_change_other_backends(key: ProfileKey, backend: Backend
     )
 
 
-def test_historical_fit_reports_still_round_trip() -> None:
+HISTORICAL = Path(__file__).parents[2] / "docs/validation/milestone-5-memory"
+
+
+def test_historical_fit_reports_still_round_trip_and_replay() -> None:
     import json
 
-    for path in Path("docs/validation/milestone-5-memory").glob("*.fit.json"):
-        saved = json.loads(path.read_text())["assessment"]
+    reports = sorted(HISTORICAL.glob("*.fit.json"))
+    assert len(reports) == 4, "historical fit reports missing; this test must not pass vacuously"
+    for path in reports:
+        report = json.loads(path.read_text())
+        saved = report["assessment"]
         assert FitResult.model_validate(saved).model_dump(mode="json") == saved
+        artifact = ProfileArtifact.model_validate_json(
+            path.with_name(path.name.removesuffix(".fit.json") + ".json").read_text()
+        )
+        assert artifact.artifact_digest == report["profile_digest"]
+        assert isinstance(artifact.measurement, MemoryMeasurement)
+        host = PhysicalBudget.model_validate(report["host_budget"])
+        device = (
+            PhysicalBudget.model_validate(report["device_budget"])
+            if report["device_budget"]
+            else None
+        )
+        for policy in MlxFitPolicy:
+            # The default formula reproduces the saved decision exactly; requesting the
+            # footprint policy on legacy evidence falls back to the same decision.
+            replayed = assess_fit(
+                artifact, artifact.measurement.admission_capacity, host, device, mlx_policy=policy
+            )
+            assert (
+                replayed.status,
+                replayed.host_envelope_bytes,
+                replayed.device_envelope_bytes,
+            ) == (saved["status"], saved["host_envelope_bytes"], saved["device_envelope_bytes"])
+            if policy == MlxFitPolicy.FOOTPRINT and artifact.key.environment.backend == Backend.MLX:
+                assert replayed.policy == "mlx-rss-plus-allocator-v1" and replayed.policy_notes
 
 
 def test_policy_is_hashed_and_changes_mlx_placement_and_fresh_activation(

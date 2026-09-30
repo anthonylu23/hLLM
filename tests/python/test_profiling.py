@@ -345,7 +345,9 @@ def test_process_observations_are_sealed_but_do_not_change_fit(
 def test_historical_memory_artifacts_retain_digests() -> None:
     import json
 
-    for path in Path("docs/validation/milestone-5-memory").glob("*.json"):
+    historical = Path(__file__).parents[2] / "docs/validation/milestone-5-memory"
+    checked = 0
+    for path in historical.glob("*.json"):
         saved = json.loads(path.read_text())
         if "artifact_digest" not in saved:
             continue
@@ -353,6 +355,8 @@ def test_historical_memory_artifacts_retain_digests() -> None:
         assert parsed.model_dump(mode="json") == saved
         assert isinstance(parsed.measurement, MemoryMeasurement)
         assert all(s.process_memory is None for s in parsed.measurement.samples)
+        checked += 1
+    assert checked == 4, "historical memory artifacts missing; this test must not pass vacuously"
 
 
 def test_preflight_refuses_to_start_and_saves_report(tmp_path: Path, monkeypatch) -> None:

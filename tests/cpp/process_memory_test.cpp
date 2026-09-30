@@ -27,6 +27,10 @@ TEST(ProcessMemoryTest, ObservesResidentPagesAndPreservesLifetimePeaks) {
   ASSERT_TRUE(loaded.rss_lifetime_peak_bytes);
   ASSERT_TRUE(released.rss_lifetime_peak_bytes);
   EXPECT_GT(*loaded.rss_bytes, *before.rss_bytes);
+  // The lifetime peak must come from the same unit/source as the current value: the
+  // Python footprint policy rejects any sample whose peak is below its current RSS.
+  EXPECT_GE(*before.rss_lifetime_peak_bytes, *before.rss_bytes);
+  EXPECT_GE(*loaded.rss_lifetime_peak_bytes, *loaded.rss_bytes);
   EXPECT_GE(*released.rss_lifetime_peak_bytes, *loaded.rss_lifetime_peak_bytes);
   EXPECT_GE(*loaded.rss_lifetime_peak_bytes, *before.rss_lifetime_peak_bytes);
 #ifdef __APPLE__
