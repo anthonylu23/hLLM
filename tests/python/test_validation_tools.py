@@ -6,7 +6,9 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock
 
-from scripts.validation import memory_watch
+import pytest
+
+from scripts.validation import memory_watch, resource_guard
 from scripts.validation.redact_report import redact
 
 
@@ -77,3 +79,231 @@ def test_sampler_tolerates_process_exit_before_status_read(tmp_path, monkeypatch
     monkeypatch.setattr(Path, "read_text", disappearing_status)
     memory_watch.main()
     assert json.loads(output.read_text())["rss_bytes"] == 1000 * 1024
+
+
+def test_memory_guard_enforces_pressure_availability_and_swap_window():
+    guard = resource_guard.MemoryGuard(100, 256, 16)
+    assert guard.check(0, dict(available_bytes=1000, swapout_bytes=0, pressure=2)) is None
+    assert guard.check(15, dict(available_bytes=1000, swapout_bytes=0, pressure=2)) is None
+    assert "pressure" in str(
+        guard.check(16, dict(available_bytes=1000, swapout_bytes=0, pressure=2))
+    )
+    assert guard.check(17, dict(available_bytes=1000, swapout_bytes=0, pressure=1)) is None
+    assert guard.check(18, dict(available_bytes=1000, swapout_bytes=0, pressure=2)) is None
+    assert "floor" in str(guard.check(19, dict(available_bytes=99, swapout_bytes=0)))
+    # A burst straddling the 60-second boundary must not disappear when pruning.
+    guard = resource_guard.MemoryGuard(100, 256, 16)
+    assert guard.check(0, dict(available_bytes=1000, swapout_bytes=0)) is None
+    assert guard.check(59, dict(available_bytes=1000, swapout_bytes=200)) is None
+    assert "swap-out" in str(guard.check(61, dict(available_bytes=1000, swapout_bytes=300)))
+
+
+def test_guard_does_not_spawn_when_evidence_would_be_overwritten(tmp_path, monkeypatch):
+    import pytest
+
+    output = tmp_path / "guard.jsonl"
+    output.write_text("original evidence")
+    monkeypatch.setattr(sys, "argv", ["guard", "--record", str(output), "--", sys.executable])
+    spawn = Mock()
+    monkeypatch.setattr(resource_guard.subprocess, "Popen", spawn)
+    with pytest.raises(FileExistsError):
+        resource_guard.main()
+    spawn.assert_not_called()
+    assert output.read_text() == "original evidence"
+
+
+def test_guard_timeout_reaps_owned_child(tmp_path, monkeypatch):
+    import os
+
+    import pytest
+
+    output = tmp_path / "guard.jsonl"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "guard",
+            "--record",
+            str(output),
+            "--seconds",
+            "0.1",
+            "--",
+            sys.executable,
+            "-c",
+            "import time; time.sleep(60)",
+        ],
+    )
+    monkeypatch.setattr(
+        resource_guard,
+        "system_memory",
+        lambda: dict(available_bytes=4 * 1024**3, swapout_bytes=0, pressure=1),
+    )
+    assert resource_guard.main() == 124
+    rows = [json.loads(line) for line in output.read_text().splitlines()]
+    assert rows[-1]["reason"] == "experiment time limit"
+    with pytest.raises(ProcessLookupError):
+        os.kill(rows[1]["pid"], 0)
+
+
+def test_guard_sampling_failure_reaps_owned_child(tmp_path, monkeypatch):
+    import os
+
+    import pytest
+
+    output = tmp_path / "guard.jsonl"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "guard",
+            "--record",
+            str(output),
+            "--",
+            sys.executable,
+            "-c",
+            "import time; time.sleep(60)",
+        ],
+    )
+    monkeypatch.setattr(
+        resource_guard,
+        "system_memory",
+        Mock(
+            side_effect=[
+                dict(available_bytes=4 * 1024**3, swapout_bytes=0, pressure=1),
+                RuntimeError("sampler unavailable"),
+            ]
+        ),
+    )
+    with pytest.raises(RuntimeError, match="sampler unavailable"):
+        resource_guard.main()
+    rows = [json.loads(line) for line in output.read_text().splitlines()]
+    assert "sampler unavailable" in rows[-1]["reason"]
+    with pytest.raises(ProcessLookupError):
+        os.kill(rows[1]["pid"], 0)
+
+
+@pytest.mark.parametrize("defect", ["config", "shard", "digest", "token", "producer", "capacity"])
+def test_reload_harness_rejects_mismatched_reference_before_execution(tmp_path, defect):
+    from hllm_control.prepare.manifest import HashMode, prepare_model
+    from hllm_control.profiling.models import digest
+
+    from scripts.validation.reload_soak import reference_tokens
+    from tests.process_helpers import write_model
+
+    write_model(tmp_path)
+    manifest = prepare_model(tmp_path, hash_mode=HashMode.FULL)
+    files = {
+        "config.json": manifest.source.config_sha256,
+        **{f.name: f.sha256 for f in manifest.tensor_files},
+    }
+    reference: dict = dict(
+        checkpoint_files=files,
+        checkpoint_digest=digest(files),
+        producer=dict(dtype="f16", attention="eager", tf32=False),
+        long_generation=dict(token_ids=[1, 2], generated_ids=[3, 4, 5, 6]),
+    )
+    assert reference_tokens(reference, manifest) == ([1, 2], [3, 4, 5, 6])
+    if defect == "config":
+        files["config.json"] = "a" * 64
+    elif defect == "shard":
+        files[manifest.tensor_files[0].name] = "a" * 64
+    elif defect == "digest":
+        reference["checkpoint_digest"] = "a" * 64
+    elif defect == "token":
+        reference["long_generation"]["token_ids"] = [True]
+    elif defect == "producer":
+        reference["producer"]["tf32"] = True
+    else:
+        reference["long_generation"]["token_ids"] = [1] * manifest.config.maximum_sequence_length
+    with pytest.raises(ValueError):
+        reference_tokens(reference, manifest)
+
+
+@pytest.mark.parametrize("interruption", ["SIGTERM", "SIGINT", "SIGHUP", "leader-exit"])
+def test_guard_retires_process_tree_on_interruption(tmp_path, interruption):
+    import os
+    import signal
+    import time
+
+    pidfile = tmp_path / "descendant.pid"
+    leader = tmp_path / "leader.py"
+    # The descendant deliberately ignores TERM. The guard must kill the whole
+    # process group even if the leader exits first.
+    leader.write_text(
+        "import subprocess, sys, time\n"
+        "child = subprocess.Popen([sys.executable, '-c', "
+        "'import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(60)'])\n"
+        f"open({str(pidfile)!r}, 'w').write(str(child.pid))\n"
+        + ("time.sleep(0.3)\n" if interruption == "leader-exit" else "time.sleep(60)\n")
+    )
+    record = tmp_path / "guard.jsonl"
+    # Fixed resources isolate signal behavior from the developer machine's load.
+    code = (
+        "from scripts.validation import resource_guard as g; "
+        "g.system_memory=lambda:dict(available_bytes=4*1024**3,swapout_bytes=0,pressure=1); "
+        "raise SystemExit(g.main())"
+    )
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            code,
+            "--record",
+            str(record),
+            "--seconds",
+            "10",
+            "--",
+            sys.executable,
+            str(leader),
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    descendant = None
+    try:
+        until = time.monotonic() + 5
+        while not pidfile.exists() or not pidfile.read_text():
+            assert time.monotonic() < until and process.poll() is None
+            time.sleep(0.02)
+        descendant = int(pidfile.read_text())
+        if interruption != "leader-exit":
+            process.send_signal(getattr(signal, interruption))
+        _, stderr = process.communicate(timeout=15)
+        assert process.returncode == (0 if interruption == "leader-exit" else 124), stderr
+        rows = [json.loads(line) for line in record.read_text().splitlines()]
+        assert rows[-1]["event"] == "exit"
+        if interruption != "leader-exit":
+            assert "received signal" in rows[-1]["reason"]
+        until = time.monotonic() + 3
+        while True:
+            status = subprocess.run(
+                ["ps", "-o", "stat=", "-p", str(descendant)], capture_output=True, text=True
+            ).stdout.strip()
+            # An orphan zombie cannot execute; its reaping belongs to the host init.
+            if not status or status.startswith("Z"):
+                break
+            assert time.monotonic() < until, status
+            time.sleep(0.02)
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.communicate(timeout=15)
+        if descendant is not None:
+            try:
+                os.kill(descendant, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+
+
+def test_cpu_rehearsal_records_guard_preflight_rejection(tmp_path, monkeypatch):
+    from scripts.validation import cpu_rehearsal
+
+    monkeypatch.setenv("HLLM_CPU_WORKER", sys.executable)
+    monkeypatch.setenv("HLLM_MEMORY_PROFILER", sys.executable)
+    monkeypatch.setattr(sys, "argv", ["rehearsal", "--output-root", str(tmp_path)])
+    guard = Mock(side_effect=RuntimeError("Mac pressure is already non-normal"))
+    monkeypatch.setattr(cpu_rehearsal.resource_guard, "main", guard)
+    assert cpu_rehearsal.main() == 125
+    report = json.loads(next(tmp_path.glob("*/result.json")).read_text())
+    assert report["exit_code"] == 125 and report["scope"] == "cpu-rehearsal"
+    assert not report["accelerator_qualified"] and "pressure" in report["error"]

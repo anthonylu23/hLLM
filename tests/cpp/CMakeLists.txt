@@ -192,3 +192,11 @@ foreach(backend IN ITEMS mlx cuda)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180 LABELS "${backend};hardware")
   endif()
 endforeach()
+
+add_test(NAME CpuReloadRehearsal
+  COMMAND ${CMAKE_COMMAND} -E env
+    HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+    HLLM_MEMORY_PROFILER=$<TARGET_FILE:hllm-profile-memory-cpu>
+    ${HLLM_UV_EXECUTABLE} run python -m scripts.validation.cpu_rehearsal)
+set_tests_properties(CpuReloadRehearsal PROPERTIES
+  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 210)
