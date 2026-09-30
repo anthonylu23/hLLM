@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # ruff: noqa: F811 -- imported pytest fixture name
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
@@ -28,6 +29,7 @@ from hllm_control.profiling.memory import PhysicalBudget
 from hllm_control.profiling.models import (
     ComputeRunMeasurement,
     MemoryAmounts,
+    MemoryMeasurement,
     ProfileKey,
     TimingRecord,
     digest,
@@ -40,22 +42,34 @@ from tests.python.test_link_profiling import artifact as link_fixture
 from tests.python.test_profiling import conditions, key, memory  # noqa: F401 -- pytest fixture
 
 
-def bundle_fixture(path: Path, key: ProfileKey):
+def bundle_fixture(
+    path: Path,
+    key: ProfileKey,
+    *,
+    backend: Backend = Backend.CPU,
+    memory_measurement: Callable[[ProfileKey], MemoryMeasurement] = memory,
+    host: PhysicalBudget | None = None,
+):
     manifest = write_model(path / "four", family="llama")
     w = key.workload
     now = conditions().measured_at
-    env = key.environment
-    capacity = MemoryAmounts(host=10000000, device=1000)
+    env = key.environment.model_copy(update={"backend": backend})
+    domain = MemoryDomain.UNIFIED if backend == Backend.MLX else MemoryDomain.HOST
+    capacity = (
+        MemoryAmounts(unified=10000000)
+        if backend == Backend.MLX
+        else MemoryAmounts(host=10000000, device=1000)
+    )
     workers = tuple(
         WorkerEvidence(
             worker=WorkerProfile(
                 worker_id=name,
                 endpoint=name + ":1",
-                backend=Backend.CPU,
-                primary_memory_domain=MemoryDomain.HOST,
+                backend=backend,
+                primary_memory_domain=domain,
                 supported_architectures=(manifest.architecture.architecture_id,),
                 supported_execution_dtypes=(DType.F32,),
-                memory_budgets=(MemoryBudget(domain=MemoryDomain.HOST, capacity_bytes=10000000),),
+                memory_budgets=(MemoryBudget(domain=domain, capacity_bytes=10000000),),
             ),
             memory_environment=env,
             compute_environment=env,
@@ -63,7 +77,8 @@ def bundle_fixture(path: Path, key: ProfileKey):
             runtime_device_identity="host",
             runtime_driver_version="not-applicable",
             admission_capacity=capacity,
-            host=PhysicalBudget(
+            host=host
+            or PhysicalBudget(
                 available_bytes=10000000, headroom_bytes=100, extra_overhead_bytes=100
             ),
             observed_at=now,
@@ -76,13 +91,17 @@ def bundle_fixture(path: Path, key: ProfileKey):
         for split in range(1, manifest.config.num_layers):
             for a in assignments_for(first, final, split, manifest.config.num_layers):
                 k = key.model_copy(
-                    update={"assignment": a, "manifest_digest": manifest.manifest_digest}
+                    update={
+                        "assignment": a,
+                        "manifest_digest": manifest.manifest_digest,
+                        "environment": env,
+                    }
                 )
                 profiles.append(
                     make_artifact(
                         k,
                         conditions(),
-                        memory(k).model_copy(update={"admission_capacity": capacity}),
+                        memory_measurement(k).model_copy(update={"admission_capacity": capacity}),
                     )
                 )
                 records = []
@@ -100,6 +119,8 @@ def bundle_fixture(path: Path, key: ProfileKey):
                                 ("embedding" if a.owns_token_embedding else "from-wire", None, 0)
                             ]
                             names += [("layer", i, 0) for i in range(a.layer_start, a.layer_end)]
+                            if backend != Backend.CPU:
+                                names.append(("validation", None, 0))
                             names += [
                                 (c, None, 0)
                                 for c in (

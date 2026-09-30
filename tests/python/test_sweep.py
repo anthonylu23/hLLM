@@ -26,7 +26,9 @@ from tests.python.test_measured_planner import bundle_fixture, report_for
 from tests.python.test_profiling import key  # noqa: F401
 
 
-def sweep_fixture(path: Path, key: ProfileKey):
+def sweep_fixture(
+    path: Path, key: ProfileKey, *, executor_digest: str = "b" * 64, mlx_fit_policies=None
+):
     manifest, bundle = bundle_fixture(path, key)
     report = report_for(manifest, bundle)
     assert report.plan
@@ -46,7 +48,8 @@ def sweep_fixture(path: Path, key: ProfileKey):
             selected_plan=report.plan,
             planning_report_digest=digest(report),
             profile_bundle_digest=bundle.bundle_digest,
-            executor_digest="b" * 64,
+            executor_digest=executor_digest,
+            mlx_fit_policies=mlx_fit_policies or {},
             concurrent_load="idle",
         ),
         path / "sweep",

@@ -385,10 +385,11 @@ def freeze_sweep_command(
     output: Annotated[Path, typer.Option("--output")],
 ) -> None:
     """Bind automatic selection to an independent checkpoint reference before sweeping."""
+    from hllm_control.profiling.memory import MlxFitPolicy
     from hllm_control.profiling.models import digest
     from hllm_control.profiling.runner import write_exclusive
     from hllm_control.qualification.native import NativeExecutor
-    from hllm_control.qualification.sweep import Reference, SweepContent
+    from hllm_control.qualification.sweep import Reference, SweepContent, verify_fit_policies
     from hllm_control.serialization import sha256_file
 
     report = read_artifact(report_path, PlanningReport)
@@ -417,11 +418,20 @@ def freeze_sweep_command(
         planning_report_digest=digest(report),
         profile_bundle_digest=bundle.bundle_digest,
         executor_digest=executor.identity(),
+        mlx_fit_policies={
+            w.worker.worker_id: w.mlx_fit_policy
+            for w in bundle.workers
+            if w.mlx_fit_policy != MlxFitPolicy.CONSERVATIVE
+        },
         concurrent_load=bundle.concurrent_load,
         predictions={
             c.candidate_id: c.performance for c in report.candidates if c.performance is not None
         },
     )
+    try:
+        verify_fit_policies(content, {w.worker_id: w.mlx_fit_policy for w in executor.workers})
+    except ValueError as error:
+        raise typer.BadParameter(str(error)) from error
     write_exclusive(output, content.model_dump(mode="json"))
     typer.echo(f"Frozen selection inputs: {output}")
 
