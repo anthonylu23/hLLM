@@ -7,6 +7,8 @@
 #include <mach/mach.h>
 #endif
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <fstream>
 #include <limits>
@@ -56,6 +58,18 @@ ProcessMemoryObservation observe_process_memory() {
     constexpr auto unit = 1024U;
 #endif
     result.rss_lifetime_peak_bytes = bytes(static_cast<std::uint64_t>(usage.ru_maxrss), unit);
+  }
+  // Consumers require every lifetime peak to cover its adjacent current value and to
+  // never decrease. Linux reads both through approximate per-CPU RSS counters, so
+  // ru_maxrss can trail /proc/self/statm by a few pages; fold the current value and
+  // this process's previously reported peak into the reported peak.
+  static std::atomic<std::uint64_t> reported_peak{0U};
+  if (result.rss_lifetime_peak_bytes) {
+    const auto peak = std::max(*result.rss_lifetime_peak_bytes, result.rss_bytes.value_or(0U));
+    auto previous = reported_peak.load();
+    while (previous < peak && !reported_peak.compare_exchange_weak(previous, peak)) {
+    }
+    result.rss_lifetime_peak_bytes = std::max(peak, previous);
   }
   return result;
 }

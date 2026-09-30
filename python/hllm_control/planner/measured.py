@@ -11,6 +11,7 @@ from typing import Annotated, Literal, Self
 from pydantic import AwareDatetime, Field, PrivateAttr, model_validator
 
 from hllm_control.models import (
+    Backend,
     DType,
     ModelManifest,
     PerformanceEstimate,
@@ -69,6 +70,8 @@ class WorkerEvidence(ProfileModel):
                 raise ValueError("memory/compute device environment mismatch: " + field)
         if self.worker.backend != self.compute_environment.backend:
             raise ValueError("worker/backend environment mismatch")
+        if self.mlx_fit_policy != MlxFitPolicy.CONSERVATIVE and self.worker.backend != Backend.MLX:
+            raise ValueError("mlx_fit_policy applies to MLX workers only")
         return self
 
 

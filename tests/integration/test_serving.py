@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -174,7 +175,10 @@ def test_module_cli_registers_serve() -> None:
         text=True,
     )
     assert result.returncode == 0, result.stderr
-    assert "tokenizer-root" in result.stdout
+    # Typer forces terminal styling when GITHUB_ACTIONS or FORCE_COLOR is set, which
+    # splits option names with escape sequences; compare the plain text.
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
+    assert "--tokenizer-root" in plain
 
 
 def test_native_concurrency_cancellation_and_recovery(tmp_path: Path) -> None:

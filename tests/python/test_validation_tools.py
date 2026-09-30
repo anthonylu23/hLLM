@@ -295,15 +295,56 @@ def test_guard_retires_process_tree_on_interruption(tmp_path, interruption):
                 pass
 
 
-def test_cpu_rehearsal_records_guard_preflight_rejection(tmp_path, monkeypatch):
+@pytest.mark.parametrize("refused", [True, False])
+def test_cpu_rehearsal_records_guard_preflight_rejection(tmp_path, monkeypatch, refused):
     from scripts.validation import cpu_rehearsal
 
     monkeypatch.setenv("HLLM_CPU_WORKER", sys.executable)
     monkeypatch.setenv("HLLM_MEMORY_PROFILER", sys.executable)
     monkeypatch.setattr(sys, "argv", ["rehearsal", "--output-root", str(tmp_path)])
-    guard = Mock(side_effect=RuntimeError("Mac pressure is already non-normal"))
-    monkeypatch.setattr(cpu_rehearsal.resource_guard, "main", guard)
-    assert cpu_rehearsal.main() == 125
+    error = (resource_guard.PreflightRefused if refused else RuntimeError)(
+        "Mac pressure is already non-normal"
+    )
+    monkeypatch.setattr(cpu_rehearsal.resource_guard, "main", Mock(side_effect=error))
+    # Only a guard refusal maps to the CTest skip code; other failures stay failures.
+    code = cpu_rehearsal.SKIPPED if refused else 125
+    assert code == (77 if refused else 125)
+    assert cpu_rehearsal.main() == code
     report = json.loads(next(tmp_path.glob("*/result.json")).read_text())
-    assert report["exit_code"] == 125 and report["scope"] == "cpu-rehearsal"
-    assert not report["accelerator_qualified"] and "pressure" in report["error"]
+    assert report["exit_code"] == code and report["scope"] == "cpu-rehearsal"
+    assert not report["accelerator_qualified"]
+    assert "pressure" in report["skipped" if refused else "error"]
+    assert ("error" in report) != refused
+
+
+@pytest.mark.parametrize("condition", ["pressure", "availability"])
+def test_guard_preflight_refusal_records_reason_without_spawning(tmp_path, monkeypatch, condition):
+    output = tmp_path / "guard.jsonl"
+    monkeypatch.setattr(sys, "argv", ["guard", "--record", str(output), "--", sys.executable])
+    baseline = (
+        dict(available_bytes=4 * 1024**3, swapout_bytes=0, pressure=2)
+        if condition == "pressure"
+        else dict(available_bytes=1024**3 - 1, swapout_bytes=0, pressure=1)
+    )
+    monkeypatch.setattr(resource_guard, "system_memory", lambda: baseline)
+    spawn = Mock()
+    monkeypatch.setattr(resource_guard.subprocess, "Popen", spawn)
+    expected = "already non-normal" if condition == "pressure" else "below configured floor"
+    with pytest.raises(resource_guard.PreflightRefused, match=expected):
+        resource_guard.main()
+    spawn.assert_not_called()
+    rows = [json.loads(line) for line in output.read_text().splitlines()]
+    assert [r["event"] for r in rows] == ["preflight"]
+    assert (
+        expected in rows[0]["reason"] and rows[0]["available_bytes"] == baseline["available_bytes"]
+    )
+
+
+def test_stop_group_tolerates_an_unreapable_leader(monkeypatch):
+    import subprocess
+
+    monkeypatch.setattr(resource_guard.os, "killpg", Mock())
+    child = Mock(pid=12345)
+    child.wait.side_effect = subprocess.TimeoutExpired(cmd="leader", timeout=5)
+    resource_guard.stop_group(child)  # must not raise from the guard's finally block
+    assert child.wait.call_count == 2

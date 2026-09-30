@@ -13,12 +13,12 @@ fresh resource checks; GPU runtime checks and P1's CUDA profile are next.
 
 ## Handoff for the next Codex
 
-Continue on `codex/4b-qualification` in `/Users/anthony/Documents/Projects/hLLM`.
+Continue on `codex/4b-qualification` in the Mac checkout of this repository.
 Read the applicable `AGENTS.md`, this backlog and `scripts/validation/README.md`.
 Inspect all existing changes before editing; telemetry, prior 4B reports and the
 new policy/tooling are now grouped into review commits. Do not reset or overwrite that work.
-Use the computer-fleet skill for `anthonylu@anthonypc`; inspect the current remote
-checkout before syncing anything. Keep previous evidence immutable. The user authorized implementation, scoped commits and draft PR preparation on
+Reach the CUDA host over SSH (its address is kept in the operator's local notes,
+not in this repository); inspect the current remote checkout before syncing anything. Keep previous evidence immutable. The user authorized implementation, scoped commits and draft PR preparation on
 September 30. Do not merge or alter unrelated workloads without authorization.
 
 The new policy is **opt-in**. A fresh 4B Mac isolated profile passed; fresh two-host
@@ -36,7 +36,8 @@ the existing RSS-plus-allocator rule. Always report the actual policy used.
 - [x] Preserve reusable resource guards, process-footprint sampler and reload harness.
 - [x] Add plain Base-model tokenization and bounded oracle placement options to the
   existing reference tool; full 4B execution of these options remains pending.
-- [x] Add Python and Linux CPU CI workflow; hosted execution remains pending.
+- [x] Add Python and Linux CPU CI workflow; hosted execution completed September 30
+  (one help-text test failure, fixed in [PR #19](https://github.com/anthonylu23/hLLM/pull/19)).
 - [x] Run lightweight Python and native tiny-model checks. See the
   [implementation validation](validation/footprint-policy.md).
 
@@ -44,7 +45,8 @@ the existing RSS-plus-allocator rule. Always report the actual policy used.
 
 - [x] Review the existing telemetry, policy and tooling changes and package focused commits.
 - [x] Publish the independent CPU CI draft [PR #17](https://github.com/anthonylu23/hLLM/pull/17).
-  Hosted results are tracked in the [September 30 report](validation/cpu-readiness-20260930.md); a queued/building job is not a pass.
+  Hosted results are recorded in the [September 30 report](validation/cpu-readiness-20260930.md):
+  the rehearsal entry passed; the help-text assertion failed and is fixed in PR #19.
 - [x] Test TERM/INT/HUP and exited-leader process-group cleanup, including a descendant
   that ignores TERM. Keep timeout and sampling-failure tests.
 - [x] Add an explicit CPU/F32 harness rehearsal and register it with CTest under a
@@ -52,12 +54,17 @@ the existing RSS-plus-allocator rule. Always report the actual policy used.
   mismatched evidence; retain partial tokens and cleanup observations after worker loss.
 - [x] Write the [concurrency-two evidence design](concurrency-qualification.md).
   The concurrency-one profile restriction remains in force; new capacity is unqualified.
-- [ ] Complete hosted CI and review before merging independently scoped infrastructure.
+- [ ] Land the stacked CI fixes (PR #19), confirm a green hosted run with a saved
+  native dependency cache, then review before merging independently scoped infrastructure.
 - [ ] Resume P0–P2 with fresh profiles when both hosts meet resource gates. Do not
   reuse September 28 profiles past the freshness limit.
 
 Larger context, reverse order and concurrency two remain follow-up experiments;
 they are not prerequisites for reviewing the single-request policy implementation.
+Known low-priority caveat: `observed_at_unix_ns` is wall-clock time, so a backward
+clock step during a profile makes the footprint policy fall back to the conservative
+formula (recorded in `policy_notes`). Steady-clock or sample-index ordering would
+remove that dependency; the fallback direction is safe.
 
 ## Resource gates for every heavy step
 
@@ -88,7 +95,7 @@ the user's expected 11 GB free is not a substitute for a new check.
 
 - [x] Create a new exclusive evidence directory: `build/4b-fit-20260928-042730/`.
   The remote snapshot is in
-  `/home/anthonylu/Projects/experiments/hllm-4b-fit-20260928-042730/source`.
+  `~/Projects/experiments/hllm-4b-fit-20260928-042730/source` on the CUDA host.
 - [x] Capture base commit, dirty diff, hashes of all native/protocol/Python/tool
   sources and the exact worker/profiler binary hashes. Rebuild if sources changed.
   Keep the Python packages synchronized for cross-host helper execution; do not
@@ -107,22 +114,23 @@ the user's expected 11 GB free is not a substitute for a new check.
   runner or isolated Linux build when convenient. Workflow syntax alone is not a
   successful hosted CI run; this is independent of 4B capacity qualification.
   September 28: the isolated Fedora build/test recipe passed after adding the
-  CMake 4 compatibility setting for c-ares. The native CI timeout is now 60 minutes
-  to accommodate a cold dependency build. Hosted Actions still has not run.
+  CMake 4 compatibility setting for c-ares. September 30: hosted Actions ran; the
+  cold dependency build took about 48 minutes, so PR #19 raises the job budget to
+  90 minutes and saves the dependency cache right after that build.
 
 Known paths, to verify before use:
 
 | Artifact | Last known location |
 | --- | --- |
-| Mac checkout | `/Users/anthony/Documents/Projects/hLLM` |
+| Mac checkout | this repository's working tree on the Mac |
 | Mac model | `build/models/Qwen3-4B-Base` |
 | Mac worker/profiler | `build/native/m6-mlx/cpp/hllm-worker-mlx`, `hllm-profile-memory-mlx` |
 | Full manifest / 128-token independent oracle | `build/4b-qualification-20260918/manifest.json`, `reference-f16.json` |
 | Prior raw footprint evidence | `build/4b-footprint-20260923/` |
-| CUDA source/build | `/home/anthonylu/Projects/experiments/hllm-m6-serving`, `build/cuda/cpp/` |
-| Linux model | `/home/anthonylu/Projects/experiments/hllm-4b-20260918/model` |
-| Previous remote diagnostics | `/home/anthonylu/Projects/experiments/hllm-4b-footprint-20260923/` |
-| Previous Linux build/runtime environment | `/tmp/hllm-pr-review-env.sh` (inspect; may be stale) |
+| CUDA source/build (CUDA host) | `~/Projects/experiments/hllm-m6-serving`, `build/cuda/cpp/` |
+| Linux model (CUDA host) | `~/Projects/experiments/hllm-4b-20260918/model` |
+| Previous remote diagnostics (CUDA host) | `~/Projects/experiments/hllm-4b-footprint-20260923/` |
+| Previous Linux build/runtime environment | an env script under the CUDA host's `/tmp` (inspect; may be stale) |
 
 September 28 discovered that the original `build/cuda` memory-profiler executables
 predated the process-telemetry changes. The CUDA memory profiler at that path is
@@ -190,7 +198,7 @@ Omit the footprint helper around Python profiler commands; see the tools README.
 - [ ] Use bidirectional SSH forwarding if needed, after checking ports are unused:
   local MLX `127.0.0.1:50291`, CUDA `127.0.0.1:50293`, with
   `ssh -o ExitOnForwardFailure=yes -L 50293:127.0.0.1:50293
-  -R 50291:127.0.0.1:50291 -N anthonylu@anthonypc`. Record transport identity;
+  -R 50291:127.0.0.1:50291 -N <cuda-host>`. Record transport identity;
   this is not M5 WAN acceptance.
 - [ ] Construct `soak-workers.json` as in the tools README, using fresh profiles,
   independently checked executable digests and the reported runtime driver API.

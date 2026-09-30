@@ -48,6 +48,10 @@ def system_memory() -> dict[str, int]:
     )
 
 
+class PreflightRefused(RuntimeError):
+    """A stop condition already held before spawning; the command never ran."""
+
+
 class MemoryGuard:
     def __init__(self, minimum_available: int, maximum_swapout: int, pressure_seconds: float):
         self.minimum_available = minimum_available
@@ -89,7 +93,12 @@ def stop_group(child: subprocess.Popen) -> None:
         os.killpg(child.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
-    child.wait(timeout=5)
+    try:
+        child.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        # An unreapable leader (uninterruptible kernel wait) must not replace the
+        # recorded stop reason or suppress the final guard record.
+        pass
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -134,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
                 + "\n"
             )
             if reason:
-                raise RuntimeError(reason)
+                raise PreflightRefused(reason)
             try:
                 child = subprocess.Popen(command, start_new_session=True)
                 output.write(

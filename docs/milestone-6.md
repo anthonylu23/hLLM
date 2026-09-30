@@ -194,7 +194,8 @@ not broader capacity acceptance or a runtime-offloading implementation.
 
 ## Next steps
 
-GPU-independent readiness work is recorded in the [September 30 report](validation/cpu-readiness-20260930.md).
+GPU-independent readiness work is recorded in the [September 30 report](validation/cpu-readiness-20260930.md),
+including hosted CI results and the stacked CI/hardening follow-ups from review.
 The [concurrency-two evidence design](concurrency-qualification.md) remains a design,
 with actual combined-memory qualification deferred.
 

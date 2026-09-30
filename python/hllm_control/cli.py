@@ -197,7 +197,15 @@ def profile_memory_command(
     fit = FitResult.model_validate(
         json.loads(output.with_suffix(".fit.json").read_text())["assessment"]
     )
-    typer.echo(f"Wrote {output}: {artifact.artifact_digest}; physical fit: {fit.status}")
+    summary = f"Wrote {output}: {artifact.artifact_digest}; physical fit: {fit.status}"
+    if fit.policy:
+        summary += f"; policy: {fit.policy}"
+    if fit.requested_mlx_policy:
+        summary += f"; requested: {fit.requested_mlx_policy.value}"
+    typer.echo(summary)
+    # A requested footprint policy that fell back looks identical in status alone.
+    for note in fit.policy_notes:
+        typer.echo(f"policy note: {note}")
     if getattr(artifact.measurement, "completed", False) is not True:
         raise typer.Exit(2)
     if fit.status != "safe":
@@ -385,10 +393,11 @@ def freeze_sweep_command(
     output: Annotated[Path, typer.Option("--output")],
 ) -> None:
     """Bind automatic selection to an independent checkpoint reference before sweeping."""
+    from hllm_control.profiling.memory import MlxFitPolicy
     from hllm_control.profiling.models import digest
     from hllm_control.profiling.runner import write_exclusive
     from hllm_control.qualification.native import NativeExecutor
-    from hllm_control.qualification.sweep import Reference, SweepContent
+    from hllm_control.qualification.sweep import Reference, SweepContent, verify_fit_policies
     from hllm_control.serialization import sha256_file
 
     report = read_artifact(report_path, PlanningReport)
@@ -417,11 +426,20 @@ def freeze_sweep_command(
         planning_report_digest=digest(report),
         profile_bundle_digest=bundle.bundle_digest,
         executor_digest=executor.identity(),
+        mlx_fit_policies={
+            w.worker.worker_id: w.mlx_fit_policy
+            for w in bundle.workers
+            if w.mlx_fit_policy != MlxFitPolicy.CONSERVATIVE
+        },
         concurrent_load=bundle.concurrent_load,
         predictions={
             c.candidate_id: c.performance for c in report.candidates if c.performance is not None
         },
     )
+    try:
+        verify_fit_policies(content, {w.worker_id: w.mlx_fit_policy for w in executor.workers})
+    except ValueError as error:
+        raise typer.BadParameter(str(error)) from error
     write_exclusive(output, content.model_dump(mode="json"))
     typer.echo(f"Frozen selection inputs: {output}")
 

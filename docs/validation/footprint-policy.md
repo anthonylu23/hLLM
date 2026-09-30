@@ -9,6 +9,15 @@ using the opt-in policy. Two-host serving qualification remains pending because
 the CUDA device is occupied by another workload. The checks below describe the
 September 27 implementation session.
 
+September 30 follow-up (review hardening): frozen sweeps now carry the bundle's
+explicit policies and refuse executors or probes that applied a different one;
+explicit policies are rejected on non-MLX workers; `profile-memory` reports the
+applied policy and fallback notes; an MLX-bundle test shows the conservative sum
+refusing and the footprint policy admitting the same evidence through placement
+and fresh activation; historical fit reports are replayed under both policies.
+See the [policy contract](../milestone-5-profiling.md#opt-in-mlx-footprint-policy)
+and the [CPU readiness report](cpu-readiness-20260930.md).
+
 ## Behavior
 
 `footprint-v1` is an explicit MLX option in profiling, measured bundle worker

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import random
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from itertools import pairwise
 from pathlib import Path
 from statistics import median
@@ -18,6 +18,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, model_validator
 
 from hllm_control.models import (
+    Backend,
     DeploymentPlan,
     ModelManifest,
     PerformanceEstimate,
@@ -58,6 +59,12 @@ class SweepContent(ProfileModel):
     profile_bundle_digest: Digest
     executor_digest: Digest
     predictions: dict[str, PerformanceEstimate] = Field(default_factory=dict)
+    # Explicit MLX fit policies bound in the profile bundle, by worker id. Predictions
+    # were assessed under these; the executor must use the same ones. Historical
+    # sweeps omit the field, so their digests are unchanged.
+    mlx_fit_policies: dict[str, MlxFitPolicy] = Field(
+        default_factory=dict, exclude_if=lambda v: not v
+    )
     concurrent_load: str
     seed: int = 5506
     warmups: Annotated[int, Field(ge=2)] = 2
@@ -93,6 +100,19 @@ class SweepContent(ProfileModel):
         if self.maximum_repetitions < self.repetitions:
             raise ValueError("maximum repetitions below initial count")
         return self
+
+
+def verify_fit_policies(
+    content: SweepContent, executor_policies: Mapping[str, MlxFitPolicy]
+) -> None:
+    """Refuse to compare envelopes assessed under different MLX fit policies."""
+    for worker_id, policy in executor_policies.items():
+        bound = content.mlx_fit_policies.get(worker_id, MlxFitPolicy.CONSERVATIVE)
+        if MlxFitPolicy(policy) != bound:
+            raise ValueError(
+                f"executor fit policy {policy} for {worker_id} differs from the frozen "
+                f"profile bundle policy {bound}"
+            )
 
 
 class SweepSpec(SweepContent):
@@ -184,6 +204,15 @@ class MemoryExclusion(ProfileModel):
     mlx_fit_policy: MlxFitPolicy = Field(
         default=MlxFitPolicy.CONSERVATIVE, exclude_if=lambda v: v == MlxFitPolicy.CONSERVATIVE
     )
+
+    @model_validator(mode="after")
+    def policy_applies(self) -> Self:
+        if (
+            self.mlx_fit_policy != MlxFitPolicy.CONSERVATIVE
+            and self.profile.key.environment.backend != Backend.MLX
+        ):
+            raise ValueError("mlx_fit_policy applies to MLX evidence only")
+        return self
 
 
 class JobResult(ProfileModel):
@@ -385,6 +414,7 @@ def summarize(spec: SweepSpec, results: list[JobResult]) -> dict[str, object]:
                     and r.status == "measured"
                     and "reference" not in r.job_id
                 ],
+                spec.mlx_fit_policies,
             )
             for cid, rows in samples.items()
             if rows
@@ -466,7 +496,10 @@ def run(
 
 
 def prediction_error(
-    prediction: PerformanceEstimate | None, samples: list[Sample], results: list[JobResult]
+    prediction: PerformanceEstimate | None,
+    samples: list[Sample],
+    results: list[JobResult],
+    fit_policies: Mapping[str, MlxFitPolicy] | None = None,
 ) -> dict[str, object]:
     if prediction is None or prediction.ttft_ms is None or prediction.generation_ms is None:
         return {"status": "prediction-unavailable"}
@@ -526,8 +559,24 @@ def prediction_error(
             for worker, value in prediction.device_envelope_bytes.items()
             if any(worker in r.device_envelope_bytes for r in results)
         },
-        memory_basis=(
+        memory_basis=memory_basis(fit_policies or {}),
+    )
+
+
+def memory_basis(fit_policies: Mapping[str, MlxFitPolicy]) -> str:
+    explicit = {
+        worker: MlxFitPolicy(policy).value
+        for worker, policy in sorted(fit_policies.items())
+        if MlxFitPolicy(policy) != MlxFitPolicy.CONSERVATIVE
+    }
+    if not explicit:
+        return (
             "Conservative envelopes including safety/extra overhead; "
             "not allocator plus reservations or claimed physical peaks."
-        ),
+        )
+    return (
+        "Envelopes including safety/extra overhead, with predicted and observed values "
+        "both assessed under the bound MLX fit policies "
+        + json.dumps(explicit, sort_keys=True)
+        + "; not allocator plus reservations or claimed physical peaks."
     )

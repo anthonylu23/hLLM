@@ -10,12 +10,12 @@ import time
 import traceback
 from contextlib import ExitStack
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 from uuid import uuid4
 
 import grpc
 from google.protobuf.json_format import MessageToDict
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from hllm_control.controller import DeploymentSession
 from hllm_control.models import Backend, DeploymentPlan
@@ -30,7 +30,13 @@ from hllm_control.profiling.models import (
 from hllm_control.profiling.runner import write_exclusive
 from hllm_control.proto import common_pb2, control_pb2_grpc
 from hllm_control.qualification.identity import package_digest
-from hllm_control.qualification.sweep import JobResult, MemoryExclusion, Sample, SweepSpec
+from hllm_control.qualification.sweep import (
+    JobResult,
+    MemoryExclusion,
+    Sample,
+    SweepSpec,
+    verify_fit_policies,
+)
 
 # Generated gRPC service factories are untyped.
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
@@ -58,6 +64,12 @@ class NativeWorker(ProfileModel):
     device_headroom_bytes: int = Field(ge=0, default=512 * 1024**2)
     extra_overhead_bytes: int = Field(ge=0, default=256 * 1024**2)
     timeout_seconds: float = Field(gt=0, le=3600, default=180)
+
+    @model_validator(mode="after")
+    def policy_applies(self) -> Self:
+        if self.mlx_fit_policy != MlxFitPolicy.CONSERVATIVE and self.backend != Backend.MLX:
+            raise ValueError("mlx_fit_policy applies to MLX workers only")
+        return self
 
     def command(self, mode: str) -> list[str]:
         command = [self.python, "-m", "hllm_control.qualification.host", mode]
@@ -87,6 +99,7 @@ class NativeExecutor(ProfileModel):
     ) -> JobResult:
         if spec.executor_digest != self.identity():
             raise ValueError("executor changed since selection was frozen")
+        verify_fit_policies(spec, {w.worker_id: w.mlx_fit_policy for w in self.workers})
         raw: dict[str, object] = {}
         status: Literal["measured", "memory-excluded", "unknown", "oom", "correctness-failed"] = (
             "unknown"
@@ -145,6 +158,15 @@ class NativeExecutor(ProfileModel):
                 fit = next(
                     json.loads(v) for k, v in result["files"].items() if k.endswith(".fit.json")
                 )
+                # The probe assessed under the policy it was sent; require that it
+                # matches this worker's policy before re-assessing under it here.
+                recorded = fit["assessment"].get("requested_mlx_policy")
+                expected = w.mlx_fit_policy if w.backend == Backend.MLX else None
+                if (None if recorded is None else MlxFitPolicy(recorded)) != expected:
+                    raise ValueError(
+                        f"probe fit policy {recorded} for {w.worker_id} differs from the "
+                        f"executor worker policy {expected}"
+                    )
                 independent = MemoryExclusion(
                     profile=artifact,
                     capacity=w.capacity,
