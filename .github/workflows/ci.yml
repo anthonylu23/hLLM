@@ -1,0 +1,58 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'codex/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run pyright
+      - run: uv run python scripts/generate_proto.py --check
+      - run: uv run pytest
+      - run: git diff --exit-code
+
+  cpu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --locked
+      - run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev
+      # Build Protobuf and gRPC together so their generated headers and ABI agree.
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: native-deps
+        with:
+          path: build/ci-deps/install
+          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}
+      - if: steps.native-deps.outputs.cache-hit != 'true'
+        run: bash scripts/ci/build_native_deps.sh
+      - run: uv run cmake --preset dev -DCMAKE_PREFIX_PATH="$PWD/build/ci-deps/install"
+      - run: uv run cmake --build --preset dev --parallel 2
+      - run: uv run ctest --preset dev
