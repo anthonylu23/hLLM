@@ -14,6 +14,33 @@
 namespace hllm::worker {
 namespace {
 
+TEST(WorkerControlTest, ProcessMetricsAreAvailableWithoutALoadedStage) {
+  const test::ModelFixture model;
+  ControlService service({"cpu-a", "127.0.0.1:50051", model.root, 1'000'000U},
+                         cpu::make_backend_factory());
+  v1::WorkerMetrics metrics;
+  // Reused protobuf responses must not retain counters absent on this backend/OS.
+  metrics.mutable_allocator()->set_active_bytes(123U);
+  metrics.mutable_process_memory()->set_physical_footprint_bytes(123U);
+  ASSERT_TRUE(service.GetMetrics(nullptr, nullptr, &metrics).ok());
+  EXPECT_FALSE(metrics.has_allocator());
+  ASSERT_TRUE(metrics.has_process_memory());
+  const auto& process = metrics.process_memory();
+  EXPECT_GT(process.process_id(), 0U);
+  EXPECT_GT(process.observed_at_unix_ns(), 0U);
+  EXPECT_TRUE(process.has_rss_bytes());
+  EXPECT_GT(process.rss_bytes(), 0U);
+  EXPECT_TRUE(process.has_rss_lifetime_peak_bytes());
+#ifdef __APPLE__
+  EXPECT_TRUE(process.has_physical_footprint_bytes());
+  EXPECT_GT(process.physical_footprint_bytes(), 0U);
+  EXPECT_TRUE(process.has_physical_footprint_lifetime_peak_bytes());
+#else
+  EXPECT_FALSE(process.has_physical_footprint_bytes());
+  EXPECT_FALSE(process.has_physical_footprint_lifetime_peak_bytes());
+#endif
+}
+
 TEST(WorkerControlTest, CpuRejectsMixedPrecisionBeforeLoading) {
   const test::ModelFixture model;
   auto factory = cpu::make_backend_factory();

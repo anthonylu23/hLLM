@@ -15,6 +15,7 @@ from hllm_control.planner.explain import explain_report
 from hllm_control.planner.measured import read_profile_bundle
 from hllm_control.planner.planner import create_plan
 from hllm_control.prepare.manifest import HashMode, prepare_model
+from hllm_control.profiling.memory import MlxFitPolicy
 from hllm_control.serialization import read_artifact, write_artifact
 
 app = typer.Typer(
@@ -158,6 +159,10 @@ def profile_memory_command(
     host_headroom_bytes: Annotated[int, typer.Option(min=0)] = 1024**3,
     device_headroom_bytes: Annotated[int, typer.Option(min=0)] = 512 * 1024**2,
     extra_overhead_bytes: Annotated[int, typer.Option(min=1)] = 256 * 1024**2,
+    mlx_fit_policy: Annotated[
+        MlxFitPolicy,
+        typer.Option(help="MLX physical-fit policy; incomplete footprint data falls back."),
+    ] = MlxFitPolicy.CONSERVATIVE,
 ) -> None:
     """Profile one assignment in a fresh native process; never connect to serving workers."""
     from hllm_control.profiling.models import MemoryAmounts
@@ -185,6 +190,7 @@ def profile_memory_command(
         host_headroom_bytes=host_headroom_bytes,
         device_headroom_bytes=device_headroom_bytes,
         extra_overhead_bytes=extra_overhead_bytes,
+        mlx_fit_policy=mlx_fit_policy,
     )
     from hllm_control.profiling.memory import FitResult
 

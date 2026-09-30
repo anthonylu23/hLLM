@@ -1,11 +1,6 @@
 // An opt-in, single-threaded process. Never reset peaks in a serving worker.
 #include <google/protobuf/util/json_util.h>
 #include <nlohmann/json.hpp>
-#include <sys/resource.h>
-#include <unistd.h>
-#ifdef __APPLE__
-#include <mach/mach.h>
-#endif
 
 #include <algorithm>
 #include <atomic>
@@ -26,6 +21,7 @@ namespace backend = hllm::mlx;
 namespace backend = hllm::cpu;
 #endif
 #include "hllm/runtime/checked_size.hpp"
+#include "hllm/runtime/process_memory.hpp"
 #include "compute_probe.hpp"
 
 using nlohmann::json;
@@ -34,31 +30,6 @@ namespace {
 json amounts(const rt::MemoryAmounts& a) {
   return {{"host", a.host_bytes}, {"device", a.device_bytes},
           {"pinned", a.pinned_host_bytes}, {"unified", a.unified_bytes}};
-}
-std::optional<std::size_t> rss() {
-#ifdef __APPLE__
-  mach_task_basic_info_data_t info{};
-  mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
-  if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-                reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS)
-    return static_cast<std::size_t>(info.resident_size);
-#else
-  std::ifstream stat("/proc/self/statm");
-  std::size_t total = 0U, resident = 0U;
-  const auto page = sysconf(_SC_PAGESIZE);
-  if (stat >> total >> resident && page > 0)
-    return rt::checked_multiply(resident, static_cast<std::size_t>(page));
-#endif
-  return std::nullopt;
-}
-std::optional<std::size_t> rss_peak() {
-  rusage usage{};
-  if (getrusage(RUSAGE_SELF, &usage) != 0 || usage.ru_maxrss < 0) return std::nullopt;
-#ifdef __APPLE__
-  return static_cast<std::size_t>(usage.ru_maxrss);
-#else
-  return rt::checked_multiply(static_cast<std::size_t>(usage.ru_maxrss), 1024U);
-#endif
 }
 json optional_bytes(std::optional<std::size_t> value) {
   return value ? json(*value) : json(nullptr);
@@ -151,11 +122,20 @@ int main(int argc, char** argv) {
           allocator = {{"active_bytes", a->active_bytes}, {"cached_bytes", a->cached_bytes},
                        {"peak_bytes", reset ? std::max({a->peak_bytes, phase_start_active, a->active_bytes}) : a->peak_bytes},
                        {"peak_scope", reset ? "phase" : "unavailable"}};
+        const auto process = rt::observe_process_memory();
         emit({{"event", "sample"}, {"cycle", cycle}, {"phase", phase},
               {"weights", amounts(stage ? stage->weight_memory() : rt::MemoryAmounts{})},
               {"cache", amounts(reserved.cache)}, {"workspace", amounts(reserved.workspace)},
-              {"allocator", allocator}, {"rss_bytes", optional_bytes(rss())},
-              {"rss_lifetime_peak_bytes", optional_bytes(rss_peak())},
+              {"allocator", allocator}, {"rss_bytes", optional_bytes(process.rss_bytes)},
+              {"rss_lifetime_peak_bytes", optional_bytes(process.rss_lifetime_peak_bytes)},
+              {"process_memory", {
+                  {"process_id", process.process_id},
+                  {"observed_at_unix_ns", process.observed_at_unix_ns},
+                  {"rss_bytes", optional_bytes(process.rss_bytes)},
+                  {"rss_lifetime_peak_bytes", optional_bytes(process.rss_lifetime_peak_bytes)},
+                  {"physical_footprint_bytes", optional_bytes(process.physical_footprint_bytes)},
+                  {"physical_footprint_lifetime_peak_bytes",
+                   optional_bytes(process.physical_footprint_lifetime_peak_bytes)}}},
               {"device_available_bytes", optional_bytes(factory->profiling_device_info().available_bytes)},
               {"completed_steps", completed_steps}});
       };

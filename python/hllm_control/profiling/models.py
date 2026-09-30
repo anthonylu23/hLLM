@@ -131,6 +131,15 @@ MemoryPhase = Literal[
 MEMORY_PHASES = ("baseline", "load", "allocate", "prefill", "decode", "request_cleanup", "unload")
 
 
+class ProcessMemoryObservation(ProfileModel):
+    process_id: PositiveInt
+    observed_at_unix_ns: PositiveInt
+    rss_bytes: NonNegativeInt | None
+    rss_lifetime_peak_bytes: NonNegativeInt | None
+    physical_footprint_bytes: NonNegativeInt | None
+    physical_footprint_lifetime_peak_bytes: NonNegativeInt | None
+
+
 class MemorySample(ProfileModel):
     cycle: NonNegativeInt
     phase: MemoryPhase
@@ -142,6 +151,19 @@ class MemorySample(ProfileModel):
     rss_lifetime_peak_bytes: NonNegativeInt | None
     device_available_bytes: NonNegativeInt | None
     completed_steps: NonNegativeInt
+    # Exclude absent observations to preserve hashes of historical artifacts.
+    process_memory: ProcessMemoryObservation | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+
+    @model_validator(mode="after")
+    def consistent_rss(self) -> Self:
+        if self.process_memory is not None and (
+            self.rss_bytes != self.process_memory.rss_bytes
+            or self.rss_lifetime_peak_bytes != self.process_memory.rss_lifetime_peak_bytes
+        ):
+            raise ValueError("process observation must match legacy RSS counters")
+        return self
 
 
 class PhysicalSample(ProfileModel):
@@ -248,8 +270,8 @@ Measurement = Annotated[
 
 
 class ProfileArtifact(ProfileModel):
-    schema_version: Literal["1.0", "1.1", "1.2"] = "1.0"
-    profiler_version: Literal["0.1.0", "0.2.0"] = "0.1.0"
+    schema_version: Literal["1.0", "1.1", "1.2", "1.3"] = "1.0"
+    profiler_version: Literal["0.1.0", "0.2.0", "0.3.0"] = "0.1.0"
     key: ProfileKey
     conditions: Conditions
     measurement: Measurement
@@ -257,14 +279,28 @@ class ProfileArtifact(ProfileModel):
 
     @model_validator(mode="after")
     def verify(self) -> Self:
-        if (self.key.weight_dtype is not None) != (self.schema_version == "1.2"):
-            raise ValueError("mixed precision requires profile schema 1.2")
+        if self.schema_version != "1.3" and (
+            (self.key.weight_dtype is not None) != (self.schema_version == "1.2")
+        ):
+            raise ValueError("mixed precision requires profile schema 1.2 or 1.3")
+        if self.schema_version == "1.3" and not isinstance(self.measurement, MemoryMeasurement):
+            raise ValueError("profile schema 1.3 requires memory measurements")
         if self.artifact_digest != digest(
             self.model_dump(mode="json", exclude={"artifact_digest"})
         ):
             raise ValueError("profile artifact digest mismatch")
         m = self.measurement
         if isinstance(m, MemoryMeasurement):
+            observed = [s.process_memory for s in m.samples if s.process_memory is not None]
+            if self.schema_version == "1.3":
+                if len(observed) != len(m.samples):
+                    raise ValueError(
+                        "profile schema 1.3 requires process observations for all samples"
+                    )
+                if len({p.process_id for p in observed}) > 1:
+                    raise ValueError("memory profile must observe a single process")
+            elif observed:
+                raise ValueError("process observations require profile schema 1.3")
             if m.completed:
                 cycles = self.conditions.warmup_cycles + self.conditions.measured_cycles
                 expected = [(cycle, phase) for cycle in range(cycles) for phase in MEMORY_PHASES]
@@ -296,13 +332,22 @@ class ProfileArtifact(ProfileModel):
 def make_artifact(
     key: ProfileKey, conditions: Conditions, measurement: Measurement
 ) -> ProfileArtifact:
+    process_observations = isinstance(measurement, MemoryMeasurement) and any(
+        s.process_memory is not None for s in measurement.samples
+    )
     unsigned: dict[str, object] = {
-        "schema_version": "1.2"
+        "schema_version": "1.3"
+        if process_observations
+        else "1.2"
         if key.weight_dtype
         else "1.1"
         if isinstance(measurement, ComputeRunMeasurement)
         else "1.0",
-        "profiler_version": "0.2.0" if isinstance(measurement, ComputeRunMeasurement) else "0.1.0",
+        "profiler_version": "0.3.0"
+        if process_observations
+        else "0.2.0"
+        if isinstance(measurement, ComputeRunMeasurement)
+        else "0.1.0",
         "key": key.model_dump(mode="json"),
         "conditions": conditions.model_dump(mode="json"),
         "measurement": measurement.model_dump(mode="json"),

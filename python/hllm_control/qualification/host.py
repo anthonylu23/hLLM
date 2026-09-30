@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from hllm_control.models import Backend, DeploymentPlan, ModelManifest, WorkloadProfile
+from hllm_control.profiling.memory import MlxFitPolicy
 from hllm_control.profiling.models import MemoryAmounts
 from hllm_control.profiling.runner import run_memory_profile
 from hllm_control.qualification.identity import package_digest
@@ -49,6 +50,7 @@ def main() -> None:
             host_headroom_bytes=w["host_headroom_bytes"],
             device_headroom_bytes=w["device_headroom_bytes"],
             extra_overhead_bytes=w["extra_overhead_bytes"],
+            mlx_fit_policy=MlxFitPolicy(w.get("mlx_fit_policy", MlxFitPolicy.CONSERVATIVE)),
         )
         files = {
             p.name: p.read_text() for p in output.parent.glob(output.stem + ".*") if p.is_file()

@@ -33,7 +33,7 @@ def test_module_and_installed_cli_register_all_commands() -> None:
         )
         for name in expected:
             assert name in help_result.stdout
-        for name in ("qualify-sweep", "seal-profile-bundle", "freeze-sweep"):
+        for name in ("qualify-sweep", "seal-profile-bundle", "freeze-sweep", "profile-memory"):
             subprocess.run([*command, name, "--help"], capture_output=True, check=True, timeout=10)
 
 

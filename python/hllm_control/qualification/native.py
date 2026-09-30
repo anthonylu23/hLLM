@@ -19,7 +19,7 @@ from pydantic import Field
 
 from hllm_control.controller import DeploymentSession
 from hllm_control.models import Backend, DeploymentPlan
-from hllm_control.profiling.memory import PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
 from hllm_control.profiling.models import (
     Digest,
     MemoryAmounts,
@@ -47,6 +47,9 @@ class NativeWorker(ProfileModel):
     model_root: str
     evidence_root: str
     capacity: MemoryAmounts
+    mlx_fit_policy: MlxFitPolicy = Field(
+        default=MlxFitPolicy.CONSERVATIVE, exclude_if=lambda v: v == MlxFitPolicy.CONSERVATIVE
+    )
     transport_mode: Literal["pageable", "pinned"] = "pageable"
     ssh_host: str | None = None
     # Explicit interpreter on the target, with hllm_control installed/synced.
@@ -145,13 +148,20 @@ class NativeExecutor(ProfileModel):
                 independent = MemoryExclusion(
                     profile=artifact,
                     capacity=w.capacity,
+                    mlx_fit_policy=w.mlx_fit_policy,
                     host=PhysicalBudget.model_validate(fit["host_budget"]),
                     device=PhysicalBudget.model_validate(fit["device_budget"])
                     if fit["device_budget"]
                     else None,
                 )
                 memory_evidence[w.worker_id] = independent
-                assessed = assess_fit(artifact, w.capacity, independent.host, independent.device)
+                assessed = assess_fit(
+                    artifact,
+                    w.capacity,
+                    independent.host,
+                    independent.device,
+                    mlx_policy=independent.mlx_fit_policy,
+                )
                 if assessed.host_envelope_bytes is not None:
                     host_envelopes[w.worker_id] = assessed.host_envelope_bytes
                 if assessed.device_envelope_bytes is not None:
@@ -230,7 +240,13 @@ class NativeExecutor(ProfileModel):
                         if independent.device
                         else None
                     )
-                    fresh = assess_fit(independent.profile, w.capacity, host, device)
+                    fresh = assess_fit(
+                        independent.profile,
+                        w.capacity,
+                        host,
+                        device,
+                        mlx_policy=independent.mlx_fit_policy,
+                    )
                     if fresh.status == "unsafe":
                         exclusion = independent.model_copy(update={"host": host, "device": device})
                         status = "memory-excluded"

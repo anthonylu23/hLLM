@@ -155,7 +155,7 @@ def validate_activation(
             if b.device
             else None
         )
-        fit = assess_fit(profiles[0], capacity, host, device)
+        fit = assess_fit(profiles[0], capacity, host, device, mlx_policy=b.mlx_fit_policy)
         if fit.status != "safe":
             raise ValueError("fresh physical memory gate failed: " + "; ".join(fit.reasons))
         memory = control.GetMemoryReport(common_pb2.Empty(), timeout=5)

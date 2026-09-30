@@ -25,7 +25,7 @@ from hllm_control.models import (
     WorkloadProfile,
 )
 from hllm_control.planner.planner import assignments_for
-from hllm_control.profiling.memory import PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
 from hllm_control.profiling.models import (
     Digest,
     MemoryAmounts,
@@ -181,6 +181,9 @@ class MemoryExclusion(ProfileModel):
     capacity: MemoryAmounts
     host: PhysicalBudget
     device: PhysicalBudget | None = None
+    mlx_fit_policy: MlxFitPolicy = Field(
+        default=MlxFitPolicy.CONSERVATIVE, exclude_if=lambda v: v == MlxFitPolicy.CONSERVATIVE
+    )
 
 
 class JobResult(ProfileModel):
@@ -239,7 +242,10 @@ def validate_result(spec: SweepSpec, result: JobResult, job: str, plan: Deployme
             or e.profile.key.manifest_digest != spec.manifest.manifest_digest
             or e.profile.conditions.process_policy != "fresh-process-then-reloads"
             or e.profile.conditions.concurrent_load != spec.concurrent_load
-            or assess_fit(e.profile, e.capacity, e.host, e.device).status != "unsafe"
+            or assess_fit(
+                e.profile, e.capacity, e.host, e.device, mlx_policy=e.mlx_fit_policy
+            ).status
+            != "unsafe"
         ):
             raise ValueError("unsupported independent memory exclusion")
     if result.status == "measured":

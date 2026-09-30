@@ -9,6 +9,7 @@
 
 #include "hllm/runtime/checked_size.hpp"
 #include "hllm/runtime/error.hpp"
+#include "hllm/runtime/process_memory.hpp"
 #include "qualification.hpp"
 
 namespace hllm::worker {
@@ -542,6 +543,18 @@ grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,
     allocator->set_cached_bytes(metrics->cached_bytes);
     allocator->set_peak_bytes(metrics->peak_bytes);
   }
+  const auto memory = runtime::observe_process_memory();
+  auto* process = response->mutable_process_memory();
+  process->Clear();
+  process->set_process_id(memory.process_id);
+  process->set_observed_at_unix_ns(memory.observed_at_unix_ns);
+  if (memory.rss_bytes) process->set_rss_bytes(*memory.rss_bytes);
+  if (memory.rss_lifetime_peak_bytes)
+    process->set_rss_lifetime_peak_bytes(*memory.rss_lifetime_peak_bytes);
+  if (memory.physical_footprint_bytes)
+    process->set_physical_footprint_bytes(*memory.physical_footprint_bytes);
+  if (memory.physical_footprint_lifetime_peak_bytes)
+    process->set_physical_footprint_lifetime_peak_bytes(*memory.physical_footprint_lifetime_peak_bytes);
   return grpc::Status::OK;
 }
 grpc::Status ControlService::Health(grpc::ServerContext*, const v1::Empty*,

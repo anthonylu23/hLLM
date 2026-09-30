@@ -62,6 +62,25 @@ def test_mlx_only_generation_and_metrics(
             assert not rejected.accepted
             assert "hash mismatch" in rejected.detail
         samples = []
+        process_samples = []
+
+        def observe():
+            metrics = control.GetMetrics(common_pb2.Empty(), timeout=5)
+            assert metrics.HasField("process_memory")
+            process = metrics.process_memory
+            assert process.HasField("physical_footprint_bytes")
+            assert process.HasField("physical_footprint_lifetime_peak_bytes")
+            assert (
+                process.physical_footprint_lifetime_peak_bytes
+                >= process.physical_footprint_bytes
+                > 0
+            )
+            assert process.rss_bytes > 0
+            assert process.observed_at_unix_ns > 0
+            process_samples.append(process)
+            return metrics
+
+        observe()  # unloaded, before any stage allocation
         for cycle in range(12):
             with DeploymentSession(manifest, configured, workers.endpoints) as session:
                 reserved = control.ReserveRequest(
@@ -74,6 +93,7 @@ def test_mlx_only_generation_and_metrics(
                     timeout=5,
                 )
                 assert reserved.accepted, reserved.detail
+                observe()  # weights and request reservations coexist
                 report = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
                 assert len(report.domain_usage) == 1
                 usage = report.domain_usage[0]
@@ -102,8 +122,9 @@ def test_mlx_only_generation_and_metrics(
                 )
                 assert tokens(session) == expected
                 wait_clean(workers)
+                observe()  # request cleanup, model still loaded
             wait_clean(workers, loaded=False)
-            metrics = control.GetMetrics(common_pb2.Empty(), timeout=5)
+            metrics = observe()  # model unloaded; allocator caches may remain
             assert metrics.HasField("allocator")
             assert metrics.allocator.domain == profile_pb2.MEMORY_DOMAIN_UNIFIED
             assert metrics.allocator.peak_bytes >= metrics.allocator.active_bytes
@@ -111,6 +132,9 @@ def test_mlx_only_generation_and_metrics(
                 samples.append((metrics.allocator.active_bytes, metrics.allocator.cached_bytes))
         assert max(s[0] for s in samples) == min(s[0] for s in samples)
         assert max(s[1] for s in samples) - min(s[1] for s in samples) <= 1024 * 1024
+        assert len({p.process_id for p in process_samples}) == 1
+        peaks = [p.physical_footprint_lifetime_peak_bytes for p in process_samples]
+        assert peaks == sorted(peaks)
         print({"family": family, "dtype": dtype.value, "allocator_after_unload": samples[-1]})
 
 

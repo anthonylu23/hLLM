@@ -180,8 +180,24 @@ class AllocatorMetrics(_message.Message):
     peak_bytes: int
     def __init__(self, domain: _Optional[_Union[_profile_pb2.MemoryDomain, str]] = ..., active_bytes: _Optional[int] = ..., cached_bytes: _Optional[int] = ..., peak_bytes: _Optional[int] = ...) -> None: ...
 
+class ProcessMemoryObservation(_message.Message):
+    __slots__ = ("process_id", "observed_at_unix_ns", "rss_bytes", "rss_lifetime_peak_bytes", "physical_footprint_bytes", "physical_footprint_lifetime_peak_bytes")
+    PROCESS_ID_FIELD_NUMBER: _ClassVar[int]
+    OBSERVED_AT_UNIX_NS_FIELD_NUMBER: _ClassVar[int]
+    RSS_BYTES_FIELD_NUMBER: _ClassVar[int]
+    RSS_LIFETIME_PEAK_BYTES_FIELD_NUMBER: _ClassVar[int]
+    PHYSICAL_FOOTPRINT_BYTES_FIELD_NUMBER: _ClassVar[int]
+    PHYSICAL_FOOTPRINT_LIFETIME_PEAK_BYTES_FIELD_NUMBER: _ClassVar[int]
+    process_id: int
+    observed_at_unix_ns: int
+    rss_bytes: int
+    rss_lifetime_peak_bytes: int
+    physical_footprint_bytes: int
+    physical_footprint_lifetime_peak_bytes: int
+    def __init__(self, process_id: _Optional[int] = ..., observed_at_unix_ns: _Optional[int] = ..., rss_bytes: _Optional[int] = ..., rss_lifetime_peak_bytes: _Optional[int] = ..., physical_footprint_bytes: _Optional[int] = ..., physical_footprint_lifetime_peak_bytes: _Optional[int] = ...) -> None: ...
+
 class WorkerMetrics(_message.Message):
-    __slots__ = ("worker_id", "allocator", "queued_prefills", "queued_decodes", "executing_microbatches", "completed_steps", "queue_wait_ms", "decode_batches", "largest_decode_batch")
+    __slots__ = ("worker_id", "allocator", "queued_prefills", "queued_decodes", "executing_microbatches", "completed_steps", "queue_wait_ms", "decode_batches", "largest_decode_batch", "process_memory")
     WORKER_ID_FIELD_NUMBER: _ClassVar[int]
     ALLOCATOR_FIELD_NUMBER: _ClassVar[int]
     QUEUED_PREFILLS_FIELD_NUMBER: _ClassVar[int]
@@ -191,6 +207,7 @@ class WorkerMetrics(_message.Message):
     QUEUE_WAIT_MS_FIELD_NUMBER: _ClassVar[int]
     DECODE_BATCHES_FIELD_NUMBER: _ClassVar[int]
     LARGEST_DECODE_BATCH_FIELD_NUMBER: _ClassVar[int]
+    PROCESS_MEMORY_FIELD_NUMBER: _ClassVar[int]
     worker_id: str
     allocator: AllocatorMetrics
     queued_prefills: int
@@ -200,7 +217,8 @@ class WorkerMetrics(_message.Message):
     queue_wait_ms: float
     decode_batches: int
     largest_decode_batch: int
-    def __init__(self, worker_id: _Optional[str] = ..., allocator: _Optional[_Union[AllocatorMetrics, _Mapping]] = ..., queued_prefills: _Optional[int] = ..., queued_decodes: _Optional[int] = ..., executing_microbatches: _Optional[int] = ..., completed_steps: _Optional[int] = ..., queue_wait_ms: _Optional[float] = ..., decode_batches: _Optional[int] = ..., largest_decode_batch: _Optional[int] = ...) -> None: ...
+    process_memory: ProcessMemoryObservation
+    def __init__(self, worker_id: _Optional[str] = ..., allocator: _Optional[_Union[AllocatorMetrics, _Mapping]] = ..., queued_prefills: _Optional[int] = ..., queued_decodes: _Optional[int] = ..., executing_microbatches: _Optional[int] = ..., completed_steps: _Optional[int] = ..., queue_wait_ms: _Optional[float] = ..., decode_batches: _Optional[int] = ..., largest_decode_batch: _Optional[int] = ..., process_memory: _Optional[_Union[ProcessMemoryObservation, _Mapping]] = ...) -> None: ...
 
 class HealthResponse(_message.Message):
     __slots__ = ("serving", "detail")

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import os
+import sys
 from pathlib import Path
 
 import pytest
 from hllm_control.models import Backend, DType, WorkloadProfile
+from hllm_control.profiling.memory import MlxFitPolicy
 from hllm_control.profiling.models import MemoryAmounts, MemoryMeasurement, ProfileArtifact
 from hllm_control.profiling.runner import run_memory_profile
 
@@ -55,13 +58,40 @@ def test_native_phases_reload_and_cleanup(tmp_path: Path, stage_index: int, mixe
         timeout_seconds=60,
         host_headroom_bytes=0,
         device_headroom_bytes=0,
+        mlx_fit_policy=MlxFitPolicy.FOOTPRINT,
     )
     assert isinstance(a.measurement, MemoryMeasurement)
     assert a.measurement.completed
     assert a.key.weight_dtype == (DType.F16 if mixed else None)
-    assert a.schema_version == ("1.2" if mixed else "1.0")
+    assert a.schema_version == "1.3"
+    fit = json.loads(output.with_suffix(".fit.json").read_text())["assessment"]
+    assert (
+        fit["policy"]
+        == {
+            Backend.CPU: "cpu-rss-v1",
+            Backend.MLX: "mlx-footprint-max-v1",
+            Backend.CUDA: "cuda-rss-device-v1",
+        }[backend]
+    )
     assert ProfileArtifact.model_validate_json(output.read_text()) == a
     assert len(a.measurement.samples) == 21
+    observations = [s.process_memory for s in a.measurement.samples]
+    assert all(p is not None for p in observations)
+    assert len({p.process_id for p in observations if p is not None}) == 1
+    peaks = []
+    for p in observations:
+        assert p is not None
+        assert p.observed_at_unix_ns > 0
+        assert p.rss_bytes is not None and p.rss_bytes > 0
+        if sys.platform == "darwin":
+            assert p.physical_footprint_bytes is not None
+            assert p.physical_footprint_lifetime_peak_bytes is not None
+            assert p.physical_footprint_lifetime_peak_bytes >= p.physical_footprint_bytes > 0
+            peaks.append(p.physical_footprint_lifetime_peak_bytes)
+        else:
+            assert p.physical_footprint_bytes is None
+            assert p.physical_footprint_lifetime_peak_bytes is None
+    assert peaks == sorted(peaks)  # allocator resets/unload never reset OS lifetime peaks
     loads = [s for s in a.measurement.samples if s.phase == "load"]
     assert loads[0].weights == loads[1].weights == loads[2].weights
     if backend != Backend.CPU:

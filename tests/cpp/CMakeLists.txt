@@ -21,6 +21,7 @@ add_executable(
   downstream_channel_test.cpp
   generation_deadline_test.cpp
   half_test.cpp
+  process_memory_test.cpp
   llama_test.cpp
   qwen3_test.cpp
   stage_test.cpp
