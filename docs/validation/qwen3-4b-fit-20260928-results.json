@@ -1,0 +1,306 @@
+{
+  "checkpoint": {
+    "digest": "85b0e87df531904de0b10ebbfc345056bc8fafc9b96a84cb300ce64b282d69c8",
+    "full_hashes_match_on_both_hosts": true,
+    "repository": "Qwen/Qwen3-4B-Base",
+    "revision": "906bfd4b4dc7f14ee4320094d8b41684abff8539"
+  },
+  "checks": {
+    "focused_mac_ctest": 3,
+    "generated_bindings": "passed on both hosts",
+    "hosted_actions": "not run",
+    "linux_ctest": 80,
+    "linux_ctest_seconds": 114.12,
+    "lockfile": "passed",
+    "pyright": "passed on both hosts",
+    "python_linux": 156,
+    "python_mac": 156,
+    "ruff": "passed on both hosts",
+    "shell_syntax": "passed",
+    "whitespace": "passed",
+    "workflow_syntax": "passed"
+  },
+  "ci_dependencies": {
+    "cmake": "cmake version 4.4.3",
+    "compiler": "c++ (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2)",
+    "elapsed_seconds": 1992.560916185379,
+    "grpc_revision": "3e7a4d52d257990fa5b9d80f69f4a591178d9d7c",
+    "guard_exit": {
+      "event": "exit",
+      "reason": null,
+      "returncode": 0,
+      "unix_time": 1790572350.1395445
+    },
+    "minimum_available_bytes": 2995671040,
+    "os": "NAME=\"Fedora Linux\"\nVERSION=\"44 (Workstation Edition)\"\nRELEASE_TYPE=stable\nID=fedora\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPRETTY_NAME=\"Fedora Linux 44 (Workstation Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=fedora-logo-icon\nCPE_NAME=\"cpe:/o:fedoraproject:fedora:44\"\nDEFAULT_HOSTNAME=\"fedora\"\nHOME_URL=\"https://fedoraproject.org/\"\nDOCUMENTATION_URL=\"https://docs.fedoraproject.org/en-US/fedora/f44/\"\nSUPPORT_URL=\"https://ask.fedoraproject.org/\"\nBUG_REPORT_URL=\"https://bugzilla.redhat.com/\"\nREDHAT_BUGZILLA_PRODUCT=\"Fedora\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Fedora\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2027-05-19\nVARIANT=\"Workstation Edition\"\nVARIANT_ID=workstation\n",
+    "total_new_swapout_bytes": 1110016
+  },
+  "cleanup": {
+    "background_job_scheduled": false,
+    "linux_remaining_native_processes": [],
+    "mac_available_bytes": 7198867456,
+    "mac_remaining_native_processes": [],
+    "owned_tunnels_started": 0
+  },
+  "cuda": {
+    "device_available_bytes": 2365587456,
+    "host_available_bytes": 4443144192,
+    "minimum_device_available_bytes": 8039641908,
+    "minimum_host_available_bytes": 5771362304,
+    "new_full_model_profile_run": false,
+    "other_gpu_job_active": true,
+    "previous_profiler_binary_preserved": true,
+    "profiler_rebuilt": true,
+    "profiler_runtime_smoke": "pending GPU availability",
+    "profiler_sha256": "16def629f58feee6e8eca5771cbc3c1ac7848d60de8880312463afe3aebc1f34",
+    "serving_worker_binary_unchanged": true,
+    "status": "blocked_before_launch"
+  },
+  "linux_guards": {
+    "ci-cpu-build-v2.guard.jsonl": {
+      "elapsed_seconds": 76.01994109153748,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 0,
+        "unix_time": 1790572435.310202
+      },
+      "minimum_available_bytes": 3040116736,
+      "new_swapout_bytes": 2129920,
+      "pressure_values": []
+    },
+    "ci-cpu-tests-v2.guard.jsonl": {
+      "elapsed_seconds": 116.02862286567688,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 0,
+        "unix_time": 1790572551.3953352
+      },
+      "minimum_available_bytes": 4342861824,
+      "new_swapout_bytes": 0,
+      "pressure_values": []
+    },
+    "ci-dependencies-v2.guard.jsonl": {
+      "elapsed_seconds": 1992.560916185379,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 0,
+        "unix_time": 1790572350.1395445
+      },
+      "minimum_available_bytes": 2995671040,
+      "new_swapout_bytes": 1110016,
+      "pressure_values": []
+    },
+    "ci-dependencies.guard.jsonl": {
+      "elapsed_seconds": 100.02507472038269,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 1,
+        "unix_time": 1790570272.6016014
+      },
+      "minimum_available_bytes": 4425912320,
+      "new_swapout_bytes": 0,
+      "pressure_values": []
+    },
+    "cpu-build.guard.jsonl": {
+      "elapsed_seconds": 186.05133628845215,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 1,
+        "unix_time": 1790570102.7759335
+      },
+      "minimum_available_bytes": 3466936320,
+      "new_swapout_bytes": 2961408,
+      "pressure_values": []
+    },
+    "cuda-profiler-build.guard.jsonl": {
+      "elapsed_seconds": 12.003140687942505,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 0,
+        "unix_time": 1790572664.3007476
+      },
+      "minimum_available_bytes": 3793944576,
+      "new_swapout_bytes": 0,
+      "pressure_values": []
+    }
+  },
+  "mlx": {
+    "assessment": {
+      "device_envelope_bytes": null,
+      "host_envelope_bytes": 5669032302,
+      "policy": "mlx-footprint-max-v1",
+      "reasons": [],
+      "requested_mlx_policy": "footprint-v1",
+      "status": "safe"
+    },
+    "assignment": {
+      "layer_end": 15,
+      "layer_start": 0,
+      "owns_final_norm": false,
+      "owns_lm_head": false,
+      "owns_sampling": false,
+      "owns_token_embedding": true,
+      "stage_index": 0,
+      "worker_id": "mlx"
+    },
+    "capacity": {
+      "device": 0,
+      "host": 0,
+      "pinned": 0,
+      "unified": 4697620480
+    },
+    "completed": true,
+    "conservative_assessment": {
+      "device_envelope_bytes": null,
+      "host_envelope_bytes": 9727445965,
+      "policy": "mlx-rss-plus-allocator-v1",
+      "reasons": [
+        "host/unified: physical envelope plus headroom exceeds current availability"
+      ],
+      "requested_mlx_policy": "conservative-v1",
+      "status": "unsafe"
+    },
+    "conservative_required_with_headroom_bytes": 10801187789,
+    "cycles": 3,
+    "guard": {
+      "elapsed_seconds": 64.39126682281494,
+      "exit": {
+        "event": "exit",
+        "reason": null,
+        "returncode": 0,
+        "unix_time": 1790569777.540168
+      },
+      "minimum_available_bytes": 4250730496,
+      "new_swapout_bytes": 0,
+      "pressure_values": [
+        1
+      ]
+    },
+    "host_budget": {
+      "available_bytes": 7159070720,
+      "extra_overhead_bytes": 268435456,
+      "headroom_bytes": 1073741824,
+      "safety_fraction": 0.1
+    },
+    "peak_footprint_bytes": 4909633496,
+    "peak_native_rss_bytes": 4696211456,
+    "phase_samples": 21,
+    "profile_digest": "05d7e847a5e3b8f3f5b3617a4a7ec493c7af0303cfb6b676fed04fbe21e118af",
+    "required_with_headroom_bytes": 6742774126,
+    "serving_qualified": false,
+    "unloaded_footprint_bytes": [
+      4064103856,
+      4067626440,
+      4067626440
+    ],
+    "workload": {
+      "activation_dtype": "F16",
+      "concurrency": 1,
+      "kv_dtype": "F16",
+      "kv_overhead_factor": 1.1,
+      "output_tokens": 256,
+      "prompt_tokens": 128,
+      "schema_version": "1.0",
+      "total_cached_tokens": 384,
+      "workload_id": "qwen3-4b-128-256-c1"
+    }
+  },
+  "raw_evidence_directory": "build/4b-fit-20260928-042730",
+  "raw_evidence_sha256": {
+    "build_native_deps-v2.sh": "35d2cd83b3800cae9255065e954bb1f80884fad5a6e679b46b82bcecaf0411ec",
+    "ci-dependency-summary.json": "3ed733127a8efe5ca2ba978793209ec68427983c7d78b8e774df33885a67c23b",
+    "ci-final-source-changes.json": "43b361db915819c908348c730a9f87ced4ffc7e0228a11a9d7230c9c29726c67",
+    "ci-final-workflow.yml": "43ee8cbf9ec27597e1134fa8fb9396d2c7157143e6ab26c7cd10df649292e80d",
+    "cleanup-local.json": "af6ef6d4877593f4866f8d1e3aab71dec373fa6f8a959c47e215c468d4a4376a",
+    "cuda-profiler-build.command.sh": "57c3e3eb75998f822d5fd8d99718dc22cd9fd5c811d79630ca4ed4b617db41f9",
+    "cuda-profiler-build.log": "dd7c987e806d3c8b2f20700eec94da8761f2f8dce7fc5bf5927e7a48103e7de0",
+    "existing-abseil-diagnostic.txt": "1992db602855f831f27c65dc5e89e1f8c16bbc04374e64f57b8a5c34be385009",
+    "git-status.txt": "267886d1c8bbb13e1012b47fc2fd96b3e5a54c03fd97b311e56d61280dffa9ab",
+    "initial-local.json": "7dcf8e3045fc4e5146ce51022edad8ad031e1104ac4930592925b8e28e5a4ce9",
+    "initial-remote.txt": "777c68074395af771221e7ff125079637351e532da315671316eb7e70ff1652b",
+    "linux-checks.command.sh": "09bd2718db1b5b9eb0b94b8488ed555729f71d47f54913b0256673092c54aaa0",
+    "linux-checks.log": "15306f8c8e6acaf1aa83e3c34f8895c42e8c7aa72b40d8366221708847384a25",
+    "linux-ci-recipe-v2.command.sh": "a3642c65836068a2ac7c5d709a9e14f2518acafb6b712824edb93464fa1c5dc3",
+    "linux-ci-recipe-v2.log": "3ea3a8a9a49ba242b44b93a3f4264fc4cd39e97ed04a811063b46675828b5ddb",
+    "linux-ci-recipe.command.sh": "675a4bbd1e8e42adef8b2d3af5ba197314704b8ba7351be82b9f12b0292c4337",
+    "linux-ci-recipe.log": "a606de9796e2313723b48556128469b1e5e1a74cd029fb96857b34d784f87512",
+    "linux-cpu-build.command.sh": "8b58126b97070421c5afeac9446e2568a9adf74789e548c3ae712102cd85497e",
+    "linux-cpu-build.log": "5608ec7af24f77d0917cc095f374ae2aa3a28b0355f4214cd401cde8061a651d",
+    "manifest.json": "83beb94e1285bd1b5c3caaf4cbb889fcd864e4b7b772949958df158ac966b747",
+    "mlx-cuda.plan.json": "a0083af95642ba886c363986f20be0c2c51f231867614db7c2ec59900fdcfe67",
+    "mlx-memory.conservative-fit.json": "7c42e6c4d368c29db218014aef13fc3d39e53e68741a973e4c2819fa6e939d8a",
+    "mlx-memory.fit.json": "8ba67d0874f234f323b1e4963304b37c8363fbc65d0b41b6966cca6a44961a92",
+    "mlx-memory.json": "ab72174dda4655762ae895e98c91c4fc7024fae1d0020c2f39de9db5fef94874",
+    "mlx-memory.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mlx-memory.native.jsonl": "8f804780c4c6372f322c27e904df803b92cfe7ce577d4da144f01c5f5826a05b",
+    "mlx-memory.preflight.json": "b44019b01a1e0602f52c6e93132b55ed0a9b6eccaec4c30dd7b2b0b9f27afe1c",
+    "mlx-memory.spec.json": "3da7209168da63236590c23ed89df79ebe4cbd24b82af97b96cfc119b24d76e0",
+    "mlx-profile.command.json": "f20d7add0a77feeed691f0ac0b5ef52cde5ea6eb16972057106f4c25900f4b10",
+    "mlx-profile.driver.log": "920d8cf3c9bf984984a6cfb24ecdbe165717aff48e2f83caa1d7ad24c06aa7ab",
+    "mlx-profile.guard.jsonl": "5296a1c358a1cd9de28d3d2d4eae635e10342bb33475fd40765e51dc70bdb213",
+    "preserved-old-profiler-evidence.json": "bb82ddab3e9ac177cff442065213ed4d23787b727f94d710f4c391b6da05298b",
+    "reference-f16.json": "97000fc7a29a3937d1ad701a4c47eb183e67eb89204c8164328ebf56696da940",
+    "remote-checkpoint.json": "29ce8dde0e70ff622b5f660223053380e661f0583f6cc7374fa019adc4c4fac2",
+    "remote-directory.txt": "35d80e47ed353fa76382a79c8f5b8a893883e89c5b009d72b942029f118fb0ea",
+    "remote-evidence.tar": "4f4fe3184f2a15c8cee4360624f082a0f3fda3aea5d629863fea4806b1a7b10f",
+    "remote-evidence/ci-cpu-build-v2.guard.jsonl": "f11bf27385d1435e33f366061ca97ce6957d910da988fb931e77d4e6051f819b",
+    "remote-evidence/ci-cpu-tests-v2.guard.jsonl": "134f108b42a92cd024a03643f392ed7b369274e59db02e5a7bc4d0e39d435738",
+    "remote-evidence/ci-dependencies-v2.guard.jsonl": "67d2aed974df2c76a71fa4d8a4a20e0ad96cf002ac7ae9a2c881f1ec1c4df1a9",
+    "remote-evidence/ci-dependencies.guard.jsonl": "1339eb18b539c0ff3b387edf958d4b6673c95277a38677332df945e8f8e6121c",
+    "remote-evidence/cpu-CMakeCache.txt": "fcebc2dfdb1aa368da8a982d7dc10dc613a4d8554301d2d24f6f4d96a6806a9f",
+    "remote-evidence/cpu-build.guard.jsonl": "4e92aa343e778deecfc865d1537d134a260350c0e339496846d44c9ce4949a92",
+    "remote-evidence/cpu-ctest.log": "9c97289b782c897f3288e8104fb01d440e3f73568a9e06b8640bdbc25f09067e",
+    "remote-evidence/cuda-profiler-build.guard.jsonl": "c5c6b160daf746768b76d8345a9c451e8e0025ef52f8c23aab24a2d7fff9c7ed",
+    "remote-evidence/final-evidence.json": "8706be3565c6cf575c350fbd21581db5a97029d2d68de43fff6890cb7867360e",
+    "remote-evidence/old-profiler-failure-evidence/0-memory.fit.json": "c61c2b9c4e96267b206695a07bd9cf5d9c8a1fc10b4e1a5b25147a78c24cda16",
+    "remote-evidence/old-profiler-failure-evidence/0-memory.json": "3cb98cfa1f42d41f051d1c64b036d1e5cdda1410e51c156bcffa12143af3ff77",
+    "remote-evidence/old-profiler-failure-evidence/0-memory.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "remote-evidence/old-profiler-failure-evidence/0-memory.native.jsonl": "7c7413d5fb706e65ba1d09577ff456df8ed7e2ced4beb55e86db49772d299e2c",
+    "remote-evidence/old-profiler-failure-evidence/0-memory.preflight.json": "b4f0ad5dbd848993437b5bf3040e07c08466ee22ba7fd120a118db86de39bca2",
+    "remote-evidence/old-profiler-failure-evidence/0-memory.spec.json": "78e0a7a9fbd51fe87ac636ac85c479c6e4a83a3a18a85da8189fa93ab90cc0ff",
+    "remote-evidence/old-profiler-failure-evidence/2-memory.fit.json": "4a8631216b7b2029012552482ad31369114a5b6cfd4b68d9d71528fdcd318619",
+    "remote-evidence/old-profiler-failure-evidence/2-memory.json": "7ef7f7a77067807ac3c18b1f5a3eca94ce5e4ba9a4ad9a05b25b163af30a2c18",
+    "remote-evidence/old-profiler-failure-evidence/2-memory.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "remote-evidence/old-profiler-failure-evidence/2-memory.native.jsonl": "739e7eb42ef14578325ba2b5d0269eebbeac7ce37871d76c0ab146330360c28e",
+    "remote-evidence/old-profiler-failure-evidence/2-memory.preflight.json": "306c84d2d85d8744cfa1f9f6d86781be0e16d6ecae524eaf1730ed3ae024378c",
+    "remote-evidence/old-profiler-failure-evidence/2-memory.spec.json": "96711c87393f3033d87b7e25a5f88d10e14348634f71c6dfceef6efa78ba1bf2",
+    "remote-source-identity.json": "eb12b36b84703bce77be28fec6c0863eba01d5749c2f894a0e5ec820dd022d14",
+    "resources-during-ci.txt": "e98a67c72a50d6a5ef17ccd827622b335da5f8693b743959ee6ef9074ba5c5da",
+    "source-change-ci-v2.json": "08c60ba93d65d5942ca07b521677b13ba6f96d3593ae0d7e4161bf90e8c07262",
+    "source-identity.json": "24cab7366b63a2179514e2f373198250c532aaf4563f2a2188cf19d1dda69f30",
+    "source-snapshot.tar": "d7e4a658bc82839901e55147f91ac498a1313db4f5ca20d10aa167d520c89ef2",
+    "working-tree.patch": "0d55aeace06bb0402e8315cfc6f556680d819b0bdac131950e69b6f1822b0404",
+    "workload-128-256.json": "7a35ab80b4102e3fac4140c3fa94c6d67aa0fdaa2734c29a67c7f43bce65c005"
+  },
+  "recorded_at_unix": 1790572933.2498171,
+  "remaining": [
+    "CUDA profile/worker smoke checks",
+    "Fresh CUDA baseline profile and fresh Mac profile if needed",
+    "Six-cycle two-host serving soak and serving physical-fit gate",
+    "Gated 512/256, reverse-order and concurrency work",
+    "Hosted Actions after an authorized push"
+  ],
+  "schema_version": "1.0",
+  "scope": "fresh isolated MLX baseline; CPU CI recipe; CUDA serving blocked before launch",
+  "source": {
+    "base_revision": "66227433182b48f1d79fffd5ec112d33e47d44fc",
+    "ci_changes": {
+      ".github/workflows/ci.yml": {
+        "after": "43ee8cbf9ec27597e1134fa8fb9396d2c7157143e6ab26c7cd10df649292e80d",
+        "before": "b62365a1d73d2fbe10a9670e798805695f87b8e54c6533c867daa76a066453ec"
+      },
+      "scripts/ci/build_native_deps.sh": {
+        "after": "35d2cd83b3800cae9255065e954bb1f80884fad5a6e679b46b82bcecaf0411ec",
+        "before": "e3013579749848b1e1cec802bc8cb9c657f68f81e52519c679a857eb2aac713f"
+      }
+    },
+    "runtime_source_changes_after_profile": false,
+    "source_digest": "e4bb583551ecb2b82916f2e4e3b07341b3218e25df8829f0f5e40a9127aed857"
+  }
+}

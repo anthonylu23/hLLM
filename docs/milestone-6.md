@@ -161,6 +161,11 @@ inter-token intervals, native queue wait and depth, compute steps, actual decode
 counts/largest size, and cache/workspace reservations. Timing sums and counts are not
 percentile estimates or M5 acceptance results.
 
+Worker metrics also expose timestamped OS process observations alongside framework
+allocator counters. On macOS these include current physical footprint and its
+process-lifetime peak; HTTP `/metrics` exports available counters by stage. See
+[measurement semantics and limitations](milestone-5-profiling.md#process-physical-footprint).
+
 ## Bounded loading and the 4B blocker
 
 The shared decoder reads at most 1 MiB of source bytes per chunk, converts that chunk,
@@ -181,12 +186,24 @@ was loaded in this follow-up. Runtime weight offloading/streaming remains a sepa
 candidate if resident-weight capacity is still insufficient. Headroom and M5 WAN gates
 remain unchanged.
 
+The later [2026-09-18 4B pass](validation/qwen3-4b.md) loaded the complete checkpoint
+and matched a 256-token independent F16 continuation with a 15-layer MLX / 21-layer
+CUDA split. Its full serving-memory observations fail the existing conservative
+MLX physical-fit rule, despite normal pressure. This is bounded execution evidence,
+not broader capacity acceptance or a runtime-offloading implementation.
+
 ## Next steps
+
+GPU-independent readiness work is recorded in the [September 30 report](validation/cpu-readiness-20260930.md).
+The [concurrency-two evidence design](concurrency-qualification.md) remains a design,
+with actual combined-memory qualification deferred.
 
 1. Refresh measured placement profiles with explicit sampling, chunk and batch settings;
    collect longer controlled throughput/latency comparisons and longer memory soaks.
-2. Measure a real 4B assignment with the bounded loader when a complete checkpoint and
-   a feasible memory budget are available. Qualify full context separately.
+2. Qualify the implemented opt-in footprint-aware fit policy using the
+   [overnight backlog](overnight-backlog.md) and
+   [instrumented 4B reload evidence](validation/qwen3-4b-footprint.md). Extend deployment-lifetime coverage
+   before expanding context or concurrency; qualify full context separately.
 3. Optimize device sampling and attention/KV batching if measurements justify them.
 4. Keep M5's exhaustive WAN comparison deferred until its acceptance measurements pass;
    then proceed with Milestone 7's additional backend/stage work.

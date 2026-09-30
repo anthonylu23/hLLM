@@ -40,15 +40,25 @@ checks. See the [profiling workflow](docs/milestone-5-profiling.md),
 integration (5.5) and the independent sweep runner (5.6) are implemented; the full
 54-candidate acceptance run remains pending. See the [placement workflow](docs/milestone-5-placement.md)
 and [current validation/gates](docs/validation/milestone-5-planner.md).
-Qwen3-4B-Base remains unqualified; its recorded M5 load rejection predates the bounded loader.
+Qwen3-4B-Base now has [bounded execution evidence](docs/validation/qwen3-4b.md):
+MLX→CUDA matched an independent F16 reference for 256 tokens. Formal physical-fit
+acceptance remains blocked by the conservative MLX serving-memory envelope.
+Native profiles and serving metrics now expose macOS process physical footprint
+alongside RSS and allocator usage; see the [measurement semantics](docs/milestone-5-profiling.md#process-physical-footprint).
+The [instrumented 4B soak](docs/validation/qwen3-4b-footprint.md) matched 12 continuations
+across three reload cycles, with a 4.576 GiB physical-footprint peak. The fit gate
+retains its conservative default. An [opt-in footprint policy](docs/milestone-5-profiling.md#opt-in-mlx-footprint-policy)
+is implemented. A [fresh Mac 4B profile passed](docs/validation/qwen3-4b-fit-20260928.md);
+two-host serving qualification awaits CUDA availability in the
+[overnight backlog](docs/overnight-backlog.md).
 The [Milestone 5 implementation plan](docs/milestone-5-implementation-plan.md) defines
 the implemented slices, deferred acceptance gates, and the initial
 512-prompt/256-output, concurrency-1 workload.
 Milestone 6 adds persistent text/chat serving with bounded concurrent requests and
 native prefill/decode scheduling; see [usage and limits](docs/milestone-6.md).
 Configurable sampling, bounded log probabilities, opt-in chunked prefill and decode
-batching are implemented. Bounded weight conversion reduces MLX load admission;
-4B execution remains unqualified. See the [qualification report](docs/validation/milestone-6.md)
+batching are implemented. Bounded weight conversion reduces MLX load admission.
+See the [M6 qualification report](docs/validation/milestone-6.md)
 and [focused validation sweep](docs/validation/milestone-6-sweep.md), including the observed
 batch-dependent seeded-sampling limit. The [PR review follow-up](docs/validation/milestone-6-pr-review.md)
 records scheduler allocation-failure and streaming-retention fixes. ROCm and additional stages
@@ -71,6 +81,11 @@ uv run ruff check .
 uv run pyright
 uv run python scripts/generate_proto.py --check
 ```
+
+[GitHub Actions](.github/workflows/ci.yml) defines these Python checks plus a Linux
+CPU build and CTest job using matching, pinned native gRPC/Protobuf dependencies.
+Accelerator and full-checkpoint runs remain explicit hardware qualification tasks.
+See [validation tools and reproduction](scripts/validation/README.md).
 
 For native development, install the C++ Protobuf and gRPC development packages
 (including their CMake configs), then run:
@@ -135,3 +150,7 @@ Historical code quality reviews: [general fixes](docs/code-quality-review.md),
 [the CUDA PR audit](docs/code-quality-review-cuda.md), and
 [the runtime and controller review](docs/code-quality-review-runtime.md).
 Tiny-model CPU pipeline validation is documented in the Milestone 1 notes.
+
+For GPU-independent validation, run the guarded [CPU reload rehearsal](scripts/validation/README.md#cpu-rehearsal-while-the-gpu-is-busy).
+The [concurrency-two qualification design](docs/concurrency-qualification.md) defines
+future overlap and combined-memory evidence; it does not qualify additional capacity.
