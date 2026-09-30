@@ -197,7 +197,15 @@ def profile_memory_command(
     fit = FitResult.model_validate(
         json.loads(output.with_suffix(".fit.json").read_text())["assessment"]
     )
-    typer.echo(f"Wrote {output}: {artifact.artifact_digest}; physical fit: {fit.status}")
+    summary = f"Wrote {output}: {artifact.artifact_digest}; physical fit: {fit.status}"
+    if fit.policy:
+        summary += f"; policy: {fit.policy}"
+    if fit.requested_mlx_policy:
+        summary += f"; requested: {fit.requested_mlx_policy.value}"
+    typer.echo(summary)
+    # A requested footprint policy that fell back looks identical in status alone.
+    for note in fit.policy_notes:
+        typer.echo(f"policy note: {note}")
     if getattr(artifact.measurement, "completed", False) is not True:
         raise typer.Exit(2)
     if fit.status != "safe":
