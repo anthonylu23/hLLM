@@ -68,6 +68,10 @@ bindings, memory and whole-stage compute artifacts, directional link artifacts,
 and production request-setup samples. Worker bindings explicitly identify the
 memory probe, compute probe and serving executable; these are different binaries.
 Bindings include configured admission caps and timestamped physical budgets.
+An MLX binding may explicitly set `mlx_fit_policy: "footprint-v1"`; the default is
+`conservative-v1`. The choice is hashed into the bundle and reused during fresh
+activation. Native sweep workers carry the same option in their frozen executor
+configuration and exclusion evidence. See the [fit-policy requirements](milestone-5-profiling.md#opt-in-mlx-footprint-policy).
 Memory and compute must agree on device, backend, allocator configuration and OS.
 Missing, stale, ambiguous, incomplete or mismatched evidence cannot rank a candidate.
 

@@ -21,6 +21,7 @@ add_executable(
   downstream_channel_test.cpp
   generation_deadline_test.cpp
   half_test.cpp
+  process_memory_test.cpp
   llama_test.cpp
   qwen3_test.cpp
   stage_test.cpp
@@ -191,3 +192,12 @@ foreach(backend IN ITEMS mlx cuda)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 180 LABELS "${backend};hardware")
   endif()
 endforeach()
+
+add_test(NAME CpuReloadRehearsal
+  COMMAND ${CMAKE_COMMAND} -E env
+    HLLM_CPU_WORKER=$<TARGET_FILE:hllm-worker-cpu>
+    HLLM_MEMORY_PROFILER=$<TARGET_FILE:hllm-profile-memory-cpu>
+    ${HLLM_UV_EXECUTABLE} run python -m scripts.validation.cpu_rehearsal)
+# Exit 77 means the resource guard refused to start (see cpu_rehearsal.SKIPPED).
+set_tests_properties(CpuReloadRehearsal PROPERTIES
+  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 210 SKIP_RETURN_CODE 77)

@@ -92,6 +92,18 @@ message AllocatorMetrics {
   uint64 cached_bytes = 3;
   uint64 peak_bytes = 4;
 }
+// OS counters sampled immediately after allocator metrics; reads are not atomic.
+// Optional counters distinguish unavailable from a measured zero. Peaks are never reset.
+message ProcessMemoryObservation {
+  uint64 process_id = 1;
+  uint64 observed_at_unix_ns = 2;
+  optional uint64 rss_bytes = 3;
+  optional uint64 rss_lifetime_peak_bytes = 4;
+  // macOS process physical footprint, including OS-accounted compressed memory.
+  // This is not additive with RSS or MLX allocator bytes. Unavailable on Linux.
+  optional uint64 physical_footprint_bytes = 5;
+  optional uint64 physical_footprint_lifetime_peak_bytes = 6;
+}
 message WorkerMetrics {
   string worker_id = 1;
   optional AllocatorMetrics allocator = 2;
@@ -102,6 +114,7 @@ message WorkerMetrics {
   double queue_wait_ms = 7;
   uint64 decode_batches = 8;
   uint64 largest_decode_batch = 9;
+  optional ProcessMemoryObservation process_memory = 10;
 }
 message HealthResponse { bool serving = 1; string detail = 2; }
 

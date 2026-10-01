@@ -33,7 +33,7 @@ def test_module_and_installed_cli_register_all_commands() -> None:
         )
         for name in expected:
             assert name in help_result.stdout
-        for name in ("qualify-sweep", "seal-profile-bundle", "freeze-sweep"):
+        for name in ("qualify-sweep", "seal-profile-bundle", "freeze-sweep", "profile-memory"):
             subprocess.run([*command, name, "--help"], capture_output=True, check=True, timeout=10)
 
 
@@ -87,3 +87,75 @@ def test_prepare_plan_and_explain_cli(tiny_model: Path, tmp_path: Path) -> None:
     explained = runner.invoke(app, ["explain", str(report_path)])
     assert explained.exit_code == 0, explained.output
     assert "Selected:" in explained.output
+
+
+def test_profile_memory_cli_forwards_policy_and_reports_fallback(tmp_path: Path, monkeypatch):
+    import json
+    import shutil
+    from types import SimpleNamespace
+
+    from hllm_control.profiling import runner
+    from hllm_control.profiling.memory import FitResult, MlxFitPolicy
+
+    from tests.process_helpers import plan, write_model
+
+    manifest = write_model(tmp_path / "model")
+    (tmp_path / "manifest.json").write_text(manifest.model_dump_json())
+    (tmp_path / "plan.json").write_text(plan(manifest).model_dump_json())
+    root = Path(__file__).parents[2]
+    shutil.copy(root / "examples/workloads/interactive.yaml", tmp_path / "workload.yaml")
+    (tmp_path / "binary").write_text("")
+    seen = []
+
+    def fake_profile(**kwargs):
+        seen.append(kwargs["mlx_fit_policy"])
+        fit = FitResult(
+            status="safe",
+            reasons=(),
+            host_envelope_bytes=10,
+            device_envelope_bytes=None,
+            policy="mlx-rss-plus-allocator-v1",
+            requested_mlx_policy=kwargs["mlx_fit_policy"],
+            policy_notes=("footprint policy requires a complete schema-1.3 memory exercise",)
+            if kwargs["mlx_fit_policy"] == MlxFitPolicy.FOOTPRINT
+            else (),
+        )
+        kwargs["output"].with_suffix(".fit.json").write_text(
+            json.dumps({"assessment": fit.model_dump()})
+        )
+        return SimpleNamespace(
+            artifact_digest="a" * 64, measurement=SimpleNamespace(completed=True)
+        )
+
+    monkeypatch.setattr(runner, "run_memory_profile", fake_profile)
+    base = [
+        "profile-memory",
+        "--manifest",
+        str(tmp_path / "manifest.json"),
+        "--plan",
+        str(tmp_path / "plan.json"),
+        "--workload",
+        str(tmp_path / "workload.yaml"),
+        "--model-root",
+        str(tmp_path / "model"),
+        "--binary",
+        str(tmp_path / "binary"),
+        "--backend",
+        "mlx",
+        "--output",
+        str(tmp_path / "out.json"),
+        "--source-revision",
+        "test",
+        "--concurrent-load",
+        "idle",
+    ]
+    runner_ = CliRunner()
+    result = runner_.invoke(app, [*base, "--mlx-fit-policy", "footprint-v1"])
+    assert result.exit_code == 0, result.output
+    assert seen == [MlxFitPolicy.FOOTPRINT]
+    assert "policy: mlx-rss-plus-allocator-v1; requested: footprint-v1" in result.output
+    assert "policy note: footprint policy requires" in result.output
+    result = runner_.invoke(app, base)
+    assert result.exit_code == 0, result.output
+    assert seen[-1] == MlxFitPolicy.CONSERVATIVE and "policy note" not in result.output
+    assert runner_.invoke(app, [*base, "--mlx-fit-policy", "bogus-v9"]).exit_code != 0

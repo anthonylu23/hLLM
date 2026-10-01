@@ -98,3 +98,15 @@ Transformers and across MLX/CUDA machines, including memory and latency measurem
 Its redundant serialized tied head is validated against the embedding and deduplicated
 in resident storage. The Qwen3-4B-Base shape fixture above remains an estimate;
 it is not evidence of full 4B inference. Measured placement is Milestone 5.
+
+The [2026-09-18 real 4B pass](validation/qwen3-4b.md) adds complete-checkpoint
+MLX→CUDA generation with exact 256-token agreement against an independent F16
+Transformers oracle, fault recovery, and numerical stage replays in both orders.
+The 15-layer MLX / 21-layer CUDA assignment uses resident F16 weights. Full serving
+observations exceed the existing conservative MLX physical-fit envelope, so wider
+capacity acceptance, longer context, and concurrency remain unqualified.
+The [September 23 footprint soak](validation/qwen3-4b-footprint.md) adds three
+same-process reload cycles and twelve exact continuations, with a 4.576 GiB peak.
+An opt-in footprint-aware fit policy is now implemented; fresh profiling and longer
+lifecycle qualification are next in the [overnight backlog](overnight-backlog.md)
+before choosing a capacity feature such as quantization or offloading.

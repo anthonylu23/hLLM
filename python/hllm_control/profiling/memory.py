@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import Field
@@ -14,6 +15,11 @@ from hllm_control.profiling.models import (
     ProfileArtifact,
     ProfileModel,
 )
+
+
+class MlxFitPolicy(StrEnum):
+    CONSERVATIVE = "conservative-v1"
+    FOOTPRINT = "footprint-v1"
 
 
 class PhysicalBudget(ProfileModel):
@@ -30,6 +36,65 @@ class FitResult(ProfileModel):
     reasons: tuple[str, ...]
     host_envelope_bytes: NonNegativeInt | None
     device_envelope_bytes: NonNegativeInt | None
+    # Absent in historical results; do not change their serialized representation.
+    policy: (
+        Literal[
+            "cpu-rss-v1", "cuda-rss-device-v1", "mlx-rss-plus-allocator-v1", "mlx-footprint-max-v1"
+        ]
+        | None
+    ) = Field(default=None, exclude_if=lambda v: v is None)
+    requested_mlx_policy: MlxFitPolicy | None = Field(default=None, exclude_if=lambda v: v is None)
+    policy_notes: tuple[str, ...] = Field(default=(), exclude_if=lambda v: not v)
+
+
+def _footprint_peak(artifact: ProfileArtifact, m: MemoryMeasurement) -> tuple[int | None, str]:
+    """Only complete, coherent OS/allocator observations can replace the union bound."""
+    if artifact.schema_version != "1.3" or not m.completed or not m.samples:
+        return None, "footprint policy requires a complete schema-1.3 memory exercise"
+    if artifact.conditions.process_policy != "fresh-process-then-reloads":
+        return None, "footprint policy requires fresh-process/reload evidence"
+    previous_time = previous_rss = previous_footprint = 0
+    process_id: int | None = None
+    for sample in m.samples:
+        p = sample.process_memory
+        if p is None or any(
+            v is None or v <= 0
+            for v in (
+                p.rss_bytes,
+                p.rss_lifetime_peak_bytes,
+                p.physical_footprint_bytes,
+                p.physical_footprint_lifetime_peak_bytes,
+            )
+        ):
+            return None, "footprint policy requires positive OS counters in every phase"
+        # The explicit checks also narrow optional values for static typing.
+        assert p.rss_bytes is not None and p.rss_lifetime_peak_bytes is not None
+        assert p.physical_footprint_bytes is not None
+        assert p.physical_footprint_lifetime_peak_bytes is not None
+        if (
+            (process_id is not None and p.process_id != process_id)
+            or p.observed_at_unix_ns < previous_time
+            or p.rss_lifetime_peak_bytes < max(previous_rss, p.rss_bytes)
+            or p.physical_footprint_lifetime_peak_bytes
+            < max(previous_footprint, p.physical_footprint_bytes)
+        ):
+            return (
+                None,
+                "footprint policy requires coherent process identity, clock and lifetime peaks",
+            )
+        if sample.allocator is None or (
+            sample.phase in ("load", "allocate", "prefill", "decode")
+            and sample.allocator.peak_scope != "phase"
+        ):
+            return (
+                None,
+                "footprint policy requires allocator observations and execution phase peaks",
+            )
+        process_id = p.process_id
+        previous_time = p.observed_at_unix_ns
+        previous_rss = p.rss_lifetime_peak_bytes
+        previous_footprint = p.physical_footprint_lifetime_peak_bytes
+    return previous_footprint, ""
 
 
 def assess_fit(
@@ -37,17 +102,21 @@ def assess_fit(
     admission_capacity: MemoryAmounts,
     host: PhysicalBudget,
     device: PhysicalBudget | None = None,
+    *,
+    mlx_policy: MlxFitPolicy = MlxFitPolicy.CONSERVATIVE,
 ) -> FitResult:
     """Assess a compatible assignment with explicit, fresh physical budgets.
 
     Existing native load admission is authoritative. Without an exact load-peak
     formula in the artifact, decreasing any successful probe cap requires reprofiling.
-    CPU uses process RSS. For MLX, RSS plus allocator residency is an intentionally
-    overcounted upper bound: their overlap is unknown. It is not reported as measured
-    physical usage. CUDA uses process GPU observations independently.
+    CPU uses process RSS. MLX defaults to RSS plus allocator residency. The opt-in
+    footprint policy uses the maximum of OS footprint, RSS and allocator envelopes
+    only with complete telemetry; otherwise it falls back to the conservative sum.
+    CUDA uses process GPU observations independently.
     All physical observations retain safety and explicit non-profiled overhead.
     """
     m = artifact.measurement
+    mlx_policy = MlxFitPolicy(mlx_policy)
     if not isinstance(m, MemoryMeasurement):
         raise ValueError("fit assessment requires a memory measurement")
     unsafe: list[str] = []
@@ -72,6 +141,16 @@ def assess_fit(
         s.device_process_bytes for s in m.physical_samples if s.device_process_bytes is not None
     ]
     backend = artifact.key.environment.backend
+    policy: Literal[
+        "cpu-rss-v1", "cuda-rss-device-v1", "mlx-rss-plus-allocator-v1", "mlx-footprint-max-v1"
+    ] = (
+        "mlx-rss-plus-allocator-v1"
+        if backend == Backend.MLX
+        else "cuda-rss-device-v1"
+        if backend == Backend.CUDA
+        else "cpu-rss-v1"
+    )
+    policy_notes: tuple[str, ...] = ()
     unified_allocator_peak = 0
     if backend != Backend.CPU:
         if any(
@@ -95,6 +174,19 @@ def assess_fit(
     host_peak = max(host_values, default=None)
     if host_peak is not None:
         host_peak += unified_allocator_peak
+    if backend == Backend.MLX and mlx_policy == MlxFitPolicy.FOOTPRINT:
+        footprint, reason = _footprint_peak(artifact, m)
+        if footprint is None:
+            policy_notes = (reason + "; using conservative-v1",)
+        else:
+            # Native RSS current values are included as an additional cross-check.
+            host_peak = max(
+                footprint,
+                unified_allocator_peak,
+                *host_values,
+                *(s.rss_bytes or 0 for s in m.samples),
+            )
+            policy = "mlx-footprint-max-v1"
     device_peak = max(device_values, default=None)
 
     def envelope(name: str, peak: int | None, budget: PhysicalBudget | None) -> int | None:
@@ -113,4 +205,7 @@ def assess_fit(
         reasons=tuple(dict.fromkeys(unsafe + unknown)),
         host_envelope_bytes=host_envelope,
         device_envelope_bytes=device_envelope,
+        policy=policy,
+        requested_mlx_policy=mlx_policy if backend == Backend.MLX else None,
+        policy_notes=policy_notes,
     )

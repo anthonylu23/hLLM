@@ -11,6 +11,7 @@ from typing import Annotated, Literal, Self
 from pydantic import AwareDatetime, Field, PrivateAttr, model_validator
 
 from hllm_control.models import (
+    Backend,
     DType,
     ModelManifest,
     PerformanceEstimate,
@@ -24,7 +25,7 @@ from hllm_control.profiling.link import (
     ProbeIdentity,
     check_link_compatibility,
 )
-from hllm_control.profiling.memory import PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
 from hllm_control.profiling.models import (
     ComputeRunMeasurement,
     Digest,
@@ -47,6 +48,9 @@ class WorkerEvidence(ProfileModel):
     admission_capacity: MemoryAmounts
     host: PhysicalBudget
     device: PhysicalBudget | None = None
+    mlx_fit_policy: MlxFitPolicy = Field(
+        default=MlxFitPolicy.CONSERVATIVE, exclude_if=lambda v: v == MlxFitPolicy.CONSERVATIVE
+    )
     observed_at: AwareDatetime
     transport_mode: Literal["pageable", "pinned"]
 
@@ -66,6 +70,8 @@ class WorkerEvidence(ProfileModel):
                 raise ValueError("memory/compute device environment mismatch: " + field)
         if self.worker.backend != self.compute_environment.backend:
             raise ValueError("worker/backend environment mismatch")
+        if self.mlx_fit_policy != MlxFitPolicy.CONSERVATIVE and self.worker.backend != Backend.MLX:
+            raise ValueError("mlx_fit_policy applies to MLX workers only")
         return self
 
 
@@ -313,7 +319,13 @@ def evaluate(
             artifact = matches[0]
             identities.append(artifact.artifact_digest)
             if kind == "memory":
-                fit = assess_fit(artifact, binding.admission_capacity, binding.host, binding.device)
+                fit = assess_fit(
+                    artifact,
+                    binding.admission_capacity,
+                    binding.host,
+                    binding.device,
+                    mlx_policy=binding.mlx_fit_policy,
+                )
                 if fit.host_envelope_bytes is not None:
                     host_envelopes[assignment.worker_id] = fit.host_envelope_bytes
                 if fit.device_envelope_bytes is not None:

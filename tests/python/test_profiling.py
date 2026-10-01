@@ -19,6 +19,7 @@ from hllm_control.profiling.models import (
     MemoryMeasurement,
     MemorySample,
     PhysicalSample,
+    ProcessMemoryObservation,
     ProfileArtifact,
     ProfileKey,
     check_compatibility,
@@ -286,6 +287,76 @@ def test_mlx_unknown_overlap_uses_conservative_union_bound(key: ProfileKey) -> N
     result = assess_fit(a, m.admission_capacity, b)
     assert result.status == "safe"
     assert result.host_envelope_bytes == 930  # (RSS 500 + allocator 300) * 1.1 + 50.
+
+
+@pytest.mark.parametrize("footprint", [None, 0, 600])
+def test_process_observations_are_sealed_but_do_not_change_fit(
+    key: ProfileKey, footprint: int | None
+) -> None:
+    mlx = ProfileKey.model_validate(
+        {**key.model_dump(), "environment": {**key.environment.model_dump(), "backend": "mlx"}}
+    )
+    original = memory(mlx, allocator=True)
+    p = ProcessMemoryObservation(
+        process_id=42,
+        observed_at_unix_ns=123,
+        rss_bytes=400,
+        rss_lifetime_peak_bytes=500,
+        physical_footprint_bytes=footprint,
+        physical_footprint_lifetime_peak_bytes=footprint,
+    )
+    m = original.model_copy(
+        update={
+            "samples": tuple(s.model_copy(update={"process_memory": p}) for s in original.samples)
+        }
+    )
+    a = make_artifact(mlx, conditions(), m)
+    assert (a.schema_version, a.profiler_version) == ("1.3", "0.3.0")
+    assert ProfileArtifact.model_validate_json(a.model_dump_json()) == a
+    assert p.model_dump()["physical_footprint_bytes"] == footprint
+    budget = PhysicalBudget(available_bytes=2000, headroom_bytes=100, extra_overhead_bytes=50)
+    assert assess_fit(a, m.admission_capacity, budget) == assess_fit(
+        make_artifact(mlx, conditions(), original), original.admission_capacity, budget
+    )
+    modified = a.model_dump(mode="json")
+    modified["measurement"]["samples"][0]["process_memory"]["physical_footprint_bytes"] = 999
+    with pytest.raises(ValueError, match="digest mismatch"):
+        ProfileArtifact.model_validate(modified)
+    for mutation, message in (
+        ("legacy-schema", "require profile schema 1.3"),
+        ("missing-observation", "requires process observations"),
+        ("different-process", "single process"),
+        ("inconsistent-rss", "match legacy RSS"),
+    ):
+        invalid = a.model_dump(mode="json", exclude={"artifact_digest"})
+        first = invalid["measurement"]["samples"][0]
+        if mutation == "legacy-schema":
+            invalid["schema_version"] = "1.0"
+        elif mutation == "missing-observation":
+            del first["process_memory"]
+        elif mutation == "different-process":
+            first["process_memory"]["process_id"] = 43
+        else:
+            first["process_memory"]["rss_bytes"] = 401
+        with pytest.raises(ValueError, match=message):
+            ProfileArtifact.model_validate({**invalid, "artifact_digest": digest(invalid)})
+
+
+def test_historical_memory_artifacts_retain_digests() -> None:
+    import json
+
+    historical = Path(__file__).parents[2] / "docs/validation/milestone-5-memory"
+    checked = 0
+    for path in historical.glob("*.json"):
+        saved = json.loads(path.read_text())
+        if "artifact_digest" not in saved:
+            continue
+        parsed = ProfileArtifact.model_validate(saved)
+        assert parsed.model_dump(mode="json") == saved
+        assert isinstance(parsed.measurement, MemoryMeasurement)
+        assert all(s.process_memory is None for s in parsed.measurement.samples)
+        checked += 1
+    assert checked == 4, "historical memory artifacts missing; this test must not pass vacuously"
 
 
 def test_preflight_refuses_to_start_and_saves_report(tmp_path: Path, monkeypatch) -> None:

@@ -27,6 +27,12 @@ def main() -> None:
     parser.add_argument("--prompt-tokens", type=int)
     parser.add_argument("--output-tokens", type=int, default=256)
     parser.add_argument("--dtype", choices=("f32", "f16"), default="f32")
+    parser.add_argument(
+        "--plain", action="store_true", help="Plain completion tokenization for Base models"
+    )
+    parser.add_argument(
+        "--gpu-layers", type=int, help="Keep the remaining layers on CPU via Accelerate"
+    )
     parser.add_argument("--teacher-reference", type=Path)
     parser.add_argument("--continuation-reference", type=Path)
     parser.add_argument("--at-index", type=int, default=177)
@@ -35,6 +41,9 @@ def main() -> None:
         parser.error("refusing to overwrite an independent reference")
     if args.output_tokens <= 0 or (args.prompt_tokens is not None and args.prompt_tokens <= 0):
         parser.error("prompt/output token counts must be positive")
+    config = json.loads((args.model / "config.json").read_text())
+    if args.gpu_layers is not None and not 0 <= args.gpu_layers <= config["num_hidden_layers"]:
+        parser.error("gpu-layers must be within the model layer count")
     checkpoint_files = {}
     for path in [args.model / "config.json", *sorted(args.model.glob("*.safetensors"))]:
         with path.open("rb") as stream:
@@ -46,19 +55,38 @@ def main() -> None:
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
     tokenizer = AutoTokenizer.from_pretrained(args.model, local_files_only=True)
-    model = (
-        cast(
-            torch.nn.Module,  # AutoModel returns a Module; its generated typing is loose.
-            AutoModelForCausalLM.from_pretrained(
-                args.model,
-                torch_dtype=torch.float32 if args.dtype == "f32" else torch.float16,
-                attn_implementation="eager",
-                local_files_only=True,
-            ),
+    device_map: dict[str, int | str] | None = None
+    if args.gpu_layers is not None:
+        device_map = {"model.embed_tokens": 0, "model.norm": 0, "lm_head": 0}
+        device_map.update(
+            {
+                f"model.layers.{i}": 0 if i < args.gpu_layers else "cpu"
+                for i in range(config["num_hidden_layers"])
+            }
         )
-        .eval()
-        .to("cuda")
-    )
+    model = cast(
+        torch.nn.Module,  # AutoModel returns a Module; its generated typing is loose.
+        AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch.float32 if args.dtype == "f32" else torch.float16,
+            attn_implementation="eager",
+            local_files_only=True,
+            **({"device_map": device_map, "low_cpu_mem_usage": True} if device_map else {}),
+        ),
+    ).eval()
+    if device_map is None:
+        model = model.to("cuda")
+
+    def encode(prompt: str):
+        if args.plain:
+            return tokenizer.encode(prompt, add_special_tokens=True)
+        return tokenizer.apply_chat_template(
+            [{"role": "user", "content": prompt}],
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+        )
+
     teacher = json.loads(args.teacher_reference.read_text()) if args.teacher_reference else None
     continuation = (
         json.loads(args.continuation_reference.read_text())["long_generation"]
@@ -93,17 +121,14 @@ def main() -> None:
             "dtype": args.dtype,
             "attention": "eager",
             "tf32": False,
+            "plain_completion": args.plain,
+            "device_map": device_map,
         },
         "cases": [],
     }
     with torch.inference_mode():
         for index, prompt in enumerate(prompts):
-            ids = tokenizer.apply_chat_template(
-                [{"role": "user", "content": prompt}],
-                tokenize=True,
-                add_generation_prompt=True,
-                enable_thinking=False,
-            )
+            ids = encode(prompt)
             if continuation:
                 ids = continuation["token_ids"]
             entry = {"prompt": prompt, "token_ids": ids, "steps": []}
@@ -154,12 +179,7 @@ def main() -> None:
             "Write a detailed story of at least 500 words about a robot exploring "
             "an abandoned observatory."
         )
-        ids = tokenizer.apply_chat_template(
-            [{"role": "user", "content": prompt}],
-            tokenize=True,
-            add_generation_prompt=True,
-            enable_thinking=False,
-        )
+        ids = encode(prompt)
         if args.prompt_tokens is not None:
             # Exact token IDs are authoritative. Repetition is deterministic and
             # avoids tokenizer-dependent string padding or approximate lengths.

@@ -111,6 +111,8 @@ def test_http_completion_chat_stream_and_concurrent_soak(tmp_path: Path) -> None
             metrics = client.get("/metrics").text
             assert "hllm_completed 43" in metrics
             assert "hllm_active_requests 0" in metrics
+            assert 'hllm_worker_process_rss_bytes{stage="0"} ' in metrics
+            assert 'hllm_worker_process_rss_lifetime_peak_bytes{stage="1"} ' in metrics
             sampled = {**payload, "temperature": 0.8, "top_p": 0.9, "top_k": 5, "seed": 42}
             probabilities = client.post("/v1/completions", json={**payload, "logprobs": 3})
             assert probabilities.status_code == 200, probabilities.text

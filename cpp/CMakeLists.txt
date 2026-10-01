@@ -20,6 +20,7 @@ add_library(
   src/half.cpp
   src/sampling.cpp
   src/decode_batch.cpp
+  src/process_memory.cpp
   src/safetensors.cpp
   src/tensor_envelope.cpp
 )

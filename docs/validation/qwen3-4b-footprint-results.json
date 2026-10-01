@@ -1,0 +1,1405 @@
+{
+  "schema_version": "1.0",
+  "runs": [
+    {
+      "label": "reload-soak-v2",
+      "completed": true,
+      "error": null,
+      "duration_seconds": 572.3085770606995,
+      "preflight": {
+        "available_bytes": {
+          "mlx_unified": 8958869504,
+          "cuda_host": 6687170560,
+          "cuda_device": 8056209408
+        },
+        "configured_cap_plus_allowances": {
+          "mlx_unified": 6509559808,
+          "cuda_host": 5771362304,
+          "cuda_device": 8039641908
+        },
+        "accepted": true
+      },
+      "observation_count": 1259,
+      "sampling_gap_count": 12,
+      "guards": {
+        "mlx": {
+          "samples": 280,
+          "exit": {
+            "event": "exit",
+            "unix_time": 1790146358.306741,
+            "returncode": -15,
+            "reason": "guard received signal 15"
+          },
+          "minimum_available_bytes": 3778478080,
+          "new_swapout_bytes": 0,
+          "non_normal_pressure_samples": 0,
+          "footprint_lifetime_peak_bytes": 4913631264
+        },
+        "cuda": {
+          "samples": 284,
+          "exit": {
+            "event": "exit",
+            "unix_time": 1790146358.366477,
+            "returncode": -15,
+            "reason": null
+          },
+          "minimum_available_bytes": 3112079360,
+          "new_swapout_bytes": 0,
+          "non_normal_pressure_samples": 0,
+          "footprint_lifetime_peak_bytes": 0
+        }
+      },
+      "mlx": {
+        "physical_footprint_lifetime_peak_bytes": 4913631264,
+        "rss_lifetime_peak_bytes": 4263215104,
+        "allocator_envelope_peak_bytes": 3902895684,
+        "legacy_requirement_including_headroom_bytes": 10324899147,
+        "diagnostic_max_os_allocator_requirement_including_headroom_bytes": 6747171671
+      },
+      "cycles": [
+        {
+          "cycle": 0,
+          "load_seconds": 26.60278999991715,
+          "requests": 4,
+          "exact_reference_matches": 4,
+          "generated_tokens": 1024,
+          "after_load": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805836800",
+                  "cachedBytes": "24",
+                  "peakBytes": "3805836800"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790145822538150000",
+                  "rssBytes": "3922509824",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "4682354600",
+                  "physicalFootprintLifetimePeakBytes": "4682387368"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5050183680",
+                  "cachedBytes": "12341248",
+                  "peakBytes": "5050183680"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790145822613269746",
+                  "rssBytes": "396984320",
+                  "rssLifetimePeakBytes": "2724745216"
+                }
+              }
+            }
+          ],
+          "after_cancel": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805836800",
+                  "cachedBytes": "67996147",
+                  "peakBytes": "3902854200"
+                },
+                "completedSteps": "1028",
+                "queueWaitMs": 1.504742999999994,
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790145961799788000",
+                  "rssBytes": "3605364736",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "4823273504",
+                  "physicalFootprintLifetimePeakBytes": "4912107552"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5058703360",
+                  "cachedBytes": "79319040",
+                  "peakBytes": "5108512768"
+                },
+                "completedSteps": "1027",
+                "queueWaitMs": 0.25963499999999956,
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790145961873903141",
+                  "rssBytes": "1201225728",
+                  "rssLifetimePeakBytes": "2724745216"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "cachedBytes": "67996147",
+                  "peakBytes": "3902854200"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790145962004765000",
+                  "rssBytes": "1766293504",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "2002012416",
+                  "physicalFootprintLifetimePeakBytes": "4912107552"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "5129502720",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790145962087625109",
+                  "rssBytes": "1201229824",
+                  "rssLifetimePeakBytes": "2724745216"
+                }
+              }
+            }
+          ],
+          "after_unload_idle": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "cachedBytes": "67996147",
+                  "peakBytes": "3902854200"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790145972135908000",
+                  "rssBytes": "797622272",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "943310336",
+                  "physicalFootprintLifetimePeakBytes": "4912107552"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "5129502720",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790145972215229134",
+                  "rssBytes": "1201229824",
+                  "rssLifetimePeakBytes": "2724745216"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "load_seconds": 26.52201266703196,
+          "requests": 4,
+          "exact_reference_matches": 4,
+          "generated_tokens": 1024,
+          "after_load": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805861376",
+                  "cachedBytes": "66094067",
+                  "peakBytes": "3902854200"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790145998778970000",
+                  "rssBytes": "3005235200",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "4749168672",
+                  "physicalFootprintLifetimePeakBytes": "4912107552"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5058703360",
+                  "cachedBytes": "79319040",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790145998855033583",
+                  "rssBytes": "1210802176",
+                  "rssLifetimePeakBytes": "3526811648"
+                }
+              }
+            }
+          ],
+          "after_cancel": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805861376",
+                  "cachedBytes": "67135991",
+                  "peakBytes": "3902895684"
+                },
+                "completedSteps": "1028",
+                "queueWaitMs": 1.7310039999999947,
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146159218623000",
+                  "rssBytes": "2849013760",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "4830711840",
+                  "physicalFootprintLifetimePeakBytes": "4913303584"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5058703360",
+                  "cachedBytes": "79319040",
+                  "peakBytes": "5108512768"
+                },
+                "completedSteps": "1027",
+                "queueWaitMs": 0.2907599999999987,
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146159296392693",
+                  "rssBytes": "1214148608",
+                  "rssLifetimePeakBytes": "3526811648"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "cachedBytes": "67135991",
+                  "peakBytes": "3902895684"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146159436323000",
+                  "rssBytes": "1063944192",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "1220019904",
+                  "physicalFootprintLifetimePeakBytes": "4913303584"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "5129502720",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146159510212281",
+                  "rssBytes": "1214148608",
+                  "rssLifetimePeakBytes": "3526811648"
+                }
+              }
+            }
+          ],
+          "after_unload_idle": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "cachedBytes": "67135991",
+                  "peakBytes": "3902895684"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146169571742000",
+                  "rssBytes": "880148480",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "955483648",
+                  "physicalFootprintLifetimePeakBytes": "4913303584"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "5129502720",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146169651415064",
+                  "rssBytes": "1214148608",
+                  "rssLifetimePeakBytes": "3526811648"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "load_seconds": 25.912385709001683,
+          "requests": 4,
+          "exact_reference_matches": 4,
+          "generated_tokens": 1024,
+          "after_load": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805858304",
+                  "cachedBytes": "66552823",
+                  "peakBytes": "3902895684"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146195615193000",
+                  "rssBytes": "3563274240",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "4763537440",
+                  "physicalFootprintLifetimePeakBytes": "4913303584"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5058703360",
+                  "cachedBytes": "79319040",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146195700990314",
+                  "rssBytes": "1214111744",
+                  "rssLifetimePeakBytes": "3547873280"
+                }
+              }
+            }
+          ],
+          "after_cancel": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805858304",
+                  "cachedBytes": "67996147",
+                  "peakBytes": "3902895684"
+                },
+                "completedSteps": "1028",
+                "queueWaitMs": 1.9010849999999915,
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146345095506000",
+                  "rssBytes": "3443195904",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "4831842336",
+                  "physicalFootprintLifetimePeakBytes": "4913631264"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5058703360",
+                  "cachedBytes": "79319040",
+                  "peakBytes": "5108512768"
+                },
+                "completedSteps": "1027",
+                "queueWaitMs": 0.28893199999999886,
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146345169733132",
+                  "rssBytes": "1214857216",
+                  "rssLifetimePeakBytes": "3547873280"
+                }
+              }
+            }
+          ],
+          "after_unload": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "cachedBytes": "67996147",
+                  "peakBytes": "3902895684"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146345298048000",
+                  "rssBytes": "1836236800",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "2003470544",
+                  "physicalFootprintLifetimePeakBytes": "4913631264"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "5129502720",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146345365713018",
+                  "rssBytes": "1214857216",
+                  "rssLifetimePeakBytes": "3547873280"
+                }
+              }
+            }
+          ],
+          "after_unload_idle": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "cachedBytes": "67996147",
+                  "peakBytes": "3902895684"
+                },
+                "processMemory": {
+                  "processId": "64995",
+                  "observedAtUnixNs": "1790146355423834000",
+                  "rssBytes": "876396544",
+                  "rssLifetimePeakBytes": "4263215104",
+                  "physicalFootprintBytes": "957384192",
+                  "physicalFootprintLifetimePeakBytes": "4913631264"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "8519680",
+                  "cachedBytes": "5129502720",
+                  "peakBytes": "5108512768"
+                },
+                "processMemory": {
+                  "processId": "4102948",
+                  "observedAtUnixNs": "1790146355492304524",
+                  "rssBytes": "1214857216",
+                  "rssLifetimePeakBytes": "3547873280"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "reload-soak",
+      "completed": false,
+      "error": "RuntimeError: observation failed: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.DEADLINE_EXCEEDED\n\tdetails = \"Deadline Exceeded\"\n\tdebug_error_string = \"DEADLINE_EXCEEDED:Deadline Exceeded\"\n>",
+      "duration_seconds": 74.0153739452362,
+      "preflight": {
+        "available_bytes": {
+          "mlx_unified": 6856998912,
+          "cuda_host": 6779789312,
+          "cuda_device": 8056209408
+        },
+        "configured_cap_plus_allowances": {
+          "mlx_unified": 6509559808,
+          "cuda_host": 5771362304,
+          "cuda_device": 8039641908
+        },
+        "accepted": true
+      },
+      "observation_count": 9,
+      "sampling_gap_count": 1,
+      "guards": {
+        "mlx": {
+          "samples": 35,
+          "exit": {
+            "event": "exit",
+            "unix_time": 1790145718.375689,
+            "returncode": -15,
+            "reason": "guard received signal 15"
+          },
+          "minimum_available_bytes": 4717428736,
+          "new_swapout_bytes": 0,
+          "non_normal_pressure_samples": 0,
+          "footprint_lifetime_peak_bytes": 0
+        },
+        "cuda": {
+          "samples": 35,
+          "exit": {
+            "event": "exit",
+            "unix_time": 1790145718.513228,
+            "returncode": -15,
+            "reason": null
+          },
+          "minimum_available_bytes": 5165699072,
+          "new_swapout_bytes": 266240,
+          "non_normal_pressure_samples": 0,
+          "footprint_lifetime_peak_bytes": 0
+        }
+      },
+      "mlx": {
+        "physical_footprint_lifetime_peak_bytes": 4867575816,
+        "rss_lifetime_peak_bytes": 2857402368,
+        "allocator_envelope_peak_bytes": 3902805560,
+        "legacy_requirement_including_headroom_bytes": 8778406001,
+        "diagnostic_max_os_allocator_requirement_including_headroom_bytes": 6696510678
+      },
+      "cycles": [
+        {
+          "cycle": 0,
+          "load_seconds": 26.76461854192894,
+          "requests": 1,
+          "exact_reference_matches": 1,
+          "generated_tokens": 256,
+          "after_load": [
+            {
+              "worker": "mlx",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "capacityBytes": "4697620480"
+                  }
+                ],
+                "loadedWeightBytes": "3805836800",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_UNIFIED",
+                    "loadedWeightBytes": "3805836800"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "mlx",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_UNIFIED",
+                  "activeBytes": "3805836800",
+                  "cachedBytes": "24",
+                  "peakBytes": "3805836800"
+                },
+                "processMemory": {
+                  "processId": "64723",
+                  "observedAtUnixNs": "1790145679659251000",
+                  "rssBytes": "2542010368",
+                  "rssLifetimePeakBytes": "2857402368",
+                  "physicalFootprintBytes": "4681224128",
+                  "physicalFootprintLifetimePeakBytes": "4681224128"
+                }
+              }
+            },
+            {
+              "worker": "cuda",
+              "memory": {
+                "budgets": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST",
+                    "capacityBytes": "4026531840"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "capacityBytes": "6576668672"
+                  }
+                ],
+                "loadedWeightBytes": "5017011712",
+                "domainUsage": [
+                  {
+                    "domain": "MEMORY_DOMAIN_HOST"
+                  },
+                  {
+                    "domain": "MEMORY_DOMAIN_DEVICE",
+                    "loadedWeightBytes": "5017011712"
+                  }
+                ]
+              },
+              "metrics": {
+                "workerId": "cuda",
+                "allocator": {
+                  "domain": "MEMORY_DOMAIN_DEVICE",
+                  "activeBytes": "5050183680",
+                  "cachedBytes": "12341248",
+                  "peakBytes": "5050183680"
+                },
+                "processMemory": {
+                  "processId": "4100973",
+                  "observedAtUnixNs": "1790145679736721118",
+                  "rssBytes": "396304384",
+                  "rssLifetimePeakBytes": "2808102912"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source_identity": {
+    "base_revision": "66227433182b48f1d79fffd5ec112d33e47d44fc",
+    "source_files": {
+      "cpp/CMakeLists.txt": "aee77e925fe225ee50c4ca808bc839018faaa32d56deb341be3baea4943cd69e",
+      "cpp/include/hllm/cpu/llama.hpp": "1078ba9d8cb29314ffaec5719294f1d81b6e0d8f16b17973389f49b6b1aef03d",
+      "cpp/include/hllm/cpu/stage.hpp": "0e49edb8ed24ec5cb69f7bc48f93cf5703eeaeba964597b86f4a737d55dacf48",
+      "cpp/include/hllm/cpu/tensor.hpp": "e6c8f10cb237613b6adf0e4c208fa05623b45e3aba9afb02b90a2f1a5dd97fd4",
+      "cpp/include/hllm/cuda/backend.hpp": "244859456a8ee1e20ca20f9dba76f7e0008ca06a61b204dc6a905648bd129412",
+      "cpp/include/hllm/cuda/stage.hpp": "853dc84bec883e3f76402cfa0f3dd05e72ea562d78cdc482631819992822b31b",
+      "cpp/include/hllm/mlx/backend.hpp": "b377189ad7d70578160f37b69db341f34f18eaa7e1ab0df7d3b5f63dfa0f8ceb",
+      "cpp/include/hllm/mlx/stage.hpp": "1a635d1b1a5bdc4c222a2ed2279204220aab775aa9c6e0f6162c635de73763a9",
+      "cpp/include/hllm/model/dense_loader.hpp": "8617643c6d8746d262cfb4e68110dc8d6d096c218757611c0cdaeb96db591fba",
+      "cpp/include/hllm/model/dense_source.hpp": "d6e06b82456973043e1b8f7a110304cdc30cf5b6461456e2f6c2d11d5cd860f9",
+      "cpp/include/hllm/runtime/backend_factory.hpp": "0095b81ecc04e9ceaf1e99c2e327cd02d92cb11d3373c4e37280be64db02d2c4",
+      "cpp/include/hllm/runtime/buffer.hpp": "e056897b05816e78c6d77c9cbeddca46a2c22100b32d455667c96fd2e1517150",
+      "cpp/include/hllm/runtime/checked_size.hpp": "2220855af2af24f51ea08a0c7aeb6f3000984b7b32d01d2051b1e17b92e67fee",
+      "cpp/include/hllm/runtime/error.hpp": "efcecd8fdf56f5a141dedf100d0cab519b034699f8379074e43ca3c38c5ab674",
+      "cpp/include/hllm/runtime/half.hpp": "545773e592bdfde663f75940a745bda2935bfd0b5ef3cfac75fa0144b1028324",
+      "cpp/include/hllm/runtime/memory.hpp": "e476a4504c4bff38c355454dbcf9080101a7390f1951a83a93397b433e63f2fa",
+      "cpp/include/hllm/runtime/process_memory.hpp": "f75e39f1b769869fd7837ef0be34eef4339886a7be425badea6a8eb86b323e14",
+      "cpp/include/hllm/runtime/profiling.hpp": "7fefc8f1b0cd0353688b057336ee86e38f1388553c4a51a1eac4f5aa179c5447",
+      "cpp/include/hllm/runtime/safetensors.hpp": "936e7bde2cd4cf39e9c16425b83b2e5b3f0efc04c8b8e62d3379d5fb3d559ca6",
+      "cpp/include/hllm/runtime/sampling.hpp": "b0bb437f065bffe2ba33bf28445c8c896905901fc0503f865019231b2f98dffb",
+      "cpp/include/hllm/runtime/stage_backend.hpp": "ee8ba71df7b88140633f2df77f0d4e6624f13ef6aac138f55fb1f9a94857041c",
+      "cpp/include/hllm/runtime/tensor_envelope.hpp": "28efa34ca7898c89082988cc5e930b8bd55619cd5bfd145cd83f1af1262011f9",
+      "cpp/include/hllm/runtime/timing.hpp": "3545231ec9fe3333d51aa96c7bbdabdb07f48b597f30466427f4aecfa30fbde2",
+      "cpp/include/hllm/worker/boundary_codec.hpp": "8c6655e45f25c50e26886ef12aa3a229df74f1e479f4e11c05edcec6cddbd47d",
+      "cpp/include/hllm/worker/control_service.hpp": "785a795c86c77221d882e9b31feb58a59fc994751f2cb39ad2674129011d8d90",
+      "cpp/include/hllm/worker/execution_service.hpp": "1e746ec6f6834317879df593b0bb6a26a4e301ae0c9f3b2f17cdf3ba98895522",
+      "cpp/include/hllm/worker/scheduler.hpp": "eb4a23ea4f8833ab9f2b7d2a457ec7b3d84a85cbc2581a85699977de12ad5c1a",
+      "cpp/src/buffer.cpp": "eb3a6b9453f1f3fff98bcd586fd1bc2d527afa275ac123c08a6cd454c829578e",
+      "cpp/src/cpu/llama.cpp": "f8eb0f1d766c82dfcd6473dd560e85feaf25a1dda08ae4a1be90e36546c45757",
+      "cpp/src/cpu/stage.cpp": "05ba194bf7bccf87c6d0f0fb434a740f790738cd9c6c510ab5b47ea2deb4705f",
+      "cpp/src/cpu/tensor.cpp": "70e1f9e512ad7672c9c2d64e24251903d9f7afa9bc53560047f7f7e9b02622c4",
+      "cpp/src/cuda/backend.cpp": "0a7794ea37a6181a80b1b8dfb414d76d3cf36ed1446dacc1cfd4fff2004a9ced",
+      "cpp/src/cuda/device.cpp": "8e4f29cb00a50ed656d9d4102e69c2c5e4053d4b6f4319c83d7674eab0e28a4d",
+      "cpp/src/cuda/device.hpp": "d711c134b3746c1f3b873a0ce459bdd49166c4feb8694dce9f38d31f1c27890f",
+      "cpp/src/cuda/execution_stream.hpp": "f19d4dcfd16d8b2a36e9e65a8ecf514152b94b544f69c66ca8b9560561f1e2c5",
+      "cpp/src/cuda/pinned_buffer.hpp": "f423c5092409df5dd729315240984c8ba2fc9cd09965a27c2125035f8f56313d",
+      "cpp/src/cuda/stage.cpp": "7494dd867e21cb3b33a9abfaed8684cd00ec219e63a8ef0fe20ccb8c1acb4d57",
+      "cpp/src/decode_batch.cpp": "b0981dcf8e6783d6b2a26370c1ab3998059a14360ed091e270ce86e9ee9bc2fb",
+      "cpp/src/half.cpp": "ba5cd6a322cec4af8ee4812777d15821c48622d7afdd7d369aba3d5e9b319ef2",
+      "cpp/src/mlx/backend.cpp": "20311f4b5007347bb1ea5aa79f716916f89ad06a1d883241d66c68110ef93d47",
+      "cpp/src/mlx/device.hpp": "43a64a9178b5c338626997acec071f754197a5a1ec6060a46d5d8df6db614531",
+      "cpp/src/mlx/stage.cpp": "f7ce54fc41495d2ef20a3e3ec249dac76b3ef0040bf57771ca2cb0a3eb12be8e",
+      "cpp/src/model/dense_loader.cpp": "668b8433210d643d07771c8b52bb29d0d9120d4483f8792254f3d07339379b63",
+      "cpp/src/model/dense_source.cpp": "395b258212ac9935e8c83c3176592fe552a7569149461b90d0516d6cb907689a",
+      "cpp/src/process_memory.cpp": "eeff0470a3fb57907b7370796bb62dcaa6102c688f6d9068a55ecd1cf690d70b",
+      "cpp/src/profiling/compute_probe.hpp": "187cae622dd154b304ce4993a664924e4cea8a598fa65239a0f6a27f4db0cbad",
+      "cpp/src/profiling/link_probe.cpp": "ba77f00d6528ea96e5bdc5faeba9fafd24a3b2b3d4d7551e5e8e5889d5f79d67",
+      "cpp/src/profiling/memory_probe.cpp": "caed92a07709968cfe6988459090f12e8e0c726d895f6600fe913281c1c2b29e",
+      "cpp/src/safetensors.cpp": "4bdab522b86191d82c761e850125cdad4353dbde0309183a298c5ce8394253d7",
+      "cpp/src/sampling.cpp": "109189786270d01b6fd8b3222a5732147c0a09e60b659be99ee1426f105f05d1",
+      "cpp/src/tensor_envelope.cpp": "f7cc525c22768e51def7ea2db5ff731875f1643e08d0c5b02ceacbba03c287a8",
+      "cpp/src/worker/boundary_codec.cpp": "0b4dbbdae65d52251cad05824d27efb2f9fbd91ae0e4fd9c2c42a59dc9c23acf",
+      "cpp/src/worker/control_service.cpp": "53b58ed590cba26952db3dc5e00116f2db7532ca9d82e58dfdd2ffa78af5ef0d",
+      "cpp/src/worker/execution_service.cpp": "381dba25b39f6f849162f168c57ad894a567763c4f5de9200a23e0a9c0b957de",
+      "cpp/src/worker/main.cpp": "687df82a63c1446f01835f5ddd5f04c43312a159c0e58ec048ee9bffdf84c9df",
+      "cpp/src/worker/qualification.hpp": "58ce070d3abebaf1ac4cdf24e9756d60693d97f2e05cf2cb87b2fa8749f10bce",
+      "cpp/src/worker/scheduler.cpp": "06cf8d62fb0c8780e79122aa5193266be522d2df6de52cddcfe4937e18e8612d",
+      "proto/CMakeLists.txt": "31861b95535620e7449e93452fd893d14606057f2f4648430125b3e4b68df9a9",
+      "proto/common.proto": "6b04748433f02c5c77d5b94d17ed2ff77b108c10f891bef91e0eb51386d80a61",
+      "proto/control.proto": "41719ae176ae4a68c349484c15ee60f45aa59ef54d3f8cf49cb73c47a6bbe189",
+      "proto/execution.proto": "cfaf3417d1762909a644f256540bbed00fe859a59af06392864753713eb699ba",
+      "proto/model.proto": "1b65d52dfed88081f44a1043904536b0e4054e5680d67055fd0f8936963fa2fa",
+      "proto/placement.proto": "d62fe7caba2e8e9cfdf29010ea3c02e4bfcdde2dcd735b0deecfafa26390c18b",
+      "proto/profile.proto": "29e668c59e6696f89392131d95dcdbae89101d9979c688649ed1285a32a36b24",
+      "proto/telemetry.proto": "2cb87bb59ed244d00f11e80bbb214e20e60aa961efc5cdae0e8f9a36014b267a",
+      "python/hllm_control/__init__.py": "f01a62f74e6cefe53faee48f558f910852b2045d4a80de700d7106bd87bf7f28",
+      "python/hllm_control/cli.py": "e9cf0911030a17498e6860d55d466a5a1c4ecfda181f048d6cee167600297ca7",
+      "python/hllm_control/controller.py": "1f5ca5285feb1414c335267471ae4ce96fad1634e36012541a9a7ff5ec8ddc73",
+      "python/hllm_control/models.py": "11b726ea573d393e816f3eb229f53e7222fe2811f80e343808ba1fa19e57c14e",
+      "python/hllm_control/planner/__init__.py": "ffa57ef6a655ffe2fb387555d8d9caa51c1d53d752b00f73db67db8ea47cea68",
+      "python/hllm_control/planner/activation.py": "099aece24ff32d9bd5948b75996bce32d187e45b0cefb4079e9d9208fd77ebd0",
+      "python/hllm_control/planner/config.py": "ac1d07acaface369c4b35e20df3332010303fc55990c90843c9c41a523ef8401",
+      "python/hllm_control/planner/explain.py": "f814be49f76c9b076c73712b156a9596292a23dc8c89caae2bfe251c401d6dbc",
+      "python/hllm_control/planner/measured.py": "d909918694de1fb7a3be2f4cee2e05a4b55bea8006d64273ded845dbd2f02196",
+      "python/hllm_control/planner/planner.py": "aad448af0985f87b3627d93e2ea3d3a4fa2791b7dcd814f249383ecb87d36c5e",
+      "python/hllm_control/prepare/__init__.py": "688cef244f6dd6434bed7e0a9aff9ee9e73217df13a45f2035293cf4968bc562",
+      "python/hllm_control/prepare/llama.py": "fb64606668c4cbc25549f7f2caea796253e0e15e84f3d9cc5e547672d452ab4d",
+      "python/hllm_control/prepare/manifest.py": "b7ed3742428f82ed19116158ec1bdff6dd67a75b4d149366a9a8ba77fa9177dc",
+      "python/hllm_control/prepare/qwen3.py": "03afbef00ed2bad16019abee8a8c03d5daa30532f48fb092fd24459e0ecc9268",
+      "python/hllm_control/prepare/safetensors.py": "2b1d37390b79a2bd913326bb02641a868ee53359ec24f01fbc4a6c63500d5089",
+      "python/hllm_control/profiling/__init__.py": "75a80b419987b9f20163a4009a52b2f773275510d83321705656871dedd1d821",
+      "python/hllm_control/profiling/compute.py": "1b3254fefe6f74f90bdbd0bd027ae0d59f1bf6e8802c7903b7de25c30f4cc375",
+      "python/hllm_control/profiling/link.py": "af5307e1ec85e6545a251981cba91218c87f2a421b53336cf37e2a42dc93ff7e",
+      "python/hllm_control/profiling/memory.py": "6f29d20a0161566347940423e3cb8aec2b4c73a18424114d07fb89f85a550736",
+      "python/hllm_control/profiling/models.py": "087dc3802ba97568ffe3be2ba17b9f6320c61f39344abefa7769e71391e3d1b3",
+      "python/hllm_control/profiling/runner.py": "172ae5563879fcdd9842cb6213f651e1a58e5f5b6d608e2aed917a3d0c0f6972",
+      "python/hllm_control/proto/__init__.py": "cb423e8dc198f638684d550789f9505653453e113e5dc2fa08973ac9d143b317",
+      "python/hllm_control/proto/common_pb2.py": "6cf23e30a3d09765c1db5833ae4eb322b564e83723ac484044b30fc08315e7ab",
+      "python/hllm_control/proto/common_pb2.pyi": "2d840fa583984db49bdd2c1f1c09ccebc826199e344cb12381b66f11b5f4b8d3",
+      "python/hllm_control/proto/common_pb2_grpc.py": "4db30384ab1da762c47ee6bdb7fea11c9d2c951d7b039dd43d5869f35758cb99",
+      "python/hllm_control/proto/control_pb2.py": "c98f09d5c03257e897d0bced5953c5ed3ca22e7eeee4124ebda52740deec898b",
+      "python/hllm_control/proto/control_pb2.pyi": "ade647de684ea3566013bb56c44dd6dc4a6f7ca94bbea7ec048d9624b5f3c5cb",
+      "python/hllm_control/proto/control_pb2_grpc.py": "acbdaab523215c3701cb73084330e83e27320455600bd5fd1a84d2aedd70fa6b",
+      "python/hllm_control/proto/execution_pb2.py": "ef6a84d5ba01c7615fe35ee1bedd6d53efda5354bda2ff4f86c613a80aa0ee7a",
+      "python/hllm_control/proto/execution_pb2.pyi": "f38d1e394af1eadf9005f2a2e8d7e3e522cc41b35a8136a8d934c0f3b79d9645",
+      "python/hllm_control/proto/execution_pb2_grpc.py": "e4f4afb2cf02068ee90fa43c2f5b4cfd2d00dfca5b0c1f355fd59c677b506261",
+      "python/hllm_control/proto/model_pb2.py": "25e592fc9b7a706e37ecf4be2eeff29f330ffedc0c59ee8f74e1bcb60122302e",
+      "python/hllm_control/proto/model_pb2.pyi": "69353314e5525cc5270c47ec1fcf3896862b47c8ff3efd9322829760a4dee00d",
+      "python/hllm_control/proto/model_pb2_grpc.py": "5c8848ec3318eb372314a0d8ee966e98cc459ebb651ab5ab18bce47b1740f5b0",
+      "python/hllm_control/proto/placement_pb2.py": "998e17a8f6708acbc3d2c02cb080fe1c619f3c36ff8e824b7b0ca693cf52d7d8",
+      "python/hllm_control/proto/placement_pb2.pyi": "885accdc69aaf6bd539fe48c7d2a1062c9a27d038e8c07676d286c8cb486a770",
+      "python/hllm_control/proto/placement_pb2_grpc.py": "582cc8c3a64397aa169834a1e92274e8234ead45c404c21c81ccf184beaf8d77",
+      "python/hllm_control/proto/profile_pb2.py": "71f82776d95701a59e8e421fbed295004c6ab031af550b183755437aa4200d6d",
+      "python/hllm_control/proto/profile_pb2.pyi": "12efd92a2bc7b0ee9b45891aaad9604ae28b1c670a49e74a29f40c50be5ec249",
+      "python/hllm_control/proto/profile_pb2_grpc.py": "2eb14c8fb368361a62588cf3c427eb88c3695f5c6fa1b17a5981e36753792f0c",
+      "python/hllm_control/proto/telemetry_pb2.py": "bf2ff0458963e723c16b8d62ce68a1b8b82e7417460088391dcaa8b5a4f77392",
+      "python/hllm_control/proto/telemetry_pb2.pyi": "4e607d4ac2e4b2db8be742289ab1cb228c5b7dc3c6dc4705c9eb44117e454459",
+      "python/hllm_control/proto/telemetry_pb2_grpc.py": "6246f00d4eb0df7c30480b9c078982d9e0ba6ae972f707a604c68ae95018ecf6",
+      "python/hllm_control/py.typed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "python/hllm_control/qualification/__init__.py": "b9d5676d804225c60e2ee35db456595be48ef9a83001a384ffdb48b6843c238f",
+      "python/hllm_control/qualification/host.py": "628c3f8130ec95ed2558c0a5c5f16a7c3b3d3a5042ea6a51f89a1d4f67dbbd64",
+      "python/hllm_control/qualification/identity.py": "9010d030c4a046315c5fb6afced8368019c6b7d9b8973fb875ab2d16cff23a57",
+      "python/hllm_control/qualification/native.py": "c1a504fc73722d6110cb09c5e376a663b129973982c14dd638523385debe6994",
+      "python/hllm_control/qualification/sweep.py": "1c4262ee26c04c1bca37a949faccd5b46587a507f18cfb2ff8013aeb27b3abab",
+      "python/hllm_control/serialization.py": "06073344123e688ea30572a6ea19e3484ed9b3462965e63144f0ec733714332c",
+      "python/hllm_control/serving/__init__.py": "76426b023e31f92de50a84883b91ff4ab2199be2c0d050c672b61597ee523d10",
+      "python/hllm_control/serving/app.py": "4fce5c8959cbdf05b5a044497ef45f4346cac34dd5628901ca1a82ca69fb1828",
+      "python/hllm_control/serving/body_limit.py": "a6b2e57e6a837deee26b47ba12b8199d82ba047727f55e36a9483e222e4c1e2c",
+      "python/hllm_control/serving/logprobs.py": "211da44d1ad8f9997dffe97a91afc81ad7f346fcf869745b0ac58b4425d654fb",
+      "python/hllm_control/serving/models.py": "eb106b185e2d7440dd218893b93c914a41ffdc4e018e27d752fa98a9663c21dd",
+      "python/hllm_control/serving/runtime.py": "2b0cce0192f0b527b5c4224bf2d04928e6b01f4e0685920116b9d157a5d2ad7a",
+      "python/hllm_control/serving/tokenizer.py": "a1c30295c9f4b68d7c34ad5f6127dbae4d10467ddfcd05e29fed4e0f6e47715e",
+      "python/hllm_control/wire.py": "d613f07e5dc3d366c167518d2bc2d086bd1afe7704918d8d9906f41be5f69b0f",
+      "scripts/validation/checkpoint_faults.py": "758de5e987a30e45bfde092155445a36aa576f8938ffabbbb96cc2c8bea61486",
+      "scripts/validation/checkpoint_memory.py": "7211812d90694e0c1e03cf510a4291b3b90014ef49c07c2128e9deb72087c6e4",
+      "scripts/validation/checkpoint_reference.py": "22edbe65966046279e9742fa93c503ebc57c860b854e0a2cba0af7d7b9f576e6",
+      "scripts/validation/checkpoint_run.py": "c1572e884a6b4f6aa2cf34514b375ef3459f0bbe7d6525818d8f3f22ce749df1",
+      "scripts/validation/memory_watch.py": "4678d4e51e496441e13828a6a1ea7e48ace78df2bcebe2a4c14994a0c41144ac",
+      "scripts/validation/redact_report.py": "6ae150ef5e356ebcb6f3f9d90a957e998cd6241e4bbd8c06c470e846aeccd893",
+      "scripts/validation/serving_soak.py": "11093e320f293c6d6e052db9f85cb0c74c102ff93d2dd58f23e70026f458d378"
+    },
+    "prior_reference_sha256": "329ea04b80920acb85ba0430f2dca4b9c31f8b1e8ad8c76f580738995b77f4b3",
+    "manifest_sha256": "87f4b6ca6eec6186b129170079e97464348ce44d12a524f10895d7c31866f566",
+    "source_digest": "f5edd46821a84e4ced40d06c777c59b6ea59957a1a189effcd4c965cc530920c",
+    "remote_native_source_files": {
+      "cpp/CMakeLists.txt": "aee77e925fe225ee50c4ca808bc839018faaa32d56deb341be3baea4943cd69e",
+      "cpp/include/hllm/cpu/llama.hpp": "1078ba9d8cb29314ffaec5719294f1d81b6e0d8f16b17973389f49b6b1aef03d",
+      "cpp/include/hllm/cpu/stage.hpp": "0e49edb8ed24ec5cb69f7bc48f93cf5703eeaeba964597b86f4a737d55dacf48",
+      "cpp/include/hllm/cpu/tensor.hpp": "e6c8f10cb237613b6adf0e4c208fa05623b45e3aba9afb02b90a2f1a5dd97fd4",
+      "cpp/include/hllm/cuda/backend.hpp": "244859456a8ee1e20ca20f9dba76f7e0008ca06a61b204dc6a905648bd129412",
+      "cpp/include/hllm/cuda/stage.hpp": "853dc84bec883e3f76402cfa0f3dd05e72ea562d78cdc482631819992822b31b",
+      "cpp/include/hllm/mlx/backend.hpp": "b377189ad7d70578160f37b69db341f34f18eaa7e1ab0df7d3b5f63dfa0f8ceb",
+      "cpp/include/hllm/mlx/stage.hpp": "1a635d1b1a5bdc4c222a2ed2279204220aab775aa9c6e0f6162c635de73763a9",
+      "cpp/include/hllm/model/dense_loader.hpp": "8617643c6d8746d262cfb4e68110dc8d6d096c218757611c0cdaeb96db591fba",
+      "cpp/include/hllm/model/dense_source.hpp": "d6e06b82456973043e1b8f7a110304cdc30cf5b6461456e2f6c2d11d5cd860f9",
+      "cpp/include/hllm/runtime/backend_factory.hpp": "0095b81ecc04e9ceaf1e99c2e327cd02d92cb11d3373c4e37280be64db02d2c4",
+      "cpp/include/hllm/runtime/buffer.hpp": "e056897b05816e78c6d77c9cbeddca46a2c22100b32d455667c96fd2e1517150",
+      "cpp/include/hllm/runtime/checked_size.hpp": "2220855af2af24f51ea08a0c7aeb6f3000984b7b32d01d2051b1e17b92e67fee",
+      "cpp/include/hllm/runtime/error.hpp": "efcecd8fdf56f5a141dedf100d0cab519b034699f8379074e43ca3c38c5ab674",
+      "cpp/include/hllm/runtime/half.hpp": "545773e592bdfde663f75940a745bda2935bfd0b5ef3cfac75fa0144b1028324",
+      "cpp/include/hllm/runtime/memory.hpp": "e476a4504c4bff38c355454dbcf9080101a7390f1951a83a93397b433e63f2fa",
+      "cpp/include/hllm/runtime/process_memory.hpp": "f75e39f1b769869fd7837ef0be34eef4339886a7be425badea6a8eb86b323e14",
+      "cpp/include/hllm/runtime/profiling.hpp": "7fefc8f1b0cd0353688b057336ee86e38f1388553c4a51a1eac4f5aa179c5447",
+      "cpp/include/hllm/runtime/safetensors.hpp": "936e7bde2cd4cf39e9c16425b83b2e5b3f0efc04c8b8e62d3379d5fb3d559ca6",
+      "cpp/include/hllm/runtime/sampling.hpp": "b0bb437f065bffe2ba33bf28445c8c896905901fc0503f865019231b2f98dffb",
+      "cpp/include/hllm/runtime/stage_backend.hpp": "ee8ba71df7b88140633f2df77f0d4e6624f13ef6aac138f55fb1f9a94857041c",
+      "cpp/include/hllm/runtime/tensor_envelope.hpp": "28efa34ca7898c89082988cc5e930b8bd55619cd5bfd145cd83f1af1262011f9",
+      "cpp/include/hllm/runtime/timing.hpp": "3545231ec9fe3333d51aa96c7bbdabdb07f48b597f30466427f4aecfa30fbde2",
+      "cpp/include/hllm/worker/boundary_codec.hpp": "8c6655e45f25c50e26886ef12aa3a229df74f1e479f4e11c05edcec6cddbd47d",
+      "cpp/include/hllm/worker/control_service.hpp": "785a795c86c77221d882e9b31feb58a59fc994751f2cb39ad2674129011d8d90",
+      "cpp/include/hllm/worker/execution_service.hpp": "1e746ec6f6834317879df593b0bb6a26a4e301ae0c9f3b2f17cdf3ba98895522",
+      "cpp/include/hllm/worker/scheduler.hpp": "eb4a23ea4f8833ab9f2b7d2a457ec7b3d84a85cbc2581a85699977de12ad5c1a",
+      "cpp/src/buffer.cpp": "eb3a6b9453f1f3fff98bcd586fd1bc2d527afa275ac123c08a6cd454c829578e",
+      "cpp/src/cpu/llama.cpp": "f8eb0f1d766c82dfcd6473dd560e85feaf25a1dda08ae4a1be90e36546c45757",
+      "cpp/src/cpu/stage.cpp": "05ba194bf7bccf87c6d0f0fb434a740f790738cd9c6c510ab5b47ea2deb4705f",
+      "cpp/src/cpu/tensor.cpp": "70e1f9e512ad7672c9c2d64e24251903d9f7afa9bc53560047f7f7e9b02622c4",
+      "cpp/src/cuda/backend.cpp": "0a7794ea37a6181a80b1b8dfb414d76d3cf36ed1446dacc1cfd4fff2004a9ced",
+      "cpp/src/cuda/device.cpp": "8e4f29cb00a50ed656d9d4102e69c2c5e4053d4b6f4319c83d7674eab0e28a4d",
+      "cpp/src/cuda/device.hpp": "d711c134b3746c1f3b873a0ce459bdd49166c4feb8694dce9f38d31f1c27890f",
+      "cpp/src/cuda/execution_stream.hpp": "f19d4dcfd16d8b2a36e9e65a8ecf514152b94b544f69c66ca8b9560561f1e2c5",
+      "cpp/src/cuda/pinned_buffer.hpp": "f423c5092409df5dd729315240984c8ba2fc9cd09965a27c2125035f8f56313d",
+      "cpp/src/cuda/stage.cpp": "7494dd867e21cb3b33a9abfaed8684cd00ec219e63a8ef0fe20ccb8c1acb4d57",
+      "cpp/src/decode_batch.cpp": "b0981dcf8e6783d6b2a26370c1ab3998059a14360ed091e270ce86e9ee9bc2fb",
+      "cpp/src/half.cpp": "ba5cd6a322cec4af8ee4812777d15821c48622d7afdd7d369aba3d5e9b319ef2",
+      "cpp/src/mlx/backend.cpp": "20311f4b5007347bb1ea5aa79f716916f89ad06a1d883241d66c68110ef93d47",
+      "cpp/src/mlx/device.hpp": "43a64a9178b5c338626997acec071f754197a5a1ec6060a46d5d8df6db614531",
+      "cpp/src/mlx/stage.cpp": "f7ce54fc41495d2ef20a3e3ec249dac76b3ef0040bf57771ca2cb0a3eb12be8e",
+      "cpp/src/model/dense_loader.cpp": "668b8433210d643d07771c8b52bb29d0d9120d4483f8792254f3d07339379b63",
+      "cpp/src/model/dense_source.cpp": "395b258212ac9935e8c83c3176592fe552a7569149461b90d0516d6cb907689a",
+      "cpp/src/process_memory.cpp": "eeff0470a3fb57907b7370796bb62dcaa6102c688f6d9068a55ecd1cf690d70b",
+      "cpp/src/profiling/compute_probe.hpp": "187cae622dd154b304ce4993a664924e4cea8a598fa65239a0f6a27f4db0cbad",
+      "cpp/src/profiling/link_probe.cpp": "ba77f00d6528ea96e5bdc5faeba9fafd24a3b2b3d4d7551e5e8e5889d5f79d67",
+      "cpp/src/profiling/memory_probe.cpp": "caed92a07709968cfe6988459090f12e8e0c726d895f6600fe913281c1c2b29e",
+      "cpp/src/safetensors.cpp": "4bdab522b86191d82c761e850125cdad4353dbde0309183a298c5ce8394253d7",
+      "cpp/src/sampling.cpp": "109189786270d01b6fd8b3222a5732147c0a09e60b659be99ee1426f105f05d1",
+      "cpp/src/tensor_envelope.cpp": "f7cc525c22768e51def7ea2db5ff731875f1643e08d0c5b02ceacbba03c287a8",
+      "cpp/src/worker/boundary_codec.cpp": "0b4dbbdae65d52251cad05824d27efb2f9fbd91ae0e4fd9c2c42a59dc9c23acf",
+      "cpp/src/worker/control_service.cpp": "53b58ed590cba26952db3dc5e00116f2db7532ca9d82e58dfdd2ffa78af5ef0d",
+      "cpp/src/worker/execution_service.cpp": "381dba25b39f6f849162f168c57ad894a567763c4f5de9200a23e0a9c0b957de",
+      "cpp/src/worker/main.cpp": "687df82a63c1446f01835f5ddd5f04c43312a159c0e58ec048ee9bffdf84c9df",
+      "cpp/src/worker/qualification.hpp": "58ce070d3abebaf1ac4cdf24e9756d60693d97f2e05cf2cb87b2fa8749f10bce",
+      "cpp/src/worker/scheduler.cpp": "06cf8d62fb0c8780e79122aa5193266be522d2df6de52cddcfe4937e18e8612d",
+      "proto/CMakeLists.txt": "31861b95535620e7449e93452fd893d14606057f2f4648430125b3e4b68df9a9",
+      "proto/common.proto": "6b04748433f02c5c77d5b94d17ed2ff77b108c10f891bef91e0eb51386d80a61",
+      "proto/control.proto": "41719ae176ae4a68c349484c15ee60f45aa59ef54d3f8cf49cb73c47a6bbe189",
+      "proto/execution.proto": "cfaf3417d1762909a644f256540bbed00fe859a59af06392864753713eb699ba",
+      "proto/model.proto": "1b65d52dfed88081f44a1043904536b0e4054e5680d67055fd0f8936963fa2fa",
+      "proto/placement.proto": "d62fe7caba2e8e9cfdf29010ea3c02e4bfcdde2dcd735b0deecfafa26390c18b",
+      "proto/profile.proto": "29e668c59e6696f89392131d95dcdbae89101d9979c688649ed1285a32a36b24",
+      "proto/telemetry.proto": "2cb87bb59ed244d00f11e80bbb214e20e60aa961efc5cdae0e8f9a36014b267a"
+    },
+    "native_source_mismatches": [],
+    "experiment_scripts": {
+      "capture-unload.py": "7eabf6f62f80df9d2b1c5042a3115c096b8f3325d2243382ff7b0ab06c28235a",
+      "summarize.py": "52308594b6f5e5e6da8295a8ecddea4d4447e2b48824e85f380c61a71f898196",
+      "soak.py": "95766295d1ca7b5c73421c44980d9011832f889a1a3e3a2116bba0a1dbf255ba",
+      "guard.py": "0d5608565e2966bf63f9b010b9acc2ee02ecc0713e14e368332feeef093d97cc"
+    }
+  },
+  "evidence_sha256": {
+    "build-cuda.log": "6549c3940bd01a7ae65948448683f3ed26a3d0bf38fbb86a4d061376bc969ab5",
+    "build-mlx.log": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794",
+    "capture-unload.py": "7eabf6f62f80df9d2b1c5042a3115c096b8f3325d2243382ff7b0ab06c28235a",
+    "cleanup-local.json": "6a12033b39da0411cb3e31d9322b6acabee64f381a098a829f9aab4487022fd0",
+    "cleanup-remote.json": "a091f654df6bdf7562052ee03c233992f3bf1021a8ad065f7ce825798cd1bc3f",
+    "footprint": "88c4be559a82f9b713fa2dbfadff5271efbf36c75603f3931262c1de4661a223",
+    "footprint.c": "8b84f258c1395adf1d62f4570e0d3fa101b8109bdd0ea7a34c7e4b97e33281f8",
+    "guard.py": "0d5608565e2966bf63f9b010b9acc2ee02ecc0713e14e368332feeef093d97cc",
+    "reload-soak-cuda.guard.jsonl": "2e57f1d2883a57395f852011f190cbf1e8b1b7f6602be4d431cadcd38e6d63ad",
+    "reload-soak-cuda.log": "0f4ad4aaa7da1276aaebc3fe08d1913a29f6bdde91616df84e6dcfea4cfc6a7e",
+    "reload-soak-mlx.guard.jsonl": "484b77c202dbcb845d7d769392c792e5a6b7fa8e21100c4612a71b43630b117c",
+    "reload-soak-mlx.log": "016588fbe8d9827097107783ca7d206e39d3bae39a40491432f0d6012deda0f8",
+    "reload-soak-tunnel.log": "760b57a2d96420ccc3ed055c8235ddce0f395638ed471ac25ede1cd957c55e1b",
+    "reload-soak-v2-cuda.guard.jsonl": "e7d0c9f8a65605fb80cd767c0e5e5c12ef0ca900dceaa1812ad8b700a964d361",
+    "reload-soak-v2-cuda.log": "0f4ad4aaa7da1276aaebc3fe08d1913a29f6bdde91616df84e6dcfea4cfc6a7e",
+    "reload-soak-v2-mlx.guard.jsonl": "5c63d7dcb41b9de728007abd8cd2bbaf332835288948fab29f0d42f7ee34aa7b",
+    "reload-soak-v2-mlx.log": "016588fbe8d9827097107783ca7d206e39d3bae39a40491432f0d6012deda0f8",
+    "reload-soak-v2-tunnel.log": "be989b10314f26ddf3a4091c5abd10f37559fafbbc6e932adb9d3a9fa4d4c916",
+    "reload-soak-v2.driver.log": "bca34b0216eb99600171f3aa8935b2e912121fbc95a5a8435c3ae1230f154da5",
+    "reload-soak-v2.json": "993951aeb3537b55d26b71c22646940f9720264587fe30451b2bbd44e43a617e",
+    "reload-soak-v2.observations.jsonl": "687a171ee5914b0e50121041793a483c42411ffe2b48573a72641545d575b501",
+    "reload-soak.driver.log": "9208e7d42c96460af3acd9783dc0ca16c1592ee06e7cfe62ecf5f4a904414fa3",
+    "reload-soak.json": "bdf98c17258645d263ae28bcc4b8b73b57998c5c46ff631d9d1b4561794c17b4",
+    "reload-soak.observations.jsonl": "47927817f1f91f3bbe97c3ca1b117347f4fc81e03f240fa3939a5ba2dc3c0726",
+    "soak.py": "95766295d1ca7b5c73421c44980d9011832f889a1a3e3a2116bba0a1dbf255ba",
+    "source-identity.json": "0346267ad2d633bb4b7223dd5469dc718acf25116492c96006199c981550c049",
+    "summarize.py": "52308594b6f5e5e6da8295a8ecddea4d4447e2b48824e85f380c61a71f898196",
+    "unloaded-vmmap.json": "48718cf41030031bb8df20c7ad4e5ea09c6771e5bc296aa61f6a66562045e858",
+    "unloaded-vmmap.txt": "e804d5f395608237ee807450fbe54dc68b07f9280a67d8177f2f47de26b0c115"
+  },
+  "cleanup": {
+    "mac": {
+      "unix_time": 1790146407.901758,
+      "mac_checkpoint_sha256": {
+        "model-00001-of-00003.safetensors": "4c807e2503d68ae373d508689d00a41f4b33f33c2536da97ab81a20caddc1241",
+        "model-00002-of-00003.safetensors": "f4707585548b2fc75a6b1d732e8465c62040a8699903c32850781beeb9b27826",
+        "model-00003-of-00003.safetensors": "c7b1aa8fb672de2e00423c99876926022e50b18d4f0d140670788510a27f9965"
+      },
+      "matches_pinned_previous_payloads": true,
+      "mac_model_processes": []
+    },
+    "linux": {
+      "unix_time": 1790146405.6087139,
+      "model_processes": [],
+      "gpu_compute_processes": "",
+      "checkpoint_sha256": {
+        "model-00001-of-00003.safetensors": "4c807e2503d68ae373d508689d00a41f4b33f33c2536da97ab81a20caddc1241",
+        "model-00002-of-00003.safetensors": "f4707585548b2fc75a6b1d732e8465c62040a8699903c32850781beeb9b27826",
+        "model-00003-of-00003.safetensors": "c7b1aa8fb672de2e00423c99876926022e50b18d4f0d140670788510a27f9965"
+      }
+    }
+  },
+  "vmmap": {
+    "unix_time": 1790146345.709905,
+    "pid": "64995",
+    "returncode": 0,
+    "duration_seconds": 0.7013051509857178,
+    "phase": "third cycle after_unload before 10-second idle snapshot"
+  },
+  "diagnostic_policy_note": "max(OS footprint lifetime peak, RSS lifetime peak, MLX allocator envelope) with existing allowances is evaluated for comparison only; production assess_fit is unchanged."
+}

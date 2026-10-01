@@ -14,7 +14,7 @@ from typing import Literal
 from google.protobuf.json_format import MessageToDict
 
 from hllm_control.models import Backend, DeploymentPlan, ModelManifest, WorkloadProfile
-from hllm_control.profiling.memory import PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
 from hllm_control.profiling.models import (
     ComputeRunMeasurement,
     Conditions,
@@ -153,8 +153,10 @@ def run_memory_profile(
     host_headroom_bytes: int = 1024**3,
     device_headroom_bytes: int = 512 * 1024**2,
     extra_overhead_bytes: int = 256 * 1024**2,
+    mlx_fit_policy: MlxFitPolicy = MlxFitPolicy.CONSERVATIVE,
     mode: Literal["memory", "compute"] = "memory",
 ) -> ProfileArtifact:
+    mlx_fit_policy = MlxFitPolicy(mlx_fit_policy)
     if not 0 <= stage_index < len(plan.stages):
         raise ValueError("stage index outside plan")
     if plan.manifest_digest != manifest.manifest_digest:
@@ -312,6 +314,9 @@ def run_memory_profile(
             else (
                 "Synthetic shape exercise; not a correctness or timing benchmark.",
                 "External physical sampling is a lower bound; RSS high water is lifetime.",
+                "Native process observations follow allocator reads; counters are not atomic. "
+                "OS physical-footprint peaks are lifetime, not phase peaks; footprint is not "
+                "additive with RSS or MLX allocator bytes. Unavailable counters remain null.",
             )
         ),
     )
@@ -452,7 +457,7 @@ def run_memory_profile(
         ),
     )
     write_exclusive(output, artifact.model_dump(mode="json"))
-    fit = assess_fit(artifact, capacity, host_budget, device_budget)
+    fit = assess_fit(artifact, capacity, host_budget, device_budget, mlx_policy=mlx_fit_policy)
     write_exclusive(
         fit_path,
         {

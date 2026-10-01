@@ -223,4 +223,23 @@ class ServingRuntime:
                 "largest_decode_batch",
             ):
                 rows.append(f'hllm_worker_{field}{{stage="{index}"}} {getattr(metrics, field)}')
+            if metrics.HasField("process_memory"):
+                process = metrics.process_memory
+                for field in (
+                    "rss_bytes",
+                    "rss_lifetime_peak_bytes",
+                    "physical_footprint_bytes",
+                    "physical_footprint_lifetime_peak_bytes",
+                ):
+                    if process.HasField(field):
+                        rows.append(
+                            f'hllm_worker_process_{field}{{stage="{index}"}} '
+                            f"{getattr(process, field)}"
+                        )
+            if metrics.HasField("allocator"):
+                for field in ("active_bytes", "cached_bytes", "peak_bytes"):
+                    rows.append(
+                        f'hllm_worker_allocator_{field}{{stage="{index}"}} '
+                        f"{getattr(metrics.allocator, field)}"
+                    )
         return "\n".join(rows) + "\n"

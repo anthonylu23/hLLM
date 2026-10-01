@@ -65,13 +65,56 @@ identity distinct from future reference-driven profiles.
 CUDA and MLX synchronize before resetting allocator peaks, solely inside this owned
 profiling process. Phase peaks include active memory at phase entry and exit: MLX's
 reset counter alone can otherwise report zero for a phase that only frees memory.
-Ordinary `GetMetrics` remains unchanged and retains its lifetime-peak semantics.
+Ordinary `GetMetrics` retains allocator lifetime-peak semantics and never resets peaks.
 Unsupported CUDA allocators, including `cudaMallocAsync`, report unavailable counters.
 
 RSS high-water marks are process-lifetime observations, not resettable per-phase host
 peaks. The parent also samples RSS and CUDA process usage independently. Those samples
 are lower bounds on physical peaks and can miss short transients. Memory-probe durations
 include observation overhead and must not be used as performance profiles.
+
+### Process physical footprint
+
+Memory artifacts with native process observations use schema **1.3**, profiler
+**0.3.0**, for both uniform and mixed precision. Schema 1.0–1.2 artifacts still
+validate with their original hashes; missing observations are not backfilled.
+Every phase records `process_memory` immediately after reading allocator counters:
+PID, `observed_at_unix_ns`, RSS, RSS lifetime peak, physical footprint and physical
+footprint lifetime peak. The legacy RSS fields use that same observation. The reported
+RSS lifetime peak is the maximum of `ru_maxrss`, the current RSS in the same
+observation and the peaks this process reported earlier: Linux reads both counters
+through approximate per-CPU accounting, so a raw `ru_maxrss` can trail the current
+RSS by a few pages, which would otherwise fail the coherence rules below.
+
+On macOS, `proc_pid_rusage(RUSAGE_INFO_V4)` supplies resident size and physical
+footprint, including OS-accounted compressed memory. `getrusage` supplies RSS high
+water. On Linux, RSS comes from `/proc/self/statm` and `getrusage`; footprint is
+unavailable. Failed or unsupported counters are JSON `null` / absent optional
+protobuf fields, never an invented zero. These reads do not reset OS peaks, flush
+allocator caches or synchronize device execution.
+
+Workers expose the same `process_memory` message in `GetMetrics`, including before
+load and after unload. The serving soak already saves these responses alongside
+allocator and reservation snapshots during requests and after unload. HTTP `/metrics`
+exports present counters as `hllm_worker_process_{rss_bytes,rss_lifetime_peak_bytes,
+physical_footprint_bytes,physical_footprint_lifetime_peak_bytes}` plus
+`hllm_worker_allocator_{active_bytes,cached_bytes,peak_bytes}`, labeled by stage.
+Older workers without the new message remain supported.
+
+These are adjacent reads, **not an atomic snapshot**. OS peaks cover the entire
+process lifetime, including earlier loads and requests; they are not per-phase
+peaks. Timestamped current values help compare load, request cleanup and unload,
+while lifetime peaks retain transients between observations. A current value after
+unload can include retained caches and runtime state even when logical reservations
+are zero. Footprint is not additive with RSS or MLX allocator bytes, and their
+differences alone do not establish allocation ownership or total system pressure.
+
+The conservative fit gate remains the default. The [instrumented 4B reload run](validation/qwen3-4b-footprint.md)
+includes system pressure/swap, available memory and retained-state evidence.
+An explicit footprint policy is now implemented as described below; its fresh
+full-checkpoint qualification is in the [overnight backlog](overnight-backlog.md).
+The [instrumentation validation](validation/process-memory.md) covers small native
+CPU/MLX fixtures and Linux counter availability; it is not a new 4B qualification.
 
 ## Admission and physical envelopes
 
@@ -83,9 +126,10 @@ include observation overhead and must not be used as performance profiles.
 - CPU physical observations use RSS, including its process high-water mark.
 - CUDA uses process GPU observations separately from allocator counters and host RSS.
   Missing physical GPU observations or phase allocator peaks make fit unknown.
-- MLX's RSS/allocator overlap is not established by these counters. The fit gate uses
-  their sum as an intentionally overcounted upper bound, not as measured physical
-  usage. The raw views remain separate in the artifact.
+- MLX defaults to `conservative-v1`: RSS plus allocator residency, an intentionally
+  overcounted upper bound. Opt-in `footprint-v1` uses the maximum of OS lifetime
+  footprint, RSS and allocator envelopes when complete telemetry qualifies it.
+  The raw views remain separate in the artifact.
 - Every physical envelope adds a safety fraction and explicit overhead for costs
   absent from the isolated probe, including gRPC buffers. It must leave the requested
   headroom within current available memory. Pinned bytes remain a subset of host bytes.
@@ -100,6 +144,54 @@ A `safe` assessment applies to the observed conditions and specified allowances;
 is not a new runtime RSS/VRAM cap or a guarantee about later competing workloads.
 Refresh headroom before deployment. M5.5 must resolve compatible profiles and apply
 these gates before ranking candidates.
+
+### Opt-in MLX footprint policy
+
+Pass `--mlx-fit-policy footprint-v1` to `hllm profile-memory`, or
+`mlx_policy=MlxFitPolicy.FOOTPRINT` to `assess_fit()`. The opt-in requires a complete
+schema-1.3 fresh-process/reload profile: positive current/lifetime RSS and footprint
+counters in every phase, consistent process identity, nondecreasing observation
+timestamps and lifetime peaks, and allocator observations including execution phase
+peaks. A peak must cover its adjacent current value. Missing, zero, inconsistent,
+old-schema or incomplete evidence falls back to the conservative calculation and
+records the reason. Incomplete execution and missing required allocator peaks still
+produce `unknown` under the existing rules.
+
+The selected physical peak is:
+
+```text
+max(OS footprint lifetime peak, RSS observations/high water,
+    allocator peak, allocator active + cached)
+```
+
+The same safety fraction, extra overhead and headroom are then applied. Native
+reservations, configured-cap preflight and the requirement to reprofile lower
+admission caps remain unchanged. CPU and CUDA calculations are unaffected.
+Fit reports record `requested_mlx_policy`, the actual `policy` (for example
+`mlx-footprint-max-v1` or `mlx-rss-plus-allocator-v1`) and any `policy_notes` explaining
+fallback. An opt-in request alone is not evidence that the footprint formula applied.
+
+Measured bundle worker bindings and native sweep worker configurations accept
+`mlx_fit_policy: "footprint-v1"`. It is included in their content digests and reused
+at fresh activation and independent exclusion validation. Omitted policy fields
+retain the conservative default and historical bundle serialization. New fit fields
+are optional when reading historical fit reports. Changing policy requires resealing
+the bundle/replanning or freezing a new sweep; do not edit frozen identities in place.
+
+Policy consistency is enforced along the sweep path. `freeze-sweep` records the
+bundle's explicit per-worker policies in the frozen sweep (`mlx_fit_policies`, omitted
+when every worker is conservative, so historical sweep digests are unchanged) and
+refuses an executor whose worker policies differ; `NativeExecutor` repeats that check
+and also verifies that each probe's recorded `requested_mlx_policy` matches the worker
+before re-assessing its evidence. Sweep summaries state the bound policies in
+`memory_basis`, so predicted and observed envelopes are never compared across
+formulas. An explicit policy on a CPU or CUDA worker binding, native worker or memory
+exclusion is rejected rather than silently changing digests while being ignored.
+`profile-memory` prints the applied policy, the requested MLX policy and any fallback
+notes alongside the status.
+
+Tiny native CPU/MLX checks cover the implementation; no new full-checkpoint fit,
+larger-context, reverse-order or concurrency qualification is claimed yet.
 
 ## Reproduce
 
