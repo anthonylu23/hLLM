@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from unittest.mock import Mock
 
 import grpc
 import pytest
@@ -130,7 +131,7 @@ def test_cpu_rehearsal_reload_cancel_unload(rehearsal, monkeypatch):
 
 
 @pytest.mark.parametrize("fault", ["stale", "future", "binary", "capacity", "workload"])
-def test_cpu_rehearsal_rejects_bad_evidence_before_loading(rehearsal, fault):
+def test_cpu_rehearsal_rejects_bad_evidence_before_loading(rehearsal, monkeypatch, fault):
     root, workers, profiles = rehearsal
     profile = profiles[0]
     if fault in ("stale", "future"):
@@ -156,6 +157,8 @@ def test_cpu_rehearsal_rejects_bad_evidence_before_loading(rehearsal, fault):
         config["cpu-a"]["binary_digest"] = "0" * 64
         (root / "workers.json").write_text(json.dumps(config))
     (root / "cpu-a.memory.json").write_text(profile.model_dump_json())
+    enter = Mock(side_effect=AssertionError("rejected evidence must not start a deployment"))
+    monkeypatch.setattr(DeploymentSession, "__enter__", enter)
     with pytest.raises(
         ValueError,
         match={
@@ -167,6 +170,7 @@ def test_cpu_rehearsal_rejects_bad_evidence_before_loading(rehearsal, fault):
         }[fault],
     ):
         reload_soak.main()
+    enter.assert_not_called()
     wait_clean(workers, loaded=False)
     if fault != "workload":
         report = json.loads((root / "output.json").read_text())
@@ -175,6 +179,41 @@ def test_cpu_rehearsal_rejects_bad_evidence_before_loading(rehearsal, fault):
         assert report["cycles"] and all("after_load" not in c for c in report["cycles"])
         observations = (root / "output.observations.jsonl").read_text().splitlines()
         assert "after-load" not in {json.loads(r)["phase"] for r in observations}
+
+
+def test_cpu_rehearsal_refuses_busy_workers_without_disturbing_deployment(rehearsal, monkeypatch):
+    root, workers, _ = rehearsal
+    manifest = prepare_model(root, hash_mode=HashMode.FULL)
+    reference = json.loads((root / "reference.json").read_text())["long_generation"]
+    with DeploymentSession(manifest, plan(manifest), workers.endpoints) as existing:
+        before = existing.memory_reports()
+        assert all(r.loaded_weight_bytes > 0 for r in before)
+        enter = Mock(side_effect=AssertionError("busy workers must not be redeployed"))
+        fit = Mock(
+            side_effect=AssertionError("busy workers must be refused before profiling gates")
+        )
+        monkeypatch.setattr(DeploymentSession, "__enter__", enter)
+        monkeypatch.setattr(reload_soak, "fresh_fit", fit)
+        with pytest.raises(RuntimeError, match="workers are busy"):
+            reload_soak.main()
+        enter.assert_not_called()
+        fit.assert_not_called()
+        report = json.loads((root / "output.json").read_text())
+        assert not report["completed"] and not report["cycles"]
+        assert "workers are busy" in report["error"]
+        assert all("memory" in r for r in report["failure_cleanup"].values())
+        assert [r.loaded_weight_bytes for r in existing.memory_reports()] == [
+            r.loaded_weight_bytes for r in before
+        ]
+        # A refusal must not unload, cancel or replace somebody else's deployment.
+        stream = existing.generate(reference["token_ids"], maximum_new_tokens=4, stop_token_ids=[])
+        try:
+            assert [e.token.token_id for e in stream if e.HasField("token")] == reference[
+                "generated_ids"
+            ]
+        finally:
+            stream.close()
+    wait_clean(workers, loaded=False)
 
 
 @pytest.mark.parametrize("fault", ["tokens", "worker-loss"])
