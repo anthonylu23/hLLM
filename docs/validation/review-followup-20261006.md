@@ -37,12 +37,17 @@ the real bounded 15-second busy-worker wait.
   Evidence: `build/cpu-rehearsal/20261006-161318-5u49eeyk/` (JUnit, inputs, profiles,
   worker logs, reports and guard samples).
 
-Existing uncommitted October 2 updates in the overnight backlog and September 30
-readiness report were preserved separately from this follow-up.
+The October 6 [hosted run](https://github.com/anthonylu23/hLLM/actions/runs/37494224305)
+passed 169 Python tests and all 81 CPU CTests, including `CpuReloadRehearsal` in
+40.07 seconds. The dependency cache was restored successfully.
+
+The October 2 backlog/readiness edits were initially preserved separately. They
+are included in a separate documentation commit in PR #21 for the October 8
+repository synchronization.
 
 ## Next steps
 
-Review this test-only follow-up and its hosted checks. GPU qualification still needs
+Review the refusal tests and accompanying backlog updates. GPU qualification still needs
 fresh profiles and the two-host baseline soak; these CPU tests do not qualify 4B
 capacity. Steady-clock ordering remains a documented lower-priority follow-up;
 backward wall-clock observations currently cause a safe conservative fallback.

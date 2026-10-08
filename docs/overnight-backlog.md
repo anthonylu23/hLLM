@@ -1,7 +1,10 @@
 # Overnight qualification backlog
 
-Updated September 30, 2026. GPU allocation may remain occupied for several days.
-The CPU-only work below can proceed independently.
+Updated October 8, 2026. The last recorded CUDA resource check (October 2) found
+the device occupied by an unrelated workload; availability must be checked again.
+All September 30 code and docs are merged to `main` (PRs #17–#20); hosted CI on `main`
+is green with a saved native dependency cache. The GPU-independent work below can
+proceed now; P1–P5 remain gated on fresh resource checks on both hosts.
 
 September 28 status: The user resumed this backlog overnight. The fresh Mac
 baseline profile passed; CUDA qualification is blocked by an unrelated active GPU
@@ -11,15 +14,19 @@ That session is complete and no owned model process remains. The Linux CI recipe
 passed all 80 CTest entries, and the CUDA memory profiler is rebuilt. Resume with
 fresh resource checks; GPU runtime checks and P1's CUDA profile are next.
 
-## Handoff for the next Codex
+## Handoff for the next agent
 
-Continue on `codex/4b-qualification` in the Mac checkout of this repository.
+Start from `main` (at or after merge commit `1571eea`) on a new `codex/*` branch;
+`codex/4b-qualification` and the other September branches are merged and deleted.
 Read the applicable `AGENTS.md`, this backlog and `scripts/validation/README.md`.
-Inspect all existing changes before editing; telemetry, prior 4B reports and the
-new policy/tooling are now grouped into review commits. Do not reset or overwrite that work.
 Reach the CUDA host over SSH (its address is kept in the operator's local notes,
-not in this repository); inspect the current remote checkout before syncing anything. Keep previous evidence immutable. The user authorized implementation, scoped commits and draft PR preparation on
-September 30. Do not merge or alter unrelated workloads without authorization.
+not in this repository). The remote source snapshot from September 28 predates the
+merged hardening (notably the runtime RSS lifetime-peak clamp in `77dabf9`): before
+any GPU work, sync a fresh snapshot of `main` to a new remote directory, rebuild the
+CUDA worker and profilers, and record their new hashes. New binaries invalidate
+binary-bound profile evidence, so the September 28 Mac profile cannot be paired with
+them. Keep previous evidence immutable. Scoped commits and draft PRs are authorized;
+do not merge or alter unrelated workloads without authorization.
 
 The new policy is **opt-in**. A fresh 4B Mac isolated profile passed; fresh two-host
 serving qualification remains pending.
@@ -54,8 +61,10 @@ the existing RSS-plus-allocator rule. Always report the actual policy used.
   mismatched evidence; retain partial tokens and cleanup observations after worker loss.
 - [x] Write the [concurrency-two evidence design](concurrency-qualification.md).
   The concurrency-one profile restriction remains in force; new capacity is unqualified.
-- [ ] Land the stacked CI fixes (PR #19), confirm a green hosted run with a saved
+- [x] Land the stacked CI fixes (PR #19), confirm a green hosted run with a saved
   native dependency cache, then review before merging independently scoped infrastructure.
+  Done September 30: #19 → #17 → `main` and #20 → #18 → `main`. The post-merge run
+  on `main` completed in about four minutes using the saved cache.
 - [ ] Resume P0–P2 with fresh profiles when both hosts meet resource gates. Do not
   reuse September 28 profiles past the freshness limit.
 
@@ -65,6 +74,61 @@ Known low-priority caveat: `observed_at_unix_ns` is wall-clock time, so a backwa
 clock step during a profile makes the footprint policy fall back to the conservative
 formula (recorded in `policy_notes`). Steady-clock or sample-index ordering would
 remove that dependency; the fallback direction is safe.
+
+## October 6–8 review follow-up
+
+- [x] Strengthen invalid-evidence tests to reject any deployment entry before validation.
+- [x] Test busy-worker refusal with a real two-worker CPU deployment and verify its
+  exact continuation still works afterward.
+- [x] Verify [PR #21](https://github.com/anthonylu23/hLLM/pull/21): the October 6
+  [hosted run](https://github.com/anthonylu23/hLLM/actions/runs/37494224305) passed
+  169 Python tests and all 81 CPU CTests, including the guarded rehearsal.
+- [x] Include the previously local October backlog and readiness updates in the
+  same review branch for synchronization with GitHub.
+
+The [review follow-up report](validation/review-followup-20261006.md) records the
+scope and local evidence. GPU qualification remains pending; publishing these
+updates does not qualify any new model capacity.
+
+## GPU-independent work — October 2026
+
+None of these need the CUDA host. The item marked *Mac model* loads the 4B checkpoint
+on the Mac and must pass the resource gates below; the rest are code and docs only.
+
+- [ ] Add a deps-only CI job on `push` to `codex/**` that restores, builds and saves
+  the native dependency cache without running tests, so stacked PRs on `codex/*`
+  bases stop rebuilding gRPC cold (about 48 minutes per run).
+- [ ] Add a Linux AddressSanitizer/UBSan CTest job using the existing `asan` preset,
+  now that the dependency cache makes a second native job affordable. Apple ASan
+  still hangs before `main`; this would be the project's first sanitizer coverage.
+- [ ] Implement the standalone `ConcurrentServingEvidence` model, validator,
+  immutable report writer and the CPU rejection tests listed in the
+  [concurrency-two design](concurrency-qualification.md), plus the opt-in per-worker
+  request-lifecycle observations needed to prove overlap. Keep `ProfileKey` at
+  concurrency one. This is the prerequisite for P5 and needs no GPU.
+- [ ] Decide and document the canonical 4B precision target. The approved M5 target
+  is F16 weights with F32 execution/KV; all 4B evidence so far is uniform F16.
+  Profiles bind precision into their identity, so settle this before P1 reruns.
+- [ ] Write down the acceptance criterion for promoting `footprint-v1` from opt-in
+  to default (for example: the P2 serving soak passes with serving peaks inside the
+  footprint envelope on both hosts across six cycles). Do not flip the default yet.
+- [ ] Reconcile `SPEC.md` with the implementation: SQLite, OpenTelemetry,
+  prometheus-cpp, spdlog, structlog and Buf are listed but unused; profiles are JSON
+  files and metrics are hand-rendered Prometheus text. Either trim the spec or
+  schedule the observability work. Answer or retire the §30 open questions the 4B
+  work has already decided (tied-embedding placement, quantization timing).
+- [ ] Order footprint observations by a steady clock or sample index instead of
+  `observed_at_unix_ns`, so a backward wall-clock step no longer forces the
+  conservative fallback. Low priority; the current fallback direction is safe.
+- [ ] *Mac model, optional:* investigate unload retention in a long-lived MLX worker
+  (about 0.9 GiB serving residual; 3.79 GiB after unload in the isolated probe).
+  Measure host allocator reclamation at unload against reload latency and exact
+  tokens. Only worthwhile if persistent reloadable workers are wanted; a fresh
+  worker per deployment remains the qualified path.
+
+Do not rerun the Mac isolated profile until the CUDA host is available: profiles
+expire after 24 hours and must be paired with a same-day CUDA profile on matching
+binaries.
 
 ## Resource gates for every heavy step
 
@@ -127,7 +191,7 @@ Known paths, to verify before use:
 | Mac worker/profiler | `build/native/m6-mlx/cpp/hllm-worker-mlx`, `hllm-profile-memory-mlx` |
 | Full manifest / 128-token independent oracle | `build/4b-qualification-20260918/manifest.json`, `reference-f16.json` |
 | Prior raw footprint evidence | `build/4b-footprint-20260923/` |
-| CUDA source/build (CUDA host) | `~/Projects/experiments/hllm-m6-serving`, `build/cuda/cpp/` |
+| CUDA source/build (CUDA host) | `~/Projects/experiments/hllm-m6-serving`, `build/cuda/cpp/` (pre-#18/#20 source; resync from `main` and rebuild before use) |
 | Linux model (CUDA host) | `~/Projects/experiments/hllm-4b-20260918/model` |
 | Previous remote diagnostics (CUDA host) | `~/Projects/experiments/hllm-4b-footprint-20260923/` |
 | Previous Linux build/runtime environment | an env script under the CUDA host's `/tmp` (inspect; may be stale) |
