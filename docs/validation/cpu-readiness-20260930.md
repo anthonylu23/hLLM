@@ -98,6 +98,15 @@ footprint policy relies on holds by construction on every platform.
 
 ## Next steps
 
+October 2 update: steps 1 and 2 are done. PRs #17–#20 merged to `main` on
+September 30 and the post-merge hosted run used the saved dependency cache. The
+remaining GPU-independent and GPU-gated items are tracked in the
+[overnight backlog](../overnight-backlog.md).
+
+October 8 follow-up: the additional refusal tests in [PR #21](https://github.com/anthonylu23/hLLM/pull/21)
+also passed hosted validation (169 Python tests and all 81 CPU CTests). The pending
+local backlog and this status update are being published with that PR.
+
 1. Land the stacked CI fixes ([PR #19](https://github.com/anthonylu23/hLLM/pull/19))
    and confirm a green hosted run with a populated native dependency cache.
 2. Review the qualification draft separately; preserve its conservative default.
