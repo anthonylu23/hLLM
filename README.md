@@ -85,8 +85,10 @@ uv run pyright
 uv run python scripts/generate_proto.py --check
 ```
 
-[GitHub Actions](.github/workflows/ci.yml) defines these Python checks plus a Linux
-CPU build and CTest job using matching, pinned native gRPC/Protobuf dependencies.
+[GitHub Actions](.github/workflows/ci.yml) defines these Python checks plus Linux CPU
+and AddressSanitizer/UBSan build-and-CTest jobs using matching, pinned native
+gRPC/Protobuf dependencies; pushes to `codex/**` branches only warm that dependency
+cache for stacked pull requests.
 Accelerator and full-checkpoint runs remain explicit hardware qualification tasks.
 See [validation tools and reproduction](scripts/validation/README.md).
 

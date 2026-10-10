@@ -123,7 +123,14 @@ This oracle's CPU weight placement is distinct from hLLM runtime offloading.
 ## Routine CI
 
 The [workflow](../../.github/workflows/ci.yml) checks Python, types, lint, generated
-bindings and native CPU tests. The native dependency helper builds matching gRPC
+bindings and native CPU tests, and runs the same CTest suite under the `asan` preset
+(AddressSanitizer plus UndefinedBehaviorSanitizer on hLLM code only; the pinned
+dependency prefix is uninstrumented, so leak and container-overflow detection are
+disabled there, as the workflow comments explain). Pushes to `codex/**` run a deps-only
+job that restores or builds and saves the dependency cache so stacked pull requests
+based on those branches do not rebuild gRPC cold. The first local sanitizer run on
+October 10, 2026 passed all 81 entries on Fedora 44 with GCC 16 after installing
+`libasan`/`libubsan`. The native dependency helper builds matching gRPC
 and Protobuf from pinned gRPC v1.74.0 and caches the install prefix. Hardware/full-model
 runs are separate. The dependency configure explicitly sets a CMake 3.5 policy
 floor because the pinned c-ares submodule otherwise fails with CMake 4.

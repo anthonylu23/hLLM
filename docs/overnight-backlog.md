@@ -98,12 +98,17 @@ updates does not qualify any new model capacity.
 None of these need the CUDA host. The item marked *Mac model* loads the 4B checkpoint
 on the Mac and must pass the resource gates below; the rest are code and docs only.
 
-- [ ] Add a deps-only CI job on `push` to `codex/**` that restores, builds and saves
+- [x] Add a deps-only CI job on `push` to `codex/**` that restores, builds and saves
   the native dependency cache without running tests, so stacked PRs on `codex/*`
-  bases stop rebuilding gRPC cold (about 48 minutes per run).
-- [ ] Add a Linux AddressSanitizer/UBSan CTest job using the existing `asan` preset,
+  bases stop rebuilding gRPC cold (about 48 minutes per run). October 10: added;
+  the full checks still run for pull requests, `main` pushes and manual runs.
+- [x] Add a Linux AddressSanitizer/UBSan CTest job using the existing `asan` preset,
   now that the dependency cache makes a second native job affordable. Apple ASan
   still hangs before `main`; this would be the project's first sanitizer coverage.
+  October 10: added and verified locally (81 of 81 CTest entries). Container-overflow
+  and leak detection are disabled because the dependency prefix is uninstrumented;
+  the one report seen with container-overflow enabled was a read inside a live
+  protobuf message at `boundary_codec.cpp:43` and is recorded in the workflow comment.
 - [ ] Implement the standalone `ConcurrentServingEvidence` model, validator,
   immutable report writer and the CPU rejection tests listed in the
   [concurrency-two design](concurrency-qualification.md), plus the opt-in per-worker
