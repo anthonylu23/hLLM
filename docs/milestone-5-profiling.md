@@ -193,6 +193,38 @@ notes alongside the status.
 Tiny native CPU/MLX checks cover the implementation; no new full-checkpoint fit,
 larger-context, reverse-order or concurrency qualification is claimed yet.
 
+### Promotion criterion for `footprint-v1`
+
+`conservative-v1` stays the default until all of the following hold, after which the
+default may change in one reviewed commit that also updates the examples and this page:
+
+1. Two-host serving evidence on the current binaries, not only isolated profiles: a
+   same-process reload soak in **both** stage orders at the baseline workload whose
+   MLX serving footprint peak, with the unchanged 10% safety, 256 MiB extra overhead
+   and 1 GiB headroom, fits the prelaunch availability recorded before launch.
+   The [October 10, 2026 run](validation/qwen3-4b-serving-20261010.md) meets this
+   (6.28 GiB and 6.29 GiB envelopes against 8.27 GiB and 8.73 GiB available).
+2. The isolated-profile envelope bounds the serving peak: the serving footprint peak
+   must not exceed the profile's selected physical peak by more than the extra
+   overhead allowance. October 10 measured 4.58 GiB serving against 4.57 GiB
+   isolated in both orders.
+3. The same evidence assessed under `conservative-v1` is recorded alongside, so the
+   admission difference is explicit (October 10: `unsafe` at 9.06 GiB versus `safe`
+   at 5.28 GiB for the same MLX stage).
+4. At least one workload beyond the baseline passes the same serving comparison with
+   its own cap and oracle (October 10: 512/256 with a 5.125 GiB cap, 6.53 GiB against
+   9.27 GiB).
+5. No run in the evidence set shows the footprint policy falling back to the
+   conservative formula, non-normal Mac memory pressure, or new swap-outs on the Mac
+   during serving.
+6. The validation-tool change that credits a CUDA worker's inactive cached allocator
+   bytes in the reload gate has been reviewed and merged, because the serving evidence
+   above depends on it for cycles after the first.
+
+Items 1–5 are satisfied by the October 10 evidence; item 6 is pending review of that
+run's pull request. Flipping the default changes every measured bundle and sweep
+identity that omits the policy field, so it is a deliberate, separately reviewed step.
+
 ## Reproduce
 
 Build as documented in the CPU, MLX or CUDA milestone instructions. Prepare an actual
