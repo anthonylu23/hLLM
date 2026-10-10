@@ -112,9 +112,13 @@ on the Mac and must pass the resource gates below; the rest are code and docs on
 - [ ] Decide and document the canonical 4B precision target. The approved M5 target
   is F16 weights with F32 execution/KV; all 4B evidence so far is uniform F16.
   Profiles bind precision into their identity, so settle this before P1 reruns.
-- [ ] Write down the acceptance criterion for promoting `footprint-v1` from opt-in
+- [x] Write down the acceptance criterion for promoting `footprint-v1` from opt-in
   to default (for example: the P2 serving soak passes with serving peaks inside the
   footprint envelope on both hosts across six cycles). Do not flip the default yet.
+  October 10: written in the
+  [profiling workflow](milestone-5-profiling.md#promotion-criterion-for-footprint-v1);
+  items 1–5 are met by that night's evidence, item 6 awaits review. The default is
+  unchanged.
 - [ ] Reconcile `SPEC.md` with the implementation: SQLite, OpenTelemetry,
   prometheus-cpp, spdlog, structlog and Buf are listed but unused; profiles are JSON
   files and metrics are hand-rendered Prometheus text. Either trim the spec or
