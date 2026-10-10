@@ -4,16 +4,19 @@ Status: **the baseline serving-fit gate passed.** Fresh same-day isolated profil
 both hosts were `safe`, and the six-cycle same-process reload soak completed 24 exact
 256-token continuations and six exact cancellation prefixes in the same two worker
 processes, with serving peaks inside the prelaunch budgets on both hosts. This
-qualifies the 128-prompt/256-output, concurrency-one, uniform-F16, MLX→CUDA split-15
-deployment of Qwen3-4B-Base on this host pair under `footprint-v1`. It does not
-qualify larger contexts, reverse order, concurrency two, an indefinite reload plateau,
-or M5 WAN performance.
+qualifies the 128-prompt/256-output, concurrency-one, uniform-F16 deployment of
+Qwen3-4B-Base on this host pair under `footprint-v1` in **both** stage orders: MLX→CUDA
+at split 15 and, in the P4 run below, CUDA→MLX at split 21. The P3 run below extends
+the forward order to a 512-prompt/256-output workload with a 5.125 GiB MLX cap. It
+does not qualify larger contexts than 768 cached tokens, concurrency two, an
+indefinite reload plateau, or M5 WAN performance.
 
 This run executes P0, P1 and P2 of the [overnight backlog](../overnight-backlog.md)
 with the CUDA host free for the first time since September 28. The
 [machine-readable result](qwen3-4b-serving-20261010-results.json) records hashes,
 guard summaries, per-cycle outcomes and serving peaks. Raw evidence stays under the
-ignored run directories named below. P3–P5 were not attempted.
+ignored run directories named below. P4 and P3 followed the same night and are
+reported below; P5 was not attempted.
 
 ## Scope and identity
 
@@ -150,6 +153,84 @@ was 4.76 GiB with a 4.71 GiB active maximum. Guard observations: the Mac guard s
 607 samples; the Linux guard saw a 7.33 GiB minimum and 179 MiB of new swap-out spread
 over 609 samples, never exceeding the 60-second limit.
 
+## P4 — reverse-order live serving (CUDA → MLX, split 21)
+
+The same inputs were rerun with CUDA owning layers 0–20 and MLX owning layers 21–35
+plus the final norm, head and sampling (plan digest `a653ceac6134`, identical to the
+September 18 reverse plan). Caps, allowances and the independent oracle were unchanged.
+Both fresh profiles were `safe` (06:26–06:28 UTC), and the six-cycle soak that
+followed (06:34 UTC, 1,168 s) matched the forward order exactly.
+
+| Measurement | CUDA stage 0 (0–20) | MLX stage 1 (21–35 + head) |
+| --- | ---: | ---: |
+| Isolated profile policy | `cuda-rss-device-v1` | `mlx-footprint-max-v1` (no fallback) |
+| Isolated envelope | 4.08 GiB host, 5.72 GiB device | 5.28 GiB host |
+| Isolated peak | 3.48 GiB RSS | 4.57 GiB footprint, 4.37 GiB RSS |
+| Conservative replay of the same evidence | n/a | `unsafe`, 9.06 GiB |
+| Soak: exact continuations / cancel prefixes | 24 of 24 / 6 of 6 | |
+| Soak: fresh preflights | 12 of 12 `safe` | |
+| Serving peak | 3.53 GiB RSS, 5.00 GiB process VRAM | 4.58 GiB footprint |
+| Serving envelope vs prelaunch availability | 5.13 ≤ 9.21 GiB host; 6.25 ≤ 7.32 GiB device | 6.29 ≤ 8.73 GiB |
+| Guard minimum availability / new swap-out | 7.02 GiB / 0 | 4.81 GiB / 0 |
+
+Per-request wall time was 38.3–41.5 s. The MLX final stage, which the September 18
+conservative assessment rejected at 6.5–6.7 GiB, fits under the footprint policy with
+the same 4.375 GiB cap. Its idle residual after unload was 0.08–0.15 GiB from the first
+cycle on; the CUDA worker again retained 4.78 GiB of cached device blocks until exit,
+which the credited gate admitted on cycles 1–5 (2.50–2.52 GiB reported free). This is
+live reverse-order serving through RPC, not the September 18 offline stage replay.
+
+## P3 — 512-prompt/256-output context (768 cached tokens)
+
+A fresh independent oracle was generated on the CUDA host with hLLM workers stopped,
+using the pinned reference environment (`torch 2.13.0+cu130`, `transformers 4.57.6`,
+Accelerate 1.15.0 added that night because the CPU-offload device map requires it) and
+`checkpoint_reference.py --plain --dtype f16 --gpu-layers 26 --prompt-tokens 512
+--output-tokens 256`. It produced 512 prompt and 256 generated tokens in 68.9 s with a
+5.79 GiB peak CUDA allocation; the guard saw a 6.56 GiB minimum host availability and
+98 MiB of new swap-out. The prompt is the tool's deterministic token repetition, so the
+Base model's continuation largely repeats it; exact token equality is still the check.
+
+The MLX cap was raised to 5.125 GiB (5,502,926,848 bytes) for this workload, as the
+backlog proposed; CUDA caps were unchanged. Both isolated profiles passed on the same
+binaries (06:52–06:54 UTC), and the forward-order MLX→CUDA plan was reused.
+
+| Measurement | MLX stage 0 (cap 5.125 GiB) | CUDA stage 1 (caps unchanged) |
+| --- | ---: | ---: |
+| Native peak reservation (weights + cache + workspace) | 5.01 GiB of 5.125 | 6.10 GiB of 6.125 device |
+| Policy applied | `mlx-footprint-max-v1` (no fallback) | `cuda-rss-device-v1` |
+| Availability at preflight | 10.62 GiB | 9.13 GiB host, 7.50 GiB device |
+| Isolated envelope | 5.53 GiB host | 4.09 GiB host, 5.87 GiB device |
+| Peak | 4.80 GiB footprint, 4.38 GiB RSS | 3.49 GiB RSS |
+| Footprint after each unload | 4.53 GiB | n/a |
+| Guard minimum availability / new swap-out | 4.80 GiB / 0 | 7.78 GiB / 45 MiB |
+
+The conservative replay of the 768-token MLX evidence is also `safe` here, at
+9.32 GiB, only because 10.62 GiB happened to be available at that preflight; it is
+not a general conservative-policy pass. The CUDA stage sits 27 MiB under its native
+device cap and the MLX stage 118 MiB under its new cap, so this workload is at the
+admission limit of the current caps rather than comfortably inside it.
+
+The bounded soak (`--cycles 3 --requests 2`, 07:00 UTC, 383 s) ran against the new
+oracle with the workers started at `--max-cached-tokens 768` and the MLX worker at the
+5.125 GiB cap.
+
+| Check | Result |
+| --- | --- |
+| Exact 256-token continuations after a 512-token prompt | 6 of 6 |
+| Cancellation after three tokens with exact prefix | 3 of 3 |
+| Fresh fit before every deployment | 6 of 6 `safe` |
+| Per-request wall time | 41.7–49.4 s |
+| Serving peak, MLX | 4.80 GiB footprint; envelope 6.53 ≤ 9.27 GiB available |
+| Serving peak, CUDA | 3.52 GiB RSS, 5.11 GiB process VRAM; device envelope 6.37 ≤ 7.32 GiB |
+| Guard minimum availability / new swap-out | Mac 4.64 GiB / 0; Linux 6.75 GiB / 0.1 MiB |
+
+The MLX residual after unload was 0.88 GiB in all three cycles, and the CUDA worker
+retained 4.92 GiB of cached device blocks (credited on cycles 1–2 with 2.38 GiB
+reported free). The 768-token workload therefore fits and serves exactly on this pair,
+but with the admission margins noted above; any larger context needs new caps and a
+fresh independent oracle, not an extrapolation from this run.
+
 ## Soak attempts and the CUDA reload gate
 
 Five launches were needed. The first three failed for the same external reason and
@@ -191,10 +272,11 @@ Qualified by this run, for these binaries and this host pair:
 - Physical fit of the 4B MLX stage under the opt-in `footprint-v1` policy with
   actual same-process serving peaks, and of the CUDA stage under its existing policy.
 - Six same-process reload cycles with exact tokens, exact cancellation prefixes,
-  reservation cleanup and fresh fit before every deployment.
+  reservation cleanup and fresh fit before every deployment, in both stage orders.
+- The 512-prompt/256-output workload in forward order with a 5.125 GiB MLX cap, over
+  three reload cycles against a fresh independent oracle.
 
-Not qualified: contexts above 384 cached tokens (P3), CUDA→MLX live serving (P4),
-concurrency two (P5), any indefinite reload plateau, throughput or latency, the M5
+Not qualified: contexts above 768 cached tokens, concurrency two (P5), any indefinite reload plateau, throughput or latency, the M5
 WAN acceptance sweep, and `footprint-v1` as a default. The CUDA device cap leaves
 under 20 MiB of preflight margin on the 8 GiB card with the desktop running, and the
 Linux host swapped idle memory under load even with 7 GiB available; both are

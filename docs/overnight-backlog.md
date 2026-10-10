@@ -2,8 +2,9 @@
 
 Updated October 10, 2026. The CUDA host became available on October 8 after the user
 stopped an unrelated Minecraft server. P0 and P1 passed with fresh profiles on both
-hosts and P2 ran on October 10; see the
-[two-host serving report](validation/qwen3-4b-serving-20261010.md). P3–P5 remain open.
+hosts and P2, P4 and P3 all passed on October 10; see the
+[two-host serving report](validation/qwen3-4b-serving-20261010.md). P5 remains open,
+as do the footprint-v1 promotion criterion and the GPU-independent items below.
 All September 30 code and docs are merged to `main` (PRs #17–#20); hosted CI on `main`
 is green with a saved native dependency cache. The GPU-independent work below can
 proceed now; P1–P5 remain gated on fresh resource checks on both hosts.
@@ -299,28 +300,36 @@ Omit the footprint helper around Python profiler commands; see the tools README.
 
 ## P3 — expand context, only after the baseline serving-fit result passes
 
-- [ ] Generate a fresh **independent** 512-prompt/256-output F16 oracle on Linux,
+- [x] Generate a fresh **independent** 512-prompt/256-output F16 oracle on Linux,
   with hLLM GPU workers stopped. Use the pinned oracle environment and the guarded
   `checkpoint_reference.py --plain --dtype f16 --gpu-layers 26 --prompt-tokens 512
   --output-tokens 256` path documented in the tools README. Check host/VRAM fit
   first; the previous mapping may need a separately justified adjustment.
-- [ ] Create a 768-token workload and fresh isolated profiles. The MLX formula
+- [x] Create a 768-token workload and fresh isolated profiles. October 10: MLX cap
+  5.125 GiB, CUDA caps unchanged; both `safe`, but native reservations reach 5.01 of
+  5.125 GiB (MLX) and 6.10 of 6.125 GiB (CUDA device). The MLX formula
   reserves about 5.007 GiB including resident weights for this split, versus the
   old 4.375 GiB cap. A starting candidate cap is 5.125 GiB, subject to native load
   and live physical preflight. Calculate the CUDA requirement independently.
   Do not just reuse 384-token caps/profiles or claim safety from an extrapolation.
-- [ ] If profiles and fresh gates pass, run one guarded 256-token request and its
-  repeat, then three reload cycles. Stop on exact-token, cleanup, telemetry or
+- [x] If profiles and fresh gates pass, run one guarded 256-token request and its
+  repeat, then three reload cycles. October 10: 6 of 6 exact, 3 of 3 cancel prefixes,
+  serving envelopes inside prelaunch availability on both hosts; see the
+  [serving report](validation/qwen3-4b-serving-20261010.md#p3--512-prompt256-output-context-768-cached-tokens). Stop on exact-token, cleanup, telemetry or
   physical-fit failure. Record whether the new workload actually fits, even if its
   failure is an admission limitation rather than a regression.
 
 ## P4 — reverse-order live serving
 
-- [ ] Return to 128/256 first. CUDA owns layers 0–20 and MLX 21–35: order
-  `['cuda', 'mlx']`, split `21`. The final MLX stage owns normalization/head/sampling,
+- [x] Return to 128/256 first. CUDA owns layers 0–20 and MLX 21–35: order
+  `['cuda', 'mlx']`, split `21`. October 10: done. The final MLX stage owns normalization/head/sampling,
   so forward-order profiles cannot qualify it.
-- [ ] Reprofile both assignments, pass fresh physical gates, then run the same
+- [x] Reprofile both assignments, pass fresh physical gates, then run the same
   independent oracle through live RPC serving and the reload/cancel sequence.
+  October 10: both profiles `safe` (MLX final stage 5.28 GiB under `footprint-v1`,
+  where the September 18 conservative sum had refused it); six-cycle live reverse
+  soak 24 of 24 exact, 6 of 6 cancel prefixes. See the
+  [serving report](validation/qwen3-4b-serving-20261010.md#p4--reverse-order-live-serving-cuda--mlx-split-21).
   The September 18 reverse-order evidence was offline numerical stage replay,
   not live reverse-order serving.
 

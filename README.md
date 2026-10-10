@@ -49,10 +49,11 @@ The [instrumented 4B soak](docs/validation/qwen3-4b-footprint.md) matched 12 con
 across three reload cycles, with a 4.576 GiB physical-footprint peak. The fit gate
 retains its conservative default. An [opt-in footprint policy](docs/milestone-5-profiling.md#opt-in-mlx-footprint-policy)
 is implemented. The [October 10 two-host run](docs/validation/qwen3-4b-serving-20261010.md) passed the
-baseline serving-fit gate: fresh same-day profiles on both hosts and a six-cycle
-same-process reload soak with 24 exact continuations, serving peaks inside prelaunch
-budgets. Larger contexts, reverse order and concurrency two remain open in the
-[overnight backlog](docs/overnight-backlog.md).
+baseline serving-fit gate in both stage orders: fresh same-day profiles on both hosts
+and six-cycle same-process reload soaks with 24 exact continuations each, serving peaks
+inside prelaunch budgets. A 512-prompt/256-output workload also passed a bounded
+three-cycle soak with a 5.125 GiB MLX cap. Concurrency two and larger contexts remain
+open in the [overnight backlog](docs/overnight-backlog.md).
 The [Milestone 5 implementation plan](docs/milestone-5-implementation-plan.md) defines
 the implemented slices, deferred acceptance gates, and the initial
 512-prompt/256-output, concurrency-1 workload.
