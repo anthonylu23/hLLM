@@ -1,7 +1,9 @@
 # Overnight qualification backlog
 
-Updated October 8, 2026. The last recorded CUDA resource check (October 2) found
-the device occupied by an unrelated workload; availability must be checked again.
+Updated October 10, 2026. The CUDA host became available on October 8 after the user
+stopped an unrelated Minecraft server. P0 and P1 passed with fresh profiles on both
+hosts and P2 ran on October 10; see the
+[two-host serving report](validation/qwen3-4b-serving-20261010.md). P3–P5 remain open.
 All September 30 code and docs are merged to `main` (PRs #17–#20); hosted CI on `main`
 is green with a saved native dependency cache. The GPU-independent work below can
 proceed now; P1–P5 remain gated on fresh resource checks on both hosts.
@@ -65,8 +67,8 @@ the existing RSS-plus-allocator rule. Always report the actual policy used.
   native dependency cache, then review before merging independently scoped infrastructure.
   Done September 30: #19 → #17 → `main` and #20 → #18 → `main`. The post-merge run
   on `main` completed in about four minutes using the saved cache.
-- [ ] Resume P0–P2 with fresh profiles when both hosts meet resource gates. Do not
-  reuse September 28 profiles past the freshness limit.
+- [x] Resume P0–P2 with fresh profiles when both hosts meet resource gates. Do not
+  reuse September 28 profiles past the freshness limit. Done October 10.
 
 Larger context, reverse order and concurrency two remain follow-up experiments;
 they are not prerequisites for reviewing the single-request policy implementation.
@@ -167,8 +169,12 @@ the user's expected 11 GB free is not a substitute for a new check.
 - [x] Recheck the pinned checkpoint on both hosts: `Qwen/Qwen3-4B-Base`, revision
   `906bfd4b4dc7f14ee4320094d8b41684abff8539`; full manifest hashes and three shards
   must agree. No checkpoint downloads if a valid complete copy is present.
-- [ ] Run the changed Python suite and Linux/CUDA memory-profile/worker smoke
+- [x] Run the changed Python suite and Linux/CUDA memory-profile/worker smoke
   checks against the actual binaries. Run broader regression tests if these fail.
+  October 8: `main` at `a2b62a9` was cloned to a new snapshot, the CUDA worker and
+  profilers were rebuilt and hashed, and 7 of 7 CUDA CTest entries passed. The Mac
+  rebuilt its MLX binaries from the same commit; both hosts share source digest
+  `abadd3fd…`.
   September 28: 156 Python tests passed on each host, plus focused Mac native
   checks. Existing Linux CPU profiler tests detected an old schema-1.0 binary;
   a clean build with the pinned dependencies passed all 80 Linux CTest entries.
@@ -218,19 +224,23 @@ Historical admission caps: MLX 4.375 GiB (`4697620480`), CUDA host 3.75 GiB
   with names `['mlx', 'cuda']`, `DType.F16`, split `15`; preserve the pinned manifest.
   Write a `WorkloadProfile` with 128/256/384, `kv_dtype=F16`, concurrency 1. The
   default execution dtype in other examples may be F32: do not reuse it accidentally.
-- [ ] Under the local guard, run `hllm profile-memory` on MLX for three cycles,
+- [x] Under the local guard, run `hllm profile-memory` on MLX for three cycles,
   adding `--mlx-fit-policy footprint-v1`. Under the remote guard, run the matching
-  CUDA profile for three cycles. Run serially and preserve stdout, native JSONL,
+  CUDA profile for three cycles. October 10: both passed on the same binaries
+  (MLX footprint envelope 5.28 GiB; CUDA 4.09 GiB host / 5.72 GiB device). Earlier
+  October 8–9 profiles expired before a soak could run and are retained separately. Run serially and preserve stdout, native JSONL,
   preflight, artifact and `.fit.json` files. Include the new source snapshot digest.
   September 28: **MLX completed and passed** in the new run directory; CUDA is
   pending because another job occupies the device. Preserve this profile and use
   a new filename if freshness or changed conditions require another run.
-- [ ] Require completed schema-1.3 profiles, all ordered phases, coherent lifetime
+- [x] Require completed schema-1.3 profiles, all ordered phases, coherent lifetime
   peaks, clean retirement and `safe` fit. MLX must actually report
   `policy: mlx-footprint-max-v1`; a fallback is not qualification of this policy.
   Retain a separate conservative assessment of the same evidence for comparison.
   The Mac result uses `mlx-footprint-max-v1` with no fallback; its conservative
-  comparison is unsafe. This checkbox stays open until CUDA also passes.
+  comparison is unsafe. October 10: CUDA also passed; both profiles are complete
+  schema-1.3 evidence with `safe` fit, and the conservative replay of the fresh MLX
+  profile is `unsafe` at 9.06 GiB.
 
 MLX command template, after the new run directory and inputs exist:
 
@@ -255,29 +265,34 @@ Omit the footprint helper around Python profiler commands; see the tools README.
 
 ## P2 — longer same-process reload soak
 
-- [ ] Only after P1 passes, start a guarded worker per host, each with a 30-minute
-  limit. Compile/use `process_footprint.c` for the direct Mac worker child; retain
+- [x] Only after P1 passes, start a guarded worker per host, each with a 30-minute
+  limit. October 10: done; see the [serving report](validation/qwen3-4b-serving-20261010.md). Compile/use `process_footprint.c` for the direct Mac worker child; retain
   independent OS samples during load. The controller does not own these workers,
   so the outer supervisor must stop the guards at the end.
-- [ ] Use bidirectional SSH forwarding if needed, after checking ports are unused:
+- [x] Use bidirectional SSH forwarding if needed, after checking ports are unused:
   local MLX `127.0.0.1:50291`, CUDA `127.0.0.1:50293`, with
   `ssh -o ExitOnForwardFailure=yes -L 50293:127.0.0.1:50293
   -R 50291:127.0.0.1:50291 -N <cuda-host>`. Record transport identity;
   this is not M5 WAN acceptance.
-- [ ] Construct `soak-workers.json` as in the tools README, using fresh profiles,
+- [x] Construct `soak-workers.json` as in the tools README, using fresh profiles,
   independently checked executable digests and the reported runtime driver API.
   Keep worker caps identical to P1. Use `--max-cached-tokens 384` and default
   concurrency/batch limits of one.
-- [ ] Run `reload_soak.py --cycles 6 --requests 4 --idle-seconds 10`. Reuse the
+- [x] Run `reload_soak.py --cycles 6 --requests 4 --idle-seconds 10`. October 10:
+  24 of 24 exact continuations and 6 of 6 exact cancellation prefixes in 1,174 s.
+  The first full attempt was refused at cycle 1 by the fresh CUDA gate because the
+  worker's own cached allocator hid 4.78 GiB; the tool now credits only inactive
+  cached bytes and records both values (PR pending review). Reuse the
   pinned independent 128/256 oracle only after validating its payload identity.
   This is 24 exact continuations and six cancellation/unload cycles in the same
   worker processes, roughly 20 minutes based on previous timings.
-- [ ] Inspect fresh gates, every continuation, reservation cleanup, Mac pressure,
+- [x] Inspect fresh gates, every continuation, reservation cleanup, Mac pressure,
   swap-outs, Linux availability and sampling errors. Compare **serving** peaks
   against prelaunch availability with unchanged allowances; a passing isolated
   profile alone is insufficient. Record maximum OS footprint/RSS and allocator
   active+cache/peak separately, plus the selected-policy envelope.
-- [ ] Compare unloaded footprint at each cycle. Capture `vmmap -summary` after the
+- [x] Compare unloaded footprint at each cycle. October 10: MLX residual 0.88 GiB
+  for two cycles, then 0.08–0.15 GiB; CUDA keeps 4.78 GiB cached until exit. Capture `vmmap -summary` after the
   final unload if useful. Report the measured trend; six cycles do not prove an
   indefinite plateau. About 0.9 GiB retained after unload was previously observed;
   process exit is the reliable complete release. Do not add allocator flushing here.
@@ -326,6 +341,10 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   that lacks physical evidence. Do not mix this with a performance-speedup claim.
 
 ## Final cleanup and report
+
+October 10: cleanup verified on both hosts and recorded in the
+[serving report](validation/qwen3-4b-serving-20261010.md) and its
+[results file](validation/qwen3-4b-serving-20261010-results.json).
 
 - [x] Stop only the recorded owned worker/guard/tunnel PIDs. Verify no owned model
   workers remain on either host and no owned CUDA compute process remains.

@@ -1,0 +1,203 @@
+# Qwen3-4B two-host serving qualification — October 10, 2026
+
+Status: **the baseline serving-fit gate passed.** Fresh same-day isolated profiles on
+both hosts were `safe`, and the six-cycle same-process reload soak completed 24 exact
+256-token continuations and six exact cancellation prefixes in the same two worker
+processes, with serving peaks inside the prelaunch budgets on both hosts. This
+qualifies the 128-prompt/256-output, concurrency-one, uniform-F16, MLX→CUDA split-15
+deployment of Qwen3-4B-Base on this host pair under `footprint-v1`. It does not
+qualify larger contexts, reverse order, concurrency two, an indefinite reload plateau,
+or M5 WAN performance.
+
+This run executes P0, P1 and P2 of the [overnight backlog](../overnight-backlog.md)
+with the CUDA host free for the first time since September 28. The
+[machine-readable result](qwen3-4b-serving-20261010-results.json) records hashes,
+guard summaries, per-cycle outcomes and serving peaks. Raw evidence stays under the
+ignored run directories named below. P3–P5 were not attempted.
+
+## Scope and identity
+
+Both hosts ran `main` at commit `a2b62a9` (merge of PR #21) with a clean tree. The
+Linux snapshot is `~/Projects/experiments/hllm-4b-fit-20261008-232736/source` on the
+CUDA host; the Mac used its working tree. The shared source digest over tracked
+native, protocol, Python, script and test files is
+`abadd3fd2f634c217787942b77a295289c74e585ba977d2c39b556332b70b1bd`. Both hosts hashed
+the pinned `Qwen/Qwen3-4B-Base` revision `906bfd4b4dc7f14ee4320094d8b41684abff8539`
+and all three shards matched the September 18 record; the saved independent
+128-prompt/256-output F16 reference matched that checkpoint digest.
+
+The CUDA worker and profilers were rebuilt from this commit on October 8 because the
+previous Linux binaries predated the RSS lifetime-peak clamp in `77dabf9`. The Mac
+MLX worker and profiler were rebuilt the same evening. New binary digests:
+
+| Executable | SHA-256 prefix |
+| --- | --- |
+| `hllm-worker-cuda` | `4b177c767c99` |
+| `hllm-profile-memory-cuda` | `f17a52275659` |
+| `hllm-worker-mlx` | `d49f4ee12588` |
+| `hllm-profile-memory-mlx` | `8ae5d0cf92b4` |
+
+CUDA smoke checks passed on the new binaries: 7 of 7 CTest entries including
+`CudaNumericalParity`, `MemoryProfile-cuda` and `ConcurrentPipeline-cuda`. Three focused
+MLX CTest entries passed on the Mac.
+
+The workload is unchanged from September 28: uniform F16 weights, execution, KV and
+wire; MLX layers 0–14 and CUDA layers 15–35; 128 prompt tokens, 256 outputs,
+concurrency one, 384-token reservation. Admission caps remained MLX 4.375 GiB,
+CUDA host 3.75 GiB and CUDA device 6.125 GiB, with 10% safety, 256 MiB extra overhead,
+1 GiB host headroom and 512 MiB device headroom.
+
+## Resource conditions
+
+The user stopped a Minecraft server on the CUDA host before the run; it had held about
+4 GiB resident plus 4.8 GiB of swap. The host then showed about 9 GiB available.
+On October 10 the user freed Mac memory; the Mac showed 7.7–8.1 GiB free-plus-inactive
+at launch, above the 6.06 GiB the MLX preflight requires. `caffeinate -i -s` ran on the
+Mac for the whole window. No other application was stopped by the agent.
+
+Two earlier gate refusals are preserved and were not retried under unchanged
+conditions:
+
+- October 9, 04:34 UTC: the Mac preflight refused the MLX profile with 5.21 GiB
+  available (`build/4b-fit-20261008-232736/rejected-1/` on the Mac).
+- October 10, 05:50 UTC: the Linux guard stopped the first CUDA profile after
+  334 MiB of new swap-out in under 60 seconds, with 7.3 GiB still available. The
+  kernel paged out idle anonymous memory instead of dropping file cache. The page
+  cache was dropped once (`echo 3 > drop_caches`) and the profile was rerun; the
+  rejected evidence is in `cuda-profile-rejected-1/`.
+
+Profiles from October 8–9 passed but expired before the soak could run, because the
+Mac repeatedly dropped off Tailscale on October 9 (see attempts below). They are kept
+under `p1-20261008/` and `p1-20261009/` and are not part of this acceptance.
+
+## P1 — fresh isolated profiles (October 10, 05:52–05:53 UTC)
+
+Both profiles completed three load/execute/cleanup/unload cycles with schema-1.3
+telemetry, ordered phases, clean retirement and a `safe` fit on the same binaries.
+
+| Measurement | MLX stage 0 | CUDA stage 1 |
+| --- | ---: | ---: |
+| Policy applied | `mlx-footprint-max-v1` (no fallback) | `cuda-rss-device-v1` |
+| Availability at preflight | 7.18 GiB host | 8.64 GiB host, 7.50 GiB device |
+| Lifetime RSS peak | 4.37 GiB | 3.49 GiB |
+| Peak OS physical footprint | 4.57 GiB | n/a |
+| Envelope incl. allowances and headroom | 5.28 GiB host | 4.09 GiB host, 5.72 GiB device |
+| Footprint after each unload | 3.79 GiB | n/a |
+| Guard minimum availability | 4.17 GiB | 6.62 GiB |
+| New swap-out during profile | 0 | 137 MiB |
+
+The same MLX evidence replayed under `conservative-v1` yields `unsafe` with a
+9.06 GiB envelope (`mlx-memory.conservative-fit.json`), so the footprint policy, not the
+conservative sum, is what admits this stage on an 18 GiB Mac. The CUDA device
+availability at preflight was 7.50 GiB against a 7.49 GiB requirement; the desktop's
+154 MiB of VRAM leaves almost no margin for this cap on an 8 GiB card.
+
+## P2 — same-process reload soak
+
+Attempt 5 ran `reload_soak.py --cycles 6 --requests 4 --idle-seconds 10 --timeout 180`
+from the CUDA host at 06:24 UTC with the workers under independent 30-minute guards,
+the Mac footprint helper on the direct worker child, and bidirectional SSH forwards
+over a direct Tailscale path. It completed in 1,174 seconds.
+
+| Check | Result |
+| --- | --- |
+| Cycles completed | 6 of 6 |
+| Exact 256-token continuations against the independent oracle | 24 of 24 |
+| Cancellation after three tokens with exact prefix | 6 of 6 |
+| Fresh fit before every deployment | 12 of 12 `safe` (MLX `mlx-footprint-max-v1`, CUDA `cuda-rss-device-v1`) |
+| Reservation and weight retirement after every cycle | clean on both workers |
+| Per-request wall time | 37.1–44.5 s (polling harness, not a benchmark) |
+
+Reported CUDA device availability before cycles 1–5 was 2.52–2.55 GiB with 4.78 GiB
+held inactive by the worker's own allocator; the effective availability of 7.30–7.35 GiB
+admitted each reload. The MLX host availability stayed between 8.27 and 8.88 GiB.
+
+Residual memory after unload and ten idle seconds:
+
+| Cycle | MLX footprint | MLX RSS | CUDA RSS | CUDA allocator active / cached |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 | 0.88 GiB | 0.84 GiB | 1.30 GiB | 0.01 / 4.78 GiB |
+| 1 | 0.88 GiB | 0.83 GiB | 1.32 GiB | 0.01 / 4.78 GiB |
+| 2 | 0.09 GiB | 0.04 GiB | 1.32 GiB | 0.01 / 4.78 GiB |
+| 3 | 0.15 GiB | 0.11 GiB | 1.32 GiB | 0.01 / 4.78 GiB |
+| 4 | 0.15 GiB | 0.11 GiB | 1.32 GiB | 0.01 / 4.78 GiB |
+| 5 | 0.08 GiB | 0.04 GiB | 1.13 GiB | 0.01 / 4.78 GiB |
+
+The MLX residual fell from about 0.9 GiB to under 0.2 GiB from the third cycle on;
+this is the observed trend over six cycles, not evidence of an indefinite plateau. The
+CUDA process keeps its cached device blocks until exit, as the M6 report also noted.
+Logical weights, cache and workspace reservations returned to zero on both workers after
+every unload.
+
+## Serving peaks versus prelaunch budgets
+
+Serving peaks are compared against the availability recorded at the first fresh
+preflight, with the unchanged 10% safety, 256 MiB extra overhead and headroom (1 GiB
+host, 512 MiB device). An isolated profile is not serving evidence; this is the first
+same-process serving comparison on both hosts.
+
+| Domain | Serving peak | Envelope with allowances | Prelaunch availability | Isolated-profile envelope |
+| --- | ---: | ---: | ---: | ---: |
+| MLX host (OS footprint lifetime peak) | 4.58 GiB | 6.28 GiB | 8.27 GiB | 5.28 GiB |
+| CUDA host (RSS lifetime peak) | 3.50 GiB | 5.10 GiB | 8.92 GiB | 4.09 GiB |
+| CUDA device (process VRAM, `nvidia-smi` every 2 s, 545 samples) | 4.97 GiB | 6.22 GiB | 7.35 GiB | 5.72 GiB |
+
+All three serving envelopes fit their prelaunch availability. The MLX serving footprint
+peak equals the isolated profile's 4.57 GiB within 10 MiB; the CUDA process VRAM peak
+of 4.97 GiB sits under the profile's 5.72 GiB device envelope. The CUDA allocator peak
+was 4.76 GiB with a 4.71 GiB active maximum. Guard observations: the Mac guard saw a
+4.82 GiB minimum availability, normal pressure throughout and zero new swap-outs over
+607 samples; the Linux guard saw a 7.33 GiB minimum and 179 MiB of new swap-out spread
+over 609 samples, never exceeding the 60-second limit.
+
+## Soak attempts and the CUDA reload gate
+
+Five launches were needed. The first three failed for the same external reason and
+produced no cycle:
+
+| Attempt | Outcome |
+| --- | --- |
+| 1 (Oct 9, 13:38 UTC) | Mac left Tailscale 98 s in; stream closed after 254 tokens. |
+| 2–3 (Oct 9) | Mac reconnected for under three minutes each time; the tunnel never completed. |
+| 4 (Oct 10, 06:08 UTC) | Cycle 0 passed: four exact continuations, exact cancel prefix, clean unload. Cycle 1 refused by the fresh CUDA fit gate. |
+| 5 (Oct 10, 06:24 UTC) | Reported below. |
+
+Attempt 4 exposed a gate defect rather than a memory failure. After unload the CUDA
+worker's caching allocator kept 4.78 GiB reserved with 0.01 GiB active, so
+`cudaMemGetInfo` reported only 2.52 GiB free and the 6.14 GiB device envelope could not
+fit. The same process reuses those blocks on the next load, so the gate was rejecting
+a reload the worker could perform. `reload_soak.py` now credits only the worker's own
+inactive cached device-allocator bytes, never active bytes, and records the reported,
+credited and effective availability in every cycle's preflight. Host budgets, MLX
+budgets, allowances and the production fit policies are unchanged; the tool change is
+covered by a unit test and documented in the
+[tools README](../../scripts/validation/README.md#reload-soak). Attempt 4's full
+report is preserved as `soak-attempt-4-cuda-gate/`.
+
+## Cleanup
+
+Only the recorded guard, worker and tunnel processes were stopped, by signalling the
+guards. Both guard logs end with a signal-15 exit record. Afterwards neither host had an
+hLLM worker, profiler, guard or soak process; no CUDA compute process remained and VRAM
+returned to 154 MiB; ports 50291 and 50293 were free on both hosts; the Mac showed
+8.6 GiB free-plus-inactive with normal pressure and the Linux host 9.4 GiB available.
+`caffeinate` was left to expire on its own. No background job or automation was
+scheduled. See `cleanup.json` in the Linux run directory.
+
+## What this does and does not qualify
+
+Qualified by this run, for these binaries and this host pair:
+
+- Physical fit of the 4B MLX stage under the opt-in `footprint-v1` policy with
+  actual same-process serving peaks, and of the CUDA stage under its existing policy.
+- Six same-process reload cycles with exact tokens, exact cancellation prefixes,
+  reservation cleanup and fresh fit before every deployment.
+
+Not qualified: contexts above 384 cached tokens (P3), CUDA→MLX live serving (P4),
+concurrency two (P5), any indefinite reload plateau, throughput or latency, the M5
+WAN acceptance sweep, and `footprint-v1` as a default. The CUDA device cap leaves
+under 20 MiB of preflight margin on the 8 GiB card with the desktop running, and the
+Linux host swapped idle memory under load even with 7 GiB available; both are
+operating constraints to record before expanding the workload. The fresh-fit credit
+for same-process cached allocator bytes is a validation-tool change awaiting review
+in the accompanying PR; the production activation path is unchanged.
