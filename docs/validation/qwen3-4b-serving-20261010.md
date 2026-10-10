@@ -20,6 +20,10 @@ reported below; P5 was not attempted.
 
 ## Scope and identity
 
+All times below are UTC taken from the raw guard and soak records; the hosts run in
+Central and Eastern time, and the first revision of this report mis-converted several
+of them.
+
 Both hosts ran `main` at commit `a2b62a9` (merge of PR #21) with a clean tree. The
 Linux snapshot is `~/Projects/experiments/hllm-4b-fit-20261008-232736/source` on the
 CUDA host; the Mac used its working tree. The shared source digest over tracked
@@ -98,7 +102,7 @@ availability at preflight was 7.50 GiB against a 7.49 GiB requirement; the deskt
 ## P2 — same-process reload soak
 
 Attempt 5 ran `reload_soak.py --cycles 6 --requests 4 --idle-seconds 10 --timeout 180`
-from the CUDA host at 06:24 UTC with the workers under independent 30-minute guards,
+from the CUDA host at 06:02 UTC with the workers under independent 30-minute guards,
 the Mac footprint helper on the direct worker child, and bidirectional SSH forwards
 over a direct Tailscale path. It completed in 1,174 seconds.
 
@@ -159,7 +163,7 @@ The same inputs were rerun with CUDA owning layers 0–20 and MLX owning layers 
 plus the final norm, head and sampling (plan digest `a653ceac6134`, identical to the
 September 18 reverse plan). Caps, allowances and the independent oracle were unchanged.
 Both fresh profiles were `safe` (06:26–06:28 UTC), and the six-cycle soak that
-followed (06:34 UTC, 1,168 s) matched the forward order exactly.
+followed (06:30 UTC, 1,168 s) matched the forward order exactly.
 
 | Measurement | CUDA stage 0 (0–20) | MLX stage 1 (21–35 + head) |
 | --- | ---: | ---: |
@@ -182,8 +186,8 @@ live reverse-order serving through RPC, not the September 18 offline stage repla
 
 ## P3 — 512-prompt/256-output context (768 cached tokens)
 
-A fresh independent oracle was generated on the CUDA host with hLLM workers stopped,
-using the pinned reference environment (`torch 2.13.0+cu130`, `transformers 4.57.6`,
+A fresh independent oracle was generated on the CUDA host at 06:50 UTC with hLLM
+workers stopped, using the pinned reference environment (`torch 2.13.0+cu130`, `transformers 4.57.6`,
 Accelerate 1.15.0 added that night because the CPU-offload device map requires it) and
 `checkpoint_reference.py --plain --dtype f16 --gpu-layers 26 --prompt-tokens 512
 --output-tokens 256`. It produced 512 prompt and 256 generated tokens in 68.9 s with a
@@ -211,7 +215,7 @@ not a general conservative-policy pass. The CUDA stage sits 27 MiB under its nat
 device cap and the MLX stage 118 MiB under its new cap, so this workload is at the
 admission limit of the current caps rather than comfortably inside it.
 
-The bounded soak (`--cycles 3 --requests 2`, 07:00 UTC, 383 s) ran against the new
+The bounded soak (`--cycles 3 --requests 2`, 06:56 UTC, 383 s) ran against the new
 oracle with the workers started at `--max-cached-tokens 768` and the MLX worker at the
 5.125 GiB cap.
 
@@ -238,10 +242,10 @@ produced no cycle:
 
 | Attempt | Outcome |
 | --- | --- |
-| 1 (Oct 9, 13:38 UTC) | Mac left Tailscale 98 s in; stream closed after 254 tokens. |
+| 1 (Oct 9, 13:43 UTC) | Mac left Tailscale 98 s in; stream closed after 254 tokens. |
 | 2–3 (Oct 9) | Mac reconnected for under three minutes each time; the tunnel never completed. |
-| 4 (Oct 10, 06:08 UTC) | Cycle 0 passed: four exact continuations, exact cancel prefix, clean unload. Cycle 1 refused by the fresh CUDA fit gate. |
-| 5 (Oct 10, 06:24 UTC) | Reported below. |
+| 4 (Oct 10, 05:55 UTC) | Cycle 0 passed: four exact continuations, exact cancel prefix, clean unload. Cycle 1 refused by the fresh CUDA fit gate. |
+| 5 (Oct 10, 06:02 UTC) | Reported below. |
 
 Attempt 4 exposed a gate defect rather than a memory failure. After unload the CUDA
 worker's caching allocator kept 4.78 GiB reserved with 0.01 GiB active, so
