@@ -79,6 +79,14 @@ device fingerprint, driver API, allocator, transfer mode, current availability a
 the selected fit policy. It refuses busy workers. Default headroom and extra overhead
 are the production defaults (1 GiB host, 512 MiB CUDA device, 256 MiB extra, 10% safety).
 
+For a CUDA worker the fresh device budget credits the worker's own **inactive cached**
+allocator bytes on top of the driver's free bytes: after an unload the caching allocator
+keeps the model's blocks reserved, `cudaMemGetInfo` no longer counts them as free, and the
+next load in the same process reuses them. Active allocator bytes are never credited, and
+each cycle's preflight records the reported, credited and effective values separately
+(`device_availability`). The October 10 four-request first cycle was refused on its second
+cycle before this credit existed, with 2.5 GiB reported free and 4.78 GiB cached.
+
 Each request must match the independent reference exactly. Each cycle includes
 cancellation after three tokens, request cleanup, unload and idle snapshots. Phase
 snapshots stream to `.observations.jsonl`; completed requests and fresh fit results

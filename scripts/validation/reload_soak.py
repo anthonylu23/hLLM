@@ -108,6 +108,33 @@ def validate_profile(
         raise ValueError("memory profile scope does not match this exact reload workload")
 
 
+def effective_device_availability(q, metrics) -> dict | None:
+    """Credit this worker's inactive cached device-allocator bytes to its availability.
+
+    `cudaMemGetInfo` excludes memory that the worker's own caching allocator already
+    holds. After an unload those blocks are reserved but inactive and the next load in
+    the same process reuses them, so a same-process reload gate that only reads the
+    driver's free bytes rejects a reload the worker can actually perform. Only cached
+    (inactive) bytes on the device domain are credited; active bytes never are. Both
+    raw values are returned so reports show the uncredited availability as well.
+    """
+    if not q.HasField("available_device_bytes"):
+        return None
+    reported = int(q.available_device_bytes)
+    cached = 0
+    if (
+        metrics is not None
+        and metrics.HasField("allocator")
+        and metrics.allocator.domain == profile_pb2.MEMORY_DOMAIN_DEVICE
+    ):
+        cached = int(metrics.allocator.cached_bytes)
+    return dict(
+        reported_available_bytes=reported,
+        same_process_cached_allocator_bytes=cached,
+        effective_available_bytes=reported + cached,
+    )
+
+
 def fresh_fit(a: ProfileArtifact, worker: Worker, control) -> dict:
     age = (datetime.now(UTC) - a.conditions.measured_at).total_seconds()
     if not 0 <= age <= 86400:
@@ -152,23 +179,24 @@ def fresh_fit(a: ProfileArtifact, worker: Worker, control) -> dict:
         headroom_bytes=worker.host_headroom_bytes,
         extra_overhead_bytes=worker.extra_overhead_bytes,
     )
-    device = (
-        PhysicalBudget(
-            available_bytes=q.available_device_bytes
-            if q.HasField("available_device_bytes")
-            else None,
+    device = None
+    availability = None
+    if e.backend == Backend.CUDA:
+        availability = effective_device_availability(
+            q, control.GetMetrics(common_pb2.Empty(), timeout=5)
+        )
+        device = PhysicalBudget(
+            available_bytes=availability["effective_available_bytes"] if availability else None,
             headroom_bytes=worker.device_headroom_bytes,
             extra_overhead_bytes=worker.extra_overhead_bytes,
         )
-        if e.backend == Backend.CUDA
-        else None
-    )
     fit = assess_fit(a, capacity, host, device, mlx_policy=worker.mlx_fit_policy)
     result = dict(
         qualification=MessageToDict(q),
         assessment=fit.model_dump(mode="json"),
         host_budget=host.model_dump(),
         device_budget=device.model_dump() if device else None,
+        device_availability=availability,
     )
     return result
 
