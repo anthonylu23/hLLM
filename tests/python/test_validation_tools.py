@@ -371,11 +371,8 @@ def test_reload_harness_credits_only_inactive_device_allocator_cache() -> None:
             domain=profile_pb2.MEMORY_DOMAIN_HOST, cached_bytes=5_000
         )
     )
-    assert effective_device_availability(state, host_cache)["effective_available_bytes"] == 2_000
-    assert (
-        effective_device_availability(state, control_pb2.WorkerMetrics())[
-            "effective_available_bytes"
-        ]
-        == 2_000
-    )
+    uncredited = effective_device_availability(state, host_cache)
+    assert uncredited is not None and uncredited["effective_available_bytes"] == 2_000
+    no_metrics = effective_device_availability(state, control_pb2.WorkerMetrics())
+    assert no_metrics is not None and no_metrics["effective_available_bytes"] == 2_000
     assert effective_device_availability(control_pb2.QualificationState(), device_cache) is None
