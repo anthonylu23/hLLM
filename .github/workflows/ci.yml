@@ -16,8 +16,10 @@ on:
 permissions:
   contents: read
 
+# A forced cache-miss probe (workflow_dispatch with native_cache_suffix) gets its own
+# group so a routine push to the same branch cannot cancel its long cold build.
 concurrency:
-  group: checks-${{ github.workflow }}-${{ github.ref }}
+  group: checks-${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && inputs.native_cache_suffix || '' }}
   cancel-in-progress: true
 
 jobs:
