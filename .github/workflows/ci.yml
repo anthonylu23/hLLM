@@ -5,6 +5,13 @@ on:
   push:
     branches: [main, 'codex/**']
   workflow_dispatch:
+    inputs:
+      native_cache_suffix:
+        description: >-
+          Optional suffix appended to the native dependency cache key. Set it to force
+          a cache miss and exercise the deps job's cold-build path; only deps runs.
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -15,7 +22,7 @@ concurrency:
 
 jobs:
   python:
-    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.native_cache_suffix == '')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -34,7 +41,7 @@ jobs:
       - run: git diff --exit-code
 
   cpu:
-    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.native_cache_suffix == '')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -54,7 +61,7 @@ jobs:
         id: native-deps
         with:
           path: build/ci-deps/install
-          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}
+          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}${{ inputs.native_cache_suffix }}
       - if: steps.native-deps.outputs.cache-hit != 'true'
         run: bash scripts/ci/build_native_deps.sh
       - if: steps.native-deps.outputs.cache-hit != 'true'
@@ -68,21 +75,29 @@ jobs:
 
   # Pushes to codex/** only make sure the native dependency cache exists on that
   # branch, so stacked pull requests based on it restore gRPC instead of rebuilding
-  # it cold (about 48 minutes). No tests run here.
+  # it cold (about 48 minutes). No tests run here. A manual run with a
+  # native_cache_suffix forces a miss so this cold-build path can be exercised.
   deps:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/')
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/')) || (github.event_name == 'workflow_dispatch' && inputs.native_cache_suffix != '')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      # The dependency build script runs through `uv run`, so the cold-build path
+      # needs uv and the locked environment even though no tests run here.
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - run: uv sync --locked
       - run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev
       - uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         id: native-deps
         with:
           path: build/ci-deps/install
-          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}
+          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}${{ inputs.native_cache_suffix }}
       - if: steps.native-deps.outputs.cache-hit != 'true'
         run: bash scripts/ci/build_native_deps.sh
       - if: steps.native-deps.outputs.cache-hit != 'true'
@@ -99,7 +114,7 @@ jobs:
   # read inside a live message allocation). Leak detection is off because gRPC's
   # global state is not torn down in the worker/test processes.
   asan:
-    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.native_cache_suffix == '')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
@@ -119,7 +134,7 @@ jobs:
         id: native-deps
         with:
           path: build/ci-deps/install
-          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}
+          key: native-${{ runner.os }}-${{ runner.arch }}-ubuntu24-${{ hashFiles('scripts/ci/build_native_deps.sh') }}${{ inputs.native_cache_suffix }}
       - if: steps.native-deps.outputs.cache-hit != 'true'
         run: bash scripts/ci/build_native_deps.sh
       - if: steps.native-deps.outputs.cache-hit != 'true'
