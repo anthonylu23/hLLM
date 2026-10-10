@@ -348,3 +348,34 @@ def test_stop_group_tolerates_an_unreapable_leader(monkeypatch):
     child.wait.side_effect = subprocess.TimeoutExpired(cmd="leader", timeout=5)
     resource_guard.stop_group(child)  # must not raise from the guard's finally block
     assert child.wait.call_count == 2
+
+
+def test_reload_harness_credits_only_inactive_device_allocator_cache() -> None:
+    from hllm_control.proto import control_pb2, profile_pb2
+
+    from scripts.validation.reload_soak import effective_device_availability
+
+    state = control_pb2.QualificationState(available_device_bytes=2_000)
+    device_cache = control_pb2.WorkerMetrics(
+        allocator=control_pb2.AllocatorMetrics(
+            domain=profile_pb2.MEMORY_DOMAIN_DEVICE, active_bytes=10, cached_bytes=5_000
+        )
+    )
+    assert effective_device_availability(state, device_cache) == dict(
+        reported_available_bytes=2_000,
+        same_process_cached_allocator_bytes=5_000,
+        effective_available_bytes=7_000,
+    )
+    host_cache = control_pb2.WorkerMetrics(
+        allocator=control_pb2.AllocatorMetrics(
+            domain=profile_pb2.MEMORY_DOMAIN_HOST, cached_bytes=5_000
+        )
+    )
+    assert effective_device_availability(state, host_cache)["effective_available_bytes"] == 2_000
+    assert (
+        effective_device_availability(state, control_pb2.WorkerMetrics())[
+            "effective_available_bytes"
+        ]
+        == 2_000
+    )
+    assert effective_device_availability(control_pb2.QualificationState(), device_cache) is None
