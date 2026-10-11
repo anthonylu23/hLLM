@@ -1,9 +1,13 @@
 # Concurrency-two qualification design
 
-Status: design only, September 30, 2026. No new concurrency-two capacity is
-qualified. Implementation and hardware measurement are follow-ups after the
-single-request 4B baseline passes. Existing tiny concurrent pipeline tests are
-behavior checks, not a physical capacity certificate.
+Status: implemented October 11, 2026; **no concurrency-two capacity is qualified**
+until the bounded two-host experiment below runs and its record is accepted. The
+record is `hllm_control.qualification.concurrent.ConcurrentServingEvidence`, the
+harness is `scripts/validation/concurrent_soak.py`, and workers expose the opt-in
+request-lifecycle observations with `--request-observations on` (see the
+[tools README](../scripts/validation/README.md#concurrent-soak-concurrency-two)). The
+single-request 4B baseline passed on October 10. Existing tiny concurrent pipeline
+tests are behavior checks, not a physical capacity certificate.
 
 ## Evidence boundary
 
@@ -29,10 +33,13 @@ Do not record only a global `max(active_requests)`: both stages must demonstrate
 at least two simultaneously admitted requests in their own observations. At least
 one observation per worker must include both live request IDs and their allocated
 KV reservations. Mere concurrent HTTP submission or queueing is insufficient.
-Current aggregate RPC counters do not expose IDs; implementation must add suitable
-opt-in request-lifecycle evidence or fail the overlap claim as unknown. Do not infer
-cross-host timing order from wall clocks alone. Per-worker monotonic timelines and
-request IDs establish local overlap; report clock alignment uncertainty separately.
+The implemented evidence is the worker's own lifecycle log: each admission and
+retirement event lists the other reservations whose allocation had completed at that
+instant, so the first retirement of a pair is the worker's own proof that both held
+allocated KV together; a polled snapshot with both allocated rows is the fallback.
+Workers without `--request-observations on` fail the overlap claim as unknown. Do not
+infer cross-host timing order from wall clocks alone. Per-worker monotonic timelines
+and request IDs establish local overlap; report clock alignment uncertainty separately.
 
 ## Admission and physical memory
 
@@ -90,14 +97,19 @@ qualify any changed numerical criterion as a separate experiment.
 
 ## Implementation and test follow-up
 
-- Add the standalone evidence model/validator and immutable report writer; reject
-  changed hashes, caps, worker order, sampling settings and unsupported versions.
-- Add local request-lifecycle observations needed to prove overlap and independent
-  reservation release. Preserve unavailable counters explicitly.
-- CPU tests: reject queued-only and one-worker-only overlap, premature cancellation,
-  incomplete streams, dropped telemetry, process changes, stale profiles and wrong
-  references. Verify shared weights are counted once and two KV reservations remain
-  until their respective request ends.
-- Keep existing concurrency-one serialization/hashes and placement behavior intact.
-- Run the guarded two-host measurement only when the GPU is free and the baseline
+- [x] Standalone evidence model/validator and immutable report writer; changed
+  hashes, caps, worker order, sampling settings and unsupported versions are
+  rejected, and the acceptance status is re-derived from the record on every load.
+- [x] Opt-in per-worker request-lifecycle observations (`--request-observations on`)
+  proving overlap and independent reservation release; unavailable counters are
+  recorded explicitly and make the claim unknown.
+- [x] CPU tests (`tests/python/test_concurrent_evidence.py`): queued-only and
+  one-worker-only overlap, premature cancellation, incomplete streams, dropped
+  telemetry, process changes, stale profiles, missing device observations, guard stops,
+  unverified cleanup and tampered records are never accepted; shared weights are
+  counted once and two KV reservations are summed. The tiny two-worker rehearsal
+  (`tests/profiling/test_concurrent_cpu.py`) produces an accepted record.
+- [x] Concurrency-one serialization/hashes and placement behavior are unchanged;
+  `ProfileKey` still requires concurrency one.
+- [ ] Run the guarded two-host measurement only when the GPU is free and the baseline
   passes. Larger contexts, higher concurrency and throughput claims remain separate.
