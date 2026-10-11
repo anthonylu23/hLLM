@@ -46,9 +46,10 @@ acceptance remains blocked by the conservative MLX serving-memory envelope.
 Native profiles and serving metrics now expose macOS process physical footprint
 alongside RSS and allocator usage; see the [measurement semantics](docs/milestone-5-profiling.md#process-physical-footprint).
 The [instrumented 4B soak](docs/validation/qwen3-4b-footprint.md) matched 12 continuations
-across three reload cycles, with a 4.576 GiB physical-footprint peak. The fit gate
-retains its conservative default. An [opt-in footprint policy](docs/milestone-5-profiling.md#opt-in-mlx-footprint-policy)
-is implemented. The [October 10 two-host run](docs/validation/qwen3-4b-serving-20261010.md) passed the
+across three reload cycles, with a 4.576 GiB physical-footprint peak. The
+[footprint fit policy](docs/milestone-5-profiling.md#mlx-footprint-policy) is the
+evaluation default since October 10, 2026, after the
+[October 10 two-host run](docs/validation/qwen3-4b-serving-20261010.md) passed the
 baseline serving-fit gate in both stage orders: fresh same-day profiles on both hosts
 and six-cycle same-process reload soaks with 24 exact continuations each, serving peaks
 inside prelaunch budgets. A 512-prompt/256-output workload also passed a bounded

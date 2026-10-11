@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from hllm_control.models import Backend, ConnectionType, DType, WorkloadProfile
-from hllm_control.profiling.memory import PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
 from hllm_control.profiling.models import (
     MEMORY_PHASES,
     AllocatorSample,
@@ -315,8 +315,14 @@ def test_process_observations_are_sealed_but_do_not_change_fit(
     assert ProfileArtifact.model_validate_json(a.model_dump_json()) == a
     assert p.model_dump()["physical_footprint_bytes"] == footprint
     budget = PhysicalBudget(available_bytes=2000, headroom_bytes=100, extra_overhead_bytes=50)
-    assert assess_fit(a, m.admission_capacity, budget) == assess_fit(
-        make_artifact(mlx, conditions(), original), original.admission_capacity, budget
+    # Under conservative-v1 the sealed OS observations are inert; footprint-v1 (the
+    # default) is covered separately in test_footprint_fit.
+    conservative = MlxFitPolicy.CONSERVATIVE
+    assert assess_fit(a, m.admission_capacity, budget, mlx_policy=conservative) == assess_fit(
+        make_artifact(mlx, conditions(), original),
+        original.admission_capacity,
+        budget,
+        mlx_policy=conservative,
     )
     modified = a.model_dump(mode="json")
     modified["measurement"]["samples"][0]["process_memory"]["physical_footprint_bytes"] = 999

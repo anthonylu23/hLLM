@@ -201,10 +201,10 @@ with actual combined-memory qualification deferred.
 
 1. Refresh measured placement profiles with explicit sampling, chunk and batch settings;
    collect longer controlled throughput/latency comparisons and longer memory soaks.
-2. The opt-in footprint policy passed its baseline two-host serving gate on
-   October 10 ([report](validation/qwen3-4b-serving-20261010.md)). Decide the
-   promotion criterion for making it the default, then expand context (P3), reverse
-   order (P4) and concurrency (P5) per the [overnight backlog](overnight-backlog.md).
+2. The footprint policy passed its baseline two-host serving gate, larger context
+   (P3) and reverse order (P4) on October 10 ([report](validation/qwen3-4b-serving-20261010.md))
+   and became the evaluation default. Concurrency two (P5) remains open per the
+   [overnight backlog](overnight-backlog.md).
 3. Optimize device sampling and attention/KV batching if measurements justify them.
 4. Keep M5's exhaustive WAN comparison deferred until its acceptance measurements pass;
    then proceed with Milestone 7's additional backend/stage work.
