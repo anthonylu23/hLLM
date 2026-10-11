@@ -352,8 +352,8 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   the model weight allocation in the estimate. Each extra Mac request adds about
   0.669 GiB logical reservation at this workload, before batching effects.
   October 11: the measurement did not run. The CUDA profile was fresh and safe and the
-  launch sequence staged, but the Mac stayed at 4.76–5.71 GiB free-plus-inactive
-  against the 6.06 GiB MLX preflight for two hours of watching; see the
+  launch sequence staged, but the MLX preflight refused twice (4.66 and 5.25 GiB
+  against 6.06 GiB; a watch reading of 6.44 GiB fell 1.2 GiB at launch); see the
   [concurrency night report](validation/qwen3-4b-concurrency-20261011.md) for the
   exact commands to run once the Mac is free (CUDA profile expires 04:50:49Z on
   October 12).

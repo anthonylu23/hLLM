@@ -117,6 +117,54 @@
         }
       ],
       "record_sha256": "4b684cc5b889788d8801978fc21adcaa3d9fd7bea768f9c00ff03c494851cee1"
+    },
+    {
+      "log": "availability-watch-2.log",
+      "outcome": "MAC_READY 6911852544",
+      "preflight_required_bytes": 6509559808,
+      "readings": [
+        {
+          "at": "2026-10-11T01:44:22-05:00",
+          "available_bytes": 6384173056
+        },
+        {
+          "at": "2026-10-11T01:49:23-05:00",
+          "available_bytes": 6065848320
+        },
+        {
+          "at": "2026-10-11T01:54:24-05:00",
+          "available_bytes": 6325108736
+        },
+        {
+          "at": "2026-10-11T01:59:25-05:00",
+          "available_bytes": 6382419968
+        },
+        {
+          "at": "2026-10-11T02:04:26-05:00",
+          "available_bytes": 6396755968
+        },
+        {
+          "at": "2026-10-11T02:09:27-05:00",
+          "available_bytes": 6442778624
+        },
+        {
+          "at": "2026-10-11T02:14:28-05:00",
+          "available_bytes": 6452772864
+        },
+        {
+          "at": "2026-10-11T02:19:29-05:00",
+          "available_bytes": 6266945536
+        },
+        {
+          "at": "2026-10-11T02:24:30-05:00",
+          "available_bytes": 6266322944
+        },
+        {
+          "at": "2026-10-11T02:29:31-05:00",
+          "available_bytes": 6911852544
+        }
+      ],
+      "record_sha256": "62672b7fa81916489766cd3783c0e31202c699a602380ec637ad5435a9f72542"
     }
   ],
   "oracle_1024": {
@@ -173,70 +221,160 @@
     "mlx": {
       "present": false
     },
-    "mlx_rejected_1": {
-      "admission_capacity": {
-        "device": 0,
-        "host": 0,
-        "pinned": 0,
-        "unified": 4697620480
-      },
-      "device_budget": null,
-      "host_budget": {
-        "available_bytes": 5004361728,
-        "extra_overhead_bytes": 268435456,
-        "headroom_bytes": 1073741824,
-        "safety_fraction": 0.1
-      },
-      "key": {
-        "assignment": {
-          "layer_end": 15,
-          "layer_start": 0,
-          "owns_final_norm": false,
-          "owns_lm_head": false,
-          "owns_sampling": false,
-          "owns_token_embedding": true,
-          "stage_index": 0,
-          "worker_id": "mlx"
+    "mlx_rejected": [
+      {
+        "directory": "rejected-1",
+        "guard": {
+          "min_available_gib": 4.638,
+          "observations": 3,
+          "record_sha256": "94f1f918a798376829625b16b8b2e8ca916db6e9f2cd89734e79784b801fbfd3",
+          "returncode": 1,
+          "stop_reason": null,
+          "swapout_mib": 0
         },
-        "checkpoint_digest": "85b0e87df531904de0b10ebbfc345056bc8fafc9b96a84cb300ce64b282d69c8",
-        "environment": {
-          "allocator": "pending",
-          "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 4697620480}}",
-          "backend": "mlx",
-          "backend_version": "pending",
-          "binary_digest": "e7b126f8ab05368a8e8bd7de505abbcfb140b82a57e15c7cbcd015a01eb567fb",
-          "compiler": "pending",
-          "device_identity": "pending",
-          "device_name": "pending",
-          "driver_version": "pending",
-          "os": "macOS-27.0.1-arm64-arm-64bit;kernel=Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:24 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6030",
-          "source_revision": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
-        },
-        "execution_dtype": "F16",
-        "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
-        "input_kind": "synthetic-shape",
-        "manifest_digest": "6a0c45bf2772dba0bd7d648bce490700bd8a9ee5c5ae6cc0164ceb845cc0663a",
-        "transport_mode": "pageable",
-        "workload": {
-          "activation_dtype": "F16",
-          "concurrency": 1,
-          "kv_dtype": "F16",
-          "kv_overhead_factor": 1.1,
-          "output_tokens": 256,
-          "prompt_tokens": 128,
+        "note": null,
+        "preflight": {
+          "admission_capacity": {
+            "device": 0,
+            "host": 0,
+            "pinned": 0,
+            "unified": 4697620480
+          },
+          "device_budget": null,
+          "host_budget": {
+            "available_bytes": 5004361728,
+            "extra_overhead_bytes": 268435456,
+            "headroom_bytes": 1073741824,
+            "safety_fraction": 0.1
+          },
+          "key": {
+            "assignment": {
+              "layer_end": 15,
+              "layer_start": 0,
+              "owns_final_norm": false,
+              "owns_lm_head": false,
+              "owns_sampling": false,
+              "owns_token_embedding": true,
+              "stage_index": 0,
+              "worker_id": "mlx"
+            },
+            "checkpoint_digest": "85b0e87df531904de0b10ebbfc345056bc8fafc9b96a84cb300ce64b282d69c8",
+            "environment": {
+              "allocator": "pending",
+              "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 4697620480}}",
+              "backend": "mlx",
+              "backend_version": "pending",
+              "binary_digest": "e7b126f8ab05368a8e8bd7de505abbcfb140b82a57e15c7cbcd015a01eb567fb",
+              "compiler": "pending",
+              "device_identity": "pending",
+              "device_name": "pending",
+              "driver_version": "pending",
+              "os": "macOS-27.0.1-arm64-arm-64bit;kernel=Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:24 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6030",
+              "source_revision": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
+            },
+            "execution_dtype": "F16",
+            "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+            "input_kind": "synthetic-shape",
+            "manifest_digest": "6a0c45bf2772dba0bd7d648bce490700bd8a9ee5c5ae6cc0164ceb845cc0663a",
+            "transport_mode": "pageable",
+            "workload": {
+              "activation_dtype": "F16",
+              "concurrency": 1,
+              "kv_dtype": "F16",
+              "kv_overhead_factor": 1.1,
+              "output_tokens": 256,
+              "prompt_tokens": 128,
+              "schema_version": "1.0",
+              "total_cached_tokens": 384,
+              "workload_id": "qwen3-4b-128-256-c1"
+            },
+            "workload_digest": "fa60374d4d6d43159d61927d9d1553c16c52391bb82293d2f83aa3603bf45b3e"
+          },
+          "observed_at": "2026-10-11T04:52:11.077182+00:00",
+          "reasons": [
+            "host/unified: configured probe cap plus physical allowances exceeds availability"
+          ],
           "schema_version": "1.0",
-          "total_cached_tokens": 384,
-          "workload_id": "qwen3-4b-128-256-c1"
-        },
-        "workload_digest": "fa60374d4d6d43159d61927d9d1553c16c52391bb82293d2f83aa3603bf45b3e"
+          "status": "rejected"
+        }
       },
-      "observed_at": "2026-10-11T04:52:11.077182+00:00",
-      "reasons": [
-        "host/unified: configured probe cap plus physical allowances exceeds availability"
-      ],
-      "schema_version": "1.0",
-      "status": "rejected"
-    }
+      {
+        "directory": "rejected-2",
+        "guard": {
+          "min_available_gib": 5.251,
+          "observations": 3,
+          "record_sha256": "0bfc4e3c418233388007bd754c1581b3ed91663510da69edf7f23df726df56c9",
+          "returncode": 1,
+          "stop_reason": null,
+          "swapout_mib": 0
+        },
+        "note": "Rejected attempt 2 of the MLX stage-0 memory profile, 2026-10-11T07:29:50Z.\nLaunched after a five-minute availability watch read 6,911,852,544 bytes (6.44 GiB) of free+inactive\nmemory at 07:29:31Z, above the 6,509,559,808-byte (6.06 GiB) preflight requirement plus a 200 MiB margin.\nThe guard sampled 6.48 GiB at 07:29:50Z, 5.43 GiB two seconds later and 5.25 GiB at 07:29:54Z; the preflight\nobserved 5,632,917,504 bytes (5.25 GiB) and refused before any model load. Inactive pages were reclaimed or\nactivated by the launch itself (uv, the guard and the CLI starting) faster than the watch could see.\nNot retried: availability stayed below the requirement afterwards (5.48 GiB at 07:31Z). No allowance changed.\nPreserved immutably; mirrored to the Linux run directory under mac/rejected-2/.\n",
+        "preflight": {
+          "admission_capacity": {
+            "device": 0,
+            "host": 0,
+            "pinned": 0,
+            "unified": 4697620480
+          },
+          "device_budget": null,
+          "host_budget": {
+            "available_bytes": 5632917504,
+            "extra_overhead_bytes": 268435456,
+            "headroom_bytes": 1073741824,
+            "safety_fraction": 0.1
+          },
+          "key": {
+            "assignment": {
+              "layer_end": 15,
+              "layer_start": 0,
+              "owns_final_norm": false,
+              "owns_lm_head": false,
+              "owns_sampling": false,
+              "owns_token_embedding": true,
+              "stage_index": 0,
+              "worker_id": "mlx"
+            },
+            "checkpoint_digest": "85b0e87df531904de0b10ebbfc345056bc8fafc9b96a84cb300ce64b282d69c8",
+            "environment": {
+              "allocator": "pending",
+              "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 4697620480}}",
+              "backend": "mlx",
+              "backend_version": "pending",
+              "binary_digest": "e7b126f8ab05368a8e8bd7de505abbcfb140b82a57e15c7cbcd015a01eb567fb",
+              "compiler": "pending",
+              "device_identity": "pending",
+              "device_name": "pending",
+              "driver_version": "pending",
+              "os": "macOS-27.0.1-arm64-arm-64bit;kernel=Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:24 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6030",
+              "source_revision": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
+            },
+            "execution_dtype": "F16",
+            "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+            "input_kind": "synthetic-shape",
+            "manifest_digest": "6a0c45bf2772dba0bd7d648bce490700bd8a9ee5c5ae6cc0164ceb845cc0663a",
+            "transport_mode": "pageable",
+            "workload": {
+              "activation_dtype": "F16",
+              "concurrency": 1,
+              "kv_dtype": "F16",
+              "kv_overhead_factor": 1.1,
+              "output_tokens": 256,
+              "prompt_tokens": 128,
+              "schema_version": "1.0",
+              "total_cached_tokens": 384,
+              "workload_id": "qwen3-4b-128-256-c1"
+            },
+            "workload_digest": "fa60374d4d6d43159d61927d9d1553c16c52391bb82293d2f83aa3603bf45b3e"
+          },
+          "observed_at": "2026-10-11T07:29:54.620646+00:00",
+          "reasons": [
+            "host/unified: configured probe cap plus physical allowances exceeds availability"
+          ],
+          "schema_version": "1.0",
+          "status": "rejected"
+        }
+      }
+    ]
   },
   "p5": null,
   "run_directory": "/home/anthonylu/Projects/experiments/hllm-4b-fit-20261011-044533",

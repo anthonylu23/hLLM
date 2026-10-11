@@ -3,7 +3,7 @@
 Status: **the concurrency-two experiment (P5) did not run.** The CUDA side was fully
 prepared (fresh profile, worker, sampler, tunnel and launch sequence) and a new
 1024-prompt oracle was produced, but the Mac never met the MLX profile preflight
-because the user's desktop applications were left running (watched for two hours: 4.76–5.71 GiB against 6.06 GiB). No concurrency-two capacity
+while the user's desktop applications were running (two refusals, 4.66 and 5.25 GiB observed against 6.06 GiB; watched for nearly three hours). No concurrency-two capacity
 is qualified. All times are UTC and taken from the raw guard and profile records.
 
 ## Scope and identity
@@ -101,9 +101,35 @@ GPU side remained ready the whole time and nothing of it ran: `concurrent-cuda-w
 (two active requests, 768 cached tokens, `--request-observations on`), `tunnel.sh`,
 `watch-cuda.sh` and `run-concurrent.sh` (the full sequence: guards on both hosts, both
 workers, the soak driver with `--cycles 2 --pairs 3`, evidence assembly and cleanup) are
-staged in the run directory, as are the Mac's `mlx-profile.sh` and `mlx-worker.sh`. A
-second two-hour watch was armed at 06:45Z; if the Mac clears the threshold before it
-ends, the experiment runs and this report is amended.
+staged in the run directory, as are the Mac's `mlx-profile.sh` and `mlx-worker.sh`.
+
+### Second MLX attempt, 07:29:50Z: refused again
+
+A second watch (`mac/availability-watch-2.log`, 06:45Z–07:29Z) fired at 07:29:31Z on
+6.44 GiB, the first reading above the requirement plus margin; the Mac had been idle
+for over three hours, so the applications had released memory on their own. The MLX
+profile was launched at 07:29:50Z and refused at 07:29:54Z before any model load:
+
+| Sample | Free-plus-inactive |
+| --- | --- |
+| Watch, 07:29:31Z | 6.44 GiB |
+| Guard, 07:29:50Z (launch) | 6.48 GiB |
+| Guard, +2 s | 5.43 GiB |
+| Guard, +4 s / preflight, 07:29:54Z | 5.25 GiB |
+| Requirement | 6.06 GiB |
+
+About 1.2 GiB of inactive pages were activated or reclaimed by the launch itself (uv,
+the guard and the CLI starting) in the four seconds between the watch reading and the
+preflight sample. Preserved as `rejected-2/` on the Mac and `mac/rejected-2/` here. Not
+retried: availability was 5.48 GiB a minute later. No allowance was changed. A third
+watch was armed at 07:33Z with the requirement plus a 1.3 GiB launch allowance
+(7.36 GiB) as its trigger, above anything the Mac showed tonight.
+
+Lesson for the tooling: on macOS the free-plus-inactive reading is not stable at the
+second scale, and the preflight samples it after the launch has already touched the
+inactive file cache. A pre-launch watch needs a launch allowance of at least 1.2 GiB
+on top of the preflight requirement, or the preflight should sample before the CLI's
+own imports. This is a follow-up, not a change to tonight's gate.
 
 To run P5 by hand once the Mac has about 0.9 GiB more free-plus-inactive memory, and
 before the CUDA profile expires at 04:50:49Z on October 12:
@@ -123,7 +149,7 @@ page cache dropped and the guard's 256 MiB swap-out limit unchanged).
 
 ## Cleanup
 
-Verified at 06:43Z–06:45Z, after the watch ended.
+Verified at 06:43Z–06:45Z after the first watch ended, and again at 07:31Z after the second MLX refusal (guard and profiler had exited on their own; only `caffeinate` remained).
 
 - **Linux:** no hLLM worker, memory profiler, soak driver, resource guard, memory
   sampler or SSH tunnel process; `nvidia-smi` lists zero compute applications and
@@ -138,8 +164,8 @@ Verified at 06:43Z–06:45Z, after the watch ended.
 - The Minecraft service stays stopped; the user decides when it returns. No user
   application was stopped on either host.
 - Results file: [`qwen3-4b-concurrency-20261011-results.json`](qwen3-4b-concurrency-20261011-results.json)
-  (`assemble_results.py` over the run directory; `p5` is null, the watch readings are
-  under `mac_availability_watch`).
+  (`assemble_results.py` over the run directory; `p5` is null, both MLX refusals are
+  under `p1.mlx_rejected`, the watch readings under `mac_availability_watch`).
 
 ## What this night qualifies
 
@@ -147,5 +173,6 @@ Verified at 06:43Z–06:45Z, after the watch ended.
   split on the rebuilt binaries and expires 24 hours after 04:50:49Z.
 - The concurrency-two tooling is implemented and its CPU rehearsal produces an
   accepted record; the two-host measurement remains the open P5 item and needs the Mac
-  at or above 6.06 GiB free-plus-inactive (about 0.9 GiB more than it had).
+  at or above 6.06 GiB free-plus-inactive at the preflight sample, which tonight meant
+  about 7.3 GiB at the watch reading (about 0.9 GiB more than its best).
 - A pinned 1024/256 oracle now exists for the larger-context follow-up.
