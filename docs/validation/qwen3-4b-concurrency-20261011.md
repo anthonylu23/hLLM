@@ -122,8 +122,9 @@ About 1.2 GiB of inactive pages were activated or reclaimed by the launch itself
 the guard and the CLI starting) in the four seconds between the watch reading and the
 preflight sample. Preserved as `rejected-2/` on the Mac and `mac/rejected-2/` here. Not
 retried: availability was 5.48 GiB a minute later. No allowance was changed. A third
-watch was armed at 07:33Z with the requirement plus a 1.3 GiB launch allowance
-(7.36 GiB) as its trigger, above anything the Mac showed tonight.
+watch (`mac/availability-watch-3.log`, 07:31Z–09:31Z, 24 readings) used the requirement
+plus a 1.3 GiB launch allowance (7.36 GiB) as its trigger and never fired: the Mac read
+5.16–6.03 GiB. The night was closed at 09:31Z without a third launch.
 
 Lesson for the tooling: on macOS the free-plus-inactive reading is not stable at the
 second scale, and the preflight samples it after the launch has already touched the
