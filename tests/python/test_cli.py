@@ -157,5 +157,8 @@ def test_profile_memory_cli_forwards_policy_and_reports_fallback(tmp_path: Path,
     assert "policy note: footprint policy requires" in result.output
     result = runner_.invoke(app, base)
     assert result.exit_code == 0, result.output
+    assert seen[-1] == MlxFitPolicy.FOOTPRINT  # default since the October 10 promotion
+    result = runner_.invoke(app, [*base, "--mlx-fit-policy", "conservative-v1"])
+    assert result.exit_code == 0, result.output
     assert seen[-1] == MlxFitPolicy.CONSERVATIVE and "policy note" not in result.output
     assert runner_.invoke(app, [*base, "--mlx-fit-policy", "bogus-v9"]).exit_code != 0

@@ -76,7 +76,8 @@ Profiles must be complete, less than 24 hours old, match the exact assignment,
 checkpoint, precision, prompt/output lengths and capacity, and carry the same
 admission caps as the workers. Before every load, the tool checks binary, backend,
 device fingerprint, driver API, allocator, transfer mode, current availability and
-the selected fit policy. It refuses busy workers. Default headroom and extra overhead
+the selected fit policy (`footprint-v1` unless the worker entry says otherwise, since
+October 10, 2026). It refuses busy workers. Default headroom and extra overhead
 are the production defaults (1 GiB host, 512 MiB CUDA device, 256 MiB extra, 10% safety).
 
 For a CUDA worker the fresh device budget credits the worker's own **inactive cached**

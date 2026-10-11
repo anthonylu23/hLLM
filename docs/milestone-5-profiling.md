@@ -126,10 +126,11 @@ CPU/MLX fixtures and Linux counter availability; it is not a new 4B qualificatio
 - CPU physical observations use RSS, including its process high-water mark.
 - CUDA uses process GPU observations separately from allocator counters and host RSS.
   Missing physical GPU observations or phase allocator peaks make fit unknown.
-- MLX defaults to `conservative-v1`: RSS plus allocator residency, an intentionally
-  overcounted upper bound. Opt-in `footprint-v1` uses the maximum of OS lifetime
-  footprint, RSS and allocator envelopes when complete telemetry qualifies it.
-  The raw views remain separate in the artifact.
+- MLX defaults to `footprint-v1` since October 10, 2026: the maximum of OS lifetime
+  footprint, RSS and allocator envelopes when complete telemetry qualifies it, with a
+  recorded fallback to `conservative-v1` (RSS plus allocator residency, an intentionally
+  overcounted upper bound) otherwise. `--mlx-fit-policy conservative-v1` still selects
+  the sum explicitly. The raw views remain separate in the artifact.
 - Every physical envelope adds a safety fraction and explicit overhead for costs
   absent from the isolated probe, including gRPC buffers. It must leave the requested
   headroom within current available memory. Pinned bytes remain a subset of host bytes.
@@ -145,10 +146,13 @@ is not a new runtime RSS/VRAM cap or a guarantee about later competing workloads
 Refresh headroom before deployment. M5.5 must resolve compatible profiles and apply
 these gates before ranking candidates.
 
-### Opt-in MLX footprint policy
+### MLX footprint policy
 
-Pass `--mlx-fit-policy footprint-v1` to `hllm profile-memory`, or
-`mlx_policy=MlxFitPolicy.FOOTPRINT` to `assess_fit()`. The opt-in requires a complete
+`footprint-v1` is the evaluation default for `hllm profile-memory`, `assess_fit()`
+(`DEFAULT_MLX_FIT_POLICY`) and the reload-soak tool since the
+[October 10, 2026 promotion](#promotion-criterion-for-footprint-v1); pass
+`--mlx-fit-policy conservative-v1` or `mlx_policy=MlxFitPolicy.CONSERVATIVE` to select
+the sum explicitly. The footprint formula requires a complete
 schema-1.3 fresh-process/reload profile: positive current/lifetime RSS and footprint
 counters in every phase, consistent process identity, nondecreasing observation
 timestamps and lifetime peaks, and allocator observations including execution phase
@@ -173,8 +177,11 @@ fallback. An opt-in request alone is not evidence that the footprint formula app
 
 Measured bundle worker bindings and native sweep worker configurations accept
 `mlx_fit_policy: "footprint-v1"`. It is included in their content digests and reused
-at fresh activation and independent exclusion validation. Omitted policy fields
-retain the conservative default and historical bundle serialization. New fit fields
+at fresh activation and independent exclusion validation. **Stored bindings are not
+affected by the evaluation default:** an omitted policy field in a bundle, frozen sweep
+or native executor configuration still means `conservative-v1`, so historical digests,
+frozen executor identities and historical bundle serialization are unchanged, and a new
+MLX binding must state `footprint-v1` explicitly to be assessed under it. New fit fields
 are optional when reading historical fit reports. Changing policy requires resealing
 the bundle/replanning or freezing a new sweep; do not edit frozen identities in place.
 
@@ -195,8 +202,9 @@ larger-context, reverse-order or concurrency qualification is claimed yet.
 
 ### Promotion criterion for `footprint-v1`
 
-`conservative-v1` stays the default until all of the following hold, after which the
-default may change in one reviewed commit that also updates the examples and this page:
+`conservative-v1` stayed the default until all of the following held; the evaluation
+default changed to `footprint-v1` on October 10, 2026 in the reviewed commit that also
+updated the examples and this page (stored-binding semantics are unchanged, see above):
 
 1. Two-host serving evidence on the current binaries, not only isolated profiles: a
    same-process reload soak in **both** stage orders at the baseline workload whose
@@ -219,11 +227,14 @@ default may change in one reviewed commit that also updates the examples and thi
    during serving.
 6. The validation-tool change that credits a CUDA worker's inactive cached allocator
    bytes in the reload gate has been reviewed and merged, because the serving evidence
-   above depends on it for cycles after the first.
+   above depends on it for cycles after the first. Merged October 10 in
+   [PR #22](https://github.com/anthonylu23/hLLM/pull/22).
 
-Items 1–5 are satisfied by the October 10 evidence; item 6 is pending review of that
-run's pull request. Flipping the default changes every measured bundle and sweep
-identity that omits the policy field, so it is a deliberate, separately reviewed step.
+All six items are met. The flip is limited to evaluation defaults on purpose: changing
+what an omitted binding field means would silently reinterpret every historical measured
+bundle and frozen sweep that relied on the conservative default, so those keep their
+explicit-field semantics. The promotion does not qualify any new capacity; every
+`safe` result still names the policy that produced it.
 
 ## Reproduce
 

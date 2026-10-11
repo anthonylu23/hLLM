@@ -3,8 +3,9 @@
 Updated October 10, 2026. The CUDA host became available on October 8 after the user
 stopped an unrelated Minecraft server. P0 and P1 passed with fresh profiles on both
 hosts and P2, P4 and P3 all passed on October 10; see the
-[two-host serving report](validation/qwen3-4b-serving-20261010.md). P5 remains open,
-as do the footprint-v1 promotion criterion and the GPU-independent items below.
+[two-host serving report](validation/qwen3-4b-serving-20261010.md). `footprint-v1`
+is the evaluation default since that day. P5 remains open, as do the GPU-independent
+items below.
 All September 30 code and docs are merged to `main` (PRs #17–#20); hosted CI on `main`
 is green with a saved native dependency cache. The GPU-independent work below can
 proceed now; P1–P5 remain gated on fresh resource checks on both hosts.
@@ -31,10 +32,9 @@ binary-bound profile evidence, so the September 28 Mac profile cannot be paired 
 them. Keep previous evidence immutable. Scoped commits and draft PRs are authorized;
 do not merge or alter unrelated workloads without authorization.
 
-The new policy is **opt-in**. A fresh 4B Mac isolated profile passed; fresh two-host
-serving qualification remains pending.
-Keep `conservative-v1` as the default. Missing/incoherent telemetry falls back to
-the existing RSS-plus-allocator rule. Always report the actual policy used.
+`footprint-v1` is the evaluation default since October 10, 2026 (stored bundle and
+sweep bindings keep "omitted means `conservative-v1`"). Missing/incoherent telemetry
+falls back to the existing RSS-plus-allocator rule. Always report the actual policy used.
 
 ## Completed during the low-memory session
 
@@ -122,8 +122,9 @@ on the Mac and must pass the resource gates below; the rest are code and docs on
   footprint envelope on both hosts across six cycles). Do not flip the default yet.
   October 10: written in the
   [profiling workflow](milestone-5-profiling.md#promotion-criterion-for-footprint-v1);
-  items 1–5 are met by that night's evidence, item 6 awaits review. The default is
-  unchanged.
+  items 1–5 are met by that night's evidence; item 6 was met when PR #22 merged.
+  The evaluation default flipped to `footprint-v1` the same day; stored bindings keep
+  their explicit semantics.
 - [ ] Reconcile `SPEC.md` with the implementation: SQLite, OpenTelemetry,
   prometheus-cpp, spdlog, structlog and Buf are listed but unused; profiles are JSON
   files and metrics are hand-rendered Prometheus text. Either trim the spec or

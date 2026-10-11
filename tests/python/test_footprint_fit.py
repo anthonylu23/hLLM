@@ -46,10 +46,11 @@ def test_opt_in_uses_maximum_and_preserves_allowances(key: ProfileKey) -> None:
     m = a.measurement
     assert isinstance(m, MemoryMeasurement)
     budget = PhysicalBudget(available_bytes=900, headroom_bytes=100, extra_overhead_bytes=50)
-    old = assess_fit(a, m.admission_capacity, budget)
+    old = assess_fit(a, m.admission_capacity, budget, mlx_policy=MlxFitPolicy.CONSERVATIVE)
     new = assess_fit(a, m.admission_capacity, budget, mlx_policy=MlxFitPolicy.FOOTPRINT)
     assert old.status == "unsafe" and old.host_envelope_bytes == 930
     assert new.status == "safe" and new.host_envelope_bytes == 710
+    assert assess_fit(a, m.admission_capacity, budget) == new  # footprint-v1 is the default
     assert new.policy == "mlx-footprint-max-v1"
     assert new.requested_mlx_policy == MlxFitPolicy.FOOTPRINT and not new.policy_notes
     assert (
@@ -146,7 +147,7 @@ def test_unqualified_evidence_falls_back_without_lowering_envelope(
     m = MemoryMeasurement.model_validate(raw)
     a = make_artifact(a.key, c, m)
     budget = PhysicalBudget(available_bytes=2000, headroom_bytes=100, extra_overhead_bytes=50)
-    old = assess_fit(a, m.admission_capacity, budget)
+    old = assess_fit(a, m.admission_capacity, budget, mlx_policy=MlxFitPolicy.CONSERVATIVE)
     new = assess_fit(a, m.admission_capacity, budget, mlx_policy=MlxFitPolicy.FOOTPRINT)
     assert (new.status, new.host_envelope_bytes) == (old.status, old.host_envelope_bytes)
     assert new.policy == "mlx-rss-plus-allocator-v1" and new.policy_notes

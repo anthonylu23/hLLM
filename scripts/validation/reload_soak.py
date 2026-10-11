@@ -18,7 +18,12 @@ import grpc
 from google.protobuf.json_format import MessageToDict
 from hllm_control.controller import DeploymentSession
 from hllm_control.models import Backend, DeploymentPlan, ModelManifest
-from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import (
+    DEFAULT_MLX_FIT_POLICY,
+    MlxFitPolicy,
+    PhysicalBudget,
+    assess_fit,
+)
 from hllm_control.profiling.models import (
     Digest,
     MemoryAmounts,
@@ -37,7 +42,7 @@ class Worker(ProfileModel):
     memory_profile: Path
     binary_digest: Digest
     runtime_driver_version: str
-    mlx_fit_policy: MlxFitPolicy = MlxFitPolicy.CONSERVATIVE
+    mlx_fit_policy: MlxFitPolicy = DEFAULT_MLX_FIT_POLICY
     host_headroom_bytes: int = Field(default=1024**3, ge=0)
     device_headroom_bytes: int = Field(default=512 * 1024**2, ge=0)
     extra_overhead_bytes: int = Field(default=256 * 1024**2, ge=0)

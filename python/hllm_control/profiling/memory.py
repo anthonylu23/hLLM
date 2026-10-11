@@ -22,6 +22,13 @@ class MlxFitPolicy(StrEnum):
     FOOTPRINT = "footprint-v1"
 
 
+# Evaluation default since October 10, 2026, after the two-host serving qualification met
+# the promotion criterion. Stored bindings (measured bundles, frozen sweeps, native
+# executor configurations) keep "omitted means conservative-v1", so historical digests
+# and frozen identities are unchanged; new MLX bindings state footprint-v1 explicitly.
+DEFAULT_MLX_FIT_POLICY = MlxFitPolicy.FOOTPRINT
+
+
 class PhysicalBudget(ProfileModel):
     # Available to a fresh process, sampled before launch; not total machine capacity.
     available_bytes: NonNegativeInt | None
@@ -103,15 +110,15 @@ def assess_fit(
     host: PhysicalBudget,
     device: PhysicalBudget | None = None,
     *,
-    mlx_policy: MlxFitPolicy = MlxFitPolicy.CONSERVATIVE,
+    mlx_policy: MlxFitPolicy = DEFAULT_MLX_FIT_POLICY,
 ) -> FitResult:
     """Assess a compatible assignment with explicit, fresh physical budgets.
 
     Existing native load admission is authoritative. Without an exact load-peak
     formula in the artifact, decreasing any successful probe cap requires reprofiling.
-    CPU uses process RSS. MLX defaults to RSS plus allocator residency. The opt-in
-    footprint policy uses the maximum of OS footprint, RSS and allocator envelopes
-    only with complete telemetry; otherwise it falls back to the conservative sum.
+    CPU uses process RSS. MLX defaults to the footprint policy: the maximum of OS
+    footprint, RSS and allocator envelopes, only with complete telemetry; otherwise it
+    falls back to the conservative RSS-plus-allocator sum and records why.
     CUDA uses process GPU observations independently.
     All physical observations retain safety and explicit non-profiled overhead.
     """
