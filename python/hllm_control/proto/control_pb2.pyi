@@ -3,6 +3,7 @@ from . import model_pb2 as _model_pb2
 from . import placement_pb2 as _placement_pb2
 from . import profile_pb2 as _profile_pb2
 from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Iterable as _Iterable, Mapping as _Mapping
@@ -150,8 +151,78 @@ class DomainMemoryUsage(_message.Message):
     reserved_workspace_bytes: int
     def __init__(self, domain: _Optional[_Union[_profile_pb2.MemoryDomain, str]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ...) -> None: ...
 
+class RequestDomainMemory(_message.Message):
+    __slots__ = ("domain", "cache_bytes", "workspace_bytes")
+    DOMAIN_FIELD_NUMBER: _ClassVar[int]
+    CACHE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    WORKSPACE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    domain: _profile_pb2.MemoryDomain
+    cache_bytes: int
+    workspace_bytes: int
+    def __init__(self, domain: _Optional[_Union[_profile_pb2.MemoryDomain, str]] = ..., cache_bytes: _Optional[int] = ..., workspace_bytes: _Optional[int] = ...) -> None: ...
+
+class RequestReservationObservation(_message.Message):
+    __slots__ = ("request_id", "maximum_total_tokens", "memory", "admitted_at_monotonic_ns", "allocating", "running", "cancelled")
+    REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
+    MAXIMUM_TOTAL_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_FIELD_NUMBER: _ClassVar[int]
+    ADMITTED_AT_MONOTONIC_NS_FIELD_NUMBER: _ClassVar[int]
+    ALLOCATING_FIELD_NUMBER: _ClassVar[int]
+    RUNNING_FIELD_NUMBER: _ClassVar[int]
+    CANCELLED_FIELD_NUMBER: _ClassVar[int]
+    request_id: str
+    maximum_total_tokens: int
+    memory: _containers.RepeatedCompositeFieldContainer[RequestDomainMemory]
+    admitted_at_monotonic_ns: int
+    allocating: bool
+    running: bool
+    cancelled: bool
+    def __init__(self, request_id: _Optional[str] = ..., maximum_total_tokens: _Optional[int] = ..., memory: _Optional[_Iterable[_Union[RequestDomainMemory, _Mapping]]] = ..., admitted_at_monotonic_ns: _Optional[int] = ..., allocating: _Optional[bool] = ..., running: _Optional[bool] = ..., cancelled: _Optional[bool] = ...) -> None: ...
+
+class RequestLifecycleEvent(_message.Message):
+    __slots__ = ("kind", "request_id", "sequence", "at_monotonic_ns", "concurrent_request_ids", "reason")
+    class Kind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        REQUEST_LIFECYCLE_KIND_UNSPECIFIED: _ClassVar[RequestLifecycleEvent.Kind]
+        REQUEST_LIFECYCLE_KIND_ADMITTED: _ClassVar[RequestLifecycleEvent.Kind]
+        REQUEST_LIFECYCLE_KIND_RETIRED: _ClassVar[RequestLifecycleEvent.Kind]
+    REQUEST_LIFECYCLE_KIND_UNSPECIFIED: RequestLifecycleEvent.Kind
+    REQUEST_LIFECYCLE_KIND_ADMITTED: RequestLifecycleEvent.Kind
+    REQUEST_LIFECYCLE_KIND_RETIRED: RequestLifecycleEvent.Kind
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
+    SEQUENCE_FIELD_NUMBER: _ClassVar[int]
+    AT_MONOTONIC_NS_FIELD_NUMBER: _ClassVar[int]
+    CONCURRENT_REQUEST_IDS_FIELD_NUMBER: _ClassVar[int]
+    REASON_FIELD_NUMBER: _ClassVar[int]
+    kind: RequestLifecycleEvent.Kind
+    request_id: str
+    sequence: int
+    at_monotonic_ns: int
+    concurrent_request_ids: _containers.RepeatedScalarFieldContainer[str]
+    reason: str
+    def __init__(self, kind: _Optional[_Union[RequestLifecycleEvent.Kind, str]] = ..., request_id: _Optional[str] = ..., sequence: _Optional[int] = ..., at_monotonic_ns: _Optional[int] = ..., concurrent_request_ids: _Optional[_Iterable[str]] = ..., reason: _Optional[str] = ...) -> None: ...
+
+class RequestObservations(_message.Message):
+    __slots__ = ("process_id", "observed_at_monotonic_ns", "observed_at_unix_ns", "requests", "events", "events_total", "peak_concurrent_requests")
+    PROCESS_ID_FIELD_NUMBER: _ClassVar[int]
+    OBSERVED_AT_MONOTONIC_NS_FIELD_NUMBER: _ClassVar[int]
+    OBSERVED_AT_UNIX_NS_FIELD_NUMBER: _ClassVar[int]
+    REQUESTS_FIELD_NUMBER: _ClassVar[int]
+    EVENTS_FIELD_NUMBER: _ClassVar[int]
+    EVENTS_TOTAL_FIELD_NUMBER: _ClassVar[int]
+    PEAK_CONCURRENT_REQUESTS_FIELD_NUMBER: _ClassVar[int]
+    process_id: int
+    observed_at_monotonic_ns: int
+    observed_at_unix_ns: int
+    requests: _containers.RepeatedCompositeFieldContainer[RequestReservationObservation]
+    events: _containers.RepeatedCompositeFieldContainer[RequestLifecycleEvent]
+    events_total: int
+    peak_concurrent_requests: int
+    def __init__(self, process_id: _Optional[int] = ..., observed_at_monotonic_ns: _Optional[int] = ..., observed_at_unix_ns: _Optional[int] = ..., requests: _Optional[_Iterable[_Union[RequestReservationObservation, _Mapping]]] = ..., events: _Optional[_Iterable[_Union[RequestLifecycleEvent, _Mapping]]] = ..., events_total: _Optional[int] = ..., peak_concurrent_requests: _Optional[int] = ...) -> None: ...
+
 class MemoryReport(_message.Message):
-    __slots__ = ("budgets", "loaded_weight_bytes", "reserved_cache_bytes", "reserved_workspace_bytes", "active_requests", "domain_usage", "active_request_ids")
+    __slots__ = ("budgets", "loaded_weight_bytes", "reserved_cache_bytes", "reserved_workspace_bytes", "active_requests", "domain_usage", "active_request_ids", "request_observations")
     BUDGETS_FIELD_NUMBER: _ClassVar[int]
     LOADED_WEIGHT_BYTES_FIELD_NUMBER: _ClassVar[int]
     RESERVED_CACHE_BYTES_FIELD_NUMBER: _ClassVar[int]
@@ -159,6 +230,7 @@ class MemoryReport(_message.Message):
     ACTIVE_REQUESTS_FIELD_NUMBER: _ClassVar[int]
     DOMAIN_USAGE_FIELD_NUMBER: _ClassVar[int]
     ACTIVE_REQUEST_IDS_FIELD_NUMBER: _ClassVar[int]
+    REQUEST_OBSERVATIONS_FIELD_NUMBER: _ClassVar[int]
     budgets: _containers.RepeatedCompositeFieldContainer[_profile_pb2.MemoryBudget]
     loaded_weight_bytes: int
     reserved_cache_bytes: int
@@ -166,7 +238,8 @@ class MemoryReport(_message.Message):
     active_requests: int
     domain_usage: _containers.RepeatedCompositeFieldContainer[DomainMemoryUsage]
     active_request_ids: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ..., active_requests: _Optional[int] = ..., domain_usage: _Optional[_Iterable[_Union[DomainMemoryUsage, _Mapping]]] = ..., active_request_ids: _Optional[_Iterable[str]] = ...) -> None: ...
+    request_observations: RequestObservations
+    def __init__(self, budgets: _Optional[_Iterable[_Union[_profile_pb2.MemoryBudget, _Mapping]]] = ..., loaded_weight_bytes: _Optional[int] = ..., reserved_cache_bytes: _Optional[int] = ..., reserved_workspace_bytes: _Optional[int] = ..., active_requests: _Optional[int] = ..., domain_usage: _Optional[_Iterable[_Union[DomainMemoryUsage, _Mapping]]] = ..., active_request_ids: _Optional[_Iterable[str]] = ..., request_observations: _Optional[_Union[RequestObservations, _Mapping]] = ...) -> None: ...
 
 class AllocatorMetrics(_message.Message):
     __slots__ = ("domain", "active_bytes", "cached_bytes", "peak_bytes")

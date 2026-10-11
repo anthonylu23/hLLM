@@ -50,6 +50,8 @@ message WorkerProfile {
   bool supports_sampling = 20;
   uint64 maximum_decode_batch = 21;
   bool supports_logprobs = 22;
+  // Started with --request-observations: MemoryReport carries request lifecycle evidence.
+  bool supports_request_observations = 23;
   repeated MemoryBudget memory_budgets = 8;
   uint64 fixed_workspace_bytes = 9;
   uint32 activation_buffer_count = 10;

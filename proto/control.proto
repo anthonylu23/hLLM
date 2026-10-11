@@ -76,6 +76,53 @@ message DomainMemoryUsage {
   uint64 reserved_cache_bytes = 3;
   uint64 reserved_workspace_bytes = 4;
 }
+message RequestDomainMemory {
+  MemoryDomain domain = 1;
+  uint64 cache_bytes = 2;
+  uint64 workspace_bytes = 3;
+}
+// One live reservation. Bytes are the logical cache/workspace reserved for this
+// request alone; resident weights are counted once per worker, never per request.
+message RequestReservationObservation {
+  string request_id = 1;
+  uint64 maximum_total_tokens = 2;
+  repeated RequestDomainMemory memory = 3;
+  uint64 admitted_at_monotonic_ns = 4;
+  bool allocating = 5;
+  bool running = 6;
+  bool cancelled = 7;
+}
+// Admission/retirement of one request on this worker's steady clock.
+message RequestLifecycleEvent {
+  enum Kind {
+    REQUEST_LIFECYCLE_KIND_UNSPECIFIED = 0;
+    REQUEST_LIFECYCLE_KIND_ADMITTED = 1;
+    REQUEST_LIFECYCLE_KIND_RETIRED = 2;
+  }
+  Kind kind = 1;
+  string request_id = 2;
+  uint64 sequence = 3;  // Per-process event counter; gaps reveal evicted history.
+  uint64 at_monotonic_ns = 4;
+  // Other reservations whose allocation had completed at this instant, so overlap
+  // of allocated KV is recorded by the worker itself rather than inferred from
+  // poll timing. Requests still allocating are omitted.
+  repeated string concurrent_request_ids = 5;
+  // Retirement only: completed, cancelled or expired.
+  string reason = 6;
+}
+// Opt-in (`--request-observations`) request-lifecycle evidence for concurrency
+// qualification. Steady-clock times order events within this process only.
+message RequestObservations {
+  uint64 process_id = 1;
+  uint64 observed_at_monotonic_ns = 2;
+  uint64 observed_at_unix_ns = 3;
+  repeated RequestReservationObservation requests = 4;
+  // Bounded history, newest last; `events_total` minus the count says how many
+  // older events were evicted.
+  repeated RequestLifecycleEvent events = 5;
+  uint64 events_total = 6;
+  uint64 peak_concurrent_requests = 7;  // Process-lifetime; never reset.
+}
 message MemoryReport {
   repeated MemoryBudget budgets = 1;
   uint64 loaded_weight_bytes = 2;
@@ -84,6 +131,8 @@ message MemoryReport {
   uint64 active_requests = 5;
   repeated DomainMemoryUsage domain_usage = 6;
   repeated string active_request_ids = 7;
+  // Absent unless the worker was started with --request-observations.
+  optional RequestObservations request_observations = 8;
 }
 // Process-wide framework allocations; separate from model reservation accounting.
 message AllocatorMetrics {

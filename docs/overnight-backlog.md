@@ -109,11 +109,13 @@ on the Mac and must pass the resource gates below; the rest are code and docs on
   and leak detection are disabled because the dependency prefix is uninstrumented;
   the one report seen with container-overflow enabled was a read inside a live
   protobuf message at `boundary_codec.cpp:43` and is recorded in the workflow comment.
-- [ ] Implement the standalone `ConcurrentServingEvidence` model, validator,
+- [x] Implement the standalone `ConcurrentServingEvidence` model, validator,
   immutable report writer and the CPU rejection tests listed in the
   [concurrency-two design](concurrency-qualification.md), plus the opt-in per-worker
   request-lifecycle observations needed to prove overlap. Keep `ProfileKey` at
   concurrency one. This is the prerequisite for P5 and needs no GPU.
+  October 11: done; `scripts/validation/concurrent_soak.py` plus the worker flag
+  `--request-observations on`. The CPU rehearsal produces an accepted record.
 - [ ] Decide and document the canonical 4B precision target. The approved M5 target
   is F16 weights with F32 execution/KV; all 4B evidence so far is uniform F16.
   Profiles bind precision into their identity, so settle this before P1 reruns.
@@ -349,9 +351,11 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   Check combined reservations and actual active request overlap; do not double
   the model weight allocation in the estimate. Each extra Mac request adds about
   0.669 GiB logical reservation at this workload, before batching effects.
-- [ ] `ProfileKey` currently supports concurrency one. Add/justify a separate
+- [x] `ProfileKey` currently supports concurrency one. Add/justify a separate
   combined-memory qualification path before treating these profiles as evidence
   for concurrency two. If that needs design work, leave P5 pending this night.
+  October 11: the separate `ConcurrentServingEvidence` record is that path; single
+  request profiles enter it only as freshness preconditions.
 - [ ] Then use `serving_soak.py` for bounded HTTP levels 1 and 2, matching worker
   `--max-active-requests`, aggregate `--max-cached-tokens`, batch/chunk settings and
   the actual tokenized prompts. Its built-in prompts are not exactly 128 tokens;

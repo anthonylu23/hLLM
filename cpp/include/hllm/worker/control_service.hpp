@@ -6,12 +6,14 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <filesystem>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "control.grpc.pb.h"
 #include "hllm/runtime/backend_factory.hpp"
@@ -30,6 +32,8 @@ struct WorkerConfig {
   std::size_t maximum_active_requests{1U};
   std::size_t maximum_decode_batch{1U};
   std::size_t maximum_cached_tokens{0U};  // Zero uses memory-domain admission only.
+  // Opt-in request-lifecycle evidence in GetMemoryReport (concurrency qualification).
+  bool request_observations{false};
 };
 
 struct LoadedDeployment {
@@ -51,6 +55,7 @@ struct ActiveRequest {
   std::size_t maximum_tokens;
   std::chrono::system_clock::time_point deadline;
   runtime::SequenceMemory memory;
+  std::chrono::steady_clock::time_point admitted;
   std::unique_ptr<runtime::SequenceState> sequence;
   std::atomic_bool cancelled{false};
   bool allocating{false};  // Protected by the control mutex.
@@ -88,10 +93,23 @@ class ControlService final : public v1::WorkerControl::Service {
   void release(const std::shared_ptr<ActiveRequest>& request);
 
  private:
+  struct LifecycleEvent {
+    v1::RequestLifecycleEvent::Kind kind;
+    std::string request_id;
+    std::uint64_t sequence;
+    std::uint64_t at_monotonic_ns;
+    std::vector<std::string> concurrent_request_ids;
+    std::string reason;
+  };
   void prune_expired();
   bool deployment_matches(const std::string&, std::uint64_t) const;
   std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::uint64_t,
                                          std::unique_lock<std::mutex>&);
+  // Both require the control mutex. Retirement erases the entry and records why.
+  void record_lifecycle(v1::RequestLifecycleEvent::Kind kind, const std::string& request_id,
+                        const std::string& reason);
+  void retire(std::map<std::string, std::shared_ptr<ActiveRequest>>::iterator it,
+              const std::string& reason);
   WorkerConfig config_;
   std::unique_ptr<runtime::BackendFactory> factory_;
   runtime::MemoryAmounts capacity_;
@@ -99,6 +117,9 @@ class ControlService final : public v1::WorkerControl::Service {
   mutable std::mutex mutex_;
   std::shared_ptr<LoadedDeployment> deployment_;
   std::map<std::string, std::shared_ptr<ActiveRequest>> active_;
+  std::deque<LifecycleEvent> lifecycle_;  // Bounded; only kept with request_observations.
+  std::uint64_t lifecycle_total_{0U};
+  std::size_t peak_concurrent_requests_{0U};
   std::jthread reservation_reaper_;
 };
 
