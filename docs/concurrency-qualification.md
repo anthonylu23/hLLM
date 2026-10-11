@@ -113,3 +113,6 @@ qualify any changed numerical criterion as a separate experiment.
   `ProfileKey` still requires concurrency one.
 - [ ] Run the guarded two-host measurement only when the GPU is free and the baseline
   passes. Larger contexts, higher concurrency and throughput claims remain separate.
+  October 11 attempt: the CUDA baseline was fresh and the launch staged, but the Mac
+  never met the MLX preflight; see the
+  [night report](validation/qwen3-4b-concurrency-20261011.md).
