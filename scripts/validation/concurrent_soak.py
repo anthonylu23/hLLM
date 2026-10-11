@@ -174,9 +174,17 @@ def guard_outcome(worker_id: str, record: Path | None) -> GuardOutcome:
         )
     rows = []
     try:
-        for line in record.read_text().splitlines():
-            if line.strip():
+        lines = record.read_text().splitlines()
+        for index, line in enumerate(lines):
+            if not line.strip():
+                continue
+            try:
                 rows.append(json.loads(line))
+            except ValueError:
+                # A guard that is still running may have been mirrored mid-write; only
+                # the final line may be incomplete, and it is simply not yet evidence.
+                if index != len(lines) - 1:
+                    raise
     except (OSError, ValueError) as error:
         return GuardOutcome(
             worker_id=worker_id,
