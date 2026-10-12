@@ -15,6 +15,13 @@
 namespace hllm::worker {
 namespace {
 
+constexpr std::size_t kLifecycleHistory = 256U;
+
+std::uint64_t monotonic_ns(const std::chrono::steady_clock::time_point point) {
+  return static_cast<std::uint64_t>(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(point.time_since_epoch()).count());
+}
+
 v1::ErrorCode wire_code(runtime::ErrorCode code) {
   switch (code) {
     case runtime::ErrorCode::kInvalidRequest:
@@ -213,6 +220,7 @@ grpc::Status ControlService::GetCapabilities(grpc::ServerContext*, const v1::Emp
   profile->set_supports_chunked_prefill(true);
   profile->set_supports_sampling(true);
   profile->set_supports_logprobs(true);
+  profile->set_supports_request_observations(config_.request_observations);
   profile->set_maximum_decode_batch(config_.maximum_decode_batch);
   profile->set_endpoint(config_.endpoint);
   profile->set_backend(capabilities_.kind);
@@ -268,13 +276,39 @@ grpc::Status ControlService::GetQualificationState(grpc::ServerContext*, const v
   }
 }
 
+void ControlService::record_lifecycle(const v1::RequestLifecycleEvent::Kind kind,
+                                      const std::string& request_id, const std::string& reason) {
+  if (!config_.request_observations) return;
+  LifecycleEvent event{kind, request_id, ++lifecycle_total_,
+                       monotonic_ns(std::chrono::steady_clock::now()), {}, reason};
+  // Only requests whose sequence allocation has completed count as concurrent: an
+  // entry listed here held allocated KV at this instant on this worker's clock.
+  for (const auto& [identifier, request] : active_) {
+    if (identifier != request_id && !request->allocating) {
+      event.concurrent_request_ids.push_back(identifier);
+    }
+  }
+  lifecycle_.push_back(std::move(event));
+  while (lifecycle_.size() > kLifecycleHistory) lifecycle_.pop_front();
+}
+
+void ControlService::retire(
+    const std::map<std::string, std::shared_ptr<ActiveRequest>>::iterator it,
+    const std::string& reason) {
+  const auto identifier = it->first;
+  active_.erase(it);
+  record_lifecycle(v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_RETIRED, identifier, reason);
+}
+
 void ControlService::prune_expired() {
   for (auto it = active_.begin(); it != active_.end();) {
     auto& request = it->second;
     if (std::chrono::system_clock::now() >= request->deadline) {
       request->cancelled.store(true);
       if (!request->running && !request->allocating) {
-        it = active_.erase(it);
+        const auto next = std::next(it);
+        retire(it, "expired");
+        it = next;
         continue;
       }
     }
@@ -377,8 +411,11 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   next->maximum_tokens = tokens;
   next->deadline = deadline;
   next->memory = memory;
+  next->admitted = std::chrono::steady_clock::now();
   next->allocating = true;
   active_.emplace(id, next);
+  peak_concurrent_requests_ = std::max(peak_concurrent_requests_, active_.size());
+  record_lifecycle(v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_ADMITTED, id, "");
   const auto deployment = deployment_;
   // Reserve capacity before allocating, but never block cancellation/telemetry
   // on a backend device lock or a slow allocation.
@@ -388,14 +425,19 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
     if (!next->sequence) throw runtime::Error::internal("backend returned no sequence state");
   } catch (...) {
     lock.lock();
-    active_.erase(id);
+    if (const auto found = active_.find(id); found != active_.end()) {
+      retire(found, "allocation-failed");
+    }
     throw;
   }
   lock.lock();
   next->allocating = false;
   if (next->cancelled.load() || std::chrono::system_clock::now() >= next->deadline) {
-    active_.erase(id);
-    if (std::chrono::system_clock::now() >= next->deadline) {
+    const bool expired = std::chrono::system_clock::now() >= next->deadline;
+    if (const auto found = active_.find(id); found != active_.end()) {
+      retire(found, expired ? "expired" : "cancelled");
+    }
+    if (expired) {
       throw runtime::Error::deadline_exceeded("reservation expired during allocation");
     }
     throw runtime::Error::cancelled("reservation cancelled during allocation");
@@ -423,7 +465,7 @@ void ControlService::release(const std::shared_ptr<ActiveRequest>& state) {
   if (found != active_.end() && found->second == state) {
     // All compute and transport using this sequence have finished.
     state->sequence.reset();
-    active_.erase(found);
+    retire(found, state->cancelled.load() ? "cancelled" : "completed");
   }
 }
 
@@ -459,7 +501,7 @@ grpc::Status ControlService::CancelRequest(grpc::ServerContext*,
   const auto found = active_.find(request->request_id());
   if (found != active_.end()) {
     found->second->cancelled.store(true);
-    if (!found->second->running && !found->second->allocating) active_.erase(found);
+    if (!found->second->running && !found->second->allocating) retire(found, "cancelled");
   }
   return grpc::Status::OK;
 }
@@ -519,6 +561,51 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
   response->set_reserved_workspace_bytes(workspace.host_bytes + workspace.device_bytes +
                                          workspace.unified_bytes);
   response->set_active_requests(active_.size());
+  response->clear_request_observations();
+  if (config_.request_observations) {
+    auto* observations = response->mutable_request_observations();
+    observations->set_process_id(static_cast<std::uint64_t>(getpid()));
+    observations->set_observed_at_monotonic_ns(monotonic_ns(std::chrono::steady_clock::now()));
+    observations->set_observed_at_unix_ns(static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count()));
+    for (const auto& [identifier, request] : active_) {
+      auto* row = observations->add_requests();
+      row->set_request_id(identifier);
+      row->set_maximum_total_tokens(request->maximum_tokens);
+      row->set_admitted_at_monotonic_ns(monotonic_ns(request->admitted));
+      row->set_allocating(request->allocating);
+      row->set_running(request->running);
+      row->set_cancelled(request->cancelled.load());
+      const auto domain = [&](v1::MemoryDomain kind, std::size_t cached, std::size_t work) {
+        if (cached == 0U && work == 0U) return;
+        auto* usage = row->add_memory();
+        usage->set_domain(kind);
+        usage->set_cache_bytes(cached);
+        usage->set_workspace_bytes(work);
+      };
+      domain(v1::MEMORY_DOMAIN_HOST, request->memory.cache.host_bytes,
+             request->memory.workspace.host_bytes);
+      domain(v1::MEMORY_DOMAIN_DEVICE, request->memory.cache.device_bytes,
+             request->memory.workspace.device_bytes);
+      domain(v1::MEMORY_DOMAIN_HOST_PINNED, request->memory.cache.pinned_host_bytes,
+             request->memory.workspace.pinned_host_bytes);
+      domain(v1::MEMORY_DOMAIN_UNIFIED, request->memory.cache.unified_bytes,
+             request->memory.workspace.unified_bytes);
+    }
+    for (const auto& event : lifecycle_) {
+      auto* row = observations->add_events();
+      row->set_kind(event.kind);
+      row->set_request_id(event.request_id);
+      row->set_sequence(event.sequence);
+      row->set_at_monotonic_ns(event.at_monotonic_ns);
+      for (const auto& other : event.concurrent_request_ids) row->add_concurrent_request_ids(other);
+      row->set_reason(event.reason);
+    }
+    observations->set_events_total(lifecycle_total_);
+    observations->set_peak_concurrent_requests(peak_concurrent_requests_);
+  }
   return grpc::Status::OK;
 }
 grpc::Status ControlService::GetMetrics(grpc::ServerContext*, const v1::Empty*,

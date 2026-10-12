@@ -101,6 +101,73 @@ fit; an isolated profile can underestimate serving overhead. Check `assessment.p
 to distinguish footprint evaluation from conservative fallback. No concurrent-request
 or indefinite reload-plateau claim follows from this concurrency-one harness.
 
+## Concurrent soak (concurrency two)
+
+`concurrent_soak.py` runs the bounded two-request experiment from the
+[concurrency-two design](../../docs/concurrency-qualification.md) and writes one
+immutable `ConcurrentServingEvidence` record (`hllm_control.qualification.concurrent`).
+Start each worker under its guard exactly as for the reload soak, plus
+`--max-active-requests 2`, an aggregate `--max-cached-tokens` of at least two
+reservations, and `--request-observations on`. That opt-in makes `GetMemoryReport`
+carry each live request's own KV/workspace reservation and a bounded log of
+admissions and retirements on the worker's steady clock, each listing the other
+reservations whose allocation had completed at that instant. The harness refuses
+workers that do not advertise it, admit fewer than two requests, or batch decodes.
+
+```bash
+uv run python -m scripts.validation.concurrent_soak \
+  --manifest build/run/manifest.json --plan build/run/mlx-cuda.plan.json \
+  --reference build/run/reference-f16.json --workers build/run/concurrent-workers.json \
+  --baseline-report build/run/reload-soak.json \
+  --source-digest "$HLLM_SOURCE_ID" --transport "loopback over ssh -L/-R forwarding" \
+  --guard-description "1 GiB floor, 256 MiB/60 s swap-out, 30-minute ceiling" \
+  --cycles 3 --pairs 3 --timeout 180 --output build/run/concurrent.json
+```
+
+`--baseline-report` must be the reload soak's report: before anything loads, the
+harness checks that it completed with exact outputs, in the same scope (`f16-reload-
+qualification`, or `cpu-rehearsal` under `--cpu-rehearsal`), for this plan digest,
+against this reference file and on these worker binaries, and the record keeps that
+summary. A baseline produced on other binaries is refused, so a rebuild needs a new
+reload soak first. The worker configuration is the reload-soak format plus two
+optional paths per worker: `guard_record` (that worker's `resource_guard.py` JSONL)
+and `device_samples` (a `memory_watch.py --cuda` JSONL for the CUDA worker; without it
+the device side of the physical envelope is unknown, never safe). The guard must have
+spawned the worker process itself (the start event's PID is matched against the
+worker's reported PID), started before the harness, and still be observing within 20 s
+of the end; a stop reason, an early exit or a failing exit status is `stopped`, and
+anything less than full coverage is `unavailable`. Device samples are recorded with
+their PIDs and must belong to the worker process. Each cycle re-runs the fresh
+single-request fit gate and records that cycle's live budget, loads, runs one serial
+exact request, `--pairs` paired rounds released from a barrier, then a cancellation
+round in which one request is cancelled after `--cancel-after` tokens (default three)
+while the other completes, then unloads. Both members of every pair must match the
+sealed reference exactly; the cancelled request must match a proper prefix of it, its
+worker-side retirement must say `cancelled` while the survivor still held its
+reservation, and the survivor's retirement must say `completed` afterwards.
+
+Overlap is claimed per worker only from that worker's own events: a retirement of
+either member must list the other as an allocated concurrent reservation (or, failing
+that, a polled snapshot must carry both allocated rows); the interval starts at the
+later admission. Two requests that reserve together list no peer in their admissions,
+which is not evidence against overlap. Queued-only submission, a single-worker
+overlap, a missed observation window, a worker restart, an unbound guard record or an
+unverified cleanup make the record `unknown` or `failed`. Everything the record
+concludes (overlap, logical peaks, one physical envelope per worker and cycle against
+that cycle's budget, guard outcomes and the acceptance status with its reasons) is
+derived from the record's contents and re-derived on every load, so an edited record,
+or a stale safe envelope carried over observations that no longer fit, is rejected. A
+failure at any point still writes the partial record with its failure reason; if even
+assembly fails, a `.failure.json` note is written beside the output and the original
+error is kept. The cancellation round is a race: the controller's cancel RPCs must
+reach every worker before the victim completes naturally there, or that worker
+retires it as `completed` and the record is `unknown` (the reason names the observed
+retirement), so the reference must be long relative to `--cancel-after`. The CPU
+rehearsal (`tests/profiling/test_concurrent_cpu.py`, run by the `CpuReloadRehearsal`
+CTest entry) exercises the whole procedure on tiny workers with a 128-token reference
+and `--cancel-after 3`, which is procedure evidence only. No throughput claim and no
+concurrency above two follows from an accepted record.
+
 ## Independent reference
 
 `checkpoint_reference.py` now supports `--plain` for Base checkpoints and

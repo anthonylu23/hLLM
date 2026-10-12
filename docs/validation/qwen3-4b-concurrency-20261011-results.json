@@ -1,0 +1,502 @@
+{
+  "cuda_smoke_ctest": {
+    "log": "logs/cuda-smoke-ctest.log",
+    "passed": 7,
+    "total": 7
+  },
+  "inputs": {
+    "baseline-reload-soak.json": "1b02ad8f0953fc81253cb156f0ff5acd7ceade4bef4a2f04763f5db341e520db",
+    "concurrent-workers.json": "37a7297e8b8639ad85349ebba732c220ca4f568d8599df0006bed0f8c67c4454",
+    "cuda-mlx.plan.json": "495191da8cadb72a404ca5f0d50ed6067c71a7333a4e75b6557b1e0bf8eb9488",
+    "manifest.json": "83beb94e1285bd1b5c3caaf4cbb889fcd864e4b7b772949958df158ac966b747",
+    "mlx-cuda.plan.json": "a0083af95642ba886c363986f20be0c2c51f231867614db7c2ec59900fdcfe67",
+    "reference-1024-256-f16.json": "e7844d1ba7792256ea83190aeab4cc6f6e12ff58b07e3706000ad50c31519f3b",
+    "reference-f16.json": "329ea04b80920acb85ba0430f2dca4b9c31f8b1e8ad8c76f580738995b77f4b3",
+    "source-identity-pre-build.json": "a8bd76cb5ded8e1f7198d76ccf43d45c4a7c4c1886fa4d59e5391f47934be423",
+    "source-identity.json": "fdf392b0e0f2fa020126572e9d92255ddba68a0e23d4796ff75f554b56c8a39f",
+    "workload-1024-256.json": "c37f03ce7b043c4072ff676438076191b065995f4a911ef3270369a0302b1629",
+    "workload-128-256.json": "7a35ab80b4102e3fac4140c3fa94c6d67aa0fdaa2734c29a67c7f43bce65c005"
+  },
+  "mac_availability_watch": [
+    {
+      "log": "availability-watch-1.log",
+      "outcome": "MAC_WATCH_TIMEOUT last=6131613696",
+      "preflight_required_bytes": 6509559808,
+      "readings": [
+        {
+          "at": "2026-10-10T23:52:43-05:00",
+          "available_bytes": 5106909184
+        },
+        {
+          "at": "2026-10-10T23:57:44-05:00",
+          "available_bytes": 5159600128
+        },
+        {
+          "at": "2026-10-11T00:02:45-05:00",
+          "available_bytes": 5945425920
+        },
+        {
+          "at": "2026-10-11T00:07:46-05:00",
+          "available_bytes": 5951750144
+        },
+        {
+          "at": "2026-10-11T00:12:47-05:00",
+          "available_bytes": 5376425984
+        },
+        {
+          "at": "2026-10-11T00:17:48-05:00",
+          "available_bytes": 6121848832
+        },
+        {
+          "at": "2026-10-11T00:22:49-05:00",
+          "available_bytes": 5737201664
+        },
+        {
+          "at": "2026-10-11T00:27:51-05:00",
+          "available_bytes": 5844615168
+        },
+        {
+          "at": "2026-10-11T00:32:52-05:00",
+          "available_bytes": 5650595840
+        },
+        {
+          "at": "2026-10-11T00:37:53-05:00",
+          "available_bytes": 5703745536
+        },
+        {
+          "at": "2026-10-11T00:42:54-05:00",
+          "available_bytes": 5868994560
+        },
+        {
+          "at": "2026-10-11T00:47:55-05:00",
+          "available_bytes": 5866225664
+        },
+        {
+          "at": "2026-10-11T00:52:56-05:00",
+          "available_bytes": 5743034368
+        },
+        {
+          "at": "2026-10-11T00:57:57-05:00",
+          "available_bytes": 5837488128
+        },
+        {
+          "at": "2026-10-11T01:02:58-05:00",
+          "available_bytes": 5987958784
+        },
+        {
+          "at": "2026-10-11T01:07:59-05:00",
+          "available_bytes": 5683036160
+        },
+        {
+          "at": "2026-10-11T01:13:00-05:00",
+          "available_bytes": 5722456064
+        },
+        {
+          "at": "2026-10-11T01:18:01-05:00",
+          "available_bytes": 5761957888
+        },
+        {
+          "at": "2026-10-11T01:23:03-05:00",
+          "available_bytes": 5751521280
+        },
+        {
+          "at": "2026-10-11T01:28:04-05:00",
+          "available_bytes": 5760532480
+        },
+        {
+          "at": "2026-10-11T01:33:05-05:00",
+          "available_bytes": 6071353344
+        },
+        {
+          "at": "2026-10-11T01:38:06-05:00",
+          "available_bytes": 5825921024
+        },
+        {
+          "at": "2026-10-11T01:43:07-05:00",
+          "available_bytes": 6131613696
+        }
+      ],
+      "record_sha256": "4b684cc5b889788d8801978fc21adcaa3d9fd7bea768f9c00ff03c494851cee1"
+    },
+    {
+      "log": "availability-watch-2.log",
+      "outcome": "MAC_READY 6911852544",
+      "preflight_required_bytes": 6509559808,
+      "readings": [
+        {
+          "at": "2026-10-11T01:44:22-05:00",
+          "available_bytes": 6384173056
+        },
+        {
+          "at": "2026-10-11T01:49:23-05:00",
+          "available_bytes": 6065848320
+        },
+        {
+          "at": "2026-10-11T01:54:24-05:00",
+          "available_bytes": 6325108736
+        },
+        {
+          "at": "2026-10-11T01:59:25-05:00",
+          "available_bytes": 6382419968
+        },
+        {
+          "at": "2026-10-11T02:04:26-05:00",
+          "available_bytes": 6396755968
+        },
+        {
+          "at": "2026-10-11T02:09:27-05:00",
+          "available_bytes": 6442778624
+        },
+        {
+          "at": "2026-10-11T02:14:28-05:00",
+          "available_bytes": 6452772864
+        },
+        {
+          "at": "2026-10-11T02:19:29-05:00",
+          "available_bytes": 6266945536
+        },
+        {
+          "at": "2026-10-11T02:24:30-05:00",
+          "available_bytes": 6266322944
+        },
+        {
+          "at": "2026-10-11T02:29:31-05:00",
+          "available_bytes": 6911852544
+        }
+      ],
+      "record_sha256": "62672b7fa81916489766cd3783c0e31202c699a602380ec637ad5435a9f72542"
+    },
+    {
+      "log": "availability-watch-3.log",
+      "outcome": null,
+      "preflight_required_bytes": 6509559808,
+      "readings": [
+        {
+          "at": "2026-10-11T02:31:00-05:00",
+          "available_bytes": 5545066496
+        },
+        {
+          "at": "2026-10-11T02:36:01-05:00",
+          "available_bytes": 5991088128
+        },
+        {
+          "at": "2026-10-11T02:41:02-05:00",
+          "available_bytes": 6036307968
+        },
+        {
+          "at": "2026-10-11T02:46:03-05:00",
+          "available_bytes": 5797904384
+        },
+        {
+          "at": "2026-10-11T02:51:04-05:00",
+          "available_bytes": 5849956352
+        },
+        {
+          "at": "2026-10-11T02:56:05-05:00",
+          "available_bytes": 5893308416
+        },
+        {
+          "at": "2026-10-11T03:01:06-05:00",
+          "available_bytes": 5921308672
+        },
+        {
+          "at": "2026-10-11T03:06:07-05:00",
+          "available_bytes": 5931515904
+        },
+        {
+          "at": "2026-10-11T03:11:08-05:00",
+          "available_bytes": 6350503936
+        },
+        {
+          "at": "2026-10-11T03:16:09-05:00",
+          "available_bytes": 6290112512
+        },
+        {
+          "at": "2026-10-11T03:21:10-05:00",
+          "available_bytes": 6344097792
+        },
+        {
+          "at": "2026-10-11T03:26:11-05:00",
+          "available_bytes": 6141706240
+        },
+        {
+          "at": "2026-10-11T03:31:12-05:00",
+          "available_bytes": 6397214720
+        },
+        {
+          "at": "2026-10-11T03:36:13-05:00",
+          "available_bytes": 6195888128
+        },
+        {
+          "at": "2026-10-11T03:41:14-05:00",
+          "available_bytes": 6469664768
+        },
+        {
+          "at": "2026-10-11T03:46:15-05:00",
+          "available_bytes": 6474088448
+        },
+        {
+          "at": "2026-10-11T03:51:16-05:00",
+          "available_bytes": 6235357184
+        },
+        {
+          "at": "2026-10-11T03:56:17-05:00",
+          "available_bytes": 6242992128
+        },
+        {
+          "at": "2026-10-11T04:01:18-05:00",
+          "available_bytes": 6262456320
+        },
+        {
+          "at": "2026-10-11T04:06:19-05:00",
+          "available_bytes": 6248824832
+        },
+        {
+          "at": "2026-10-11T04:11:20-05:00",
+          "available_bytes": 6287736832
+        },
+        {
+          "at": "2026-10-11T04:16:21-05:00",
+          "available_bytes": 6266175488
+        },
+        {
+          "at": "2026-10-11T04:21:22-05:00",
+          "available_bytes": 6369918976
+        },
+        {
+          "at": "2026-10-11T04:26:23-05:00",
+          "available_bytes": 6050512896
+        }
+      ],
+      "record_sha256": "8044cd7f592e1a7f74ab4bdd09e0c42275a74503458423ef9a4ba6907cb84f85"
+    }
+  ],
+  "oracle_1024": {
+    "driver_tail": "{\"output\": \"/home/anthonylu/Projects/experiments/hllm-4b-fit-20261011-044533/inputs/reference-1024-256-f16.json\", \"dtype\": \"f16\", \"tokens\": 256, \"seconds\": 69.88343500392511, \"peak_cuda_allocated_bytes\": 6520437248}",
+    "file": "inputs/reference-1024-256-f16.json",
+    "guard": {
+      "min_available_gib": 6.45,
+      "observations": 48,
+      "record_sha256": "cd160a7a7c1f5bf7e9b6d8e120ff6ad48d207e79d6375f86f1b3955df5eacf88",
+      "returncode": 0,
+      "stop_reason": null,
+      "swapout_mib": 179
+    },
+    "sha256": "e7844d1ba7792256ea83190aeab4cc6f6e12ff58b07e3706000ad50c31519f3b"
+  },
+  "p1": {
+    "cuda": {
+      "artifact_digest": "15f28ba28cf378a21e95674679a2c01b784d486fb9ce302668a9bf3ed7ef6e5e",
+      "binary_digest": "0320d981f24373e4bc70c7d740d35ee115da0ac40d3c8ccee445a8ea4b4a61c1",
+      "completed": true,
+      "fit": {
+        "device_envelope_bytes": 6139412480,
+        "host_envelope_bytes": 4390068224,
+        "notes": [],
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "requested_mlx_policy": null,
+        "status": "safe"
+      },
+      "guard": {
+        "min_available_gib": 6.897,
+        "observations": 35,
+        "record_sha256": "023a6b605ec731e7127ffcaf4b9892f27b2064eb359f0acd6fb47578acbbd102",
+        "returncode": 0,
+        "stop_reason": null,
+        "swapout_mib": 40
+      },
+      "measured_at": "2026-10-11T04:50:49.053162Z",
+      "present": true,
+      "schema": "1.3",
+      "source_revision": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
+    },
+    "cuda_rejected_1": {
+      "guard": {
+        "min_available_gib": 7.046,
+        "observations": 16,
+        "record_sha256": "213cc79e8e27789d10789044f820f5690f0dd4ff8e1364e1d18d4e3fd63ad0b6",
+        "returncode": 143,
+        "stop_reason": "new swap-out exceeds configured 60-second limit",
+        "swapout_mib": 265
+      },
+      "note": "Rejected attempt 1 of the forward-split CUDA memory profile, 2026-10-10T23:50:39-05:00.\nThe resource guard stopped the profiler at 30 s: \"new swap-out exceeds configured 60-second limit\".\nGuard rows: availability 9.27 -> 7.05 GiB; swap-out +254 MiB at t=10-12 s (cycle-0 weight load,\nprofiler RSS peak 2.89 GiB) and +11 MiB at t=30 s, 265 MiB total in the window against the 256 MiB\nlimit. Cycle 0 completed all phases (load, allocate, prefill, decode, cleanup, unload) before the stop.\nSwap is an 8 GiB zram device holding 3.6 GiB of cold desktop pages; the page cache had been dropped\n60 s before launch (logs/linux-resources-prelaunch.txt). No allowance was changed. One retry follows\nbecause the first attempt's eviction already moved the cold pages into zram, which is a different\nstarting state (the October 10 retry passed for the same reason); a second stop ends the CUDA profile\nfor this session.\n"
+    },
+    "mlx": {
+      "present": false
+    },
+    "mlx_rejected": [
+      {
+        "directory": "rejected-1",
+        "guard": {
+          "min_available_gib": 4.638,
+          "observations": 3,
+          "record_sha256": "94f1f918a798376829625b16b8b2e8ca916db6e9f2cd89734e79784b801fbfd3",
+          "returncode": 1,
+          "stop_reason": null,
+          "swapout_mib": 0
+        },
+        "note": null,
+        "preflight": {
+          "admission_capacity": {
+            "device": 0,
+            "host": 0,
+            "pinned": 0,
+            "unified": 4697620480
+          },
+          "device_budget": null,
+          "host_budget": {
+            "available_bytes": 5004361728,
+            "extra_overhead_bytes": 268435456,
+            "headroom_bytes": 1073741824,
+            "safety_fraction": 0.1
+          },
+          "key": {
+            "assignment": {
+              "layer_end": 15,
+              "layer_start": 0,
+              "owns_final_norm": false,
+              "owns_lm_head": false,
+              "owns_sampling": false,
+              "owns_token_embedding": true,
+              "stage_index": 0,
+              "worker_id": "mlx"
+            },
+            "checkpoint_digest": "85b0e87df531904de0b10ebbfc345056bc8fafc9b96a84cb300ce64b282d69c8",
+            "environment": {
+              "allocator": "pending",
+              "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 4697620480}}",
+              "backend": "mlx",
+              "backend_version": "pending",
+              "binary_digest": "e7b126f8ab05368a8e8bd7de505abbcfb140b82a57e15c7cbcd015a01eb567fb",
+              "compiler": "pending",
+              "device_identity": "pending",
+              "device_name": "pending",
+              "driver_version": "pending",
+              "os": "macOS-27.0.1-arm64-arm-64bit;kernel=Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:24 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6030",
+              "source_revision": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
+            },
+            "execution_dtype": "F16",
+            "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+            "input_kind": "synthetic-shape",
+            "manifest_digest": "6a0c45bf2772dba0bd7d648bce490700bd8a9ee5c5ae6cc0164ceb845cc0663a",
+            "transport_mode": "pageable",
+            "workload": {
+              "activation_dtype": "F16",
+              "concurrency": 1,
+              "kv_dtype": "F16",
+              "kv_overhead_factor": 1.1,
+              "output_tokens": 256,
+              "prompt_tokens": 128,
+              "schema_version": "1.0",
+              "total_cached_tokens": 384,
+              "workload_id": "qwen3-4b-128-256-c1"
+            },
+            "workload_digest": "fa60374d4d6d43159d61927d9d1553c16c52391bb82293d2f83aa3603bf45b3e"
+          },
+          "observed_at": "2026-10-11T04:52:11.077182+00:00",
+          "reasons": [
+            "host/unified: configured probe cap plus physical allowances exceeds availability"
+          ],
+          "schema_version": "1.0",
+          "status": "rejected"
+        }
+      },
+      {
+        "directory": "rejected-2",
+        "guard": {
+          "min_available_gib": 5.251,
+          "observations": 3,
+          "record_sha256": "0bfc4e3c418233388007bd754c1581b3ed91663510da69edf7f23df726df56c9",
+          "returncode": 1,
+          "stop_reason": null,
+          "swapout_mib": 0
+        },
+        "note": "Rejected attempt 2 of the MLX stage-0 memory profile, 2026-10-11T07:29:50Z.\nLaunched after a five-minute availability watch read 6,911,852,544 bytes (6.44 GiB) of free+inactive\nmemory at 07:29:31Z, above the 6,509,559,808-byte (6.06 GiB) preflight requirement plus a 200 MiB margin.\nThe guard sampled 6.48 GiB at 07:29:50Z, 5.43 GiB two seconds later and 5.25 GiB at 07:29:54Z; the preflight\nobserved 5,632,917,504 bytes (5.25 GiB) and refused before any model load. Inactive pages were reclaimed or\nactivated by the launch itself (uv, the guard and the CLI starting) faster than the watch could see.\nNot retried: availability stayed below the requirement afterwards (5.48 GiB at 07:31Z). No allowance changed.\nPreserved immutably; mirrored to the Linux run directory under mac/rejected-2/.\n",
+        "preflight": {
+          "admission_capacity": {
+            "device": 0,
+            "host": 0,
+            "pinned": 0,
+            "unified": 4697620480
+          },
+          "device_budget": null,
+          "host_budget": {
+            "available_bytes": 5632917504,
+            "extra_overhead_bytes": 268435456,
+            "headroom_bytes": 1073741824,
+            "safety_fraction": 0.1
+          },
+          "key": {
+            "assignment": {
+              "layer_end": 15,
+              "layer_start": 0,
+              "owns_final_norm": false,
+              "owns_lm_head": false,
+              "owns_sampling": false,
+              "owns_token_embedding": true,
+              "stage_index": 0,
+              "worker_id": "mlx"
+            },
+            "checkpoint_digest": "85b0e87df531904de0b10ebbfc345056bc8fafc9b96a84cb300ce64b282d69c8",
+            "environment": {
+              "allocator": "pending",
+              "allocator_config": "{\"PYTORCH_ALLOC_CONF\": null, \"PYTORCH_CUDA_ALLOC_CONF\": null, \"capacity\": {\"device\": 0, \"host\": 0, \"pinned\": 0, \"unified\": 4697620480}}",
+              "backend": "mlx",
+              "backend_version": "pending",
+              "binary_digest": "e7b126f8ab05368a8e8bd7de505abbcfb140b82a57e15c7cbcd015a01eb567fb",
+              "compiler": "pending",
+              "device_identity": "pending",
+              "device_name": "pending",
+              "driver_version": "pending",
+              "os": "macOS-27.0.1-arm64-arm-64bit;kernel=Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:24 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6030",
+              "source_revision": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
+            },
+            "execution_dtype": "F16",
+            "input_digest": "3ce4a58ae887d1bd78894cd9019726a3b84748c504e3322ea2fdb0ecc98fc89e",
+            "input_kind": "synthetic-shape",
+            "manifest_digest": "6a0c45bf2772dba0bd7d648bce490700bd8a9ee5c5ae6cc0164ceb845cc0663a",
+            "transport_mode": "pageable",
+            "workload": {
+              "activation_dtype": "F16",
+              "concurrency": 1,
+              "kv_dtype": "F16",
+              "kv_overhead_factor": 1.1,
+              "output_tokens": 256,
+              "prompt_tokens": 128,
+              "schema_version": "1.0",
+              "total_cached_tokens": 384,
+              "workload_id": "qwen3-4b-128-256-c1"
+            },
+            "workload_digest": "fa60374d4d6d43159d61927d9d1553c16c52391bb82293d2f83aa3603bf45b3e"
+          },
+          "observed_at": "2026-10-11T07:29:54.620646+00:00",
+          "reasons": [
+            "host/unified: configured probe cap plus physical allowances exceeds availability"
+          ],
+          "schema_version": "1.0",
+          "status": "rejected"
+        }
+      }
+    ]
+  },
+  "p5": null,
+  "run_directory": "/home/anthonylu/Projects/experiments/hllm-4b-fit-20261011-044533",
+  "source": {
+    "branch": "codex/concurrency-evidence",
+    "cuda_binaries": {
+      "build/cuda/cpp/hllm-profile-compute-cuda": "f9e79b0ec7383844b231cd79088fe20820fc0ff3f275e9af05b9873f62ac7041",
+      "build/cuda/cpp/hllm-profile-link": "7c7cc623a92b97b9347bdc75a09028d06df60623d509dac4581c8a5e2850c1b3",
+      "build/cuda/cpp/hllm-profile-memory-cuda": "0320d981f24373e4bc70c7d740d35ee115da0ac40d3c8ccee445a8ea4b4a61c1",
+      "build/cuda/cpp/hllm-worker-cuda": "577b9ca08ac65843511b00aea139e7786774263c55a7c875b38d5f9b5496f30b"
+    },
+    "harness_revision": "0fd5b71664ba635487f1a8a92c8176520bd78e6c",
+    "harness_source_digest": "f3bcece1020e5fbd1099ebab023c53503ff64856b44790c7faa23330a63eca2a",
+    "mlx_binaries": {
+      "build/native/m6-mlx/cpp/hllm-profile-memory-mlx": "e7b126f8ab05368a8e8bd7de505abbcfb140b82a57e15c7cbcd015a01eb567fb",
+      "build/native/m6-mlx/cpp/hllm-worker-mlx": "09a79a4c1c576e804d41a41ee8272a85ca6d1c307db8520c4641d4ef157bd0e7"
+    },
+    "profiles_revision": "97aa6b0172be0d752157e57c93bd2daa60a52d8a",
+    "profiles_source_digest": "440da50cba40cc347d3e30de654180bb21b787413080228e6442ccc9d8caa9d6"
+  }
+}

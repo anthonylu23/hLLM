@@ -352,6 +352,102 @@ TEST(WorkerConcurrencyTest, AccountsCombinedReservationsAndCancelsOnlyOneRequest
   EXPECT_EQ(clean.reserved_cache_bytes(), 0U);
 }
 
+TEST(WorkerConcurrencyTest, RequestObservationsRecordOverlapAndRetirementOnlyWhenEnabled) {
+  const test::ModelFixture model;
+  for (const bool enabled : {false, true}) {
+    SCOPED_TRACE(enabled);
+    ControlService service({.worker_id = "cpu-a",
+                            .endpoint = "127.0.0.1:50051",
+                            .model_root = model.root,
+                            .host_memory_capacity_bytes = 1'000'000U,
+                            .maximum_active_requests = 2U,
+                            .request_observations = enabled},
+                           cpu::make_backend_factory());
+    grpc::ServerContext context;
+    v1::Capabilities capabilities;
+    ASSERT_TRUE(service.GetCapabilities(&context, nullptr, &capabilities).ok());
+    EXPECT_EQ(capabilities.worker().supports_request_observations(), enabled);
+    auto load = model.load();
+    v1::LoadStageResponse loaded;
+    ASSERT_TRUE(service.LoadStage(&context, &load, &loaded).ok());
+    ASSERT_TRUE(loaded.accepted());
+    v1::ReserveRequestMessage request;
+    request.set_plan_id("plan-1");
+    request.set_deployment_version(1U);
+    request.set_maximum_total_tokens(16U);
+    v1::ReserveResponse accepted;
+    v1::Empty empty;
+    v1::MemoryReport report;
+    // Reused responses must not retain observations from an enabled worker.
+    report.mutable_request_observations()->set_events_total(99U);
+    for (const auto* id : {"a", "b"}) {
+      request.set_request_id(id);
+      service.ReserveRequest(&context, &request, &accepted);
+      ASSERT_TRUE(accepted.accepted());
+    }
+    ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
+    EXPECT_EQ(report.active_requests(), 2U);
+    if (!enabled) {
+      EXPECT_FALSE(report.has_request_observations());
+      continue;
+    }
+    ASSERT_TRUE(report.has_request_observations());
+    const auto& live = report.request_observations();
+    EXPECT_GT(live.process_id(), 0U);
+    EXPECT_GT(live.observed_at_monotonic_ns(), 0U);
+    EXPECT_GT(live.observed_at_unix_ns(), 0U);
+    ASSERT_EQ(live.requests_size(), 2);
+    for (const auto& row : live.requests()) {
+      EXPECT_EQ(row.maximum_total_tokens(), 16U);
+      EXPECT_FALSE(row.allocating());
+      EXPECT_FALSE(row.running());
+      EXPECT_FALSE(row.cancelled());
+      EXPECT_LE(row.admitted_at_monotonic_ns(), live.observed_at_monotonic_ns());
+      ASSERT_EQ(row.memory_size(), 1);
+      EXPECT_EQ(row.memory(0).domain(), v1::MEMORY_DOMAIN_HOST);
+      EXPECT_GT(row.memory(0).cache_bytes(), 0U);
+    }
+    // Per-request cache bytes sum to the aggregate; weights are not per request.
+    std::uint64_t cache = 0U;
+    for (const auto& row : live.requests()) cache += row.memory(0).cache_bytes();
+    EXPECT_EQ(cache, report.reserved_cache_bytes());
+    ASSERT_EQ(live.events_size(), 2);
+    EXPECT_EQ(live.events_total(), 2U);
+    EXPECT_EQ(live.peak_concurrent_requests(), 2U);
+    EXPECT_EQ(live.events(0).kind(), v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_ADMITTED);
+    EXPECT_EQ(live.events(0).request_id(), "a");
+    EXPECT_EQ(live.events(0).concurrent_request_ids_size(), 0);
+    EXPECT_EQ(live.events(1).request_id(), "b");
+    ASSERT_EQ(live.events(1).concurrent_request_ids_size(), 1);
+    EXPECT_EQ(live.events(1).concurrent_request_ids(0), "a");
+    EXPECT_LE(live.events(0).at_monotonic_ns(), live.events(1).at_monotonic_ns());
+    EXPECT_LT(live.events(0).sequence(), live.events(1).sequence());
+    // Cancel one; the other keeps its reservation and later completes.
+    v1::CancelRequestMessage cancel;
+    cancel.set_plan_id("plan-1");
+    cancel.set_deployment_version(1U);
+    cancel.set_request_id("a");
+    ASSERT_TRUE(service.CancelRequest(&context, &cancel, &empty).ok());
+    ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
+    ASSERT_EQ(report.request_observations().requests_size(), 1);
+    EXPECT_EQ(report.request_observations().requests(0).request_id(), "b");
+    const auto& retired = report.request_observations().events(2);
+    EXPECT_EQ(retired.kind(), v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_RETIRED);
+    EXPECT_EQ(retired.request_id(), "a");
+    EXPECT_EQ(retired.reason(), "cancelled");
+    ASSERT_EQ(retired.concurrent_request_ids_size(), 1);
+    EXPECT_EQ(retired.concurrent_request_ids(0), "b");
+    auto lease = service.acquire("plan-1", 1U, "b", 16U, 0U, 0U);
+    service.release(lease.request);
+    ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
+    EXPECT_EQ(report.request_observations().requests_size(), 0);
+    ASSERT_EQ(report.request_observations().events_size(), 4);
+    EXPECT_EQ(report.request_observations().events(3).reason(), "completed");
+    EXPECT_EQ(report.request_observations().events_total(), 4U);
+    EXPECT_EQ(report.request_observations().peak_concurrent_requests(), 2U);
+  }
+}
+
 TEST(WorkerConcurrencyTest, CombinedMemoryAdmissionRejectsSecondRequest) {
   const test::ModelFixture model;
   auto factory = cpu::make_backend_factory();

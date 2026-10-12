@@ -104,7 +104,9 @@ class Workers:
         binaries: tuple[Path, Path] = (BINARY, BINARY),
         extra_args: tuple[tuple[str, ...], tuple[str, ...]] = ((), ()),
         worker_ids: tuple[str, str] = ("cpu-a", "cpu-b"),
+        wrappers: tuple[tuple[str, ...], tuple[str, ...]] = ((), ()),
     ) -> None:
+        """Start two workers; `wrappers` prefixes each command (for example a guard)."""
         for binary in binaries:
             if not binary.is_file():
                 pytest.fail(f"Build the requested native worker first: {binary}")
@@ -122,6 +124,7 @@ class Workers:
                 self._sinks.append(sink)
                 process = subprocess.Popen(
                     [
+                        *wrappers[index],
                         str(binaries[index]),
                         "--listen",
                         address,

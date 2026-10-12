@@ -36,7 +36,7 @@ def main() -> int:
         result = resource_guard.main(
             [
                 "--seconds",
-                "180",
+                "300",
                 "--record",
                 str(run / "guard.jsonl"),
                 "--",
@@ -44,6 +44,7 @@ def main() -> int:
                 "-m",
                 "pytest",
                 "tests/profiling/test_reload_cpu.py",
+                "tests/profiling/test_concurrent_cpu.py",
                 "-q",
                 "--basetemp",
                 str(run / "tests"),

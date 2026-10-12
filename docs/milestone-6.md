@@ -19,7 +19,9 @@ Start **each participating worker** with its existing identity, model root and m
 budgets, plus `--max-active-requests 4 --max-cached-tokens 4096`. The second limit is a
 ceiling on the sum of reserved prompt-plus-output tokens; it does not add memory.
 Workers default to one active request and memory-based token admission when the token
-ceiling is omitted.
+ceiling is omitted. `--request-observations on` additionally exposes each live
+request's reservation and a bounded admission/retirement log in the memory report,
+which the [concurrency-two harness](concurrency-qualification.md) requires.
 
 With a prepared manifest, explicit feasible plan, endpoints and matching local tokenizer:
 

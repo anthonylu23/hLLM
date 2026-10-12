@@ -1,9 +1,13 @@
 # Concurrency-two qualification design
 
-Status: design only, September 30, 2026. No new concurrency-two capacity is
-qualified. Implementation and hardware measurement are follow-ups after the
-single-request 4B baseline passes. Existing tiny concurrent pipeline tests are
-behavior checks, not a physical capacity certificate.
+Status: implemented October 11, 2026; **no concurrency-two capacity is qualified**
+until the bounded two-host experiment below runs and its record is accepted. The
+record is `hllm_control.qualification.concurrent.ConcurrentServingEvidence`, the
+harness is `scripts/validation/concurrent_soak.py`, and workers expose the opt-in
+request-lifecycle observations with `--request-observations on` (see the
+[tools README](../scripts/validation/README.md#concurrent-soak-concurrency-two)). The
+single-request 4B baseline passed on October 10. Existing tiny concurrent pipeline
+tests are behavior checks, not a physical capacity certificate.
 
 ## Evidence boundary
 
@@ -21,18 +25,23 @@ validation (unknown fields rejected, finite nonnegative measurements):
 | Identity | schema version, evidence digest, source digest, plan/manifest/checkpoint hashes, independent reference hashes, worker/profiler binary hashes, OS/backend/driver/allocator identity, transport and worker order |
 | Workload | two exact token-ID sequences and hashes; per-request prompt/output/reservation lengths; effective weight/execution/KV/wire precision; greedy or fully specified sampling; deadline |
 | Configuration | per-worker admission caps, active-request limit, aggregate cached-token limit, decode batch limit, prefill chunk size, queue capacity and HTTP controller limit |
-| Preconditions | passing baseline report hash, fresh compatible single-request profile hashes (at most 24 hours old), live prelaunch availability, unchanged safety/overhead/headroom, guard settings |
+| Preconditions | passing baseline report hash and its summary (scope, plan, reference, worker binaries, exactness), fresh compatible single-request profile hashes (at most 24 hours old), one fit gate per worker and cycle with that cycle's live availability, unchanged safety/overhead/headroom, guard settings |
 | Observations | per-worker process identity, monotonic timestamp and UTC correlation, OS/allocator samples, logical weights/cache/workspace, active request IDs/counts, request admission and completion times, cancellation and unload events |
-| Results | token comparisons, confirmed overlap intervals, peak logical reservations and physical envelopes, guard outcomes, cleanup evidence, failure reason and acceptance status |
+| Results | token comparisons bound to the sealed workload, confirmed overlap intervals, peak logical reservations, one physical envelope per worker and cycle, guard outcomes derived from the guard's own PID and coverage, cleanup evidence, failure reason and acceptance status |
 
 Do not record only a global `max(active_requests)`: both stages must demonstrate
 at least two simultaneously admitted requests in their own observations. At least
 one observation per worker must include both live request IDs and their allocated
 KV reservations. Mere concurrent HTTP submission or queueing is insufficient.
-Current aggregate RPC counters do not expose IDs; implementation must add suitable
-opt-in request-lifecycle evidence or fail the overlap claim as unknown. Do not infer
-cross-host timing order from wall clocks alone. Per-worker monotonic timelines and
-request IDs establish local overlap; report clock alignment uncertainty separately.
+The implemented evidence is the worker's own lifecycle log: each admission and
+retirement event lists the other reservations whose allocation had completed at that
+instant, so the first retirement of a pair is the worker's own proof that both held
+allocated KV together; a polled snapshot with both allocated rows is the fallback.
+Two requests that reserve together list no peer in their admissions; the interval then
+starts at the later admission and still needs the retirement witness or joint snapshot.
+Workers without `--request-observations on` fail the overlap claim as unknown. Do not
+infer cross-host timing order from wall clocks alone. Per-worker monotonic timelines
+and request IDs establish local overlap; report clock alignment uncertainty separately.
 
 ## Admission and physical memory
 
@@ -54,8 +63,9 @@ Before launching, require configured host/device caps plus the existing 10% safe
 device). This is a conservative preflight, not a measured concurrency certificate.
 Do not expand caps or reduce allowances automatically after failure.
 
-During serving, compare peaks against the recorded prelaunch availability. Apply
-the selected policy once to combined observations from each worker process:
+During serving, compare each cycle's peaks against the availability sampled at that
+cycle's fit gate, not only the first. Apply the selected policy once to combined
+observations from each worker process and cycle:
 MLX uses the maximum of coherent OS footprint lifetime peak, RSS and allocator
 residency/peaks only when qualified telemetry is present; otherwise report the
 conservative fallback explicitly. CUDA requires process-device observations as
@@ -90,14 +100,30 @@ qualify any changed numerical criterion as a separate experiment.
 
 ## Implementation and test follow-up
 
-- Add the standalone evidence model/validator and immutable report writer; reject
-  changed hashes, caps, worker order, sampling settings and unsupported versions.
-- Add local request-lifecycle observations needed to prove overlap and independent
-  reservation release. Preserve unavailable counters explicitly.
-- CPU tests: reject queued-only and one-worker-only overlap, premature cancellation,
-  incomplete streams, dropped telemetry, process changes, stale profiles and wrong
-  references. Verify shared weights are counted once and two KV reservations remain
-  until their respective request ends.
-- Keep existing concurrency-one serialization/hashes and placement behavior intact.
-- Run the guarded two-host measurement only when the GPU is free and the baseline
+- [x] Standalone evidence model/validator and immutable report writer; changed
+  hashes, caps, worker order, sampling settings and unsupported versions are
+  rejected, and the acceptance status is re-derived from the record on every load.
+  October 12 review follow-up (schema 1.1): physical envelopes, guard outcomes and
+  per-cycle budgets are derived from the record too; token comparisons are bound to
+  the sealed workload; the baseline report, guard PIDs and device-sample PIDs are
+  bound to this plan, reference and these worker processes; cancellation needs a
+  `cancelled` retirement and a completed survivor; requests that reserve together
+  still prove overlap; a failure at the first gate preserves the partial record.
+- [x] Opt-in per-worker request-lifecycle observations (`--request-observations on`)
+  proving overlap and independent reservation release; unavailable counters are
+  recorded explicitly and make the claim unknown.
+- [x] CPU tests (`tests/python/test_concurrent_evidence.py`): queued-only and
+  one-worker-only overlap, premature cancellation, incomplete streams, dropped
+  telemetry, process changes, stale profiles, missing device observations, guard stops,
+  unverified cleanup and tampered records are never accepted; shared weights are
+  counted once and two KV reservations are summed. The tiny two-worker rehearsal
+  (`tests/profiling/test_concurrent_cpu.py`) produces an accepted record with real
+  guards around both workers and a real reload-soak baseline, refuses an unbound
+  baseline before loading, and keeps partial evidence when the first gate fails.
+- [x] Concurrency-one serialization/hashes and placement behavior are unchanged;
+  `ProfileKey` still requires concurrency one.
+- [ ] Run the guarded two-host measurement only when the GPU is free and the baseline
   passes. Larger contexts, higher concurrency and throughput claims remain separate.
+  October 11 attempt: the CUDA baseline was fresh and the launch staged, but the Mac
+  never met the MLX preflight; see the
+  [night report](validation/qwen3-4b-concurrency-20261011.md).

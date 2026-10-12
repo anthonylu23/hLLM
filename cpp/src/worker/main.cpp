@@ -40,6 +40,7 @@ struct Arguments {
   std::uint64_t maximum_cached_tokens{0U};
   int device_id{0};
   bool pinned{false};
+  bool request_observations{false};
 };
 
 [[nodiscard]] std::uint64_t parse_u64(const std::string_view value) {
@@ -73,6 +74,11 @@ struct Arguments {
         throw std::invalid_argument("decode batch exceeds 8");
     } else if (flag == "--max-cached-tokens") {
       arguments.maximum_cached_tokens = parse_u64(value);
+    } else if (flag == "--request-observations") {
+      if (value != "on" && value != "off") {
+        throw std::invalid_argument("request observations must be on or off");
+      }
+      arguments.request_observations = value == "on";
     } else if (flag == "--memory-limit-bytes") {
       arguments.memory_limit_bytes = parse_u64(value);
 #ifdef HLLM_WORKER_CUDA
@@ -147,6 +153,7 @@ int main(const int argc, char** const argv) {
             .maximum_active_requests = arguments.maximum_active_requests,
             .maximum_decode_batch = arguments.maximum_decode_batch,
             .maximum_cached_tokens = arguments.maximum_cached_tokens,
+            .request_observations = arguments.request_observations,
         },
         std::move(factory));
 

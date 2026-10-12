@@ -200,4 +200,4 @@ add_test(NAME CpuReloadRehearsal
     ${HLLM_UV_EXECUTABLE} run python -m scripts.validation.cpu_rehearsal)
 # Exit 77 means the resource guard refused to start (see cpu_rehearsal.SKIPPED).
 set_tests_properties(CpuReloadRehearsal PROPERTIES
-  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 210 SKIP_RETURN_CODE 77)
+  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" TIMEOUT 330 SKIP_RETURN_CODE 77)

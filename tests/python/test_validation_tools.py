@@ -376,3 +376,41 @@ def test_reload_harness_credits_only_inactive_device_allocator_cache() -> None:
     no_metrics = effective_device_availability(state, control_pb2.WorkerMetrics())
     assert no_metrics is not None and no_metrics["effective_available_bytes"] == 2_000
     assert effective_device_availability(control_pb2.QualificationState(), device_cache) is None
+
+
+def test_concurrent_guard_outcome_extracts_binding_fields(tmp_path):
+    from scripts.validation.concurrent_soak import guard_outcome
+
+    record = tmp_path / "guard.jsonl"
+    rows = [
+        '{"event": "preflight", "unix_time": 0.5, "reason": null}',
+        '{"event": "start", "unix_time": 1.0, "pid": 4242, "seconds": 60, "command": ["w"]}',
+        '{"unix_time": 2.0, "pid": 4242, "available_bytes": 10, "swapout_bytes": 0}',
+        '{"unix_time": 4.0, "pid": 4242, "available_bytes": 10, "swapout_bytes": 0}',
+    ]
+    # A guard that is still running may have been mirrored mid-write.
+    record.write_text("\n".join(rows) + "\n" + '{"unix_time": 6.0, "avail')
+    running = guard_outcome("mlx", record)
+    assert running.outcome == "unavailable" and "still running" in running.detail
+    assert (running.process_id, running.started_unix_time) == (4242, 1.0)
+    assert (running.observations, running.last_observed_unix_time) == (2, 4.0)
+    assert running.exited_unix_time is None and running.exit_reason is None
+    assert running.record_sha256 is not None
+    # Corruption anywhere else is not tolerated.
+    record.write_text(rows[1] + "\n" + "{broken\n" + rows[2] + "\n")
+    assert guard_outcome("mlx", record).process_id is None
+    # A start event without the guarded PID cannot bind the guard to a worker.
+    record.write_text('{"event": "start", "unix_time": 1.0}\n' + rows[2] + "\n")
+    assert "PID" in guard_outcome("mlx", record).detail
+    record.write_text(
+        "\n".join(rows)
+        + "\n"
+        + '{"event": "exit", "unix_time": 5.0, "reason": "swap-out", "returncode": -15}\n'
+    )
+    stopped = guard_outcome("mlx", record)
+    assert (stopped.exit_reason, stopped.exited_unix_time, stopped.returncode) == (
+        "swap-out",
+        5.0,
+        -15,
+    )
+    assert guard_outcome("mlx", tmp_path / "missing.jsonl").detail == "no guard record"
