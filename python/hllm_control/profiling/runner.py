@@ -201,6 +201,14 @@ def run_memory_profile(
         if path.exists():
             raise FileExistsError(f"profile output already exists: {path}")
     binary_hash = sha256_file(binary)
+    # Sample availability before this process reads the checkpoint to digest it. On
+    # macOS the conservative free-plus-inactive proxy does not count file pages the
+    # runner has just touched (they sit on the active list), so sampling after the
+    # digest would charge the tool's own read of the checkpoint against the cap. The
+    # post-read sample is recorded for the record but does not decide the preflight.
+    sampled_at = datetime.now(UTC)
+    host_available = host_available_bytes()
+    device_available = device_available_bytes(device_id) if backend == Backend.CUDA else None
     environment = Environment(
         backend=backend,
         device_identity="pending",
@@ -235,14 +243,15 @@ def run_memory_profile(
         input_kind="synthetic-shape",
         input_digest=digest({"generator": "zero-token-or-zero-f16-boundary-v1"}),
     )
+    host_available_after_read = host_available_bytes()
     host_budget = PhysicalBudget(
-        available_bytes=host_available_bytes(),
+        available_bytes=host_available,
         headroom_bytes=host_headroom_bytes,
         extra_overhead_bytes=extra_overhead_bytes,
     )
     device_budget = (
         PhysicalBudget(
-            available_bytes=device_available_bytes(device_id),
+            available_bytes=device_available,
             headroom_bytes=device_headroom_bytes,
             extra_overhead_bytes=extra_overhead_bytes,
         )
@@ -271,8 +280,11 @@ def run_memory_profile(
     write_exclusive(
         preflight_path,
         {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "observed_at": datetime.now(UTC).isoformat(),
+            "availability_sampled_at": sampled_at.isoformat(),
+            "availability_sampled_before_checkpoint_read": True,
+            "host_available_bytes_after_checkpoint_read": host_available_after_read,
             "key": key.model_dump(mode="json"),
             "admission_capacity": capacity.model_dump(),
             "host_budget": host_budget.model_dump(),
