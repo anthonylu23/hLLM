@@ -21,11 +21,18 @@ from tests.process_helpers import BINARY, ROOT, Workers, plan, wait_clean, write
 
 PROFILER = Path(os.environ.get("HLLM_MEMORY_PROFILER", BINARY.with_name("hllm-profile-memory-cpu")))
 CAP = 32 * 1024**2
+PROMPT = [1, 4, 2, 8, 3]
+# The cancellation round is a race between the controller's cancel RPCs and the
+# victim's natural completion on every stage: a tiny worker decodes a token in about a
+# millisecond, so the reference must be long relative to --cancel-after for the cancel
+# to land first even on a loaded CI runner. 128 tokens with a cancel after three leaves
+# 125 tokens of headroom; the sixteen-token reference used before left eight.
+TOKENS = 128
 OBSERVING = (
     "--max-active-requests",
     "2",
     "--max-cached-tokens",
-    "48",
+    str(2 * (len(PROMPT) + TOKENS)),
     "--request-observations",
     "on",
 )
@@ -50,13 +57,14 @@ def guards(tmp_path: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
 def prepare(tmp_path: Path, workers: Workers) -> list[str]:
     manifest = prepare_model(tmp_path, hash_mode=HashMode.FULL)
     deployment = plan(manifest)
-    ids = [1, 4, 2, 8, 3]
+    ids = PROMPT
     with DeploymentSession(manifest, plan(manifest, split=None), workers.endpoints) as session:
         expected = [
             e.token.token_id
-            for e in session.generate(ids, maximum_new_tokens=16, stop_token_ids=[])
+            for e in session.generate(ids, maximum_new_tokens=TOKENS, stop_token_ids=[])
             if e.HasField("token")
         ]
+    assert len(expected) == TOKENS
     wait_clean(workers, loaded=False)
     files = {
         "config.json": manifest.source.config_sha256,
@@ -79,9 +87,9 @@ def prepare(tmp_path: Path, workers: Workers) -> list[str]:
             stage_index=i,
             workload=WorkloadProfile(
                 workload_id="cpu-rehearsal",
-                prompt_tokens=5,
-                output_tokens=16,
-                total_cached_tokens=21,
+                prompt_tokens=len(PROMPT),
+                output_tokens=TOKENS,
+                total_cached_tokens=len(PROMPT) + TOKENS,
                 kv_dtype=DType.F32,
             ),
             backend=Backend.CPU,
@@ -144,10 +152,10 @@ def prepare(tmp_path: Path, workers: Workers) -> list[str]:
     args.extend(["--output", str(tmp_path / "evidence.json")])
     args.extend(["--source-digest", "cpu-rehearsal", "--transport", "loopback"])
     args.extend(["--guard-description", "resource_guard.py around each worker, 240 s"])
-    # Sixteen tokens keep each tiny request alive long enough for the 5 ms sampler to
-    # catch both reservations and for the survivor to outlive the cancelled victim.
+    # Each 128-token request lives for well over a hundred milliseconds, so the 20 ms
+    # sampler catches both reservations and the survivor outlives the cancelled victim.
     args.extend(["--cycles", "2", "--pairs", "2", "--idle-seconds", "0", "--timeout", "10"])
-    args.extend(["--sample-interval", "0.005", "--cancel-after", "8"])
+    args.extend(["--sample-interval", "0.02", "--cancel-after", "3"])
     return args
 
 
@@ -172,7 +180,9 @@ def test_cpu_rehearsal_produces_accepted_concurrency_evidence(tmp_path: Path) ->
         assert kinds == [(c, k) for c in range(2) for k in ("serial", "paired", "paired", "cancel")]
         assert all(c.exact for c in evidence.results.comparisons)
         victims = [c for c in evidence.results.comparisons if c.role == "cancel-victim"]
-        assert len(victims) == 2 and all(len(v.expected_ids) == 8 for v in victims)
+        assert len(victims) == 2 and all(len(v.expected_ids) == 3 for v in victims)
+        survivors = [c for c in evidence.results.comparisons if c.role == "cancel-survivor"]
+        assert all(len(s.expected_ids) == TOKENS for s in survivors)
         overlapping = {(o.worker_id, o.request_ids) for o in evidence.results.overlap}
         for round_ in evidence.results.rounds:
             if round_.kind != "serial":

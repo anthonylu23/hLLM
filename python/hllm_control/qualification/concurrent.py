@@ -929,7 +929,21 @@ def assess_evidence(e: ConcurrentServingEvidence) -> tuple[Status, tuple[str, ..
                     and any(ev.sequence > c.sequence for c in cancelled)
                 ]
                 if not cancelled:
-                    unknown.append(f"{w.worker_id}: no cancelled retirement of {victim} observed")
+                    # A victim that retired for another reason (usually `completed`: the
+                    # cancellation lost the race against its natural completion on this
+                    # worker) is named so the operator can lengthen the reference or
+                    # cancel earlier rather than guess.
+                    other = sorted(
+                        {
+                            ev.reason
+                            for ev in events.values()
+                            if ev.kind == "retired" and ev.request_id == victim
+                        }
+                    )
+                    detail = f" (it retired as {', '.join(other)})" if other else ""
+                    unknown.append(
+                        f"{w.worker_id}: no cancelled retirement of {victim} observed{detail}"
+                    )
                 elif not independent:
                     unknown.append(
                         f"{w.worker_id}: independent retirement of {victim} while {survivor} held "

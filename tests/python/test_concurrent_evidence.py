@@ -519,7 +519,11 @@ def test_complete_evidence_is_accepted_and_round_trips(tmp_path: Path) -> None:
         ({"device_other_process": True}, "failed", "device observations belong to another"),
         ({"stale": True}, "failed", "profile stale or future-dated"),
         ({"no_independent_release": True}, "unknown", "independent retirement of victim"),
-        ({"victim_completed": True}, "unknown", "no cancelled retirement of victim"),
+        (
+            {"victim_completed": True},
+            "unknown",
+            "no cancelled retirement of victim observed (it retired as completed)",
+        ),
         ({"survivor_unfinished": True}, "unknown", "completed retirement of survivor"),
         ({"no_capability": True}, "unknown", "did not advertise request observations"),
         ({"no_device_samples": True}, "unknown", "CUDA physical process observations unavailable"),

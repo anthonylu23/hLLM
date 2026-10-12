@@ -159,9 +159,13 @@ derived from the record's contents and re-derived on every load, so an edited re
 or a stale safe envelope carried over observations that no longer fit, is rejected. A
 failure at any point still writes the partial record with its failure reason; if even
 assembly fails, a `.failure.json` note is written beside the output and the original
-error is kept. The CPU rehearsal (`tests/profiling/test_concurrent_cpu.py`, run by the
-`CpuReloadRehearsal` CTest entry) exercises the whole procedure on tiny workers with
-`--cancel-after 8`, which is procedure evidence only. No throughput claim and no
+error is kept. The cancellation round is a race: the controller's cancel RPCs must
+reach every worker before the victim completes naturally there, or that worker
+retires it as `completed` and the record is `unknown` (the reason names the observed
+retirement), so the reference must be long relative to `--cancel-after`. The CPU
+rehearsal (`tests/profiling/test_concurrent_cpu.py`, run by the `CpuReloadRehearsal`
+CTest entry) exercises the whole procedure on tiny workers with a 128-token reference
+and `--cancel-after 3`, which is procedure evidence only. No throughput claim and no
 concurrency above two follows from an accepted record.
 
 ## Independent reference
