@@ -124,24 +124,42 @@ uv run python -m scripts.validation.concurrent_soak \
   --cycles 3 --pairs 3 --timeout 180 --output build/run/concurrent.json
 ```
 
-The worker configuration is the reload-soak format plus two optional paths per
-worker: `guard_record` (that worker's `resource_guard.py` JSONL, hashed and
-classified as normal, stopped or unavailable) and `device_samples` (a
-`memory_watch.py --cuda` JSONL for the CUDA worker; without it the device side of the
-physical envelope is unknown, never safe). Each cycle re-runs the fresh single-request
-fit gate, loads, runs one serial exact request, `--pairs` paired rounds released from
-a barrier, then a cancellation round in which one request is cancelled after
-`--cancel-after` tokens (default three) while the other completes, then unloads.
-Both members of every pair must match the independent reference exactly.
+`--baseline-report` must be the reload soak's report: before anything loads, the
+harness checks that it completed with exact outputs, in the same scope (`f16-reload-
+qualification`, or `cpu-rehearsal` under `--cpu-rehearsal`), for this plan digest,
+against this reference file and on these worker binaries, and the record keeps that
+summary. A baseline produced on other binaries is refused, so a rebuild needs a new
+reload soak first. The worker configuration is the reload-soak format plus two
+optional paths per worker: `guard_record` (that worker's `resource_guard.py` JSONL)
+and `device_samples` (a `memory_watch.py --cuda` JSONL for the CUDA worker; without it
+the device side of the physical envelope is unknown, never safe). The guard must have
+spawned the worker process itself (the start event's PID is matched against the
+worker's reported PID), started before the harness, and still be observing within 20 s
+of the end; a stop reason, an early exit or a failing exit status is `stopped`, and
+anything less than full coverage is `unavailable`. Device samples are recorded with
+their PIDs and must belong to the worker process. Each cycle re-runs the fresh
+single-request fit gate and records that cycle's live budget, loads, runs one serial
+exact request, `--pairs` paired rounds released from a barrier, then a cancellation
+round in which one request is cancelled after `--cancel-after` tokens (default three)
+while the other completes, then unloads. Both members of every pair must match the
+sealed reference exactly; the cancelled request must match a proper prefix of it, its
+worker-side retirement must say `cancelled` while the survivor still held its
+reservation, and the survivor's retirement must say `completed` afterwards.
 
-Overlap is claimed per worker only from that worker's own events: the second
-admission must list the first as an allocated concurrent reservation, and the first
-retirement of either must list the other (or, failing that, a polled snapshot must
-carry both allocated rows). Queued-only submission, a single-worker overlap, a missed
-observation window, a worker restart, a missing guard record or an unverified cleanup
-make the record `unknown` or `failed`; the acceptance status and its reasons are
-derived from the record's contents and re-derived on every load, so an edited record
-is rejected. The CPU rehearsal (`tests/profiling/test_concurrent_cpu.py`, run by the
+Overlap is claimed per worker only from that worker's own events: a retirement of
+either member must list the other as an allocated concurrent reservation (or, failing
+that, a polled snapshot must carry both allocated rows); the interval starts at the
+later admission. Two requests that reserve together list no peer in their admissions,
+which is not evidence against overlap. Queued-only submission, a single-worker
+overlap, a missed observation window, a worker restart, an unbound guard record or an
+unverified cleanup make the record `unknown` or `failed`. Everything the record
+concludes (overlap, logical peaks, one physical envelope per worker and cycle against
+that cycle's budget, guard outcomes and the acceptance status with its reasons) is
+derived from the record's contents and re-derived on every load, so an edited record,
+or a stale safe envelope carried over observations that no longer fit, is rejected. A
+failure at any point still writes the partial record with its failure reason; if even
+assembly fails, a `.failure.json` note is written beside the output and the original
+error is kept. The CPU rehearsal (`tests/profiling/test_concurrent_cpu.py`, run by the
 `CpuReloadRehearsal` CTest entry) exercises the whole procedure on tiny workers with
 `--cancel-after 8`, which is procedure evidence only. No throughput claim and no
 concurrency above two follows from an accepted record.

@@ -17,9 +17,12 @@ from hllm_control.profiling.models import (
     digest,
 )
 from hllm_control.qualification.concurrent import (
+    BaselineSummary,
     CleanupEvidence,
     ConcurrentServingEvidence,
     Configuration,
+    CycleGate,
+    DeviceSample,
     GuardOutcome,
     Identity,
     LifecycleEvent,
@@ -36,12 +39,16 @@ from hllm_control.qualification.concurrent import (
     WorkerSnapshot,
     Workload,
     assess_serving_envelope,
+    classify_guard,
+    derive_overlap,
     make_evidence,
     read_evidence,
     write_evidence,
 )
 
 NOW = datetime(2026, 10, 11, 3, 0, tzinfo=UTC)
+GATE_AT = NOW - timedelta(minutes=1)
+FINISHED = NOW + timedelta(minutes=10)
 ORDER = ("mlx", "cuda")
 PROMPT = (1, 4, 2, 8, 3)
 EXPECTED = (7, 7, 3, 1)
@@ -49,6 +56,8 @@ WEIGHTS = {"mlx": MemoryAmounts(unified=1000), "cuda": MemoryAmounts(host=100, d
 CACHE = {"mlx": MemoryAmounts(unified=40), "cuda": MemoryAmounts(host=4, device=36)}
 WORK = {"mlx": MemoryAmounts(unified=10), "cuda": MemoryAmounts(host=1, device=9)}
 CAPACITY = {"mlx": MemoryAmounts(unified=1200), "cuda": MemoryAmounts(host=200, device=1100)}
+BUDGET = PhysicalBudget(available_bytes=5000, headroom_bytes=10, extra_overhead_bytes=10)
+TIGHT = BUDGET.model_copy(update={"available_bytes": 1200})  # 1100 + 110 + 10 + 10 > 1200
 
 
 def environment(backend: Backend) -> Environment:
@@ -87,6 +96,7 @@ def snapshot(
     live: tuple[str, ...],
     events: tuple[LifecycleEvent, ...],
     *,
+    cycle: int | None = 0,
     process_id: int = 42,
     available: bool = True,
     loaded: bool = True,
@@ -108,6 +118,7 @@ def snapshot(
     footprint = 1100 if worker == "mlx" else None
     return WorkerSnapshot(
         phase=phase,
+        cycle=cycle,
         unix_time=1.0 + at / 1e9,
         process_id=process_id if available else None,
         observed_at_monotonic_ns=at if available else None,
@@ -169,6 +180,12 @@ def timeline(worker: str, **options) -> WorkerObservations:
         # first was live, so neither retirement lists the other.
         pair_events = (*pair_events[:3], event("admitted", "b", 4, 310))
         witnessed = ()
+    if options.get("simultaneous"):
+        # Both reserved before either allocation completed: neither admission lists a
+        # peer, but the joint snapshot and the retirement witness still show overlap.
+        pair_events = (*pair_events[:3], event("admitted", "b", 4, 310))
+        if options.get("simultaneous") == "snapshot-only":
+            witnessed = ()
     after_pair = (
         *pair_events,
         event("retired", "a", 5, 500, concurrent=witnessed, reason="completed"),
@@ -184,14 +201,16 @@ def timeline(worker: str, **options) -> WorkerObservations:
             9,
             650,
             concurrent=() if options.get("no_independent_release") else ("survivor",),
-            reason="cancelled",
+            reason="completed" if options.get("victim_completed") else "cancelled",
         ),
-        event("retired", "survivor", 10, 700, reason="completed"),
     )
+    if not options.get("survivor_unfinished"):
+        cancel_events = (*cancel_events, event("retired", "survivor", 10, 700, reason="completed"))
+    process_id = 43 if options.get("other_process") else 42
     snapshots = [
-        snapshot(worker, "baseline", 50, (), (), loaded=False),
-        snapshot(worker, "serial-0", 150, ("serial",), pair_events[:1]),
-        snapshot(worker, "serial-0-cleanup", 250, (), pair_events[:2]),
+        snapshot(worker, "baseline", 50, (), (), loaded=False, cycle=None, process_id=process_id),
+        snapshot(worker, "serial-0", 150, ("serial",), pair_events[:1], process_id=process_id),
+        snapshot(worker, "serial-0-cleanup", 250, (), pair_events[:2], process_id=process_id),
         snapshot(
             worker,
             "paired-0-0",
@@ -199,11 +218,16 @@ def timeline(worker: str, **options) -> WorkerObservations:
             joint_live,
             pair_events,
             allocating=("b",) if options.get("allocating") else (),
+            process_id=process_id,
         ),
-        snapshot(worker, "paired-0-0-cleanup", 520, (), after_pair[:6]),
-        snapshot(worker, "cancel-0-1", 620, ("victim", "survivor"), after_pair),
-        snapshot(worker, "cancel-0-1", 660, ("survivor",), cancel_events[:9]),
-        snapshot(worker, "cancel-0-1-cleanup", 720, (), cancel_events),
+        snapshot(worker, "paired-0-0-cleanup", 520, (), after_pair[:6], process_id=process_id),
+        snapshot(
+            worker, "cancel-0-1", 620, ("victim", "survivor"), after_pair, process_id=process_id
+        ),
+        snapshot(
+            worker, "cancel-0-1", 660, ("survivor",), cancel_events[:9], process_id=process_id
+        ),
+        snapshot(worker, "cancel-0-1-cleanup", 720, (), cancel_events, process_id=process_id),
         snapshot(
             worker,
             "unloaded-0",
@@ -211,11 +235,25 @@ def timeline(worker: str, **options) -> WorkerObservations:
             (),
             cancel_events,
             loaded=False,
-            process_id=43 if options.get("process_change") else 42,
+            process_id=43 if options.get("process_change") else process_id,
             available=not options.get("dropped_telemetry"),
         ),
     ]
-    return WorkerObservations(worker_id=worker, snapshots=tuple(snapshots))
+    if options.get("second_cycle"):
+        snapshots.append(snapshot(worker, "serial-1", 900, ("serial",), pair_events[:1], cycle=1))
+    if options.get("no_snapshots") and worker == "cuda":
+        snapshots = []
+    samples = ()
+    if worker == "cuda" and not options.get("no_device_samples"):
+        samples = (
+            DeviceSample(
+                unix_time=NOW.timestamp() + 30,
+                process_id=7 if options.get("device_other_process") else 42,
+                cuda_process_bytes=950,
+            ),
+            DeviceSample(unix_time=NOW.timestamp() + 31, process_id=42, cuda_process_bytes=None),
+        )
+    return WorkerObservations(worker_id=worker, snapshots=tuple(snapshots), device_samples=samples)
 
 
 def comparisons(**options) -> list[TokenComparison]:
@@ -229,6 +267,16 @@ def comparisons(**options) -> list[TokenComparison]:
             seconds=0.5,
         )
 
+    if options.get("unsealed"):
+        # Internally consistent, but not what the sealed workload expects.
+        other = (99, 99, 99, 99)
+        return [
+            row("serial", "serial", other, other),
+            row("a", "paired", other, other),
+            row("b", "paired", other, other),
+            row("victim", "cancel-victim", other[:3], other[:3]),
+            row("survivor", "cancel-survivor", other, other),
+        ]
     victim = EXPECTED[:3]
     survivor = EXPECTED[:3] if options.get("incomplete_survivor") else EXPECTED
     return [
@@ -243,6 +291,34 @@ def comparisons(**options) -> list[TokenComparison]:
         ),
         row("survivor", "cancel-survivor", survivor, EXPECTED),
     ]
+
+
+def guard(worker: str, **options) -> GuardOutcome:
+    started = NOW.timestamp() - 120
+    last = FINISHED.timestamp() - 2
+    exited = None
+    returncode = None
+    if options.get("guard_late_start"):
+        started = NOW.timestamp() + 5
+    if options.get("guard_stale"):
+        last = FINISHED.timestamp() - 60
+    if options.get("guard_exited_early"):
+        exited = FINISHED.timestamp() - 30
+        returncode = 1
+    return GuardOutcome(
+        worker_id=worker,
+        record_sha256="5" * 64,
+        process_id=999 if options.get("guard_other_process") else 42,
+        started_unix_time=started,
+        last_observed_unix_time=last,
+        exited_unix_time=exited,
+        observations=10,
+        exit_reason="swap-out" if options.get("guard_stopped") else None,
+        returncode=returncode,
+        detail="guard still running after 10 observations",
+        outcome="unavailable",
+        reasons=(),
+    )
 
 
 def build(**options) -> ConcurrentServingEvidence:
@@ -298,10 +374,50 @@ def build(**options) -> ConcurrentServingEvidence:
         host_headroom_bytes=10,
         device_headroom_bytes=10,
     )
-    budget = PhysicalBudget(available_bytes=5000, headroom_bytes=10, extra_overhead_bytes=10)
     measured_at = NOW - timedelta(hours=30 if options.get("stale") else 1)
+    gates = [
+        CycleGate(
+            worker_id=w,
+            cycle=0,
+            sampled_at=GATE_AT,
+            status="unsafe" if options.get("gate_unsafe") else "safe",
+            reasons=("host/unified: cap exceeds availability",)
+            if options.get("gate_unsafe")
+            else (),
+            host_budget=TIGHT if options.get("tight_budget") else BUDGET,
+            device_budget=BUDGET if w == "cuda" else None,
+        )
+        for w in ORDER
+    ]
+    if options.get("second_cycle"):
+        gates += [
+            CycleGate(
+                worker_id=w,
+                cycle=1,
+                sampled_at=NOW + timedelta(minutes=5),
+                status="safe",
+                reasons=(),
+                host_budget=TIGHT if w == "mlx" else BUDGET,
+                device_budget=BUDGET if w == "cuda" else None,
+            )
+            for w in ORDER
+        ]
+    baseline = BaselineSummary(
+        scope="f16-reload-qualification",
+        completed=not options.get("baseline_incomplete"),
+        plan_digest="e" * 64 if options.get("baseline_other_plan") else "d" * 64,
+        reference_sha256="2" * 64,
+        worker_binary_digests=tuple(
+            (w, "0" * 64 if options.get("baseline_other_binaries") else "3" * 64) for w in ORDER
+        ),
+        cycles=6,
+        requests=24,
+        all_exact=True,
+        finished_unix_time=NOW.timestamp() - 3600,
+    )
     preconditions = Preconditions(
         baseline_report_sha256="4" * 64,
+        baseline=baseline,
         started_at=NOW,
         profiles=tuple(
             ProfilePrecondition(
@@ -309,39 +425,15 @@ def build(**options) -> ConcurrentServingEvidence:
                 artifact_digest="a" * 64,
                 measured_at=measured_at,
                 requested_mlx_policy=MlxFitPolicy.FOOTPRINT if w == "mlx" else None,
-                prelaunch_status="safe",
-                prelaunch_reasons=(),
-                host_budget=budget,
-                device_budget=budget if w == "cuda" else None,
             )
             for w in ORDER
         ),  # type: ignore[arg-type]
+        gates=() if options.get("no_gate") else tuple(gates),
         guard="1 GiB floor, 256 MiB/60 s swap-out, 30 minutes",
     )
     observations = Observations(
         workers=(timeline("mlx", **options), timeline("cuda", **options)),
         clock_alignment="per-worker steady clocks only",
-    )
-    physical = tuple(
-        assess_serving_envelope(
-            w,
-            Backend.MLX if w == "mlx" else Backend.CUDA,
-            observations.workers[i].snapshots,
-            host=budget,
-            device=budget if w == "cuda" else None,
-            mlx_policy=MlxFitPolicy.FOOTPRINT,
-            device_process_peak_bytes=None if options.get("no_device_samples") else 950,
-        )
-        for i, w in enumerate(ORDER)
-    )
-    guards = tuple(
-        GuardOutcome(
-            worker_id=w,
-            outcome="stopped" if options.get("guard_stopped") else "normal",
-            record_sha256="5" * 64,
-            detail="swap-out" if options.get("guard_stopped") else "exited normally",
-        )
-        for w in ORDER
     )
     cleanup = tuple(
         CleanupEvidence(
@@ -370,9 +462,9 @@ def build(**options) -> ConcurrentServingEvidence:
             Round(cycle=0, index=1, kind="cancel", request_ids=("victim", "survivor")),
         ],
         comparisons=comparisons(**options),
-        physical=physical,  # type: ignore[arg-type]
-        guards=guards,  # type: ignore[arg-type]
+        guards=(guard("mlx", **options), guard("cuda", **options)),
         cleanup=cleanup,  # type: ignore[arg-type]
+        finished_at=FINISHED,
         failure_reason=options.get("failure"),
     )
 
@@ -389,13 +481,20 @@ def test_complete_evidence_is_accepted_and_round_trips(tmp_path: Path) -> None:
     for interval in evidence.results.overlap:
         assert interval.start_monotonic_ns < interval.end_monotonic_ns
         assert interval.proof == "retirement-event"
+        assert interval.admission_sequence in (4, 8)
     # Shared weights are counted once; two reservations are summed.
     mlx, cuda = evidence.results.logical_peaks
     assert mlx.combined == MemoryAmounts(unified=1000 + 2 * 40 + 2 * 10)
     assert cuda.combined == MemoryAmounts(host=100 + 2 * 5, device=900 + 2 * 45)
-    assert all(p.status == "safe" for p in evidence.results.physical)
+    # One envelope per worker and gated cycle, derived from the record itself.
+    assert [(p.worker_id, p.cycle, p.status) for p in evidence.results.physical] == [
+        ("mlx", 0, "safe"),
+        ("cuda", 0, "safe"),
+    ]
     assert evidence.results.physical[0].policy == "mlx-footprint-max-v1"
     assert evidence.results.physical[1].policy == "cuda-rss-device-v1"
+    assert evidence.results.physical[1].device_peak_bytes == 1050  # max(950, allocator)
+    assert all(g.outcome == "normal" and not g.reasons for g in evidence.results.guards)
     path = tmp_path / "evidence.json"
     write_evidence(path, evidence)
     assert read_evidence(path) == evidence
@@ -412,13 +511,31 @@ def test_complete_evidence_is_accepted_and_round_trips(tmp_path: Path) -> None:
         ({"premature": True}, "failed", "cancelled before 3 tokens"),
         ({"incomplete_survivor": True}, "failed", "survivor: continuation differs"),
         ({"mismatch": True}, "failed", "a: continuation differs"),
+        ({"unsealed": True}, "failed", "expected tokens differ from the sealed reference"),
+        ({"unsealed": True}, "failed", "victim: expected tokens are not a proper prefix"),
         ({"dropped_telemetry": True}, "unknown", "request observations missing"),
-        ({"process_change": True}, "failed", "worker process changed"),
+        ({"process_change": True}, "failed", "worker process differs from the initial identity"),
+        ({"other_process": True}, "failed", "worker process differs from the initial identity"),
+        ({"device_other_process": True}, "failed", "device observations belong to another"),
         ({"stale": True}, "failed", "profile stale or future-dated"),
         ({"no_independent_release": True}, "unknown", "independent retirement of victim"),
+        ({"victim_completed": True}, "unknown", "no cancelled retirement of victim"),
+        ({"survivor_unfinished": True}, "unknown", "completed retirement of survivor"),
         ({"no_capability": True}, "unknown", "did not advertise request observations"),
         ({"no_device_samples": True}, "unknown", "CUDA physical process observations unavailable"),
-        ({"guard_stopped": True}, "failed", "resource guard stopped"),
+        ({"no_snapshots": True}, "unknown", "cuda: no snapshots recorded"),
+        ({"no_gate": True}, "unknown", "no fit gate recorded before the first cycle"),
+        ({"gate_unsafe": True}, "failed", "fit gate before cycle 0 was unsafe"),
+        ({"tight_budget": True}, "failed", "mlx cycle 0: host/unified: serving envelope"),
+        ({"second_cycle": True}, "failed", "mlx cycle 1: host/unified: serving envelope"),
+        ({"baseline_incomplete": True}, "failed", "baseline single-request report was incomplete"),
+        ({"baseline_other_plan": True}, "failed", "produced for a different plan"),
+        ({"baseline_other_binaries": True}, "failed", "different worker binaries"),
+        ({"guard_stopped": True}, "failed", "guard stopped the worker: swap-out"),
+        ({"guard_exited_early": True}, "failed", "exited before the experiment finished"),
+        ({"guard_other_process": True}, "unknown", "guard watched process 999"),
+        ({"guard_late_start": True}, "unknown", "guard started after the experiment began"),
+        ({"guard_stale": True}, "unknown", "guard observations end"),
         ({"unclean": True}, "failed", "cleanup not verified"),
         ({"failure": "RuntimeError: worker lost"}, "failed", "run failed"),
     ],
@@ -431,9 +548,33 @@ def test_defects_are_never_accepted(options: dict, status: str, fragment: str) -
     )
 
 
-def test_overlap_is_proven_by_events_or_by_a_joint_snapshot() -> None:
-    from hllm_control.qualification.concurrent import derive_overlap
+def test_second_cycle_is_scored_against_its_own_budget() -> None:
+    evidence = build(second_cycle=True)
+    by_cycle = {(p.worker_id, p.cycle): p.status for p in evidence.results.physical}
+    assert by_cycle == {
+        ("mlx", 0): "safe",
+        ("mlx", 1): "unsafe",
+        ("cuda", 0): "safe",
+        ("cuda", 1): "unknown",  # No device samples fell in the second window.
+    }
 
+
+def test_requests_that_reserve_together_still_show_overlap() -> None:
+    witnessed = build(simultaneous=True)
+    assert witnessed.results.acceptance == "accepted", witnessed.results.acceptance_reasons
+    intervals = {(o.worker_id, o.request_ids): o for o in witnessed.results.overlap}
+    interval = intervals[("mlx", ("a", "b"))]
+    assert interval.proof == "retirement-event" and interval.start_monotonic_ns == 310
+    assert "reserved together" in interval.detail
+    polled = build(simultaneous="snapshot-only")
+    assert polled.results.acceptance == "accepted", polled.results.acceptance_reasons
+    interval = {(o.worker_id, o.request_ids): o for o in polled.results.overlap}[
+        ("mlx", ("a", "b"))
+    ]
+    assert interval.proof == "joint-snapshot" and interval.start_monotonic_ns == 310
+
+
+def test_overlap_is_proven_by_events_or_by_a_joint_snapshot() -> None:
     rounds = [Round(cycle=0, index=0, kind="paired", request_ids=("a", "b"))]
     # Events alone (no joint snapshot) prove overlap through the first retirement.
     without_snapshot = Observations(
@@ -453,7 +594,7 @@ def test_overlap_is_proven_by_events_or_by_a_joint_snapshot() -> None:
     assert proofs == {("mlx", "retirement-event"), ("cuda", "retirement-event")}
 
     # A joint snapshot alone (retirements evicted from history) still proves overlap.
-    def strip_retirements(w: WorkerObservations) -> WorkerObservations:
+    def strip(w: WorkerObservations, kinds: tuple[str, ...]) -> WorkerObservations:
         return w.model_copy(
             update={
                 "snapshots": tuple(
@@ -462,7 +603,7 @@ def test_overlap_is_proven_by_events_or_by_a_joint_snapshot() -> None:
                             "events": tuple(
                                 e
                                 for e in s.events
-                                if not (e.kind == "retired" and e.request_id in ("a", "b"))
+                                if not (e.kind in kinds and e.request_id in ("a", "b"))
                             )
                         }
                     )
@@ -472,17 +613,36 @@ def test_overlap_is_proven_by_events_or_by_a_joint_snapshot() -> None:
         )
 
     without_retirements = Observations(
-        workers=(strip_retirements(timeline("mlx")), strip_retirements(timeline("cuda"))),
+        workers=(strip(timeline("mlx"), ("retired",)), strip(timeline("cuda"), ("retired",))),
         clock_alignment="test",
     )
     proofs = {(o.worker_id, o.proof) for o in derive_overlap(without_retirements, rounds)}
     assert proofs == {("mlx", "joint-snapshot"), ("cuda", "joint-snapshot")}
+    # Even admissions evicted: the joint snapshot's rows carry the admission times.
+    nothing = Observations(
+        workers=(
+            strip(timeline("mlx"), ("retired", "admitted")),
+            strip(timeline("cuda"), ("retired", "admitted")),
+        ),
+        clock_alignment="test",
+    )
+    intervals = derive_overlap(nothing, rounds)
+    assert {o.proof for o in intervals} == {"joint-snapshot"}
+    assert all(o.admission_sequence is None and o.start_monotonic_ns == 319 for o in intervals)
 
 
 def test_tampered_records_are_rejected_on_load(tmp_path: Path) -> None:
     evidence = build(queued_only=True)
     assert evidence.results.acceptance == "unknown"
     data = evidence.model_dump(mode="json")
+
+    def resealed(mutate) -> dict:
+        tampered = json.loads(json.dumps(data))
+        mutate(tampered)
+        tampered.pop("evidence_digest")
+        tampered["evidence_digest"] = digest(tampered)
+        return tampered
+
     for mutate, message in (
         (lambda d: d["results"].__setitem__("acceptance", "accepted"), "digest mismatch"),
         (lambda d: d["identity"].__setitem__("plan_digest", "6" * 64), "digest mismatch"),
@@ -493,40 +653,66 @@ def test_tampered_records_are_rejected_on_load(tmp_path: Path) -> None:
         with pytest.raises(ValueError, match=message):
             ConcurrentServingEvidence.model_validate(tampered)
     # Even with a recomputed digest, claimed acceptance must match the derivation.
-    tampered = json.loads(json.dumps(data))
-    tampered["results"]["acceptance"] = "accepted"
-    tampered["results"]["acceptance_reasons"] = []
-    tampered.pop("evidence_digest")
-    tampered["evidence_digest"] = digest(tampered)
     with pytest.raises(ValueError, match="is not derived"):
-        ConcurrentServingEvidence.model_validate(tampered)
+        ConcurrentServingEvidence.model_validate(
+            resealed(lambda d: d["results"].update(acceptance="accepted", acceptance_reasons=[]))
+        )
     # Claimed overlap that the observations do not show is rejected the same way.
-    tampered = json.loads(json.dumps(data))
-    tampered["results"]["overlap"] = evidence.model_dump(mode="json")["results"]["overlap"] + [
-        {
-            "worker_id": "mlx",
-            "request_ids": ["a", "b"],
-            "start_monotonic_ns": 1,
-            "end_monotonic_ns": 2,
-            "admission_sequence": 4,
-            "proof": "joint-snapshot",
-            "detail": "snapshot paired-0-0",
-        }
-    ]
-    tampered.pop("evidence_digest")
-    tampered["evidence_digest"] = digest(tampered)
+    extra = {
+        "worker_id": "mlx",
+        "request_ids": ["a", "b"],
+        "start_monotonic_ns": 1,
+        "end_monotonic_ns": 2,
+        "admission_sequence": 4,
+        "proof": "joint-snapshot",
+        "detail": "snapshot paired-0-0",
+    }
     with pytest.raises(ValueError, match="overlap intervals are not what the observations show"):
-        ConcurrentServingEvidence.model_validate(tampered)
+        ConcurrentServingEvidence.model_validate(
+            resealed(
+                lambda d: d["results"].__setitem__("overlap", d["results"]["overlap"] + [extra])
+            )
+        )
+    # A safe envelope cannot be carried over a budget the observations no longer fit.
+    with pytest.raises(ValueError, match="physical envelopes are not what the observations show"):
+        ConcurrentServingEvidence.model_validate(
+            resealed(
+                lambda d: [
+                    g["host_budget"].__setitem__("available_bytes", 1200)
+                    for g in d["preconditions"]["gates"]
+                ]
+            )
+        )
+    # Nor can a guard outcome be claimed over fields that do not support it.
+    with pytest.raises(ValueError, match="guard outcome is not derived"):
+        ConcurrentServingEvidence.model_validate(
+            resealed(lambda d: d["results"]["guards"][0].__setitem__("process_id", 999))
+        )
+
+
+def test_guard_classification_requires_coverage_of_this_worker() -> None:
+    normal = guard("mlx")
+    assert classify_guard(normal, 42, NOW, FINISHED) == ("normal", ())
+    missing = normal.model_copy(update={"started_unix_time": None})
+    assert classify_guard(missing, 42, NOW, FINISHED)[0] == "unavailable"
+    # A stop reason beats coverage gaps, and both are reported.
+    outcome, reasons = classify_guard(
+        guard("mlx", guard_stopped=True, guard_other_process=True), 42, NOW, FINISHED
+    )
+    assert outcome == "stopped" and len(reasons) == 2
+    # A guard that exits cleanly after the experiment is still normal.
+    done = normal.model_copy(update={"exited_unix_time": FINISHED.timestamp() + 5, "returncode": 0})
+    assert classify_guard(done, 42, NOW, FINISHED) == ("normal", ())
 
 
 def test_serving_envelope_falls_back_and_refuses_unsafe_budgets() -> None:
     rows = timeline("mlx").snapshots
-    budget = PhysicalBudget(available_bytes=5000, headroom_bytes=10, extra_overhead_bytes=10)
     footprint = assess_serving_envelope(
         "mlx",
         Backend.MLX,
         rows,
-        host=budget,
+        cycle=0,
+        host=BUDGET,
         device=None,
         mlx_policy=MlxFitPolicy.FOOTPRINT,
         device_process_peak_bytes=None,
@@ -535,7 +721,8 @@ def test_serving_envelope_falls_back_and_refuses_unsafe_budgets() -> None:
         "mlx",
         Backend.MLX,
         rows,
-        host=budget,
+        cycle=0,
+        host=BUDGET,
         device=None,
         mlx_policy=MlxFitPolicy.CONSERVATIVE,
         device_process_peak_bytes=None,
@@ -561,7 +748,8 @@ def test_serving_envelope_falls_back_and_refuses_unsafe_budgets() -> None:
         "mlx",
         Backend.MLX,
         broken,
-        host=budget,
+        cycle=0,
+        host=BUDGET,
         device=None,
         mlx_policy=MlxFitPolicy.FOOTPRINT,
         device_process_peak_bytes=None,
@@ -571,9 +759,21 @@ def test_serving_envelope_falls_back_and_refuses_unsafe_budgets() -> None:
         "mlx",
         Backend.MLX,
         rows,
-        host=budget.model_copy(update={"available_bytes": 1200}),
+        cycle=0,
+        host=TIGHT,
         device=None,
         mlx_policy=MlxFitPolicy.FOOTPRINT,
         device_process_peak_bytes=None,
     )
     assert tight.status == "unsafe"  # 1100 + 110 + 10 + 10 > 1200
+    empty = assess_serving_envelope(
+        "mlx",
+        Backend.MLX,
+        (),
+        cycle=3,
+        host=BUDGET,
+        device=None,
+        mlx_policy=MlxFitPolicy.FOOTPRINT,
+        device_process_peak_bytes=None,
+    )
+    assert empty.status == "unknown" and "no serving snapshots" in empty.reasons[0]

@@ -206,7 +206,7 @@ def fresh_fit(a: ProfileArtifact, worker: Worker, control) -> dict:
     return result
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("manifest", "plan", "reference", "workers", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
@@ -219,7 +219,7 @@ def main() -> None:
         action="store_true",
         help="CPU/F32 procedure check only; never constitutes F16 or accelerator qualification",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if (
         not 1 <= args.cycles <= 16
         or not 1 <= args.requests <= 16

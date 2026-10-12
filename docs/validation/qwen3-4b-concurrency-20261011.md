@@ -148,6 +148,16 @@ python ~/Projects/experiments/hllm-4b-fit-20261011-044533/assemble_results.py \
 After the expiry the CUDA profile must be re-measured first (`cuda-profile.sh`, with the
 page cache dropped and the guard's 256 MiB swap-out limit unchanged).
 
+**October 12 addendum.** The review follow-up on the harness (schema 1.1) binds the
+`--baseline-report` to the worker binaries under test. The staged
+`inputs/baseline-reload-soak.json` is the October 10 reload soak on the October 10
+binaries (`d49f4ee1…` / `4b177c76…`), not the rebuilt ones (`09a79a4c…` /
+`577b9ca0…`), so the harness will now refuse it before loading. P5 therefore needs a
+fresh reload soak on the rebuilt binaries first (both workers under their guards,
+`reload_soak.py` with the same plan and reference, about 20 minutes of GPU time), and
+`run-concurrent.sh` must point `--baseline-report` at that report. The run
+directory's `source/` clone also needs the updated harness.
+
 ## Cleanup
 
 Verified at 06:43Z–06:45Z after the first watch ended, and again at 07:31Z after the second MLX refusal (guard and profiler had exited on their own; only `caffeinate` remained).

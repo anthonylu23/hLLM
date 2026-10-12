@@ -3,10 +3,12 @@
 Two requests are released from a barrier against explicitly selected, already running
 workers started with `--request-observations on` and `--max-active-requests 2`. Each
 worker's own request-lifecycle observations, not poll timing or HTTP submission, are
-what establish overlap. The run refuses busy workers, requires a passing single-request
-baseline report and fresh single-request profiles, re-checks physical fit before every
-load, and writes one immutable evidence record whose acceptance is derived from its
-contents. It claims no throughput and qualifies no concurrency beyond two.
+what establish overlap. The run refuses busy workers, validates the passing
+single-request baseline report against this plan, reference and these binaries before
+any load, requires fresh single-request profiles, re-checks physical fit before every
+load and keeps each cycle's live budget, and writes one immutable evidence record whose
+acceptance is derived from its contents. It claims no throughput and qualifies no
+concurrency beyond two.
 """
 
 from __future__ import annotations
@@ -35,14 +37,16 @@ from hllm_control.profiling.models import (
 from hllm_control.proto import common_pb2, control_pb2, control_pb2_grpc, profile_pb2
 from hllm_control.qualification.concurrent import (
     REQUIRED_CANCEL_PREFIX,
+    BaselineSummary,
     CleanupEvidence,
     ConcurrentServingEvidence,
     Configuration,
+    CycleGate,
+    DeviceSample,
     GuardOutcome,
     Identity,
     LifecycleEvent,
     Observations,
-    PhysicalEnvelope,
     Preconditions,
     ProfilePrecondition,
     RequestReservation,
@@ -54,7 +58,6 @@ from hllm_control.qualification.concurrent import (
     WorkerObservations,
     WorkerSnapshot,
     Workload,
-    assess_serving_envelope,
     make_evidence,
     write_evidence,
 )
@@ -94,7 +97,10 @@ def amounts(rows, cache: bool) -> MemoryAmounts:
 
 
 def snapshot_from_proto(
-    phase: str, memory: control_pb2.MemoryReport, metrics: control_pb2.WorkerMetrics
+    phase: str,
+    cycle: int | None,
+    memory: control_pb2.MemoryReport,
+    metrics: control_pb2.WorkerMetrics,
 ) -> WorkerSnapshot:
     usage = {DOMAINS[u.domain]: u for u in memory.domain_usage if u.domain in DOMAINS}
     available = memory.HasField("request_observations")
@@ -121,6 +127,7 @@ def snapshot_from_proto(
         )
     return WorkerSnapshot(
         phase=phase,
+        cycle=cycle,
         unix_time=time.time(),
         process_id=int(observations.process_id) if available else None,
         observed_at_monotonic_ns=int(observations.observed_at_monotonic_ns) if available else None,
@@ -168,10 +175,30 @@ def snapshot_from_proto(
 
 
 def guard_outcome(worker_id: str, record: Path | None) -> GuardOutcome:
-    if record is None or not record.is_file():
+    """Extract what a `resource_guard.py` record shows; the outcome is derived later.
+
+    The start event's PID, the observation span and the exit event are what let the
+    record validator bind the guard to this worker and this experiment window.
+    """
+
+    def unavailable(detail: str, checksum: str | None = None) -> GuardOutcome:
         return GuardOutcome(
-            worker_id=worker_id, outcome="unavailable", record_sha256=None, detail="no guard record"
+            worker_id=worker_id,
+            record_sha256=checksum,
+            process_id=None,
+            started_unix_time=None,
+            last_observed_unix_time=None,
+            exited_unix_time=None,
+            observations=0,
+            exit_reason=None,
+            returncode=None,
+            detail=detail,
+            outcome="unavailable",
+            reasons=(),
         )
+
+    if record is None or not record.is_file():
+        return unavailable("no guard record")
     rows = []
     try:
         lines = record.read_text().splitlines()
@@ -186,52 +213,116 @@ def guard_outcome(worker_id: str, record: Path | None) -> GuardOutcome:
                 if index != len(lines) - 1:
                     raise
     except (OSError, ValueError) as error:
-        return GuardOutcome(
-            worker_id=worker_id,
-            outcome="unavailable",
-            record_sha256=None,
-            detail=f"unreadable guard record: {error}",
-        )
+        return unavailable(f"unreadable guard record: {error}")
     checksum = sha256_file(record)
-    if not any(r.get("event") == "start" for r in rows):
-        return GuardOutcome(
-            worker_id=worker_id,
-            outcome="unavailable",
-            record_sha256=checksum,
-            detail="guard record has no start event",
-        )
+    starts = [r for r in rows if r.get("event") == "start"]
+    if len(starts) != 1 or not isinstance(starts[0].get("pid"), int):
+        return unavailable("guard record has no single start event with a PID", checksum)
+    observations = [
+        r for r in rows if r.get("event") not in ("preflight", "start", "exit") and "unix_time" in r
+    ]
     exits = [r for r in rows if r.get("event") == "exit"]
-    if exits and exits[-1].get("reason"):
+    exit_ = exits[-1] if exits else None
+    try:
         return GuardOutcome(
             worker_id=worker_id,
-            outcome="stopped",
             record_sha256=checksum,
-            detail=str(exits[-1]["reason"]),
+            process_id=int(starts[0]["pid"]),
+            started_unix_time=float(starts[0]["unix_time"]),
+            last_observed_unix_time=max(
+                (float(r["unix_time"]) for r in observations), default=None
+            ),
+            exited_unix_time=float(exit_["unix_time"]) if exit_ else None,
+            observations=len(observations),
+            exit_reason=str(exit_["reason"]) if exit_ and exit_.get("reason") else None,
+            returncode=int(exit_["returncode"])
+            if exit_ and exit_.get("returncode") is not None
+            else None,
+            detail=f"guard exited after {len(observations)} observations"
+            if exit_
+            else f"guard still running after {len(observations)} observations",
+            outcome="unavailable",
+            reasons=(),
         )
-    observations = sum(1 for r in rows if r.get("event") not in ("preflight", "start", "exit"))
-    detail = (
-        f"guard exited normally after {observations} observations"
-        if exits
-        else f"guard still running; {observations} observations without a stop condition"
-    )
-    return GuardOutcome(
-        worker_id=worker_id, outcome="normal", record_sha256=checksum, detail=detail
-    )
+    except (KeyError, TypeError, ValueError) as error:
+        return unavailable(f"malformed guard record: {error}", checksum)
 
 
-def device_peak(samples: Path | None, start: float, end: float) -> int | None:
+def device_samples(samples: Path | None, start: float, end: float) -> tuple[DeviceSample, ...]:
+    """Every `memory_watch.py --cuda` row inside the experiment window, PID included.
+
+    Rows are recorded as sampled; the validator checks each PID against the worker
+    identity and scores each cycle's window separately. A malformed file is reported as
+    no samples (unknown), never as a peak.
+    """
     if samples is None or not samples.is_file():
-        return None
-    peak = None
-    for line in samples.read_text().splitlines():
-        if not line.strip():
-            continue
-        row = json.loads(line)
-        value = row.get("cuda_process_bytes")
-        if value is None or not start <= float(row.get("unix_time", 0)) <= end:
-            continue
-        peak = int(value) if peak is None else max(peak, int(value))
-    return peak
+        return ()
+    rows: list[DeviceSample] = []
+    try:
+        for line in samples.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if not start <= float(row["unix_time"]) <= end:
+                continue
+            value = row.get("cuda_process_bytes")
+            rows.append(
+                DeviceSample(
+                    unix_time=float(row["unix_time"]),
+                    process_id=int(row["pid"]),
+                    cuda_process_bytes=int(value) if value is not None else None,
+                )
+            )
+    except (OSError, KeyError, TypeError, ValueError):
+        return ()
+    return tuple(rows)
+
+
+def validate_baseline(
+    path: Path, *, plan: DeploymentPlan, reference: Path, workers: dict, cpu_rehearsal: bool
+) -> BaselineSummary:
+    """Parse the single-request report and bind it to this run before anything loads."""
+    try:
+        report = json.loads(path.read_text())
+        summary = BaselineSummary(
+            scope=report["scope"],
+            completed=bool(report["completed"]),
+            plan_digest=report["plan"]["plan_digest"],
+            reference_sha256=report["reference_sha256"],
+            worker_binary_digests=tuple(
+                (k, report["workers"][k]["binary_digest"]) for k in workers
+            ),
+            cycles=len(report["cycles"]),
+            requests=sum(len(c["requests"]) for c in report["cycles"]),
+            all_exact=all(
+                r.get("exact_reference_match") is True
+                for c in report["cycles"]
+                for r in c["requests"]
+            )
+            and all(
+                c.get("cancellation", {}).get("exact_prefix_match") is True
+                for c in report["cycles"]
+            ),
+            finished_unix_time=float(report["finished_unix_time"]),
+        )
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise ValueError(
+            f"baseline report is not a usable single-request report: {error}"
+        ) from error
+    problems = []
+    if not summary.completed or not summary.all_exact:
+        problems.append("did not complete with exact outputs")
+    if summary.scope != ("cpu-rehearsal" if cpu_rehearsal else "f16-reload-qualification"):
+        problems.append(f"has scope {summary.scope!r}")
+    if summary.plan_digest != plan.plan_digest:
+        problems.append("was produced for a different plan")
+    if summary.reference_sha256 != sha256_file(reference):
+        problems.append("was produced against a different reference")
+    if summary.worker_binary_digests != tuple((k, w.binary_digest) for k, w in workers.items()):
+        problems.append("was produced on different worker binaries")
+    if problems:
+        raise ValueError("baseline report " + "; ".join(problems))
+    return summary
 
 
 class Run:
@@ -280,12 +371,20 @@ class Run:
                 len(self.ids),
                 len(self.expected),
             )
+        self.baseline = validate_baseline(
+            args.baseline_report,
+            plan=self.plan,
+            reference=args.reference,
+            workers=self.workers,
+            cpu_rehearsal=args.cpu_rehearsal,
+        )
         self.channels = {k: grpc.insecure_channel(w.endpoint) for k, w in self.workers.items()}
         self.controls = {k: control_pb2_grpc.WorkerControlStub(c) for k, c in self.channels.items()}
         self.snapshots: dict[str, list[WorkerSnapshot]] = {k: [] for k in self.order}
         self.rounds: list[Round] = []
         self.comparisons: list[TokenComparison] = []
-        self.preconditions: dict[str, ProfilePrecondition] = {}
+        self.gates: list[CycleGate] = []
+        self.current_cycle: int | None = None
         self.failure: str | None = None
         self.lock = threading.Lock()
         self.stream = args.output.with_suffix(".observations.jsonl").open("x", buffering=1)
@@ -299,7 +398,7 @@ class Run:
             control = self.controls[k]
             memory = control.GetMemoryReport(common_pb2.Empty(), timeout=5)
             metrics = control.GetMetrics(common_pb2.Empty(), timeout=5)
-            row = snapshot_from_proto(phase, memory, metrics)
+            row = snapshot_from_proto(phase, self.current_cycle, memory, metrics)
             with self.lock:
                 self.snapshots[k].append(row)
                 self.stream.write(json.dumps({"worker": k, **row.model_dump(mode="json")}) + "\n")
@@ -433,22 +532,23 @@ class Run:
     # ------------------------------------------------------------------------ cycles
 
     def gate(self, cycle: int) -> None:
+        self.current_cycle = cycle
         for k, w in self.workers.items():
             result = fresh_fit(self.profiles[k], w, self.controls[k])
             fit = FitResult.model_validate(result["assessment"])
-            if cycle == 0:
-                self.preconditions[k] = ProfilePrecondition(
+            self.gates.append(
+                CycleGate(
                     worker_id=k,
-                    artifact_digest=self.profiles[k].artifact_digest,
-                    measured_at=self.profiles[k].conditions.measured_at,
-                    requested_mlx_policy=fit.requested_mlx_policy,
-                    prelaunch_status=fit.status,
-                    prelaunch_reasons=fit.reasons,
+                    cycle=cycle,
+                    sampled_at=datetime.now(UTC),
+                    status=fit.status,
+                    reasons=fit.reasons,
                     host_budget=PhysicalBudget.model_validate(result["host_budget"]),
                     device_budget=PhysicalBudget.model_validate(result["device_budget"])
                     if result["device_budget"]
                     else None,
                 )
+            )
             self.stream.write(json.dumps({"worker": k, "phase": f"gate-{cycle}", **result}) + "\n")
             if fit.status != "safe":
                 raise RuntimeError(f"fresh physical-fit gate rejected {k} before cycle {cycle}")
@@ -533,7 +633,11 @@ class Run:
                 )
             )
         first = self.workers[self.order[0]]
-        policies = {w.mlx_fit_policy for w in self.workers.values()}
+        policies = {
+            w.mlx_fit_policy
+            for k, w in self.workers.items()
+            if self.profiles[k].key.environment.backend == Backend.MLX
+        }
         identity = Identity(
             source_digest=self.args.source_digest,
             manifest_digest=self.manifest.manifest_digest,
@@ -591,25 +695,15 @@ class Run:
         finished = time.time()
         observations = Observations(
             workers=tuple(
-                WorkerObservations(worker_id=k, snapshots=tuple(self.snapshots[k]))
-                for k in self.order
+                WorkerObservations(
+                    worker_id=k,
+                    snapshots=tuple(self.snapshots[k]),
+                    device_samples=device_samples(w.device_samples, self.started, finished),
+                )
+                for k, w in self.workers.items()
             ),  # type: ignore[arg-type]
             clock_alignment=CLOCK_ALIGNMENT,
         )
-        physical: list[PhysicalEnvelope] = []
-        for k, w in self.workers.items():
-            precondition = self.preconditions[k]
-            physical.append(
-                assess_serving_envelope(
-                    k,
-                    self.profiles[k].key.environment.backend,
-                    self.snapshots[k],
-                    host=precondition.host_budget,
-                    device=precondition.device_budget,
-                    mlx_policy=w.mlx_fit_policy,
-                    device_process_peak_bytes=device_peak(w.device_samples, self.started, finished),
-                )
-            )
         guards = [guard_outcome(k, w.guard_record) for k, w in self.workers.items()]
         cleanup = self.cleanup_evidence()
         request = RequestWorkload(
@@ -618,6 +712,17 @@ class Run:
             prompt_digest=digest({"ids": list(self.ids)}),
             expected_digest=digest({"ids": list(self.expected)}),
             reservation_tokens=len(self.ids) + len(self.expected),
+        )
+        profiles = tuple(
+            ProfilePrecondition(
+                worker_id=k,
+                artifact_digest=a.artifact_digest,
+                measured_at=a.conditions.measured_at,
+                requested_mlx_policy=self.workers[k].mlx_fit_policy
+                if a.key.environment.backend == Backend.MLX
+                else None,
+            )
+            for k, a in self.profiles.items()
         )
         return make_evidence(
             identity=identity,
@@ -633,16 +738,18 @@ class Run:
             configuration=configuration,
             preconditions=Preconditions(
                 baseline_report_sha256=sha256_file(self.args.baseline_report),
+                baseline=self.baseline,
                 started_at=datetime.fromtimestamp(self.started, UTC),
-                profiles=(self.preconditions[self.order[0]], self.preconditions[self.order[1]]),
+                profiles=(profiles[0], profiles[1]),
+                gates=tuple(self.gates),
                 guard=self.args.guard_description,
             ),
             observations=observations,
             rounds=self.rounds,
             comparisons=self.comparisons,
-            physical=(physical[0], physical[1]),
             guards=(guards[0], guards[1]),
             cleanup=(cleanup[0], cleanup[1]),
+            finished_at=datetime.fromtimestamp(finished, UTC),
             failure_reason=self.failure,
         )
 
@@ -711,20 +818,37 @@ def main(argv: list[str] | None = None) -> None:
             raise
         finally:
             if identity is not None and configuration is not None:
-                evidence = run.assemble(identity, configuration)
-                write_evidence(args.output, evidence)
-                print(
-                    json.dumps(
-                        dict(
-                            acceptance=evidence.results.acceptance,
-                            reasons=list(evidence.results.acceptance_reasons),
-                            evidence_digest=evidence.evidence_digest,
-                        )
-                    ),
-                    flush=True,
-                )
+                finalize(run, args.output, identity, configuration)
     finally:
         run.close()
+
+
+def finalize(run: Run, output: Path, identity: Identity, configuration: Configuration) -> None:
+    """Write the evidence, or a failure note beside it; never raise over the run's error."""
+    try:
+        evidence = run.assemble(identity, configuration)
+        write_evidence(output, evidence)
+        print(
+            json.dumps(
+                dict(
+                    acceptance=evidence.results.acceptance,
+                    reasons=list(evidence.results.acceptance_reasons),
+                    evidence_digest=evidence.evidence_digest,
+                )
+            ),
+            flush=True,
+        )
+    except Exception as error:  # The original failure must survive assembly errors.
+        note = dict(
+            run_failure=run.failure,
+            assembly_error=f"{type(error).__name__}: {error}",
+            rounds=len(run.rounds),
+            snapshots={k: len(v) for k, v in run.snapshots.items()},
+        )
+        output.with_suffix(".failure.json").write_text(json.dumps(note, indent=2) + "\n")
+        print(json.dumps(dict(acceptance="failed", **note)), flush=True)
+        if run.failure is None:
+            raise
 
 
 if __name__ == "__main__":
