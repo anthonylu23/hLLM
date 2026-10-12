@@ -14,7 +14,12 @@ from typing import Literal
 from google.protobuf.json_format import MessageToDict
 
 from hllm_control.models import Backend, DeploymentPlan, ModelManifest, WorkloadProfile
-from hllm_control.profiling.memory import MlxFitPolicy, PhysicalBudget, assess_fit
+from hllm_control.profiling.memory import (
+    DEFAULT_MLX_FIT_POLICY,
+    MlxFitPolicy,
+    PhysicalBudget,
+    assess_fit,
+)
 from hllm_control.profiling.models import (
     ComputeRunMeasurement,
     Conditions,
@@ -153,7 +158,7 @@ def run_memory_profile(
     host_headroom_bytes: int = 1024**3,
     device_headroom_bytes: int = 512 * 1024**2,
     extra_overhead_bytes: int = 256 * 1024**2,
-    mlx_fit_policy: MlxFitPolicy = MlxFitPolicy.CONSERVATIVE,
+    mlx_fit_policy: MlxFitPolicy = DEFAULT_MLX_FIT_POLICY,
     mode: Literal["memory", "compute"] = "memory",
 ) -> ProfileArtifact:
     mlx_fit_policy = MlxFitPolicy(mlx_fit_policy)

@@ -15,14 +15,15 @@ explicit policies are rejected on non-MLX workers; `profile-memory` reports the
 applied policy and fallback notes; an MLX-bundle test shows the conservative sum
 refusing and the footprint policy admitting the same evidence through placement
 and fresh activation; historical fit reports are replayed under both policies.
-See the [policy contract](../milestone-5-profiling.md#opt-in-mlx-footprint-policy)
+See the [policy contract](../milestone-5-profiling.md#mlx-footprint-policy)
 and the [CPU readiness report](cpu-readiness-20260930.md).
 
 ## Behavior
 
 `footprint-v1` is an explicit MLX option in profiling, measured bundle worker
-bindings and native sweep worker configurations. `conservative-v1` remains the
-default. Complete, coherent schema-1.3 memory evidence permits the maximum of OS
+bindings and native sweep worker configurations. `conservative-v1` remained the
+default at the time of this report (it became the profiling default on October 10,
+2026, after the [two-host serving qualification](qwen3-4b-serving-20261010.md)). Complete, coherent schema-1.3 memory evidence permits the maximum of OS
 footprint, RSS and allocator envelopes instead of their overlapping sum. Existing
 safety fractions, overhead, headroom, native reservations and configured-cap
 preflight remain in force. Missing or inconsistent footprint evidence records a
@@ -33,7 +34,7 @@ Policy selection is retained through fresh activation and independent sweep
 exclusion validation. Explicit choices participate in bundle/executor identities;
 historical bundles omit the default field, and historical fit reports still round
 trip. Fit output records the actual formula, requested MLX policy and fallback notes.
-See [the complete policy contract](../milestone-5-profiling.md#opt-in-mlx-footprint-policy).
+See [the complete policy contract](../milestone-5-profiling.md#mlx-footprint-policy).
 
 ## Reproduction tooling
 
