@@ -357,6 +357,14 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   [concurrency night report](validation/qwen3-4b-concurrency-20261011.md) for the
   exact commands to run once the Mac is free (CUDA profile expires 04:50:49Z on
   October 12).
+  October 13: **measured and accepted** at 128/256 with the MLX cap raised to 5.125 GiB
+  (user-approved; at 4.375 GiB the MLX stage refuses the second reservation, which is
+  recorded as attempt 1). Three cycles, 27/27 exact, overlap and cancellation proven on
+  both workers, physical envelopes safe each cycle (MLX 5435–5443 MiB, CUDA device
+  5932 MiB). Two tooling defects were fixed to get there (PR #27: preflight sampled
+  before the checkpoint read; MLX allocator counters read without the device mutex).
+  See the [October 13 report](validation/qwen3-4b-concurrency-20261013.md). No
+  throughput claim and nothing above concurrency two follows.
 - [x] `ProfileKey` currently supports concurrency one. Add/justify a separate
   combined-memory qualification path before treating these profiles as evidence
   for concurrency two. If that needs design work, leave P5 pending this night.

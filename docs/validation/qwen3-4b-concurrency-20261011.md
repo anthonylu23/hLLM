@@ -198,3 +198,9 @@ Verified at 06:43Z–06:45Z after the first watch ended, and again at 07:31Z aft
   at or above 6.06 GiB free-plus-inactive at the preflight sample, which tonight meant
   about 7.3 GiB at the watch reading (about 0.9 GiB more than its best).
 - A pinned 1024/256 oracle now exists for the larger-context follow-up.
+
+**Continuation.** The P5 measurement ran on October 12–13 in this run directory and
+produced an accepted record at a 5.125 GiB MLX cap; see the
+[October 13 report](qwen3-4b-concurrency-20261013.md), which also corrects the
+preflight lesson above (the cause was the runner's own checkpoint read, not the CLI
+imports).

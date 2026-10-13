@@ -122,8 +122,12 @@ qualify any changed numerical criterion as a separate experiment.
   baseline before loading, and keeps partial evidence when the first gate fails.
 - [x] Concurrency-one serialization/hashes and placement behavior are unchanged;
   `ProfileKey` still requires concurrency one.
-- [ ] Run the guarded two-host measurement only when the GPU is free and the baseline
+- [x] Run the guarded two-host measurement only when the GPU is free and the baseline
   passes. Larger contexts, higher concurrency and throughput claims remain separate.
   October 11 attempt: the CUDA baseline was fresh and the launch staged, but the Mac
   never met the MLX preflight; see the
-  [night report](validation/qwen3-4b-concurrency-20261011.md).
+  [night report](validation/qwen3-4b-concurrency-20261011.md). October 13: accepted
+  record at 128/256 with a user-approved 5.125 GiB MLX cap (the 4.375 GiB cap refuses
+  the second reservation); see the
+  [October 13 report](validation/qwen3-4b-concurrency-20261013.md). Caps were not
+  expanded automatically: attempt 1 was stopped and the user asked.
