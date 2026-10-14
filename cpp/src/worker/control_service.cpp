@@ -52,6 +52,11 @@ void validate_plan(const v1::LoadStageRequest& request, const std::string& worke
     throw runtime::Error::incompatible_worker(
         "unsupported schema or inconsistent deployment identity");
   }
+  // The digest check below names both dtypes; an unknown enum value has no name.
+  if (!v1::DataType_IsValid(plan.execution_dtype()) ||
+      !v1::DataType_IsValid(plan.activation_dtype())) {
+    throw runtime::Error::incompatible_worker("unknown plan data type");
+  }
   const auto digest = [](const std::string& value) {
     return value.size() == 64U && value.find_first_not_of("0123456789abcdef") == std::string::npos;
   };

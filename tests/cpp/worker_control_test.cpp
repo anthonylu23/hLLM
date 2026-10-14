@@ -99,6 +99,32 @@ TEST(WorkerControlTest, VersionedPlanErrorsAreIncompatibleAndLeaveWorkerUnloaded
   EXPECT_TRUE(accepted.accepted()) << accepted.detail();
 }
 
+TEST(WorkerControlTest, UnknownPlanDtypesAreIncompatibleNotBackendErrors) {
+  const test::ModelFixture model;
+  ControlService service({"cpu-a", "127.0.0.1:50051", model.root, 1'000'000U},
+                         cpu::make_backend_factory());
+  for (const bool activation : {false, true}) {
+    SCOPED_TRACE(activation);
+    auto request = model.load();
+    auto* plan = request.mutable_plan();
+    // A measured plan reaches the digest check, which names both dtypes.
+    plan->mutable_schema_version()->set_minor(1U);
+    plan->set_planning_mode("measured");
+    plan->set_workload_digest(std::string(64, 'a'));
+    plan->set_profile_bundle_digest(std::string(64, 'b'));
+    const auto unknown = static_cast<v1::DataType>(99);
+    if (activation) {
+      plan->set_activation_dtype(unknown);
+    } else {
+      plan->set_execution_dtype(unknown);
+    }
+    v1::LoadStageResponse rejected;
+    ASSERT_TRUE(service.LoadStage(nullptr, &request, &rejected).ok());
+    EXPECT_FALSE(rejected.accepted());
+    EXPECT_EQ(rejected.error().code(), v1::ERROR_CODE_INCOMPATIBLE_WORKER) << rejected.detail();
+  }
+}
+
 TEST(WorkerControlTest, LoadsReservesCancelsAndUnloadsOneCpuStage) {
   const test::ModelFixture model;
   ControlService service(
