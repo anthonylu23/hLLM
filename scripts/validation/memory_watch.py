@@ -35,7 +35,8 @@ def main() -> None:
     parser.add_argument("--seconds", type=float, default=1800)
     args = parser.parse_args()
     start = time.monotonic()
-    with args.output.open("w", buffering=1) as output:
+    # Exclusive, like every other evidence writer: a rerun must not destroy samples.
+    with args.output.open("x", buffering=1) as output:
         while time.monotonic() - start < args.seconds:
             ps = subprocess.run(
                 ["ps", "-o", "rss=", "-p", str(args.pid)], capture_output=True, text=True

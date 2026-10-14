@@ -17,6 +17,7 @@ from hllm_control.qualification.concurrent import read_evidence
 from hllm_control.serialization import sha256_file
 
 from scripts.validation import concurrent_soak, reload_soak
+from scripts.validation.worker_pid import worker_pid
 from tests.process_helpers import BINARY, ROOT, Workers, plan, wait_clean, write_model
 
 PROFILER = Path(os.environ.get("HLLM_MEMORY_PROFILER", BINARY.with_name("hllm-profile-memory-cpu")))
@@ -201,6 +202,18 @@ def test_cpu_rehearsal_produces_accepted_concurrency_evidence(tmp_path: Path) ->
         for g, w in zip(evidence.results.guards, evidence.identity.workers, strict=True):
             assert g.outcome == "normal" and not g.reasons, g
             assert g.process_id == w.process_id and g.exited_unix_time is None
+            # The still-growing guard record was read once; its snapshot reproduces the hash.
+            snapshot = tmp_path / f"evidence.guard-{w.worker_id}.jsonl"
+            assert sha256_file(snapshot) == g.record_sha256
+            assert (
+                (tmp_path / f"{w.worker_id}.guard.jsonl")
+                .read_bytes()
+                .startswith(snapshot.read_bytes())
+            )
+            # Launchers bind samplers to the PID the worker reports, not a command line.
+            assert worker_pid(w.endpoint, expect_worker_id=w.worker_id) == w.process_id
+        with pytest.raises(ValueError, match="is worker 'cpu-a', not 'cpu-b'"):
+            worker_pid(workers.endpoints["cpu-a"], expect_worker_id="cpu-b")
         assert all(c.verified for c in evidence.results.cleanup)
         assert all(c.request_observations for c in evidence.configuration.workers)
         rows = [
@@ -239,6 +252,23 @@ def test_harness_refuses_workers_that_cannot_prove_overlap(
         with pytest.raises(ValueError, match=message):
             concurrent_soak.main(args)
         assert not (tmp_path / "evidence.json").exists()
+        # The workers were reached, so the refusal leaves a note naming its stage.
+        note = json.loads((tmp_path / "evidence.failure.json").read_text())
+        assert note["stage"] == "worker identity" and message in note["run_failure"]
+        wait_clean(workers, loaded=False)
+
+
+def test_harness_refuses_workers_with_different_allowances(tmp_path: Path) -> None:
+    write_model(tmp_path)
+    with Workers(tmp_path, limit=CAP, extra_args=(OBSERVING, OBSERVING)) as workers:
+        args = prepare(tmp_path, workers)
+        specifications = json.loads((tmp_path / "workers.json").read_text())
+        specifications["cpu-b"]["host_headroom_bytes"] = 2 * 1024**3
+        (tmp_path / "workers.json").write_text(json.dumps(specifications))
+        with pytest.raises(ValueError, match="must share extra overhead"):
+            concurrent_soak.main(args)
+        assert not (tmp_path / "evidence.json").exists()
+        assert (tmp_path / "evidence.failure.json").is_file()
         wait_clean(workers, loaded=False)
 
 
