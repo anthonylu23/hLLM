@@ -50,6 +50,13 @@ struct LoadedDeployment {
   std::shared_ptr<grpc::Channel> downstream_channel_;
 };
 
+// Why a request was asked to stop. The first cause wins; `cancelled` stays the
+// single flag compute polls.
+enum class StopCause : std::uint8_t { kNone, kCancelled, kExpired };
+
+// How the execution owner finished with a request it released.
+enum class RequestOutcome : std::uint8_t { kCompleted, kFailed };
+
 struct ActiveRequest {
   std::string id;
   std::size_t maximum_tokens;
@@ -58,6 +65,12 @@ struct ActiveRequest {
   std::chrono::steady_clock::time_point admitted;
   std::unique_ptr<runtime::SequenceState> sequence;
   std::atomic_bool cancelled{false};
+  std::atomic<StopCause> stop_cause{StopCause::kNone};
+  void stop(StopCause cause) {
+    auto none = StopCause::kNone;
+    stop_cause.compare_exchange_strong(none, cause);
+    cancelled.store(true);
+  }
   bool allocating{false};  // Protected by the control mutex.
   bool running{false};  // Protected by the control mutex; sequence has one
                         // execution owner.
@@ -90,7 +103,9 @@ class ControlService final : public v1::WorkerControl::Service {
   ExecutionLease acquire(const std::string& deployment, std::uint64_t version,
                          const std::string& request, std::size_t tokens, std::uint64_t deadline_ms,
                          std::uint32_t required_stage);
-  void release(const std::shared_ptr<ActiveRequest>& request);
+  // Retires the request. A failed outcome is recorded as cancelled, expired or
+  // failed from the request's stop cause and deadline.
+  void release(const std::shared_ptr<ActiveRequest>& request, RequestOutcome outcome);
 
  private:
   struct LifecycleEvent {

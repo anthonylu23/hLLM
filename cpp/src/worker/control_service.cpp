@@ -304,7 +304,7 @@ void ControlService::prune_expired() {
   for (auto it = active_.begin(); it != active_.end();) {
     auto& request = it->second;
     if (std::chrono::system_clock::now() >= request->deadline) {
-      request->cancelled.store(true);
+      request->stop(StopCause::kExpired);
       if (!request->running && !request->allocating) {
         const auto next = std::next(it);
         retire(it, "expired");
@@ -414,7 +414,6 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   next->admitted = std::chrono::steady_clock::now();
   next->allocating = true;
   active_.emplace(id, next);
-  peak_concurrent_requests_ = std::max(peak_concurrent_requests_, active_.size());
   record_lifecycle(v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_ADMITTED, id, "");
   const auto deployment = deployment_;
   // Reserve capacity before allocating, but never block cancellation/telemetry
@@ -442,6 +441,10 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
     }
     throw runtime::Error::cancelled("reservation cancelled during allocation");
   }
+  // Same definition as concurrent_request_ids: only requests holding allocated KV.
+  const auto allocated = static_cast<std::size_t>(std::count_if(
+      active_.begin(), active_.end(), [](const auto& entry) { return !entry.second->allocating; }));
+  peak_concurrent_requests_ = std::max(peak_concurrent_requests_, allocated);
   return next;
 }
 
@@ -459,13 +462,26 @@ ExecutionLease ControlService::acquire(const std::string& id, std::uint64_t vers
   state->running = true;
   return {deployment_, state};
 }
-void ControlService::release(const std::shared_ptr<ActiveRequest>& state) {
+void ControlService::release(const std::shared_ptr<ActiveRequest>& state,
+                             const RequestOutcome outcome) {
   std::scoped_lock lock(mutex_);
   const auto found = active_.find(state->id);
   if (found != active_.end() && found->second == state) {
     // All compute and transport using this sequence have finished.
     state->sequence.reset();
-    retire(found, state->cancelled.load() ? "cancelled" : "completed");
+    const auto cause = state->stop_cause.load();
+    const char* reason = "completed";
+    if (outcome == RequestOutcome::kFailed) {
+      if (cause == StopCause::kCancelled) {
+        reason = "cancelled";
+      } else if (cause == StopCause::kExpired ||
+                 std::chrono::system_clock::now() >= state->deadline) {
+        reason = "expired";
+      } else {
+        reason = "failed";
+      }
+    }
+    retire(found, reason);
   }
 }
 
@@ -500,7 +516,7 @@ grpc::Status ControlService::CancelRequest(grpc::ServerContext*,
   }
   const auto found = active_.find(request->request_id());
   if (found != active_.end()) {
-    found->second->cancelled.store(true);
+    found->second->stop(StopCause::kCancelled);
     if (!found->second->running && !found->second->allocating) retire(found, "cancelled");
   }
   return grpc::Status::OK;

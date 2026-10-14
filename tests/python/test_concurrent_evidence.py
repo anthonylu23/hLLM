@@ -201,11 +201,18 @@ def timeline(worker: str, **options) -> WorkerObservations:
             9,
             650,
             concurrent=() if options.get("no_independent_release") else ("survivor",),
-            reason="completed" if options.get("victim_completed") else "cancelled",
+            reason=options.get(
+                "victim_reason", "completed" if options.get("victim_completed") else "cancelled"
+            ),
         ),
     )
     if not options.get("survivor_unfinished"):
-        cancel_events = (*cancel_events, event("retired", "survivor", 10, 700, reason="completed"))
+        cancel_events = (
+            *cancel_events,
+            event(
+                "retired", "survivor", 10, 700, reason=options.get("survivor_reason", "completed")
+            ),
+        )
     process_id = 43 if options.get("other_process") else 42
     snapshots = [
         snapshot(worker, "baseline", 50, (), (), loaded=False, cycle=None, process_id=process_id),
@@ -524,6 +531,10 @@ def test_complete_evidence_is_accepted_and_round_trips(tmp_path: Path) -> None:
             "unknown",
             "no cancelled retirement of victim observed (it retired as completed)",
         ),
+        # A deadline or an error is not evidence that cancellation was independent.
+        ({"victim_reason": "expired"}, "unknown", "(it retired as expired)"),
+        ({"victim_reason": "failed"}, "unknown", "(it retired as failed)"),
+        ({"survivor_reason": "failed"}, "unknown", "completed retirement of survivor"),
         ({"survivor_unfinished": True}, "unknown", "completed retirement of survivor"),
         ({"no_capability": True}, "unknown", "did not advertise request observations"),
         ({"no_device_samples": True}, "unknown", "CUDA physical process observations unavailable"),

@@ -62,7 +62,8 @@ class RequestGuard final {
  public:
   RequestGuard(ControlService& control, ExecutionLease lease)
       : control_(control), lease_(std::move(lease)) {}
-  ~RequestGuard() { control_.release(lease_.request); }
+  // Success paths release with kCompleted first; this is then a no-op.
+  ~RequestGuard() { control_.release(lease_.request, RequestOutcome::kFailed); }
   ExecutionLease& lease() { return lease_; }
 
  private:
@@ -88,7 +89,11 @@ class Watchdog final {
           while (!stop.stop_requested()) {
             if (request->cancelled.load() || server.IsCancelled() ||
                 std::chrono::system_clock::now() >= request->deadline) {
-              request->cancelled.store(true);
+              // A cause already recorded (control cancel, reaper) wins; otherwise
+              // the deadline is checked before the client's own cancellation.
+              request->stop(std::chrono::system_clock::now() >= request->deadline
+                                ? StopCause::kExpired
+                                : StopCause::kCancelled);
               if (peer != nullptr) {
                 peer->TryCancel();
               }
@@ -309,7 +314,7 @@ grpc::Status ExecutionService::Execute(
           throw runtime::Error::invalid_request("invalid sequence termination");
         }
         watchdog.stop();
-        control_.release(active);
+        control_.release(active, RequestOutcome::kCompleted);
         if (!stream->Write(message)) {
           throw std::runtime_error("termination acknowledgment failed");
         }
@@ -599,7 +604,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     // Generation and downstream acknowledgment have completed. Commit the
     // outcome before releasing sequence state; slow cleanup or a late control
     // cancellation must not change it while usage/terminal events are written.
-    control_.release(active);
+    control_.release(active, RequestOutcome::kCompleted);
     v1::GenerationEvent event;
     event.set_request_id(request->request_id());
     event.mutable_usage()->set_prompt_tokens(static_cast<std::uint64_t>(request->token_ids_size()));

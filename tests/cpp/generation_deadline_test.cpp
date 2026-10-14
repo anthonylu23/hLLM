@@ -3,6 +3,8 @@
 #include <atomic>
 #include <chrono>
 #include <thread>
+#include <stdexcept>
+#include <string>
 
 #include "hllm/worker/execution_service.hpp"
 #include "model_fixture.hpp"
@@ -13,6 +15,7 @@ using namespace std::chrono_literals;
 
 struct ExecutionState {
   std::atomic_bool delay_decode{true};
+  std::atomic_bool fail_decode{false};
   std::atomic_size_t steps{0U};
   std::chrono::milliseconds unwind{250};
   std::chrono::milliseconds cleanup_delay{0};
@@ -41,6 +44,7 @@ class DeadlineStage final : public runtime::StageBackend {
   runtime::StageOutput execute(runtime::StageInput, std::size_t position,
                                runtime::SequenceState&, const std::atomic_bool& cancelled) const override {
     ++state_->steps;
+    if (position > 0U && state_->fail_decode) throw std::runtime_error("injected backend failure");
     if (position > 0U && state_->delay_decode) {
       const auto until = std::chrono::steady_clock::now() + 5s;
       while (!cancelled && std::chrono::steady_clock::now() < until) {
@@ -73,7 +77,9 @@ class GenerationDeadlineTest : public ::testing::Test {
  protected:
   test::ModelFixture model;
   std::shared_ptr<ExecutionState> state = std::make_shared<ExecutionState>();
-  ControlService control{{"cpu-a", "127.0.0.1:0", model.root, 1'000'000U},
+  ControlService control{{.worker_id = "cpu-a", .endpoint = "127.0.0.1:0",
+                          .model_root = model.root, .host_memory_capacity_bytes = 1'000'000U,
+                          .request_observations = true},
                          std::make_unique<DeadlineFactory>(state)};
   GenerationService generation{control};
   std::unique_ptr<grpc::Server> server;
@@ -121,6 +127,19 @@ class GenerationDeadlineTest : public ::testing::Test {
     EXPECT_EQ(report.reserved_cache_bytes(), 0U);
     EXPECT_EQ(report.reserved_workspace_bytes(), 0U);
   }
+  // The reason recorded by the most recent retirement of the test request.
+  std::string retirement() {
+    v1::MemoryReport report;
+    EXPECT_TRUE(control.GetMemoryReport(nullptr, nullptr, &report).ok());
+    std::string reason;
+    for (const auto& event : report.request_observations().events()) {
+      if (event.kind() == v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_RETIRED &&
+          event.request_id() == "deadline-test") {
+        reason = event.reason();
+      }
+    }
+    return reason;
+  }
   void recover_and_unload() {
     state->delay_decode = false;
     grpc::ClientContext context;
@@ -137,6 +156,7 @@ class GenerationDeadlineTest : public ::testing::Test {
     EXPECT_EQ(tokens, 1);
     EXPECT_TRUE(completed);
     clean();
+    EXPECT_EQ(retirement(), "completed");
     v1::UnloadStageRequest unload;
     unload.set_plan_id("plan-1");
     unload.set_deployment_version(1U);
@@ -148,7 +168,9 @@ class GenerationDeadlineTest : public ::testing::Test {
 TEST(ExecutionDeadlineTest, SlowDecodeUnwindPreservesDeadlineStatus) {
   test::ModelFixture model;
   auto state = std::make_shared<ExecutionState>();
-  ControlService control{{"cpu-b", "127.0.0.1:0", model.root, 1'000'000U},
+  ControlService control{{.worker_id = "cpu-b", .endpoint = "127.0.0.1:0",
+                          .model_root = model.root, .host_memory_capacity_bytes = 1'000'000U,
+                          .request_observations = true},
                          std::make_unique<DeadlineFactory>(state)};
   ExecutionService execution{control};
   grpc::ServerBuilder builder;
@@ -209,6 +231,11 @@ TEST(ExecutionDeadlineTest, SlowDecodeUnwindPreservesDeadlineStatus) {
   EXPECT_EQ(memory.active_requests(), 0U);
   EXPECT_EQ(memory.reserved_cache_bytes(), 0U);
   EXPECT_EQ(memory.reserved_workspace_bytes(), 0U);
+  // A deadline that interrupts a running stage is an expiry, not a cancellation.
+  const auto& events = memory.request_observations().events();
+  ASSERT_FALSE(events.empty());
+  EXPECT_EQ(events.rbegin()->kind(), v1::RequestLifecycleEvent::REQUEST_LIFECYCLE_KIND_RETIRED);
+  EXPECT_EQ(events.rbegin()->reason(), "expired");
   server->Shutdown();
 }
 
@@ -225,6 +252,22 @@ TEST_F(GenerationDeadlineTest, SlowDecodeUnwindPreservesDeadlineStatus) {
   EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::DEADLINE_EXCEEDED);
   EXPECT_EQ(tokens, 1);
   clean();
+  EXPECT_EQ(retirement(), "expired");
+  recover_and_unload();
+}
+
+TEST_F(GenerationDeadlineTest, BackendFailureRetiresAsFailed) {
+  state->delay_decode = false;
+  state->fail_decode = true;
+  grpc::ClientContext context;
+  context.set_deadline(std::chrono::system_clock::now() + 10s);
+  auto call = stub->Generate(&context, request(2U, 5s));
+  v1::GenerationEvent event;
+  while (call->Read(&event)) EXPECT_FALSE(event.has_terminal());
+  EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::INTERNAL);
+  clean();
+  EXPECT_EQ(retirement(), "failed");
+  state->fail_decode = false;
   recover_and_unload();
 }
 
@@ -274,6 +317,7 @@ TEST_F(GenerationDeadlineTest, ControlCancellationStillInterruptsSlowDecode) {
   while (call->Read(&event)) EXPECT_FALSE(event.has_terminal());
   EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::CANCELLED);
   clean();
+  EXPECT_EQ(retirement(), "cancelled");
   recover_and_unload();
 }
 
@@ -293,6 +337,7 @@ TEST_F(GenerationDeadlineTest, DeadlineUnblocksBackpressuredClientWrite) {
   }
   EXPECT_TRUE(stalled);
   clean();
+  EXPECT_EQ(retirement(), "expired");
   v1::GenerationEvent event;
   while (call->Read(&event)) EXPECT_FALSE(event.has_terminal());
   EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::CANCELLED);

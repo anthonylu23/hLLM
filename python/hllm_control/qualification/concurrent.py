@@ -238,7 +238,9 @@ class LifecycleEvent(ProfileModel):
     sequence: PositiveInt
     at_monotonic_ns: NonNegativeInt
     concurrent_request_ids: tuple[Label, ...]
-    reason: str  # Retirement only: completed, cancelled, expired, allocation-failed.
+    # Retirement only: completed, cancelled, expired, failed, allocation-failed.
+    # Older workers recorded failures as completed and running expiry as cancelled.
+    reason: str
 
 
 class WorkerSnapshot(ProfileModel):

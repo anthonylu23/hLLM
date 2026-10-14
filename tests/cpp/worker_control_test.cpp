@@ -345,7 +345,7 @@ TEST(WorkerConcurrencyTest, AccountsCombinedReservationsAndCancelsOnlyOneRequest
   EXPECT_EQ(remaining.reserved_cache_bytes(), one.reserved_cache_bytes());
   auto lease = service.acquire("plan-1", 1U, "b", 16U, 0U, 0U);
   EXPECT_FALSE(lease.request->cancelled.load());
-  service.release(lease.request);
+  service.release(lease.request, RequestOutcome::kCompleted);
   v1::MemoryReport clean;
   service.GetMemoryReport(&context, &empty, &clean);
   EXPECT_EQ(clean.active_requests(), 0U);
@@ -438,7 +438,7 @@ TEST(WorkerConcurrencyTest, RequestObservationsRecordOverlapAndRetirementOnlyWhe
     ASSERT_EQ(retired.concurrent_request_ids_size(), 1);
     EXPECT_EQ(retired.concurrent_request_ids(0), "b");
     auto lease = service.acquire("plan-1", 1U, "b", 16U, 0U, 0U);
-    service.release(lease.request);
+    service.release(lease.request, RequestOutcome::kCompleted);
     ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
     EXPECT_EQ(report.request_observations().requests_size(), 0);
     ASSERT_EQ(report.request_observations().events_size(), 4);
@@ -469,8 +469,8 @@ TEST(WorkerConcurrencyTest, CombinedMemoryAdmissionRejectsSecondRequest) {
   ASSERT_TRUE(loaded.accepted());
   auto first = service.acquire("plan-1", 1U, "a", 16U, 0U, 0U);
   EXPECT_THROW(static_cast<void>(service.acquire("plan-1", 1U, "b", 16U, 0U, 0U)), runtime::Error);
-  service.release(first.request);
+  service.release(first.request, RequestOutcome::kCompleted);
   auto second = service.acquire("plan-1", 1U, "b", 16U, 0U, 0U);
-  service.release(second.request);
+  service.release(second.request, RequestOutcome::kCompleted);
 }
 }  // namespace hllm::worker
