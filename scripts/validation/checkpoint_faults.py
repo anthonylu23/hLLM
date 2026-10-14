@@ -4,13 +4,18 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 
 import grpc
-from checkpoint_run import make_plan, snapshots
 from hllm_control.controller import DeploymentSession
 from hllm_control.models import DType, ModelManifest
+
+if __package__ in (None, ""):  # `python scripts/validation/checkpoint_faults.py`
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from scripts.validation.checkpoint_run import make_plan, snapshots
 
 
 def clean(session: DeploymentSession) -> None:
