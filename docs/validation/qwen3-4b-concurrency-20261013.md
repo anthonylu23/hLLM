@@ -6,7 +6,11 @@ CUDA host, `build/4b-fit-20261011-044533/` on the Mac). The user freed Mac memor
 asked to proceed; the P5 measurement then ran to an **accepted** record after four
 refused or unusable MLX profile attempts and five concurrency attempts that ended
 earlier, each preserved unchanged. Two tooling defects found on the way are fixed in
-PR #27 and both fixes were required for the accepted record. Times are UTC.
+PR #27 and both fixes were required for the accepted record. A review of PR #27 on
+October 13 found that the first form of the MLX telemetry fix was itself a data race
+and that the preflight's CUDA device sample was stale; both are corrected in the same
+PR (see "Telemetry defect" below and the caveat it attaches to this record). Times are
+UTC.
 
 ## Result
 
@@ -112,13 +116,35 @@ a failure, so the agent stopped and asked; the user approved 5.125 GiB, the valu
 already used on October 10, and the whole chain (profile, baseline, soak) was redone at
 that cap.
 
-Telemetry defect (fixed in PR #27, `fbf4d0b`). `MlxBackendFactory::allocator_metrics()`
-took the device mutex with `try_lock` and returned nothing when a decode step held it,
-which is exactly when the peak occurs. MLX's memory counters are the allocator's own
-bookkeeping, maintained under its internal lock, so they are now read without the device
-mutex, as the CUDA backend already reads its allocator statistics. The rebuilt MLX worker
-is `9e801e78…` (profiler `bf229e22…`); the CUDA binaries are byte-identical to the
-October 11 build because no CUDA source changed.
+Telemetry defect (PR #27). `MlxBackendFactory::allocator_metrics()` took the device
+mutex with `try_lock` and returned nothing when a decode step held it, which is exactly
+when the peak occurs. The first fix (`fbf4d0b`, the binary this record was measured
+with, MLX worker `9e801e78…`, profiler `bf229e22…`) read MLX's counters without the
+device mutex on the claim that MLX guards them itself. That claim was wrong: in MLX
+0.32.2 `get_active_memory`, `get_cache_memory` and `get_peak_memory` return plain
+fields with no lock, while `malloc`/`free` update them under the allocator's mutex on
+the scheduler thread, so a scrape taken mid-step was a data race (undefined behavior by
+the standard; on arm64 an aligned 64-bit load does not tear, so the recorded values are
+at worst a few microseconds stale, never torn). The PR review caught it. The corrected
+worker publishes the counters at every execution boundary, where the device mutex is
+held and the stream synchronized (load, each step, sequence release, unload), and a
+scrape that cannot take the mutex reports that sample instead of reading live; a
+scrape that can take it reads live, because every holder synchronizes before releasing.
+Releasing caches and weights now also happens under the device mutex, which closes the
+same race for the off-mutex frees the old `try_lock` version already had. The sample a
+mid-step scrape reports is at most one step old and carries the same monotonic peak.
+
+Caveat on this record. Its MLX worker (`9e801e78…`) contains the racy read. The
+numbers it produced are not affected in any way that could change the result: the MLX
+envelope at every gate was decided by the OS footprint lifetime peak (5435–5443 MiB)
+from the independent process-memory sampler, not by the allocator peak (4708–4715 MiB),
+and the allocator sample only had to be present and coherent. The record remains
+`accepted` on re-derivation and the reviewer re-derived the same digest independently.
+It is, however, a measurement taken with a worker whose telemetry path was not
+race-free, and the corrected worker is a different binary, so a re-run on the corrected
+binary is listed under Follow-ups; until then this record stands with this caveat. The
+CUDA binaries are byte-identical to the October 11 build because no CUDA source
+changed.
 
 ## Guard records and the hashes in the record
 
@@ -145,6 +171,10 @@ guards, or snapshot their records, before hashing them.
 
 ## Follow-ups
 
+- Re-run P5 on the corrected MLX worker (boundary-published allocator sample) with
+  fresh same-day profiles on both hosts, so that an accepted record exists whose
+  telemetry path is race-free. The procedure is unchanged: `mlx-profile.sh` on the Mac
+  with the memory gate met, `run-baseline.sh`, then `run-concurrent.sh`.
 - Harness: hash guard records after stopping the guards (above).
 - `run-concurrent.sh` relies on `pgrep -f` to find the worker PID for the device watcher;
   the worker should report its PID through the control API so the watcher is bound by

@@ -361,10 +361,15 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   (user-approved; at 4.375 GiB the MLX stage refuses the second reservation, which is
   recorded as attempt 1). Three cycles, 27/27 exact, overlap and cancellation proven on
   both workers, physical envelopes safe each cycle (MLX 5435–5443 MiB, CUDA device
-  5932 MiB). Two tooling defects were fixed to get there (PR #27: preflight sampled
-  before the checkpoint read; MLX allocator counters read without the device mutex).
-  See the [October 13 report](validation/qwen3-4b-concurrency-20261013.md). No
-  throughput claim and nothing above concurrency two follows.
+  5932 MiB). Two tooling defects were fixed to get there (PR #27: host availability
+  sampled before the checkpoint read; MLX allocator sample published at execution
+  boundaries instead of dropped while a step holds the device mutex). The PR review
+  found the first form of the MLX fix to be a data race and the CUDA device sample to
+  be stale; both corrected in the PR, and the report carries a caveat that the accepted
+  record was measured with the racy worker (its envelope was decided by OS footprint,
+  not the allocator). A re-run on the corrected worker is an open follow-up. See the
+  [October 13 report](validation/qwen3-4b-concurrency-20261013.md). No throughput
+  claim and nothing above concurrency two follows.
 - [x] `ProfileKey` currently supports concurrency one. Add/justify a separate
   combined-memory qualification path before treating these profiles as evidence
   for concurrency two. If that needs design work, leave P5 pending this night.

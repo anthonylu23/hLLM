@@ -130,4 +130,7 @@ qualify any changed numerical criterion as a separate experiment.
   record at 128/256 with a user-approved 5.125 GiB MLX cap (the 4.375 GiB cap refuses
   the second reservation); see the
   [October 13 report](validation/qwen3-4b-concurrency-20261013.md). Caps were not
-  expanded automatically: attempt 1 was stopped and the user asked.
+  expanded automatically: attempt 1 was stopped and the user asked. The record was
+  measured with an MLX worker whose allocator read was later found to be a data race
+  (corrected in the same PR; the envelope was decided by OS footprint, not the
+  allocator); a re-run on the corrected worker is the open follow-up.
