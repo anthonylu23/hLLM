@@ -1,5 +1,7 @@
 #include "hllm/cpu/llama.hpp"
 
+#include "hllm/runtime/error.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -290,6 +292,12 @@ std::size_t greedy_sample_last(const Matrix& logits) {
     throw std::invalid_argument("cannot sample empty logits");
   }
   const auto last_row = logits.rows() - 1U;
+  // Same refusal as runtime::sample_token, which every other sampling path uses.
+  for (std::size_t token = 0U; token < logits.columns(); ++token) {
+    if (!std::isfinite(logits(last_row, token))) {
+      throw runtime::Error::internal("cannot sample nonfinite logits");
+    }
+  }
   std::size_t selected = 0U;
   for (std::size_t token = 1U; token < logits.columns(); ++token) {
     if (logits(last_row, token) > logits(last_row, selected)) {
