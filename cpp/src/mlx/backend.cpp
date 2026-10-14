@@ -37,9 +37,8 @@ class MlxFactory final : public runtime::BackendFactory {
   }
   std::optional<runtime::AllocatorMetrics> allocator_metrics() const override {
     // Scrapes must not wait behind checkpoint I/O or a long execution step, and they
-    // must not be skipped during one either: the October 13, 2026 concurrency run
-    // lost the allocator sample in 85% of the snapshots taken while a decode step held
-    // the device mutex, which is exactly when the peak occurs. MLX's getters read the
+    // must not be skipped during one either, because a decode step holding the device
+    // mutex is exactly when the peak occurs. MLX's getters read the
     // allocator's counters without its lock (see AllocatorBoundary), so a live read
     // is taken only when this scrape owns the device mutex, which makes the allocator
     // quiescent; otherwise the sample published at the last execution boundary is

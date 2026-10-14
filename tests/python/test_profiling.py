@@ -406,8 +406,8 @@ def test_preflight_samples_availability_before_reading_the_checkpoint(
 
     On macOS the free-plus-inactive proxy does not count file pages this process has
     just read (they are active), so a sample taken after the digest would charge the
-    tool's own read of the checkpoint against the cap. Observed on October 12, 2026:
-    8.0 GiB available at launch, 5.9 GiB by the time the old preflight sampled.
+    tool's own read of the checkpoint against the cap, which can be gigabytes for a
+    full checkpoint.
     """
     import json
 

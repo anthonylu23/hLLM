@@ -22,8 +22,8 @@ class MlxFitPolicy(StrEnum):
     FOOTPRINT = "footprint-v1"
 
 
-# Evaluation default since October 10, 2026, after the two-host serving qualification met
-# the promotion criterion. Stored bindings (measured bundles, frozen sweeps, native
+# Evaluation default once the promotion criterion in docs/milestone-5-profiling.md was
+# met. Stored bindings (measured bundles, frozen sweeps, native
 # executor configurations) keep "omitted means conservative-v1", so historical digests
 # and frozen identities are unchanged; new MLX bindings state footprint-v1 explicitly.
 DEFAULT_MLX_FIT_POLICY = MlxFitPolicy.FOOTPRINT
