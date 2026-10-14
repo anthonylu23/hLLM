@@ -124,10 +124,14 @@ class DeploymentSession:
             raise ValueError("prompt, output length and timeout must be positive and bounded")
         if len(token_ids) + maximum_new_tokens > self.manifest.config.maximum_sequence_length:
             raise ValueError("prompt and output exceed model context capacity")
+        # This session always sends whole-prompt prefill; only serving chunks it.
         if len(self.plan.stages) == 2 and len(token_ids) > maximum_boundary_tokens(
             self.manifest.config.hidden_size, self.plan.activation_dtype
         ):
-            raise ValueError("prompt exceeds the stage boundary transport limit")
+            raise ValueError(
+                "prompt exceeds the stage boundary transport limit for whole-prompt "
+                "prefill; serve with --prefill-chunk-tokens to send it in chunks"
+            )
         if self.profile_bundle is not None and (len(token_ids), maximum_new_tokens) != (
             self.profile_bundle.workload.prompt_tokens,
             self.profile_bundle.workload.output_tokens,

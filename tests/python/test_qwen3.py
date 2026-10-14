@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from conftest import write_safetensors
-from hllm_control.models import DType, TensorRole
+from hllm_control.models import DType, ModelManifest, TensorRole, maximum_boundary_tokens
 from hllm_control.planner.config import load_links, load_workers, load_workload
 from hllm_control.planner.planner import create_plan
 from hllm_control.prepare.manifest import PreparationError, prepare_model
@@ -114,17 +114,11 @@ def test_rejects_unsupported_qwen_semantics(tmp_path: Path, field: str, value: o
         prepare_model(tmp_path)
 
 
-def test_qwen4b_shape_fixture_matches_upstream_and_plans(tmp_path: Path) -> None:
-    config = qwen_config(full_size=True)
-    (tmp_path / "config.json").write_text(json.dumps(config))
+def qwen4b_manifest(tmp_path: Path) -> ModelManifest:
+    """Sparse Qwen3-4B-Base-shaped checkpoint: real shapes, no weight payloads."""
+    (tmp_path / "config.json").write_text(json.dumps(qwen_config(full_size=True)))
     index = json.loads((FIXTURES / "model.safetensors.index.json").read_text())
     tensors = qwen_tensors(full_size=True)
-    assert set(tensors) == set(index["weight_map"])
-    metadata = json.loads((FIXTURES / "tensor-metadata.json").read_text())
-    assert {
-        name: {"dtype": dtype.value, "shape": list(shape)}
-        for name, (dtype, shape) in tensors.items()
-    } == metadata
     for shard in sorted(set(index["weight_map"].values())):
         write_safetensors(
             tmp_path / shard,
@@ -136,11 +130,23 @@ def test_qwen4b_shape_fixture_matches_upstream_and_plans(tmp_path: Path) -> None
             sparse=True,
         )
     (tmp_path / "model.safetensors.index.json").write_text(json.dumps(index))
-    manifest = prepare_model(
+    return prepare_model(
         tmp_path,
         model_id="Qwen/Qwen3-4B-Base",
         revision="906bfd4b4dc7f14ee4320094d8b41684abff8539",
     )
+
+
+def test_qwen4b_shape_fixture_matches_upstream_and_plans(tmp_path: Path) -> None:
+    index = json.loads((FIXTURES / "model.safetensors.index.json").read_text())
+    tensors = qwen_tensors(full_size=True)
+    assert set(tensors) == set(index["weight_map"])
+    metadata = json.loads((FIXTURES / "tensor-metadata.json").read_text())
+    assert {
+        name: {"dtype": dtype.value, "shape": list(shape)}
+        for name, (dtype, shape) in tensors.items()
+    } == metadata
+    manifest = qwen4b_manifest(tmp_path)
     assert len(manifest.tensors) == 398
     # The pinned index total_size is stale; actual shard headers sum to this value.
     assert manifest.total_storage_bytes == 8_044_936_192
@@ -160,4 +166,44 @@ def test_qwen4b_shape_fixture_matches_upstream_and_plans(tmp_path: Path) -> None
         sum(stage.weight_bytes for stage in candidate.stages)
         == manifest.total_storage_bytes + embedding_bytes
         for candidate in report.candidates
+    )
+
+
+def test_qwen4b_long_prompt_plans_only_when_prefill_is_chunked(tmp_path: Path) -> None:
+    manifest = qwen4b_manifest(tmp_path)
+    workers = load_workers(ROOT / "examples/profiles/workers-m3pro-3060ti.yaml")
+    links = load_links(ROOT / "examples/profiles/links-m3pro-3060ti.yaml")
+    chunked = load_workload(ROOT / "examples/workloads/chunked-4096-256.yaml")
+    whole = chunked.model_copy(update={"prefill_chunk_tokens": 0})
+    # 8 MiB / (2560 hidden x 2 bytes): one F16 boundary message holds 1638 tokens.
+    assert maximum_boundary_tokens(2560, DType.F16) == 1638 < chunked.prompt_tokens
+
+    unchunked = create_plan(manifest, workers, links, whole)
+    assert unchunked.plan is None
+    assert all(
+        "BOUNDARY_PAYLOAD_EXCEEDED:4096>1638" in candidate.rejection_reasons
+        for candidate in unchunked.candidates
+    )
+
+    report = create_plan(manifest, workers, links, chunked)
+    assert report.plan is not None
+    assert not any(
+        reason.startswith("BOUNDARY_PAYLOAD_EXCEEDED")
+        for candidate in report.candidates
+        for reason in candidate.rejection_reasons
+    )
+    assert any("--prefill-chunk-tokens" in note for note in report.notes)
+    # Eight messages instead of one: seven extra per-message latencies and conversions.
+    first, final = (stage.worker_id for stage in report.plan.stages)
+    link = next(
+        item for item in links if (item.source_worker_id, item.target_worker_id) == (first, final)
+    )
+    selected = next(
+        c for c in report.candidates if c.candidate_id == report.plan.selected_candidate_id
+    )
+    same = next(c for c in unchunked.candidates if c.candidate_id == selected.candidate_id)
+    assert selected.performance is not None and same.performance is not None
+    assert selected.performance.boundary_prefill_ms == pytest.approx(
+        same.performance.boundary_prefill_ms
+        + 7 * (link.fixed_latency_ms + link.sender_conversion_ms + link.receiver_conversion_ms)
     )

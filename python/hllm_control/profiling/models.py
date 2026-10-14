@@ -73,6 +73,9 @@ class ProfileKey(ProfileModel):
             raise ValueError("workload digest mismatch")
         if w.concurrency != 1:
             raise ValueError("measured profiles currently support concurrency 1")
+        if w.prefill_chunk_tokens:
+            # The native memory/compute probes run whole-prompt prefill only.
+            raise ValueError("measured profiles currently support whole-prompt prefill only")
         if w.total_cached_tokens < w.prompt_tokens + w.output_tokens:
             raise ValueError("cache capacity must cover prompt plus output tokens")
         supported = (

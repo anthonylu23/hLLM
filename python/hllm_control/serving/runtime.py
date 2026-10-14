@@ -48,8 +48,14 @@ class ServingRuntime:
             and self.concurrency != self.session.profile_bundle.workload.concurrency
         ):
             raise ValueError("serving concurrency differs from measured workload")
-        if self.prefill_chunk_tokens and self.session.profile_bundle:
-            raise ValueError("chunked prefill requires new measured profiles")
+        bundle = self.session.profile_bundle
+        if bundle and self.prefill_chunk_tokens != bundle.workload.prefill_chunk_tokens:
+            raise ValueError(
+                f"serving prefill chunk size {self.prefill_chunk_tokens} differs from the "
+                f"measured workload's {bundle.workload.prefill_chunk_tokens}; measured "
+                "profiles cover whole-prompt prefill only, so serve measured plans "
+                "without --prefill-chunk-tokens"
+            )
         self.channels = [
             aio.insecure_channel(
                 self.session.endpoints[s.worker_id],

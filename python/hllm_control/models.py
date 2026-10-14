@@ -68,6 +68,10 @@ def maximum_boundary_tokens(hidden_size: int, activation_dtype: DType) -> int:
     return MAXIMUM_BOUNDARY_PAYLOAD_BYTES // (hidden_size * DTYPE_BYTES[activation_dtype])
 
 
+# Matches the serving runtime's --prefill-chunk-tokens bound.
+MAXIMUM_PREFILL_CHUNK_TOKENS = 65536
+
+
 class TensorRole(StrEnum):
     TOKEN_EMBEDDING = "TOKEN_EMBEDDING"
     TRANSFORMER_LAYER = "TRANSFORMER_LAYER"
@@ -269,6 +273,23 @@ class WorkloadProfile(StrictModel):
     kv_overhead_factor: Annotated[float, Field(ge=1.0)] = 1.1
     kv_dtype: DType = DType.F16
     activation_dtype: DType = DType.F16
+    # 0 is whole-prompt prefill. Omitted from serialization when 0, so existing
+    # workload, profile and plan digests are unchanged.
+    prefill_chunk_tokens: NonNegativeInt = Field(
+        default=0, le=MAXIMUM_PREFILL_CHUNK_TOKENS, exclude_if=lambda v: v == 0
+    )
+
+    @model_validator(mode="after")
+    def validate_prefill_chunk(self) -> WorkloadProfile:
+        # One chunk covering the whole prompt is whole-prompt prefill; keep one identity.
+        if self.prefill_chunk_tokens and self.prefill_chunk_tokens >= self.prompt_tokens:
+            raise ValueError("prefill_chunk_tokens must be below prompt_tokens; use 0")
+        return self
+
+    @property
+    def boundary_message_tokens(self) -> int:
+        """Prompt tokens carried by the largest prefill boundary message."""
+        return self.prefill_chunk_tokens or self.prompt_tokens
 
 
 class ObjectiveWeights(StrictModel):

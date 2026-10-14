@@ -18,6 +18,7 @@ from hllm_control.models import (
 from hllm_control.planner.config import load_links, load_workers, load_workload
 from hllm_control.planner.planner import create_plan
 from hllm_control.prepare.manifest import prepare_model
+from hllm_control.profiling.models import digest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
@@ -291,3 +292,22 @@ def test_rejects_prompts_that_cannot_cross_the_stage_boundary(tiny_model: Path) 
         any(reason.startswith("BOUNDARY_PAYLOAD_EXCEEDED:") for reason in c.rejection_reasons)
         for c in report.candidates
     )
+
+
+def test_prefill_chunk_validation() -> None:
+    base = workload().model_dump()
+    assert WorkloadProfile.model_validate({**base, "prefill_chunk_tokens": 7}).prefill_chunk_tokens
+    for invalid in (-1, 8, 9, 65537):
+        with pytest.raises(ValueError):
+            WorkloadProfile.model_validate({**base, "prefill_chunk_tokens": invalid})
+
+
+def test_unchunked_workload_digest_is_unchanged() -> None:
+    root = Path(__file__).parents[2]
+    loaded = load_workload(root / "examples/workloads/milestone-5.yaml")
+    # The committed September 2026 memory profiles bind this exact workload digest.
+    saved = json.loads((root / "docs/validation/milestone-5-memory/cuda-final.json").read_text())
+    assert saved["key"]["workload"] == loaded.model_dump(mode="json")
+    assert digest(loaded) == saved["key"]["workload_digest"]
+    assert digest(loaded.model_copy(update={"prefill_chunk_tokens": 0})) == digest(loaded)
+    assert "prefill_chunk_tokens" not in loaded.model_dump(mode="json")
