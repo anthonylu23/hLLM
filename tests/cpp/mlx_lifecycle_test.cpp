@@ -5,6 +5,7 @@
 #include <chrono>
 #include <future>
 #include <limits>
+#include <optional>
 
 #include "device.hpp"
 #include "hllm/mlx/backend.hpp"
@@ -49,7 +50,7 @@ TEST(MlxLifecycleTest, RealMetalBufferLimitKeepsResourceExhaustionContract) {
             4.0F);
 }
 
-TEST(MlxLifecycleTest, BusyMetricsReturnWithoutWaitingAndClearPreviousSample) {
+TEST(MlxLifecycleTest, BusyMetricsReturnWithoutWaitingAndCarryTheLastBoundarySample) {
   const test::ModelFixture fixture;
   worker::ControlService service(
       {"cpu-a", "localhost", fixture.root, 0U, 0U, 0U, 128U * 1024U * 1024U},
@@ -57,20 +58,60 @@ TEST(MlxLifecycleTest, BusyMetricsReturnWithoutWaitingAndClearPreviousSample) {
   v1::WorkerMetrics response;
   ASSERT_TRUE(service.GetMetrics(nullptr, nullptr, &response).ok());
   ASSERT_TRUE(response.has_allocator());
+  const auto idle = response.allocator();
   std::future<grpc::Status> poll;
   bool ready = false;
   {
+    // Another thread owns the device mutex, as a decode step would; the scrape must
+    // neither wait nor touch MLX's unsynchronized getters, and it reports the sample
+    // published at the last execution boundary instead of dropping the field.
     std::scoped_lock lock(device_mutex());
     poll = std::async(std::launch::async,
                       [&] { return service.GetMetrics(nullptr, nullptr, &response); });
     ready = poll.wait_for(std::chrono::seconds(1)) == std::future_status::ready;
-  }  // Release before joining even when the old blocking implementation fails.
+  }  // Release before joining even when a blocking implementation fails.
   EXPECT_TRUE(ready);
   EXPECT_TRUE(poll.get().ok());
   EXPECT_EQ(response.worker_id(), "cpu-a");
-  EXPECT_FALSE(response.has_allocator());
+  ASSERT_TRUE(response.has_allocator());
+  EXPECT_EQ(response.allocator().active_bytes(), idle.active_bytes());
+  EXPECT_EQ(response.allocator().cached_bytes(), idle.cached_bytes());
+  EXPECT_EQ(response.allocator().peak_bytes(), idle.peak_bytes());
   ASSERT_TRUE(service.GetMetrics(nullptr, nullptr, &response).ok());
   EXPECT_TRUE(response.has_allocator());
+}
+
+TEST(MlxLifecycleTest, BoundarySampleFollowsAllocationAndReleaseUnderTheMutex) {
+  auto factory = make_backend_factory();
+  const auto before = factory->allocator_metrics();
+  ASSERT_TRUE(before.has_value());
+  std::optional<mx::array> held;
+  {
+    std::scoped_lock lock(device_mutex());
+    held = completed(execution_stream(), [] {
+      auto value = mx::ones({1024, 1024}, mx::float32);
+      mx::eval(value);
+      return value;
+    });
+    // Still under the mutex: the scrape cannot read live and must report the
+    // sample the completion helper published, which already includes the array.
+    const auto busy = factory->allocator_metrics();
+    ASSERT_TRUE(busy.has_value());
+    EXPECT_GE(busy->active_bytes, before->active_bytes + 4U * 1024U * 1024U);
+    EXPECT_GE(busy->peak_bytes, busy->active_bytes);
+  }
+  const auto idle = factory->allocator_metrics();
+  ASSERT_TRUE(idle.has_value());
+  EXPECT_GE(idle->active_bytes, before->active_bytes + 4U * 1024U * 1024U);
+  {
+    std::scoped_lock lock(device_mutex());
+    held.reset();
+    allocator_boundary().record_quiescent();
+  }
+  const auto released = factory->allocator_metrics();
+  ASSERT_TRUE(released.has_value());
+  EXPECT_LT(released->active_bytes, idle->active_bytes);
+  EXPECT_GE(released->peak_bytes, idle->active_bytes);
 }
 
 TEST(MlxLifecycleTest, AllocationErrorsKeepResourceExhaustionContract) {
