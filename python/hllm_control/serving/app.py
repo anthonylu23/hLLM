@@ -31,8 +31,15 @@ from hllm_control.serving.tokenizer import TextOutput, TextTokenizer
 # pyright: reportUnusedFunction=false
 
 
+# After the generation deadline, a stream gets this long to deliver its timeout
+# event and [DONE] to a slow client before the response is abandoned.
+STREAM_DRAIN_SECONDS = 5.0
+
+
 class ManagedStream(StreamingResponse):
-    def __init__(self, content: AsyncGenerator[str], release: Callable[[], None]) -> None:
+    def __init__(
+        self, content: AsyncGenerator[str], release: Callable[[], None], deadline: float
+    ) -> None:
         super().__init__(
             content,
             media_type="text/event-stream",
@@ -43,10 +50,15 @@ class ManagedStream(StreamingResponse):
         )
         self.iterator = content
         self.release = release
+        self.deadline = deadline  # time.monotonic()
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         try:
-            await super().__call__(scope, receive, send)
+            # A client that stops reading blocks `send` indefinitely; the deadline
+            # inside generation cannot fire while the stream waits on the client.
+            limit = self.deadline + STREAM_DRAIN_SECONDS - time.monotonic()
+            with anyio.move_on_after(max(0.0, limit)):
+                await super().__call__(scope, receive, send)
         finally:
             with anyio.CancelScope(shield=True):
                 try:
@@ -311,64 +323,76 @@ def create_app(
                         return
                     await asyncio.sleep(0.02)
 
+            async def next_token() -> int:
+                # Only native waits are bounded here. A timeout that spanned the
+                # yields below would fire while a slow client blocks the response
+                # task in `send`, outside this generator, and abort the stream
+                # without its timeout event.
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    raise TimeoutError
+                async with asyncio.timeout(left):
+                    return await anext(native)
+
             monitor = asyncio.create_task(watch_disconnect()) if not options.stream else None
             try:
-                async with asyncio.timeout(max(0.001, remaining)):
-                    if chat and options.stream:
-                        yield {
-                            **common,
-                            "object": "chat.completion.chunk",
-                            "choices": [
-                                {
-                                    "index": 0,
-                                    "delta": {"role": "assistant", "content": ""},
-                                    "finish_reason": None,
-                                }
-                            ],
-                        }
-                    async for token in native:
-                        now = time.monotonic()
-                        if previous_token is None:
-                            metrics.ttft_seconds += now - started
-                            metrics.ttft_count += 1
-                        else:
-                            metrics.itl_seconds += now - previous_token
-                            metrics.itl_count += 1
-                        previous_token = now
-                        usage["completion_tokens"] += 1
-                        usage["total_tokens"] += 1
-                        metrics.generated_tokens += 1
-                        details = None
-                        if options.logprob_limit is not None:
-                            metadata = runtime.latest_tokens.get(identifier)
-                            if metadata is None:
-                                raise RuntimeError(
-                                    "native token omitted requested log probabilities"
-                                )
-                            entry = token_logprobs(metadata, tokenizer, len(output.decoded))
-                            if not options.stream:
-                                logprob_records.append(entry)
-                            details = [entry]
-                        if token in stops:
-                            finish_reason = "stop"
-                            if details is not None:
-                                yield chunk("", details=details)
-                            continue  # Drain native terminal acknowledgment before success.
-                        text = output.push(token)
-                        if text and not options.stream:
-                            pieces.append(text)
-                        if text or details is not None:
-                            yield chunk(text, details=details)
-                        if output.stopped:
-                            finish_reason = "stop"
-                            break
-                    text = output.finish()
-                    if text:
+                if chat and options.stream:
+                    yield {
+                        **common,
+                        "object": "chat.completion.chunk",
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {"role": "assistant", "content": ""},
+                                "finish_reason": None,
+                            }
+                        ],
+                    }
+                while True:
+                    try:
+                        token = await next_token()
+                    except StopAsyncIteration:
+                        break
+                    now = time.monotonic()
+                    if previous_token is None:
+                        metrics.ttft_seconds += now - started
+                        metrics.ttft_count += 1
+                    else:
+                        metrics.itl_seconds += now - previous_token
+                        metrics.itl_count += 1
+                    previous_token = now
+                    usage["completion_tokens"] += 1
+                    usage["total_tokens"] += 1
+                    metrics.generated_tokens += 1
+                    details = None
+                    if options.logprob_limit is not None:
+                        metadata = runtime.latest_tokens.get(identifier)
+                        if metadata is None:
+                            raise RuntimeError("native token omitted requested log probabilities")
+                        entry = token_logprobs(metadata, tokenizer, len(output.decoded))
                         if not options.stream:
-                            pieces.append(text)
-                        yield chunk(text)
+                            logprob_records.append(entry)
+                        details = [entry]
+                    if token in stops:
+                        finish_reason = "stop"
+                        if details is not None:
+                            yield chunk("", details=details)
+                        continue  # Drain native terminal acknowledgment before success.
+                    text = output.push(token)
+                    if text and not options.stream:
+                        pieces.append(text)
+                    if text or details is not None:
+                        yield chunk(text, details=details)
                     if output.stopped:
                         finish_reason = "stop"
+                        break
+                text = output.finish()
+                if text:
+                    if not options.stream:
+                        pieces.append(text)
+                    yield chunk(text)
+                if output.stopped:
+                    finish_reason = "stop"
                 succeeded = True
                 metrics.completed += 1
                 yield chunk("", finish_reason)
@@ -387,7 +411,12 @@ def create_app(
                 raise native_error(error) from error
             except (asyncio.CancelledError, GeneratorExit):
                 if not succeeded:
-                    metrics.cancelled += 1
+                    # Abandoned after the deadline (a client that stopped reading) is
+                    # a timeout, not a cancellation.
+                    if time.monotonic() >= deadline:
+                        metrics.failed += 1
+                    else:
+                        metrics.cancelled += 1
                 raise
             except Exception as error:
                 metrics.failed += 1
@@ -415,7 +444,7 @@ def create_app(
                     await iterator.aclose()
                 yield "data: [DONE]\n\n"
 
-            return ManagedStream(stream(), release_slot)
+            return ManagedStream(stream(), release_slot, deadline)
         async for _event in events():
             pass
         choice: dict[str, Any] = {"index": 0, "finish_reason": finish_reason}
