@@ -397,3 +397,176 @@ def test_preflight_refuses_to_start_and_saves_report(tmp_path: Path, monkeypatch
     report = (tmp_path / "rejected.preflight.json").read_text()
     assert '"status": "rejected"' in report
     assert not (tmp_path / "rejected.native.jsonl").exists()
+
+
+def test_preflight_samples_availability_before_reading_the_checkpoint(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """The decision uses a sample taken before the runner's own checkpoint read.
+
+    On macOS the free-plus-inactive proxy does not count file pages this process has
+    just read (they are active), so a sample taken after the digest would charge the
+    tool's own read of the checkpoint against the cap. Observed on October 12, 2026:
+    8.0 GiB available at launch, 5.9 GiB by the time the old preflight sampled.
+    """
+    import json
+
+    from hllm_control.profiling import runner
+
+    from tests.process_helpers import plan, write_model
+
+    root = tmp_path / "model"
+    manifest = write_model(root)
+    calls: list[str] = []
+    samples = iter([10**10, 10])  # enough before the read, not enough after it
+    real_digest = runner.checkpoint_digest
+
+    def sample() -> int:
+        calls.append("sample")
+        return next(samples)
+
+    def read_checkpoint(*args, **kwargs):
+        calls.append("checkpoint")
+        return real_digest(*args, **kwargs)
+
+    monkeypatch.setattr(runner, "host_available_bytes", sample)
+    monkeypatch.setattr(runner, "checkpoint_digest", read_checkpoint)
+    w = WorkloadProfile(
+        workload_id="preflight",
+        prompt_tokens=4,
+        output_tokens=3,
+        total_cached_tokens=7,
+        kv_dtype=DType.F32,
+    )
+    # The binary is a shell that exits at once, so after an accepted preflight the
+    # native run fails and the run raises; the preflight record is what matters here.
+    with pytest.raises(RuntimeError):
+        runner.run_memory_profile(
+            binary=Path("/bin/sh"),
+            root=root,
+            manifest=manifest,
+            plan=plan(manifest),
+            stage_index=0,
+            workload=w,
+            backend=Backend.CPU,
+            capacity=MemoryAmounts(host=1000),
+            output=tmp_path / "ordered.json",
+            source_revision="test",
+            concurrent_load="test",
+            timeout_seconds=5,
+        )
+    assert calls == ["sample", "checkpoint", "sample"]
+    report = json.loads((tmp_path / "ordered.preflight.json").read_text())
+    assert report["status"] == "accepted"
+    assert report["availability_sampled_before_checkpoint_read"] is True
+    assert report["host_budget"]["available_bytes"] == 10**10
+    assert report["host_available_bytes_after_checkpoint_read"] == 10
+    assert report["availability_sampled_at"] <= report["observed_at"]
+    assert report["schema_version"] == "1.2"
+    assert report["device_budget"] is None
+    assert report["device_availability_decided_by"] is None
+
+
+def test_preflight_refreshes_cuda_device_availability_after_the_checkpoint_read(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Device memory can be taken by another process while the checkpoint is hashed.
+
+    The host rationale (the runner's own read pollutes the macOS proxy) does not apply
+    to VRAM, so the device decision uses the smaller of the samples taken before and
+    after the digest: free VRAM that falls from 8 GiB to 256 MiB during hashing must
+    reject a 4 GiB probe rather than launch it.
+    """
+    import json
+
+    from hllm_control.profiling import runner
+
+    from tests.process_helpers import plan, write_model
+
+    root = tmp_path / "model"
+    manifest = write_model(root)
+    calls: list[str] = []
+    device_samples = iter([8 * 1024**3, 256 * 1024**2])
+    real_digest = runner.checkpoint_digest
+
+    def device_sample(device_id: int) -> int:
+        calls.append(f"device:{device_id}")
+        return next(device_samples)
+
+    def read_checkpoint(*args, **kwargs):
+        calls.append("checkpoint")
+        return real_digest(*args, **kwargs)
+
+    monkeypatch.setattr(runner, "host_available_bytes", lambda: 10**12)
+    monkeypatch.setattr(runner, "device_available_bytes", device_sample)
+    monkeypatch.setattr(runner, "checkpoint_digest", read_checkpoint)
+    w = WorkloadProfile(
+        workload_id="preflight",
+        prompt_tokens=4,
+        output_tokens=3,
+        total_cached_tokens=7,
+        kv_dtype=DType.F32,
+    )
+    with pytest.raises(ValueError, match="device: configured probe cap plus physical"):
+        runner.run_memory_profile(
+            binary=Path("/bin/sh"),
+            root=root,
+            manifest=manifest,
+            plan=plan(manifest),
+            stage_index=0,
+            workload=w,
+            backend=Backend.CUDA,
+            capacity=MemoryAmounts(host=1000, device=4 * 1024**3),
+            output=tmp_path / "stale-device.json",
+            source_revision="test",
+            concurrent_load="test",
+            device_id=3,
+            timeout_seconds=5,
+        )
+    assert calls == ["device:3", "checkpoint", "device:3"]
+    report = json.loads((tmp_path / "stale-device.preflight.json").read_text())
+    assert report["status"] == "rejected"
+    assert report["device_budget"]["available_bytes"] == 256 * 1024**2
+    assert report["device_available_bytes_before_checkpoint_read"] == 8 * 1024**3
+    assert report["device_available_bytes_after_checkpoint_read"] == 256 * 1024**2
+    assert (
+        report["device_availability_decided_by"]
+        == "minimum-of-samples-before-and-after-checkpoint-read"
+    )
+    assert not (tmp_path / "stale-device.native.jsonl").exists()
+
+
+def test_preflight_treats_a_missing_device_sample_as_unavailable(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from hllm_control.profiling import runner
+
+    from tests.process_helpers import plan, write_model
+
+    root = tmp_path / "model"
+    manifest = write_model(root)
+    device_samples = iter([8 * 1024**3, None])
+    monkeypatch.setattr(runner, "host_available_bytes", lambda: 10**12)
+    monkeypatch.setattr(runner, "device_available_bytes", lambda _: next(device_samples))
+    w = WorkloadProfile(
+        workload_id="preflight",
+        prompt_tokens=4,
+        output_tokens=3,
+        total_cached_tokens=7,
+        kv_dtype=DType.F32,
+    )
+    with pytest.raises(ValueError, match="device: current availability unavailable"):
+        runner.run_memory_profile(
+            binary=Path("/bin/sh"),
+            root=root,
+            manifest=manifest,
+            plan=plan(manifest),
+            stage_index=0,
+            workload=w,
+            backend=Backend.CUDA,
+            capacity=MemoryAmounts(host=1000, device=1000),
+            output=tmp_path / "no-device.json",
+            source_revision="test",
+            concurrent_load="test",
+            timeout_seconds=5,
+        )

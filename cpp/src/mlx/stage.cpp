@@ -50,6 +50,17 @@ struct MlxSequence final : runtime::SequenceState {
   std::size_t capacity{}, length{};
   bool failed{false};
   std::vector<Cache> caches;
+  MlxSequence() = default;
+  MlxSequence(const MlxSequence&) = delete;
+  MlxSequence& operator=(const MlxSequence&) = delete;
+  // The worker retires a request on a gRPC thread; releasing its caches mutates
+  // the allocator's counters, so it happens under the device mutex and publishes
+  // the post-release sample (see AllocatorBoundary).
+  ~MlxSequence() override {
+    std::scoped_lock lock(device_mutex());
+    caches.clear();
+    allocator_boundary().record_quiescent();
+  }
 };
 
 class MlxStage final : public ReferenceStage {
@@ -435,6 +446,17 @@ class MlxStage final : public ReferenceStage {
   mx::Stream stream_;
   std::size_t bytes_{};
   std::map<std::string, mx::array> weights_;
+
+ public:
+  MlxStage(const MlxStage&) = delete;
+  MlxStage& operator=(const MlxStage&) = delete;
+  // Unload releases the resident weights under the device mutex for the same
+  // reason as MlxSequence::~MlxSequence, and publishes the post-unload sample.
+  ~MlxStage() override {
+    std::scoped_lock lock(device_mutex());
+    weights_.clear();
+    allocator_boundary().record_quiescent();
+  }
 };
 }  // namespace
 std::unique_ptr<runtime::StageBackend> load_device_stage(const model::DenseSource& source,

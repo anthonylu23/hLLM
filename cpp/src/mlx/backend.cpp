@@ -36,16 +36,25 @@ class MlxFactory final : public runtime::BackendFactory {
             "MLX Metal runtime ready", true};
   }
   std::optional<runtime::AllocatorMetrics> allocator_metrics() const override {
-    // Scrapes must not wait behind checkpoint I/O or a long execution step.
+    // Scrapes must not wait behind checkpoint I/O or a long execution step, and they
+    // must not be skipped during one either: the October 13, 2026 concurrency run
+    // lost the allocator sample in 85% of the snapshots taken while a decode step held
+    // the device mutex, which is exactly when the peak occurs. MLX's getters read the
+    // allocator's counters without its lock (see AllocatorBoundary), so a live read
+    // is taken only when this scrape owns the device mutex, which makes the allocator
+    // quiescent; otherwise the sample published at the last execution boundary is
+    // returned, which is at most one step old and carries the same monotonic peak.
     std::unique_lock lock(device_mutex(), std::try_to_lock);
-    if (!lock.owns_lock()) return std::nullopt;
-    return runtime::AllocatorMetrics{mx::get_active_memory(), mx::get_cache_memory(),
-                                     mx::get_peak_memory()};
+    if (lock.owns_lock()) {
+      allocator_boundary().record_quiescent();
+    }
+    return allocator_boundary().latest();
   }
   bool profiling_reset_peak() const override {
     std::scoped_lock lock(device_mutex());
     mx::synchronize(execution_stream());
     mx::reset_peak_memory();
+    allocator_boundary().record_quiescent();
     return true;
   }
   runtime::ProfilingDeviceInfo profiling_device_info() const override {

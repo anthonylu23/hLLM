@@ -132,6 +132,17 @@ inactive file cache. A pre-launch watch needs a launch allowance of at least 1.2
 on top of the preflight requirement, or the preflight should sample before the CLI's
 own imports. This is a follow-up, not a change to tonight's gate.
 
+*October 12 correction.* A third attempt (`mac/rejected-3/`, launched 18:31:06Z from
+main `894897a`, binaries unchanged) was refused the same way: the guard read 8.01 GiB
+at launch, 7.96 GiB two seconds later and 6.34 GiB at four seconds, and the preflight
+sampled 5.91 GiB against 6.06 GiB. Importing the CLI on its own was then measured to
+cost nothing (6.00 GiB before, 6.06 GiB after). The cause is the runner's own
+checkpoint digest: it reads the whole checkpoint before sampling availability, and
+on macOS the pages it has just read sit on the active list, outside the
+free-plus-inactive proxy. The runner now samples availability before that read and
+records the post-read value alongside it (preflight schema 1.1); the requirement
+and allowances are unchanged.
+
 To run P5 by hand once the Mac has about 0.9 GiB more free-plus-inactive memory, and
 before the CUDA profile expires at 04:50:49Z on October 12:
 
@@ -187,3 +198,9 @@ Verified at 06:43Z–06:45Z after the first watch ended, and again at 07:31Z aft
   at or above 6.06 GiB free-plus-inactive at the preflight sample, which tonight meant
   about 7.3 GiB at the watch reading (about 0.9 GiB more than its best).
 - A pinned 1024/256 oracle now exists for the larger-context follow-up.
+
+**Continuation.** The P5 measurement ran on October 12–13 in this run directory and
+produced an accepted record at a 5.125 GiB MLX cap; see the
+[October 13 report](qwen3-4b-concurrency-20261013.md), which also corrects the
+preflight lesson above (the cause was the runner's own checkpoint read, not the CLI
+imports).

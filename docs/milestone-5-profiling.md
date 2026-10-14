@@ -23,8 +23,17 @@ Files are created exclusively. The runner preserves the native log, raw samples,
 input specification, preflight decision and physical-fit assessment alongside the
 sealed artifact. It refuses to overwrite an existing run. Failed native runs retain
 partial samples and an error; a preflight rejection writes its decision without
-starting a native process. A failure before backend initialization retains logs but
-cannot produce a complete backend identity or sealed measurement.
+starting a native process. The preflight's host availability sample is taken before
+the runner reads the checkpoint to digest it: on macOS the free-plus-inactive proxy
+does not count file pages this process has just touched, so a later sample would
+charge the runner's own checkpoint read against the cap (on October 12, 2026 that read
+moved about 1.6 GiB out of the sample within four seconds of launch). CUDA device
+memory is untouched by that read but can be taken by another process while the
+checkpoint is hashed, so the device decision uses the smaller of a sample taken before
+the read and one taken after it. The record (schema 1.2) keeps the sample time, the
+post-read host reading for comparison, both device readings and which rule decided
+the device budget. A failure before backend initialization retains logs but cannot
+produce a complete backend identity or sealed measurement.
 
 `check_compatibility()` distinguishes missing, incompatible, out-of-range, incomplete
 and compatible profiles. Matching initially requires exact assignments and workloads;
