@@ -2,7 +2,7 @@
 
 Status: implemented on the qualification stack, 2026-09-06. PR #7 establishes
 mixed execution; PR #8 adds pinned staging; `codex/cuda-failure-qualification`
-adds failure/memory qualification. See the [validation report](validation/mixed-cpu-cuda.md)
+adds failure/memory qualification. See the [validation report](../validation/mixed-cpu-cuda.md)
 for measured results and limitations. Upstream PR #5 (integration) and PR #6
 (CUDA execution) remain dependencies. Review and merge in stack order.
 

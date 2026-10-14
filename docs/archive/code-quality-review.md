@@ -37,7 +37,7 @@ sanitizer coverage. Use the commands in the README to reproduce the suites.
 
 ## Historical limits at the time of this review
 
-These CPU integration gaps were addressed by [Milestone 1](milestone-1.md). The
+These CPU integration gaps were addressed by [Milestone 1](../milestone-1.md). The
 following records the state before that implementation.
 
 The worker control service currently validates selected tensor metadata and tracks one
