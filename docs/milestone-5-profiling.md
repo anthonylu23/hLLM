@@ -118,10 +118,11 @@ unload can include retained caches and runtime state even when logical reservati
 are zero. Footprint is not additive with RSS or MLX allocator bytes, and their
 differences alone do not establish allocation ownership or total system pressure.
 
-The conservative fit gate remains the default. The [instrumented 4B reload run](validation/qwen3-4b-footprint.md)
+The [instrumented 4B reload run](validation/qwen3-4b-footprint.md)
 includes system pressure/swap, available memory and retained-state evidence.
-An explicit footprint policy is now implemented as described below; its fresh
-full-checkpoint qualification is in the [overnight backlog](overnight-backlog.md).
+The footprint policy described below is the MLX evaluation default since its
+[promotion](#promotion-criterion-for-footprint-v1); its full-checkpoint qualification
+is recorded in the [October 10 serving report](validation/qwen3-4b-serving-20261010.md).
 The [instrumentation validation](validation/process-memory.md) covers small native
 CPU/MLX fixtures and Linux counter availability; it is not a new 4B qualification.
 

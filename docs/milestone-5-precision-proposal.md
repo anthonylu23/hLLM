@@ -1,6 +1,9 @@
 # M5 precision target — approved for implementation
 
 This document preserves the rationale and implementation plan at approval time.
+The approval covers the Qwen3-0.6B M5 qualification only. All Qwen3-4B evidence uses
+uniform F16, and the canonical 4B precision target is an open decision; see
+[the status page](STATUS.md).
 Mixed precision is now implemented; the production acceptance sweep remains
 pending. See the [current validation report](validation/milestone-5-planner.md)
 for subsequent exact-token, health and transport evidence. The diagnostic counts

@@ -8,17 +8,15 @@ Stages load assigned Safetensors weights, run prefill and greedy decode, and str
 token IDs through a Python controller. Request admission, cancellation, deadlines, and
 cleanup are covered by numerical and process integration tests.
 
-The approved M5 qualification target uses F16 resident weights, F32 execution/KV,
-and F16 wire transfers. M5 implementation and the bounded code investigation are
-complete for now; WAN performance acceptance is deferred. The NYC–Texas path
-shows delivery loss and timing variability, while controlled local delay tests
-preserve exact tokens, deadlines, cleanup and recovery. See the
-[engineering closeout](docs/validation/milestone-5-wan-closeout.md).
+**Current status, open gates and next steps are in [docs/STATUS.md](docs/STATUS.md).**
 
-The [PR #15 review fixes](docs/validation/pr15-review-fixes.md) cover interrupted
-sweep resume, CLI registration, completion delivery, plan rejection diagnostics,
-downstream restart recovery tests and link-probe error reporting. These checks do
-not replace the deferred WAN acceptance sweep.
+The approved M5 qualification target for Qwen3-0.6B uses F16 resident weights, F32
+execution/KV, and F16 wire transfers. All Qwen3-4B evidence so far is uniform F16;
+the canonical 4B precision target is an open decision. M5 implementation and the
+bounded code investigation are complete for now; WAN performance acceptance is
+deferred. The NYC–Texas path shows delivery loss and timing variability, while
+controlled local delay tests preserve exact tokens, deadlines, cleanup and recovery.
+See the [engineering closeout](docs/validation/milestone-5-wan-closeout.md).
 
 ## Milestone status
 
@@ -40,24 +38,20 @@ checks. See the [profiling workflow](docs/milestone-5-profiling.md),
 integration (5.5) and the independent sweep runner (5.6) are implemented; the full
 54-candidate acceptance run remains pending. See the [placement workflow](docs/milestone-5-placement.md)
 and [current validation/gates](docs/validation/milestone-5-planner.md).
-Qwen3-4B-Base now has [bounded execution evidence](docs/validation/qwen3-4b.md):
-MLX→CUDA matched an independent F16 reference for 256 tokens. Formal physical-fit
-acceptance remains blocked by the conservative MLX serving-memory envelope.
-Native profiles and serving metrics now expose macOS process physical footprint
-alongside RSS and allocator usage; see the [measurement semantics](docs/milestone-5-profiling.md#process-physical-footprint).
-The [instrumented 4B soak](docs/validation/qwen3-4b-footprint.md) matched 12 continuations
-across three reload cycles, with a 4.576 GiB physical-footprint peak. The
-[footprint fit policy](docs/milestone-5-profiling.md#mlx-footprint-policy) is the
-evaluation default since October 10, 2026, after the
-[October 10 two-host run](docs/validation/qwen3-4b-serving-20261010.md) passed the
-baseline serving-fit gate in both stage orders: fresh same-day profiles on both hosts
-and six-cycle same-process reload soaks with 24 exact continuations each, serving peaks
-inside prelaunch budgets. A 512-prompt/256-output workload also passed a bounded
-three-cycle soak with a 5.125 GiB MLX cap. Concurrency two and larger contexts remain
-open in the [overnight backlog](docs/overnight-backlog.md).
 The [Milestone 5 implementation plan](docs/milestone-5-implementation-plan.md) defines
 the implemented slices, deferred acceptance gates, and the initial
 512-prompt/256-output, concurrency-1 workload.
+
+Qwen3-4B-Base runs across the MLX and CUDA hosts with uniform F16. Native profiles and
+serving metrics expose macOS process physical footprint alongside RSS and allocator
+usage; see the [measurement semantics](docs/milestone-5-profiling.md#process-physical-footprint).
+The [footprint fit policy](docs/milestone-5-profiling.md#mlx-footprint-policy) is the
+MLX evaluation default. The 4B baseline, reverse order and a 512/256 workload passed
+on October 10 ([report](docs/validation/qwen3-4b-serving-20261010.md)), and concurrency
+two was accepted on October 13 with a caveat and a re-run open
+([report](docs/validation/qwen3-4b-concurrency-20261013.md)). See
+[the status page](docs/STATUS.md) for exact scope and what remains unqualified.
+
 Milestone 6 adds persistent text/chat serving with bounded concurrent requests and
 native prefill/decode scheduling; see [usage and limits](docs/milestone-6.md).
 Configurable sampling, bounded log probabilities, opt-in chunked prefill and decode
@@ -152,11 +146,10 @@ See [the model/backend extension boundaries](docs/model-extensibility.md),
 [validation report](docs/validation/milestone-0.md) records the pinned real-model and
 cross-platform checks.
 
-Historical code quality reviews: [general fixes](docs/code-quality-review.md),
-[the CUDA PR audit](docs/code-quality-review-cuda.md), and
-[the runtime and controller review](docs/code-quality-review-runtime.md).
+Historical code quality reviews and merged plans are in [docs/archive](docs/archive/README.md).
 Tiny-model CPU pipeline validation is documented in the Milestone 1 notes.
 
 For GPU-independent validation, run the guarded [CPU reload rehearsal](scripts/validation/README.md#cpu-rehearsal-while-the-gpu-is-busy).
 The [concurrency-two qualification design](docs/concurrency-qualification.md) defines
-future overlap and combined-memory evidence; it does not qualify additional capacity.
+the overlap and combined-memory evidence record; a record qualifies only the workload,
+caps and binaries it was measured with.
