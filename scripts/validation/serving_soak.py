@@ -1,7 +1,16 @@
 """Opt-in real HTTP concurrency qualification against explicitly selected workers.
 
+The run binds to a supplied deployment plan and the same worker specifications as
+`reload_soak.py` and `concurrent_soak.py`. Before every level's load it checks that
+each worker admits the level (active requests and aggregate cached tokens) and applies
+the fresh single-request physical-fit gate to each worker's same-day profile; any
+refusal stops the run before loading. A level passes only if every stage, on its own,
+was observed holding that many active requests.
+
 Run memory_watch.py beside each worker for physical measurements. Native allocator
 and reservation snapshots in this report are separate from those process samples.
+Batch-dependent seeded sampling is a known limit; compare sampled runs only within
+one level.
 """
 
 from __future__ import annotations
@@ -13,22 +22,33 @@ import hashlib
 import json
 import math
 import socket
+import sys
 import time
-from collections.abc import AsyncGenerator, Sequence
+from collections.abc import AsyncGenerator, Callable, Sequence
 from itertools import pairwise
 from pathlib import Path
 
+import grpc
 import httpx
 import uvicorn
 from google.protobuf.json_format import MessageToDict
 from hllm_control.controller import DeploymentSession
-from hllm_control.models import DType, ModelManifest
-from hllm_control.proto import common_pb2, execution_pb2
+from hllm_control.models import DeploymentPlan, ModelManifest
+from hllm_control.profiling.models import MemoryMeasurement, ProfileArtifact
+from hllm_control.proto import common_pb2, control_pb2_grpc, execution_pb2
 from hllm_control.serving.app import create_app
 from hllm_control.serving.runtime import ServingRuntime
 from hllm_control.serving.tokenizer import TextTokenizer
 
-from scripts.validation.checkpoint_run import make_plan
+if __package__ in (None, ""):  # `python scripts/validation/serving_soak.py`
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from scripts.validation.checkpoint_run import snapshots
+from scripts.validation.reload_soak import Worker, fresh_fit
+
+# Called with a level's concurrency before that level loads; returns what it checked
+# and raises to refuse the level.
+Gate = Callable[[int], dict]
 
 
 class RecordingRuntime(ServingRuntime):
@@ -94,11 +114,80 @@ async def clean(runtime: ServingRuntime) -> list[dict]:
         await asyncio.sleep(0.05)
 
 
+def validate_serving_profile(
+    a: ProfileArtifact,
+    manifest: ModelManifest,
+    plan: DeploymentPlan,
+    worker_id: str,
+    reservation_tokens: int,
+) -> None:
+    """A single-request profile may gate an HTTP level only for this stage and precision.
+
+    Every HTTP request must fit the profiled per-request reservation. The profile is
+    the concurrency-one baseline; the serving peaks of higher levels are what the
+    report records.
+    """
+    k = a.key
+    if (
+        k.manifest_digest != manifest.manifest_digest
+        or k.assignment != next(s for s in plan.stages if s.worker_id == worker_id)
+        or k.execution_dtype != plan.execution_dtype
+        or k.weight_dtype != plan.weight_dtype
+        or k.workload.kv_dtype != plan.execution_dtype
+        or k.workload.activation_dtype != plan.activation_dtype
+        or k.workload.concurrency != 1
+        or k.workload.total_cached_tokens < reservation_tokens
+        or not isinstance(a.measurement, MemoryMeasurement)
+        or not a.measurement.completed
+    ):
+        raise ValueError(f"{worker_id}: memory profile does not cover this serving workload")
+
+
+def worker_gate(
+    plan: DeploymentPlan,
+    manifest: ModelManifest,
+    workers: dict[str, Worker],
+    reservation_tokens: int,
+) -> Gate:
+    """Capacity and fresh physical-fit checks against each worker's own profile."""
+    profiles = {
+        k: ProfileArtifact.model_validate_json(w.memory_profile.read_text())
+        for k, w in workers.items()
+    }
+    for k, a in profiles.items():
+        validate_serving_profile(a, manifest, plan, k, reservation_tokens)
+
+    def gate(concurrency: int) -> dict:
+        result: dict = {}
+        for k, w in workers.items():
+            with grpc.insecure_channel(w.endpoint) as channel:
+                control = control_pb2_grpc.WorkerControlStub(channel)
+                c = control.GetCapabilities(common_pb2.Empty(), timeout=5).worker
+                active = int(c.maximum_active_requests or 1)
+                cached = int(c.maximum_cached_tokens)
+                if active < concurrency:
+                    raise RuntimeError(f"{k}: --max-active-requests {active} < {concurrency}")
+                if cached and cached < concurrency * reservation_tokens:
+                    raise RuntimeError(
+                        f"{k}: --max-cached-tokens {cached} cannot admit {concurrency} "
+                        f"reservations of {reservation_tokens} tokens"
+                    )
+                fit = fresh_fit(profiles[k], w, control)
+            result[k] = dict(maximum_active_requests=active, maximum_cached_tokens=cached, **fit)
+            if fit["assessment"]["status"] != "safe":
+                raise RuntimeError(
+                    f"fresh physical-fit gate rejected {k} before level {concurrency}"
+                )
+        return result
+
+    return gate
+
+
 async def qualify(
     manifest: ModelManifest,
     tokenizer: TextTokenizer,
+    plan: DeploymentPlan,
     endpoints: dict[str, str],
-    names: list[str],
     prompts: list[str],
     *,
     rounds: int,
@@ -106,8 +195,7 @@ async def qualify(
     levels: list[int],
     timeout: float,
     output: Path,
-    split: int,
-    dtype: DType = DType.F16,
+    gate: Gate | None,
     prefill_chunk_tokens: int = 0,
     stagger_seconds: float = 0.01,
     observation_interval: float = 0.1,
@@ -131,12 +219,15 @@ async def qualify(
         or set(sampling) - {"temperature", "top_p", "top_k", "seed", "logprobs"}
     ):
         raise ValueError("sampling options must contain only supported sampling fields")
-    plan = make_plan(manifest, names, dtype, split)
+    names = [s.worker_id for s in plan.stages]
+    if plan.manifest_digest != manifest.manifest_digest or set(endpoints) != set(names):
+        raise ValueError("plan must match the manifest and name exactly the selected workers")
     report = {
         "completed": False,
         "started_unix_time": time.time(),
         "manifest_digest": manifest.manifest_digest,
         "plan": plan.model_dump(mode="json"),
+        "physical_fit_gate": gate is not None,
         "rounds": rounds,
         "output_tokens": output_tokens,
         "prefill_chunk_tokens": prefill_chunk_tokens,
@@ -159,6 +250,11 @@ async def qualify(
     output.touch(exist_ok=False)
     try:
         for concurrency in levels:
+            level = {"concurrency": concurrency, "requests": [], "rounds": [], "observations": []}
+            report["levels"].append(level)
+            if gate is not None:
+                level["preflight"] = await asyncio.to_thread(gate, concurrency)
+                save()
             runtime = RecordingRuntime(
                 DeploymentSession(manifest, plan, endpoints),
                 concurrency,
@@ -171,8 +267,6 @@ async def qualify(
                 maximum_queued=concurrency,
                 timeout=timeout,
             )
-            level = {"concurrency": concurrency, "requests": [], "rounds": [], "observations": []}
-            report["levels"].append(level)
             listener = socket.socket()
             listener.bind(("127.0.0.1", 0))
             port = listener.getsockname()[1]
@@ -332,14 +426,24 @@ async def qualify(
                     level["soak_seconds"] = time.monotonic() - soak_started
                     await request(prompts[0])  # Post-soak recovery.
                     level["final_memory"] = await clean(runtime)
-                observed = max(
-                    int(w["memory"].get("activeRequests", 0))
-                    for sample in level["observations"]
-                    for w in sample["workers"]
-                )
-                level["peak_active_requests"] = observed
-                if observed < concurrency:
-                    raise RuntimeError("requested native concurrency was not observed")
+                # Every stage must hold the level on its own; one busy stage does not
+                # show that the other stage overlapped requests.
+                peaks = {
+                    name: max(
+                        (
+                            int(sample["workers"][index]["memory"].get("activeRequests", 0))
+                            for sample in level["observations"]
+                        ),
+                        default=0,
+                    )
+                    for index, name in enumerate(names)
+                }
+                level["peak_active_requests"] = peaks
+                short = [name for name, peak in peaks.items() if peak < concurrency]
+                if short:
+                    raise RuntimeError(
+                        f"requested native concurrency was not observed on {', '.join(short)}"
+                    )
             finally:
                 if observing is not None:
                     observing.cancel()
@@ -349,8 +453,6 @@ async def qualify(
                 await serving
                 listener.close()
             # The server lifespan closes its channels; use fresh channels for unload checks.
-            from scripts.validation.checkpoint_run import snapshots
-
             level["after_unload"] = await asyncio.to_thread(snapshots, names, endpoints)
             if any(
                 any(
@@ -376,23 +478,26 @@ async def qualify(
     return report
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path)
     parser.add_argument("tokenizer_root", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--workers", nargs=2, choices=("mlx", "cuda"), required=True)
-    parser.add_argument("--mlx-endpoint", required=True)
-    parser.add_argument("--cuda-endpoint", required=True)
+    parser.add_argument("--plan", type=Path, required=True, help="deployment plan to serve")
+    parser.add_argument(
+        "--workers",
+        type=Path,
+        required=True,
+        help="worker specifications keyed by plan worker ID, as for reload_soak.py",
+    )
     parser.add_argument("--rounds", type=int, default=5)
     parser.add_argument("--output-tokens", type=int, default=64)
-    parser.add_argument("--levels", nargs="+", type=int, default=[1, 2, 4])
+    parser.add_argument("--levels", nargs="+", type=int, default=[1, 2])
     parser.add_argument("--timeout", type=float, default=120)
-    parser.add_argument("--split", type=int, default=14)
     parser.add_argument("--prefill-chunk-tokens", type=int, default=0)
     parser.add_argument("--sampling-json", type=Path)
     parser.add_argument("--minimum-duration-seconds", type=float, default=0)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if (
         args.rounds < 1
         or args.output_tokens < 4
@@ -403,21 +508,26 @@ def main() -> None:
             "positive rounds, >=4 output tokens and increasing levels starting at 1 required"
         )
     manifest = ModelManifest.model_validate_json(args.manifest.read_text())
+    plan = DeploymentPlan.model_validate_json(args.plan.read_text())
+    workers = {k: Worker.model_validate(v) for k, v in json.loads(args.workers.read_text()).items()}
+    if set(workers) != {s.worker_id for s in plan.stages}:
+        parser.error("worker names must exactly match plan stages")
     tokenizer = TextTokenizer(args.tokenizer_root, manifest.config.vocabulary_size)
     prompts = ["The capital of France is", "Explain how a computer processes a request. " * 16]
+    reservation = max(len(tokenizer.encode(p)) for p in prompts) + args.output_tokens
     result = asyncio.run(
         qualify(
             manifest,
             tokenizer,
-            {"mlx": args.mlx_endpoint, "cuda": args.cuda_endpoint},
-            args.workers,
+            plan,
+            {k: w.endpoint for k, w in workers.items()},
             prompts,
             rounds=args.rounds,
             output_tokens=args.output_tokens,
             levels=args.levels,
             timeout=args.timeout,
             output=args.output,
-            split=args.split,
+            gate=worker_gate(plan, manifest, workers, reservation),
             prefill_chunk_tokens=args.prefill_chunk_tokens,
             sampling=json.loads(args.sampling_json.read_text()) if args.sampling_json else None,
             minimum_duration_seconds=args.minimum_duration_seconds,

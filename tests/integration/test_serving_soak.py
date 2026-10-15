@@ -3,12 +3,14 @@
 import asyncio
 import json
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from hllm_control.models import DType
 from hllm_control.serving.tokenizer import TextTokenizer
 from tokenizers import Tokenizer, decoders, models, pre_tokenizers
 
+from scripts.validation.checkpoint_run import make_plan
 from scripts.validation.serving_soak import qualify
 from tests.process_helpers import Workers, write_model
 
@@ -40,20 +42,21 @@ def test_serving_qualification_report(tmp_path: Path, sampling: dict | None) -> 
     args = ("--max-active-requests", "2", "--max-cached-tokens", "1024")
     with Workers(tmp_path, extra_args=(args, args)) as workers:
         output = tmp_path / "result.json"
+        plan = make_plan(manifest, list(workers.endpoints), DType.F32, 1)
+        gate = Mock(side_effect=lambda concurrency: {"checked": concurrency})
         result = asyncio.run(
             qualify(
                 manifest,
                 tokenizer,
+                plan,
                 workers.endpoints,
-                list(workers.endpoints),
                 ["t1 t4 t2", "t3 t2 t1 t4"],
                 rounds=2,
                 output_tokens=256,
                 levels=[1, 2],
                 timeout=30,
                 output=output,
-                split=1,
-                dtype=DType.F32,
+                gate=gate,
                 stagger_seconds=0,
                 observation_interval=0.002,
                 sampling=sampling,
@@ -61,5 +64,42 @@ def test_serving_qualification_report(tmp_path: Path, sampling: dict | None) -> 
         )
         assert result["completed"]
         assert json.loads(output.read_text()) == result
-        assert [level["peak_active_requests"] for level in result["levels"]] == [1, 2]
+        names = [s.worker_id for s in plan.stages]
+        # Each stage, on its own, must have held the level's requests.
+        assert [level["peak_active_requests"] for level in result["levels"]] == [
+            dict.fromkeys(names, 1),
+            dict.fromkeys(names, 2),
+        ]
+        assert [level["preflight"] for level in result["levels"]] == [
+            {"checked": 1},
+            {"checked": 2},
+        ]
         assert all(level["after_unload"] for level in result["levels"])
+
+
+def test_serving_qualification_refuses_a_level_before_loading(tmp_path: Path) -> None:
+    manifest = write_model(tmp_path)
+    plan = make_plan(manifest, ["first", "second"], DType.F32, 1)
+    output = tmp_path / "result.json"
+    gate = Mock(side_effect=RuntimeError("fresh physical-fit gate rejected first"))
+    unreachable = {"first": "127.0.0.1:9", "second": "127.0.0.1:9"}
+    with pytest.raises(RuntimeError, match="gate rejected first"):
+        asyncio.run(
+            qualify(
+                manifest,
+                Mock(),
+                plan,
+                unreachable,
+                ["t1"],
+                rounds=1,
+                output_tokens=8,
+                levels=[1, 2],
+                timeout=5,
+                output=output,
+                gate=gate,
+            )
+        )
+    gate.assert_called_once_with(1)
+    report = json.loads(output.read_text())
+    assert not report["completed"] and "gate rejected first" in report["error"]
+    assert [level["requests"] for level in report["levels"]] == [[]]

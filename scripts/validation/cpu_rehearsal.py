@@ -10,6 +10,9 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
+if __package__ in (None, ""):  # `python scripts/validation/cpu_rehearsal.py`
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from scripts.validation import resource_guard
 
 # Reported to CTest through SKIP_RETURN_CODE: the guard refused to start, so the

@@ -414,3 +414,57 @@ def test_concurrent_guard_outcome_extracts_binding_fields(tmp_path):
         -15,
     )
     assert guard_outcome("mlx", tmp_path / "missing.jsonl").detail == "no guard record"
+
+
+def test_concurrent_guard_outcome_hashes_exactly_the_bytes_it_parses(tmp_path):
+    import hashlib
+
+    from scripts.validation.concurrent_soak import guard_outcome, guard_snapshot_path
+
+    record = tmp_path / "guard.jsonl"
+    rows = [
+        '{"event": "start", "unix_time": 1.0, "pid": 4242, "seconds": 60, "command": ["w"]}',
+        '{"unix_time": 2.0, "pid": 4242, "available_bytes": 10, "swapout_bytes": 0}',
+    ]
+    record.write_text("\n".join(rows) + "\n" + '{"unix_time": 4.0, "pid"')
+    snapshot = guard_snapshot_path(tmp_path / "evidence.json", "mlx")
+    assert snapshot.name == "evidence.guard-mlx.jsonl"
+    outcome = guard_outcome("mlx", record, snapshot)
+    # The still-running guard keeps writing after the harness read its record.
+    with record.open("a") as f:
+        f.write(': 4242, "available_bytes": 10, "swapout_bytes": 0}\n')
+    snapshotted = snapshot.read_bytes()
+    assert outcome.record_sha256 == hashlib.sha256(snapshotted).hexdigest()
+    assert outcome.record_sha256 != hashlib.sha256(record.read_bytes()).hexdigest()
+    assert record.read_bytes().startswith(snapshotted)
+    assert (outcome.observations, outcome.last_observed_unix_time) == (1, 2.0)
+    # A snapshot is evidence too: it is never replaced.
+    with pytest.raises(FileExistsError):
+        guard_outcome("mlx", record, snapshot)
+
+
+def test_device_samples_skip_only_an_incomplete_final_line(tmp_path):
+    from scripts.validation.concurrent_soak import device_samples
+
+    samples = tmp_path / "samples.jsonl"
+    rows = [
+        '{"unix_time": 2.0, "pid": 7, "cuda_process_bytes": 100}',
+        '{"unix_time": 3.0, "pid": 7, "cuda_process_bytes": null}',
+        '{"unix_time": 9.0, "pid": 7, "cuda_process_bytes": 300}',
+    ]
+    samples.write_text("\n".join(rows) + "\n" + '{"unix_time": 4.0, "pid"')
+    assert [(s.unix_time, s.cuda_process_bytes) for s in device_samples(samples, 1, 5)] == [
+        (2.0, 100),
+        (3.0, None),
+    ]
+    samples.write_text(rows[0] + "\n{broken\n" + rows[1] + "\n")
+    assert device_samples(samples, 1, 5) == ()
+
+
+def test_memory_watch_never_replaces_existing_samples(tmp_path, monkeypatch):
+    output = tmp_path / "samples.jsonl"
+    output.write_text("earlier evidence\n")
+    monkeypatch.setattr(sys, "argv", ["memory_watch.py", "1", str(output), "--seconds", "1"])
+    with pytest.raises(FileExistsError):
+        memory_watch.main()
+    assert output.read_text() == "earlier evidence\n"

@@ -3,7 +3,12 @@
 Run these tools explicitly; none schedules work or starts automatically. Full model
 work needs a fresh resource check on every host. Tiny fixture tests are suitable for
 normal development. The [overnight backlog](../../docs/overnight-backlog.md) contains
-the ordered 4B work and current machine-specific paths.
+the ordered 4B work; host-specific values live in a run directory's copy of
+[`two_host/two-host.env.example`](two_host/two-host.env.example), never in the repo.
+
+Run every tool from the repository root as a module (`uv run python -m
+scripts.validation.<tool>`). The tools that import their siblings also accept the
+file path form (`python scripts/validation/<tool>.py`) for older instructions.
 
 ## Resource guard
 
@@ -156,10 +161,26 @@ unverified cleanup make the record `unknown` or `failed`. Everything the record
 concludes (overlap, logical peaks, one physical envelope per worker and cycle against
 that cycle's budget, guard outcomes and the acceptance status with its reasons) is
 derived from the record's contents and re-derived on every load, so an edited record,
-or a stale safe envelope carried over observations that no longer fit, is rejected. A
-failure at any point still writes the partial record with its failure reason; if even
-assembly fails, a `.failure.json` note is written beside the output and the original
-error is kept. The cancellation round is a race: the controller's cancel RPCs must
+or a stale safe envelope carried over observations that no longer fit, is rejected.
+The record states one set of allowances (safety fraction, extra overhead, host and
+device headroom), so the harness refuses workers configured with different ones, and
+loading rejects a record whose fit gates used allowances other than those it states.
+
+What a failure leaves depends on when it happens. Refusals of the inputs (profiles,
+baseline, reference, plan) come before any worker is contacted and write nothing. A
+failure while establishing the workers' identity (an unreachable peer, a worker
+without `--request-observations on`) writes `<output>.failure.json` with the reason.
+Any later failure writes the partial record with its failure reason; if even assembly
+fails, a `.failure.json` note is written beside the output and the original error is
+kept.
+
+Guard records are still being written when the record is assembled (a guard must
+outlive the experiment), so the harness reads each one exactly once: the recorded
+`record_sha256`, every parsed field and `<output>.guard-<worker>.jsonl` all come from
+those bytes, and that snapshot reproduces the hash later. An incomplete final line,
+from a mirror copied mid-write, is not yet evidence and is skipped, in guard records
+and in device samples alike. Records written before this change hashed the live file;
+their exact prefixes had to be reconstructed by hand. The cancellation round is a race: the controller's cancel RPCs must
 reach every worker before the victim completes naturally there, or that worker
 retires it as `completed` and the record is `unknown` (the reason names the observed
 retirement), so the reference must be long relative to `--cancel-after`. The CPU
@@ -167,6 +188,73 @@ rehearsal (`tests/profiling/test_concurrent_cpu.py`, run by the `CpuReloadRehear
 CTest entry) exercises the whole procedure on tiny workers with a 128-token reference
 and `--cancel-after 3`, which is procedure evidence only. No throughput claim and no
 concurrency above two follows from an accepted record.
+
+## HTTP serving soak
+
+`serving_soak.py` drives the real HTTP server at increasing levels (default 1 and 2)
+against running, guarded workers. It binds to the supplied plan and to the same
+worker specifications as the reload soak, rather than building a plan of its own.
+Before each level loads, it checks that every worker admits the level (its
+`--max-active-requests`, and an aggregate `--max-cached-tokens` that holds the level's
+reservations) and re-runs the fresh single-request fit gate against each worker's
+same-day profile; a refusal stops the run before loading, with the reason in the
+report. A level passes only when every stage, on its own, was observed holding that
+many active requests. Each round sends one request more than the level, so one is
+queued by the server. Seeded sampling is batch-dependent, so compare sampled tokens
+only within one level.
+
+```bash
+uv run python -m scripts.validation.serving_soak \
+  build/run/manifest.json build/run/tokenizer build/run/serving.json \
+  --plan build/run/mlx-cuda.plan.json --workers build/run/serving-workers.json \
+  --levels 1 2 --rounds 5 --output-tokens 64 --timeout 180
+```
+
+## Two-host launchers
+
+[`two_host/`](two_host/) holds the launch tooling the October 2026 4B runs used,
+parameterized by one settings file (copy `two-host.env.example` into the run
+directory and fill it in; it is the only place host names, SSH aliases, paths, caps
+and limits go). Every script takes that file as its first argument. The Linux host
+runs the controller and the CUDA worker; the Mac runs the MLX worker, reached over
+SSH. Each Mac checkout needs `uv sync` and the MLX build at the same commit, plus
+`build/process-footprint` (see above).
+
+| Script | Host | Does |
+| --- | --- | --- |
+| `build-cuda.sh` | Linux | RelWithDebInfo CUDA build of the worker and probes, with hashes |
+| `oracle.sh ENV PROMPT OUTPUT` | Linux | Guarded independent reference into `inputs/` |
+| `profile.sh ENV cuda` | Linux | Guarded CUDA memory profile (`cuda-profile.sh`) |
+| `profile.sh ENV mlx` | Linux to Mac | Copies settings and inputs, runs `mlx-profile.sh` on the Mac detached, copies results to `mac/`, exits with the profile's status |
+| `run.sh ENV baseline` | both | Guarded workers, tunnel, reload soak, cleanup |
+| `run.sh ENV concurrent` | both | The same plus the device watcher, the Mac guard mirror, the concurrency soak and results assembly |
+
+`run.sh` refuses busy ports on either host, and any hLLM worker or memory probe
+already running there on any port (matched by executable path with `pgrep -f`;
+Linux truncates process names to 15 characters). Each launch waits for
+its port while checking that the process is still alive, and fails at once with the
+log tail if it died. The device watcher (`watch-cuda.sh`) samples the PID the CUDA
+worker reports through its control API (`worker_pid.py`), never a command-line match.
+Cleanup stops the watcher and both guards and waits for them to exit, so each guard
+record ends with its exit event. It copies the final Mac records to `mac/final/`,
+leaving the mirror the soak read untouched, and only then runs
+`assemble_two_host_results.py`. The worker specifications are
+`inputs/<role>-workers.json` in the reload-soak format; for `concurrent` the guard and
+sampler paths must be the ones `run.sh` writes (`<run>/concurrent-cuda.guard.jsonl`,
+`<run>/concurrent-cuda-device-samples.jsonl`, `<run>/mac/concurrent-mlx.guard.jsonl`),
+which `run.sh` checks before launching. Mac processes start detached with their own
+stdio, so the SSH call returns at once with the process's own PID. `profile.sh mlx`
+propagates the Mac profiler's exit status (2: incomplete measurement, 3: physical fit
+not safe), which `mlx-profile.sh` records in `mlx-profile.exit`; the profiler writes
+its artifact before refusing, so the copied file alone is not success.
+
+`source_identity.py` records a checkout's revision, tracked-file hashes, combined
+source digest and binary hashes; profiles take that digest as `--source-revision` and
+evidence as `--source-digest`. `assemble_two_host_results.py RUN OUTPUT` summarizes
+profiles, baselines and every P5 attempt in a run directory from the preserved files
+only, naming the directory by its base name. On the October 11–13 run directory it
+reproduces the committed `docs/validation/qwen3-4b-concurrency-20261013-results.json`
+except for that name and one more profile directory it discovers (`cuda_rejected_1`).
 
 ## Independent reference
 
@@ -224,7 +312,7 @@ uv run python -m scripts.validation.cpu_rehearsal
 `CpuReloadRehearsal` runs the same entry point through CTest. Every invocation
 creates a new directory under `build/cpu-rehearsal/`, retaining the resource guard
 log, JUnit results and pytest artifacts (profiles, plans, tokens, worker logs,
-soak reports and observations). The 180-second guard owns the pytest process group
+soak reports and observations). The 300-second guard owns the pytest process group
 and both tiny CPU workers; fixture teardown closes workers on ordinary failures.
 The guard enforces the same availability, swap and pressure limits as other runs.
 If it refuses to start, the wrapper exits 77 and CTest reports the entry as skipped

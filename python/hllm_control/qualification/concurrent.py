@@ -444,6 +444,21 @@ class ConcurrentServingEvidence(ProfileModel):
                 raise ValueError(f"{name} must list the workers in stage order")
         if any(g.worker_id not in order for g in self.preconditions.gates):
             raise ValueError("fit gates must name the record's workers")
+        c = self.configuration
+        for gate in self.preconditions.gates:
+            for budget, headroom in (
+                (gate.host_budget, c.host_headroom_bytes),
+                (gate.device_budget, c.device_headroom_bytes),
+            ):
+                if budget is not None and (
+                    budget.headroom_bytes != headroom
+                    or budget.extra_overhead_bytes != c.extra_overhead_bytes
+                    or budget.safety_fraction != c.safety_fraction
+                ):
+                    raise ValueError(
+                        f"{gate.worker_id}: cycle {gate.cycle} fit gate used allowances "
+                        "other than the recorded configuration"
+                    )
         content = self.model_dump(mode="json", exclude={"evidence_digest"})
         if self.evidence_digest != digest(content):
             raise ValueError("evidence digest mismatch")

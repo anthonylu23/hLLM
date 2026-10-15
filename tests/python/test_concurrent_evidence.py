@@ -703,6 +703,24 @@ def test_tampered_records_are_rejected_on_load(tmp_path: Path) -> None:
         ConcurrentServingEvidence.model_validate(
             resealed(lambda d: d["results"]["guards"][0].__setitem__("process_id", 999))
         )
+    # The stated allowances must be the ones every fit gate used.
+    for field, value in (
+        ("host_headroom_bytes", 11),
+        ("extra_overhead_bytes", 11),
+        ("safety_fraction", 0.2),
+    ):
+        with pytest.raises(ValueError, match="allowances other than the recorded configuration"):
+            ConcurrentServingEvidence.model_validate(
+                resealed(lambda d, f=field, v=value: d["configuration"].__setitem__(f, v))
+            )
+    with pytest.raises(ValueError, match="allowances other than the recorded configuration"):
+        ConcurrentServingEvidence.model_validate(
+            resealed(
+                lambda d: d["preconditions"]["gates"][-1]["device_budget"].__setitem__(
+                    "headroom_bytes", 11
+                )
+            )
+        )
 
 
 def test_guard_classification_requires_coverage_of_this_worker() -> None:
@@ -792,3 +810,79 @@ def test_serving_envelope_falls_back_and_refuses_unsafe_budgets() -> None:
         device_process_peak_bytes=None,
     )
     assert empty.status == "unknown" and "no serving snapshots" in empty.reasons[0]
+
+
+def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> None:
+    from scripts.validation.assemble_two_host_results import main as assemble
+
+    run = tmp_path / "hllm-run-20261014"
+    (run / "inputs").mkdir(parents=True)
+    (run / "mac" / "rejected-1").mkdir(parents=True)
+    (run / "mac" / "final").mkdir()
+    (run / "concurrent-attempt-1").mkdir()
+    (run / "concurrent-attempt-1" / "README.txt").write_text("refused at the cap\n")
+    (run / "inputs" / "plan.json").write_text("{}\n")
+    identity = dict(base_revision="abc", source_digest="1" * 64, binaries={"w": "2" * 64})
+    (run / "inputs" / "source-identity-concurrent.json").write_text(json.dumps(identity))
+    profile_key = dict(environment=dict(source_revision="r", binary_digest="3" * 64))
+    (run / "mac" / "rejected-1" / "mlx-memory.preflight.json").write_text(
+        json.dumps(
+            dict(
+                status="refused",
+                reasons=["host availability below the cap plus headroom"],
+                schema_version="1.2",
+                host_budget=dict(available_bytes=5),
+                key=profile_key,
+                admission_capacity=dict(unified=9),
+            )
+        )
+    )
+    guard_rows = [
+        {"event": "start", "unix_time": 1.0, "pid": 7},
+        {"unix_time": 2.0, "pid": 7, "available_bytes": 2**30, "swapout_bytes": 0},
+        {"unix_time": 4.0, "pid": 7, "available_bytes": 2**31, "swapout_bytes": 2**20},
+        {"event": "exit", "unix_time": 5.0, "reason": None, "returncode": 0},
+    ]
+    guard_text = "".join(json.dumps(r) + "\n" for r in guard_rows)
+    (run / "baseline-cuda.guard.jsonl").write_text(guard_text)
+    (run / "mac" / "final" / "concurrent-mlx.guard.jsonl").write_text("{}\n")
+    (run / "baseline-reload-soak.json").write_text(
+        json.dumps(
+            dict(
+                completed=True,
+                scope="f16-reload-qualification",
+                plan=dict(plan_digest="p"),
+                cycles=[dict(requests=[dict(exact_reference_match=True)])],
+                workers=dict(cuda=dict(binary_digest="4" * 64)),
+            )
+        )
+    )
+    evidence = build()
+    write_evidence(run / "concurrent.json", evidence)
+    output = tmp_path / "summary.json"
+    assemble([str(run), str(output), "--link", "night_summary=docs/earlier.json"])
+    summary = json.loads(output.read_text())
+    # Only the directory's base name is recorded, never a host path.
+    assert summary["run_directory"] == "hllm-run-20261014"
+    assert str(tmp_path) not in output.read_text()
+    assert summary["night_summary"] == "docs/earlier.json"
+    linux = summary["source_identities"]["linux"]
+    assert linux["source-identity-concurrent"]["base_revision"] == "abc"
+    assert list(summary["inputs"]) == ["plan.json", "source-identity-concurrent.json"]
+    rejected = summary["p1"]["mlx_rejected"][0]
+    assert rejected["preflight"]["status"] == "refused" and "artifact" not in rejected
+    assert "cuda" not in summary["p1"]  # Absent evidence is absent, not filled in.
+    final = summary["baselines"]["final"]
+    assert final["all_exact"] and final["guards"]["cuda"]["observations"] == 2
+    assert final["guards"]["cuda"]["swapout_mib"] == 1 and final["guards"]["mlx"] is None
+    attempts = summary["p5_attempts"]
+    assert attempts[0] == dict(
+        directory="concurrent-attempt-1", note="refused at the cap", evidence_present=False
+    )
+    assert summary["p5"] == attempts[-1]
+    assert summary["p5"]["acceptance"] == evidence.results.acceptance == "accepted"
+    assert summary["p5"]["evidence_digest"] == evidence.evidence_digest
+    assert summary["p5"]["exact"] == summary["p5"]["comparisons"]
+    assert set(summary["p5"]["files"]) == {"mac/final/concurrent-mlx.guard.jsonl"}
+    with pytest.raises(FileExistsError):
+        assemble([str(run), str(output)])

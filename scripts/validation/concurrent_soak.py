@@ -14,7 +14,9 @@ concurrency beyond two.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import sys
 import threading
 import time
 from collections.abc import Callable
@@ -63,7 +65,15 @@ from hllm_control.qualification.concurrent import (
 )
 from hllm_control.serialization import sha256_file
 
-from scripts.validation.reload_soak import Worker, fresh_fit, reference_tokens, validate_profile
+if __package__ in (None, ""):  # `python scripts/validation/concurrent_soak.py`
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from scripts.validation.reload_soak import (
+    Worker,
+    fresh_fit,
+    reference_tokens,
+    validate_profile,
+)
 
 DOMAINS = {
     profile_pb2.MEMORY_DOMAIN_HOST: "host",
@@ -174,11 +184,18 @@ def snapshot_from_proto(
     )
 
 
-def guard_outcome(worker_id: str, record: Path | None) -> GuardOutcome:
+def guard_outcome(
+    worker_id: str, record: Path | None, snapshot: Path | None = None
+) -> GuardOutcome:
     """Extract what a `resource_guard.py` record shows; the outcome is derived later.
 
     The start event's PID, the observation span and the exit event are what let the
     record validator bind the guard to this worker and this experiment window.
+
+    A guard is still running when the evidence is assembled (it must outlive the
+    experiment), so its file keeps growing. The record is read exactly once; the hash
+    and every parsed field come from those bytes, and `snapshot`, when given, receives
+    the same bytes so the recorded hash can be reproduced later.
     """
 
     def unavailable(detail: str, checksum: str | None = None) -> GuardOutcome:
@@ -199,9 +216,17 @@ def guard_outcome(worker_id: str, record: Path | None) -> GuardOutcome:
 
     if record is None or not record.is_file():
         return unavailable("no guard record")
+    try:
+        data = record.read_bytes()
+    except OSError as error:
+        return unavailable(f"unreadable guard record: {error}")
+    checksum = hashlib.sha256(data).hexdigest()
+    if snapshot is not None:
+        with snapshot.open("xb") as copy:
+            copy.write(data)
     rows = []
     try:
-        lines = record.read_text().splitlines()
+        lines = data.decode().splitlines()
         for index, line in enumerate(lines):
             if not line.strip():
                 continue
@@ -212,9 +237,8 @@ def guard_outcome(worker_id: str, record: Path | None) -> GuardOutcome:
                 # the final line may be incomplete, and it is simply not yet evidence.
                 if index != len(lines) - 1:
                     raise
-    except (OSError, ValueError) as error:
-        return unavailable(f"unreadable guard record: {error}")
-    checksum = sha256_file(record)
+    except ValueError as error:
+        return unavailable(f"unreadable guard record: {error}", checksum)
     starts = [r for r in rows if r.get("event") == "start"]
     if len(starts) != 1 or not isinstance(starts[0].get("pid"), int):
         return unavailable("guard record has no single start event with a PID", checksum)
@@ -252,17 +276,24 @@ def device_samples(samples: Path | None, start: float, end: float) -> tuple[Devi
     """Every `memory_watch.py --cuda` row inside the experiment window, PID included.
 
     Rows are recorded as sampled; the validator checks each PID against the worker
-    identity and scores each cycle's window separately. A malformed file is reported as
-    no samples (unknown), never as a peak.
+    identity and scores each cycle's window separately. The sampler is still running, so
+    an incomplete final line is not yet evidence and is skipped; any other malformed
+    line makes the whole file no samples (unknown), never a peak.
     """
     if samples is None or not samples.is_file():
         return ()
     rows: list[DeviceSample] = []
     try:
-        for line in samples.read_text().splitlines():
+        lines = samples.read_text().splitlines()
+        for index, line in enumerate(lines):
             if not line.strip():
                 continue
-            row = json.loads(line)
+            try:
+                row = json.loads(line)
+            except ValueError:
+                if index == len(lines) - 1:
+                    break
+                raise
             if not start <= float(row["unix_time"]) <= end:
                 continue
             value = row.get("cuda_process_bytes")
@@ -276,6 +307,11 @@ def device_samples(samples: Path | None, start: float, end: float) -> tuple[Devi
     except (OSError, KeyError, TypeError, ValueError):
         return ()
     return tuple(rows)
+
+
+def guard_snapshot_path(output: Path, worker_id: str) -> Path:
+    """Where the guard bytes behind `GuardOutcome.record_sha256` are preserved."""
+    return output.with_suffix(f".guard-{worker_id}.jsonl")
 
 
 def validate_baseline(
@@ -632,6 +668,17 @@ class Run:
                     request_observations=bool(c.supports_request_observations),
                 )
             )
+        # Every fit gate and envelope is scored with each worker's own allowances; the
+        # record states them once, so they must be the same for both workers.
+        allowances = {
+            (w.extra_overhead_bytes, w.host_headroom_bytes, w.device_headroom_bytes)
+            for w in self.workers.values()
+        }
+        if len(allowances) != 1:
+            raise ValueError(
+                "workers must share extra overhead, host headroom and device headroom; "
+                "the record states one configuration for both"
+            )
         first = self.workers[self.order[0]]
         policies = {
             w.mlx_fit_policy
@@ -655,7 +702,7 @@ class Run:
             queue_capacity=0,
             controller_limit=2,
             mlx_fit_policy=next(iter(policies)) if len(policies) == 1 else first.mlx_fit_policy,
-            safety_fraction=0.10,
+            safety_fraction=PhysicalBudget.model_fields["safety_fraction"].default,
             extra_overhead_bytes=first.extra_overhead_bytes,
             host_headroom_bytes=first.host_headroom_bytes,
             device_headroom_bytes=first.device_headroom_bytes,
@@ -704,7 +751,10 @@ class Run:
             ),  # type: ignore[arg-type]
             clock_alignment=CLOCK_ALIGNMENT,
         )
-        guards = [guard_outcome(k, w.guard_record) for k, w in self.workers.items()]
+        guards = [
+            guard_outcome(k, w.guard_record, guard_snapshot_path(self.args.output, k))
+            for k, w in self.workers.items()
+        ]
         cleanup = self.cleanup_evidence()
         request = RequestWorkload(
             prompt_ids=tuple(self.ids),
@@ -801,10 +851,18 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Refuse bad inputs silently; after contacting workers, always leave a record.
+
+    Input refusals (profiles, baseline, reference) happen before any worker is
+    contacted and write nothing. A failure while establishing worker identity (an
+    unreachable peer, a worker without request observations) writes
+    `<output>.failure.json`. Every later failure writes a partial evidence record
+    whose `failure_reason` names it.
+    """
     args = parse(argv)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.touch(exist_ok=False)
-    args.output.unlink()  # Reserve the name early; write_evidence recreates it exclusively.
+    if args.output.exists():  # Fail before any work; write_evidence creates it exclusively.
+        raise FileExistsError(args.output)
     run = Run(args)
     identity = configuration = None
     try:
@@ -819,6 +877,13 @@ def main(argv: list[str] | None = None) -> None:
         finally:
             if identity is not None and configuration is not None:
                 finalize(run, args.output, identity, configuration)
+            elif run.failure is not None:
+                note = dict(run_failure=run.failure, stage="worker identity", rounds=0)
+                try:
+                    with args.output.with_suffix(".failure.json").open("x") as f:
+                        f.write(json.dumps(note, indent=2) + "\n")
+                except OSError as error:  # Never mask the run's own failure.
+                    print(f"could not write failure note: {error}", file=sys.stderr)
     finally:
         run.close()
 
