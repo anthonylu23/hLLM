@@ -1,24 +1,25 @@
 # Concurrency-two qualification design
 
-Status: implemented October 11, 2026. The two-host record for Qwen3-4B at 128/256 was
-accepted on October 13, 2026 with a 5.125 GiB MLX cap, with a caveat and a re-run on the
-corrected MLX worker open (see the end of this page and [the status page](STATUS.md)).
-No other workload, cap or concurrency level is qualified by it. The record is `hllm_control.qualification.concurrent.ConcurrentServingEvidence`, the
-harness is `scripts/validation/concurrent_soak.py`, and workers expose the opt-in
+Status: implemented. What it has qualified is on [the status page](STATUS.md); a record
+qualifies only the workload, caps and binaries it was measured with. The record is
+`hllm_control.qualification.concurrent.ConcurrentServingEvidence`, the harness is
+`scripts/validation/concurrent_soak.py` (run on two hosts by
+`scripts/validation/two_host/run.sh ENV concurrent`), and workers expose the opt-in
 request-lifecycle observations with `--request-observations on` (see the
-[tools README](../scripts/validation/README.md#concurrent-soak-concurrency-two)). The
-single-request 4B baseline passed on October 10. Existing tiny concurrent pipeline
-tests are behavior checks, not a physical capacity certificate.
+[tools README](../scripts/validation/README.md#concurrent-soak-concurrency-two)).
+Existing tiny concurrent pipeline tests are behavior checks, not a physical capacity
+certificate.
 
 ## Evidence boundary
 
 Keep `ProfileKey` and measured placement at concurrency one. Do not change that
 validator, multiply a single-request fit result by two, or import this experiment
-into a placement bundle. Introduce a separate versioned `ConcurrentServingEvidence`
-record when implementing this design. It must bind the exact serving configuration
-and measured overlap; a single-stage synthetic profile cannot represent that run.
+into a placement bundle. Measured overlap is recorded in a separate versioned
+`ConcurrentServingEvidence` record (schema 1.1) that binds the exact serving
+configuration and measured overlap; a single-stage synthetic profile cannot represent
+that run.
 
-The record will contain these fields, with canonical JSON content hashes and strict
+The record contains these fields, with canonical JSON content hashes and strict
 validation (unknown fields rejected, finite nonnegative measurements):
 
 | Group | Required content |
@@ -40,6 +41,12 @@ instant, so the first retirement of a pair is the worker's own proof that both h
 allocated KV together; a polled snapshot with both allocated rows is the fallback.
 Two requests that reserve together list no peer in their admissions; the interval then
 starts at the later admission and still needs the retirement witness or joint snapshot.
+Each retirement event also carries a reason: `completed` (the execution owner finished
+successfully), `cancelled` (`CancelRequest`, or the client cancelled the stream),
+`expired` (the request deadline passed, reserved or running), `failed` (any other
+execution error) or `allocation-failed` (sequence allocation threw). The cancellation
+round needs a `cancelled` retirement for the victim. Workers built before October 15,
+2026 recorded failures as `completed` and running deadline expiry as `cancelled`.
 Workers without `--request-observations on` fail the overlap claim as unknown. Do not
 infer cross-host timing order from wall clocks alone. Per-worker monotonic timelines
 and request IDs establish local overlap; report clock alignment uncertainty separately.
@@ -51,8 +58,8 @@ at least 768 aggregate cached tokens with `max_active_requests=2`. Calculate nat
 cache and workspace using the actual backend configuration. Count resident weights
 once per worker; count per-request KV once per request. Include concurrent or batched
 workspace according to its actual lifetime, and loader scratch when checking cold
-load. The approximate 0.669 GiB extra MLX reservation from the backlog is a planning
-estimate, never admission evidence.
+load. The roughly 0.67 GiB of extra MLX reservation per request (663–685 MiB on
+October 13) is a planning estimate, never admission evidence.
 
 Start with `max_decode_batch=1` to isolate overlap from batch-dependent numerical
 changes. Treat a later batch size of two as a separate configuration requiring new
@@ -78,7 +85,8 @@ Do not add OS footprint to RSS or add a fresh model allocation per request.
 
 1. Check source/checkpoint/binary identities and the passing baseline. Reprofile
    stale single-request inputs; these only bind prerequisites, not combined fit.
-2. Launch one independently guarded worker on each host with a 30-minute ceiling.
+2. Launch one independently guarded worker on each host with a bounded time limit
+   (`GUARD_SECONDS` in the launcher settings).
    Preserve exclusive logs, fresh budgets and process IDs. No independent oracle or
    other substantial GPU workload may overlap this experiment.
 3. Run one serial exact-reference request, then release two requests from a barrier.
@@ -92,6 +100,9 @@ Do not add OS footprint to RSS or add a fresh model allocation per request.
    plateau. Stop at the first correctness, pressure, swap, capacity or cleanup failure.
 6. Retire only owned workers/guards/tunnels. Save partial evidence on any failure,
    including unavailable peers. Process exit is the final release of retained memory.
+   A failure while establishing worker identity (an unreachable peer, a worker without
+   request observations) writes `<output>.failure.json` instead; every later failure
+   writes a partial record whose `failure_reason` names it.
 
 Acceptance requires all prerequisites, native admission, real overlap on both
 workers, exact requested continuations, safe combined physical envelopes, normal
@@ -125,13 +136,5 @@ qualify any changed numerical criterion as a separate experiment.
   `ProfileKey` still requires concurrency one.
 - [x] Run the guarded two-host measurement only when the GPU is free and the baseline
   passes. Larger contexts, higher concurrency and throughput claims remain separate.
-  October 11 attempt: the CUDA baseline was fresh and the launch staged, but the Mac
-  never met the MLX preflight; see the
-  [night report](validation/qwen3-4b-concurrency-20261011.md). October 13: accepted
-  record at 128/256 with a user-approved 5.125 GiB MLX cap (the 4.375 GiB cap refuses
-  the second reservation); see the
-  [October 13 report](validation/qwen3-4b-concurrency-20261013.md). Caps were not
-  expanded automatically: attempt 1 was stopped and the user asked. The record was
-  measured with an MLX worker whose allocator read was later found to be a data race
-  (corrected in the same PR; the envelope was decided by OS footprint, not the
-  allocator); a re-run on the corrected worker is the open follow-up.
+  Done: see the [October 13 report](validation/qwen3-4b-concurrency-20261013.md) and
+  [the status page](STATUS.md) for its caveat and the open re-run.

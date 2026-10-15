@@ -4,8 +4,7 @@ Status: serving, configurable sampling, chunked prefill, bounded decode batching
 bounded weight conversion are implemented. Greedy decoding remains the default.
 See [qualification results](validation/milestone-6.md) for the precise workloads and
 remaining limits. The [PR review follow-up](validation/milestone-6-pr-review.md) covers
-allocation-failure handling and streaming-retention regressions. M5 WAN performance
-acceptance remains deferred.
+allocation-failure handling and streaming-retention regressions.
 
 ## Serving
 
@@ -55,8 +54,7 @@ text decoding preserves UTF-8 boundaries.
 
 ## Sampling and probability metadata
 
-The user approved greedy-first serving, then the sampling follow-up on 2026-09-15.
-The current subset supports:
+The supported subset:
 
 - `temperature`: 0–100, default 0. Zero preserves the original greedy path.
 - `top_p`: greater than 0 and at most 1, default 1.
@@ -114,6 +112,9 @@ These optimizations are **opt-in**:
 - HTTP server: `--prefill-chunk-tokens 128` divides prompts into bounded chunks.
   Default 0 preserves whole-prompt prefill. Request KV reservation still covers the
   complete prompt and maximum output; chunking does not claim reduced KV capacity.
+  A two-stage prompt longer than one 8 MiB boundary message (1638 tokens for Qwen3-4B
+  at F16) must be planned with workload `prefill_chunk_tokens` and served with the same
+  value; see [long prompts](milestone-5-placement.md#long-prompts-and-chunked-prefill).
 - Native workers: `--max-decode-batch 4` combines already-ready decode work, up to 8
   requests and no more than `--max-active-requests`. Default 1 preserves serial dispatch.
   There is no extra batch-collection delay.
@@ -137,8 +138,10 @@ cover differing sequence lengths, seeded sampling, queue fairness and cleanup.
 
 New workers advertise sampling, probability and chunking support. Serving rejects enabled
 features on incompatible workers. New binaries invalidate older binary-bound profile
-evidence. Sampling/chunking are rejected with existing measured bundles, whose schemas do
-not qualify these settings; use explicit feasible plans until profiles cover the new modes.
+evidence. Measured bundles reject sampling. Serving requires `--prefill-chunk-tokens` to
+equal the bundle workload's chunk size, and measured mode and profile keys refuse chunked
+workloads, so serve measured plans without chunking. Use estimated or feasibility plans
+for the new modes until the native probes support them.
 
 ## Backpressure and cleanup
 
@@ -150,8 +153,11 @@ starts. Other native failures return 503. Streaming errors include an `error` ob
 JSON bodies are limited to 1 MiB before parsing. Streaming consumes native events directly,
 with no unbounded producer queue. Emitted probability records and response text pieces
 are only accumulated for non-streaming responses; incremental decoding retains its
-own token/text history for final decoding verification. Slow clients retain their slot
-and native deadline.
+own token/text history for final decoding verification. The request deadline bounds
+waits on the native stream, not writes to the client. A stream blocked on a client that
+stopped reading gets 5 seconds past the deadline (`STREAM_DRAIN_SECONDS`) to deliver its
+timeout error and `[DONE]`; after that the response is abandoned and the slot released.
+A request abandoned after its deadline counts as failed in `/metrics`, not cancelled.
 Disconnect cancels the generation RPC, asks each worker to cancel the request, and polls
 its active request ID until retirement. This cleanup is shielded from repeated ASGI
 cancellation before reusing the HTTP slot. Unconfirmed cleanup makes health and admissions
@@ -168,7 +174,7 @@ allocator counters. On macOS these include current physical footprint and its
 process-lifetime peak; HTTP `/metrics` exports available counters by stage. See
 [measurement semantics and limitations](milestone-5-profiling.md#process-physical-footprint).
 
-## Bounded loading and the 4B blocker
+## Bounded loading
 
 The shared decoder reads at most 1 MiB of source bytes per chunk, converts that chunk,
 and compares any redundant tied-head payload chunk by chunk. CPU/CUDA still assemble a
@@ -183,32 +189,18 @@ late tied-head corruption, overflow, numerical parity and load rejection.
 The [recorded 4B rejection](validation/milestone-5-memory.md#larger-target-preflight)
 describes the previous loader. Its endpoint-only bound was 5.796 GiB. The new F16 endpoint
 estimate is about 1.453 GiB, **excluding transformer weights and inference workspace**.
-This addresses that conservative loading term; it is not measured 4B fit. No 4B payload
-was loaded in this follow-up. Runtime weight offloading/streaming remains a separate
-candidate if resident-weight capacity is still insufficient. Headroom and M5 WAN gates
-remain unchanged.
-
-The later [2026-09-18 4B pass](validation/qwen3-4b.md) loaded the complete checkpoint
-and matched a 256-token independent F16 continuation with a 15-layer MLX / 21-layer
-CUDA split. Its serving-memory observations failed the conservative MLX physical-fit
-rule then in force. Physical fit later passed under the `footprint-v1` policy on
-October 10 ([report](validation/qwen3-4b-serving-20261010.md)), and concurrency two at
-128/256 was accepted on October 13 ([report](validation/qwen3-4b-concurrency-20261013.md));
-see [the status page](STATUS.md) for scope and caveats. None of this is a
-runtime-offloading implementation.
+This addresses that conservative loading term; it is not measured 4B fit. Runtime
+weight offloading is not implemented. Qwen3-4B fit and serving results are on
+[the status page](STATUS.md).
 
 ## Next steps
 
-GPU-independent readiness work is recorded in the [September 30 report](validation/cpu-readiness-20260930.md),
-including hosted CI results and the stacked CI/hardening follow-ups from review.
 The prioritized project-wide list is in [the status page](STATUS.md#next-steps-in-order).
 Serving-specific items:
 
-1. Refresh measured placement profiles with explicit sampling, chunk and batch settings;
-   collect longer controlled throughput/latency comparisons and longer memory soaks.
-   Measured bundles currently reject sampling and chunked prefill.
+1. Refresh measured placement profiles with explicit sampling, chunk and batch settings
+   (the native probes measure whole-prompt prefill only); collect longer controlled
+   throughput/latency comparisons and longer memory soaks.
 2. Run the bounded HTTP serving soak at levels 1 and 2 for Qwen3-4B after the
    concurrency-two re-run listed on [the status page](STATUS.md).
 3. Optimize device sampling and attention/KV batching if measurements justify them.
-4. Milestone 7's additional backend/stage work is ordered after M5's deferred WAN
-   comparison; whether it stays gated on it is an open decision.

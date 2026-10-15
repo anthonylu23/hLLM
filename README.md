@@ -10,13 +10,9 @@ cleanup are covered by numerical and process integration tests.
 
 **Current status, open gates and next steps are in [docs/STATUS.md](docs/STATUS.md).**
 
-The approved M5 qualification target for Qwen3-0.6B uses F16 resident weights, F32
-execution/KV, and F16 wire transfers. All Qwen3-4B evidence so far is uniform F16;
-the canonical 4B precision target is an open decision. M5 implementation and the
-bounded code investigation are complete for now; WAN performance acceptance is
-deferred. The NYC–Texas path shows delivery loss and timing variability, while
-controlled local delay tests preserve exact tokens, deadlines, cleanup and recovery.
-See the [engineering closeout](docs/validation/milestone-5-wan-closeout.md).
+Qualified precision targets, workloads and open decisions are on the status page. M5 WAN
+performance acceptance is deferred; see the
+[engineering closeout](docs/validation/milestone-5-wan-closeout.md).
 
 ## Milestone status
 
@@ -35,22 +31,17 @@ compute/conversion probes, directional native gRPC profiling, and admission/fit
 checks. See the [profiling workflow](docs/milestone-5-profiling.md),
 [memory qualification](docs/validation/milestone-5-memory.md), and
 [timing qualification](docs/validation/milestone-5-timing.md). Measured planner
-integration (5.5) and the independent sweep runner (5.6) are implemented; the full
-54-candidate acceptance run remains pending. See the [placement workflow](docs/milestone-5-placement.md)
-and [current validation/gates](docs/validation/milestone-5-planner.md).
-The [Milestone 5 implementation plan](docs/milestone-5-implementation-plan.md) defines
-the implemented slices, deferred acceptance gates, and the initial
-512-prompt/256-output, concurrency-1 workload.
+integration (5.5) and the independent sweep runner (5.6) are implemented; the
+54-candidate WAN acceptance run is deferred. See the
+[placement workflow](docs/milestone-5-placement.md) and
+[current validation/gates](docs/validation/milestone-5-planner.md).
 
 Qwen3-4B-Base runs across the MLX and CUDA hosts with uniform F16. Native profiles and
 serving metrics expose macOS process physical footprint alongside RSS and allocator
 usage; see the [measurement semantics](docs/milestone-5-profiling.md#process-physical-footprint).
 The [footprint fit policy](docs/milestone-5-profiling.md#mlx-footprint-policy) is the
-MLX evaluation default. The 4B baseline, reverse order and a 512/256 workload passed
-on October 10 ([report](docs/validation/qwen3-4b-serving-20261010.md)), and concurrency
-two was accepted on October 13 with a caveat and a re-run open
-([report](docs/validation/qwen3-4b-concurrency-20261013.md)). See
-[the status page](docs/STATUS.md) for exact scope and what remains unqualified.
+MLX evaluation default. Qualified 4B workloads, their reports and caveats are listed on
+[the status page](docs/STATUS.md).
 
 Milestone 6 adds persistent text/chat serving with bounded concurrent requests and
 native prefill/decode scheduling; see [usage and limits](docs/milestone-6.md).
@@ -58,13 +49,12 @@ Configurable sampling, bounded log probabilities, opt-in chunked prefill and dec
 batching are implemented. Bounded weight conversion reduces MLX load admission.
 See the [M6 qualification report](docs/validation/milestone-6.md)
 and [focused validation sweep](docs/validation/milestone-6-sweep.md), including the observed
-batch-dependent seeded-sampling limit. The [PR review follow-up](docs/validation/milestone-6-pr-review.md)
-records scheduler allocation-failure and streaming-retention fixes. ROCm and additional stages
-remain Milestone 7 in [the full project specification](SPEC.md).
+batch-dependent seeded-sampling limit. ROCm and additional stages are Milestone 7 in
+[the full project specification](SPEC.md).
 
 ## Development setup
 
-Install `uv`, then let it provision the pinned Python version and dependencies:
+Install `uv`, then let it provision Python 3.12 and the locked dependencies:
 
 ```bash
 uv sync --python 3.12
@@ -85,7 +75,8 @@ and AddressSanitizer/UBSan build-and-CTest jobs using matching, pinned native
 gRPC/Protobuf dependencies; pushes to `codex/**` branches only warm that dependency
 cache for stacked pull requests.
 Accelerator and full-checkpoint runs remain explicit hardware qualification tasks.
-See [validation tools and reproduction](scripts/validation/README.md).
+See [validation tools and reproduction](scripts/validation/README.md), including the
+[two-host launchers](scripts/validation/README.md#two-host-launchers).
 
 For native development, install the C++ Protobuf and gRPC development packages
 (including their CMake configs), then run:
@@ -104,7 +95,7 @@ when available and fetches pinned versions otherwise. After changing schemas, ru
 ## Prepare and plan
 
 Prepare an indexed or single-file Llama-compatible or dense Qwen3 Safetensors model
-without loading its tensor payloads. Qwen3-4B-Base is the new benchmark target:
+without loading its tensor payloads. Qwen3-4B-Base is the benchmark target:
 
 ```bash
 uv run hllm prepare /models/Qwen3-4B-Base \
@@ -138,7 +129,9 @@ uv run hllm plan \
 The checked-in memory budgets remain conservative configured estimates. Link RTT and
 effective directional throughput are point-in-time observations from the test pair.
 For measured selection, use the [Milestone 5 placement workflow](docs/milestone-5-placement.md)
-with a compatible profile bundle and the measured objective settings.
+with a compatible profile bundle and the measured objective settings. Two-stage prompts
+longer than one boundary message (1638 tokens for Qwen3-4B at F16) need a chunked
+workload; see [long prompts and chunked prefill](docs/milestone-5-placement.md#long-prompts-and-chunked-prefill).
 
 See [the model/backend extension boundaries](docs/model-extensibility.md),
 [Qwen3 support and validation](docs/qwen3.md), and

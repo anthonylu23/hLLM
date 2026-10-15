@@ -2026,7 +2026,7 @@
       ]
     }
   ],
-  "run_directory": "/home/anthonylu/Projects/experiments/hllm-4b-fit-20261011-044533",
+  "run_directory": "hllm-4b-fit-20261011-044533",
   "source_identities": {
     "linux": {
       "source-identity-f4dcee5": {

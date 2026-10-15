@@ -374,7 +374,7 @@ Automated tests use a generated tiny Llama model plus a sparse Falcon3-shaped me
 fixture. The sparse fixture reproduces the real tensor dimensions and logical byte sizes but
 does not substitute for validating the pinned upstream weight bytes.
 
-The next benchmark target is `Qwen/Qwen3-4B-Base` at revision
+The benchmark target is `Qwen/Qwen3-4B-Base` at revision
 `906bfd4b4dc7f14ee4320094d8b41684abff8539`, using the `qwen3.v1` adapter.
 Falcon results remain a historical baseline. Qwen3 extends the shared dense decoder
 operations with per-head query/key RMSNorm before RoPE and attention projection widths
@@ -1022,7 +1022,7 @@ boundaries, split at layer 14. Both stage orders passed 256-token generation on 
 and DERP links; neither worker retained all model layers. See the
 [implementation notes](docs/milestone-4.md) and
 [qualification report](docs/validation/full-checkpoint-cross-machine.md).
-Qwen3-4B-Base still requires its own physical-fit and inference qualification.
+Qwen3-4B-Base results are tracked on [the status page](docs/STATUS.md).
 
 - Run both stage orders on separate tailnet machines.
 - Qualify direct and relayed connections.
