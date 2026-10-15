@@ -1,0 +1,12 @@
+workload_id: chunked-4096-256
+prompt_tokens: 4096
+output_tokens: 256
+concurrency: 1
+total_cached_tokens: 4352
+kv_overhead_factor: 1.10
+kv_dtype: F16
+activation_dtype: F16
+# Each prefill boundary message carries at most 512 prompt tokens. Serve the
+# resulting plan with `hllm serve --prefill-chunk-tokens 512`. Estimated and
+# feasibility modes only: measured profiles cover whole-prompt prefill.
+prefill_chunk_tokens: 512

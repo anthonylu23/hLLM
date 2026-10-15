@@ -162,10 +162,13 @@ def _boundary_estimate(
     )
     decode_bytes = workload.concurrency * manifest.config.hidden_size * bytes_per_value
     conversion = link.sender_conversion_ms + link.receiver_conversion_ms
+    # Chunked prefill pays per-message latency and conversion once per extra chunk.
+    extra_messages = math.ceil(workload.prompt_tokens / workload.boundary_message_tokens) - 1
     prefill_ms = (
         link.fixed_latency_ms
         + (prefill_bytes / link.bandwidth_bytes_per_second * 1000)
         + conversion
+        + extra_messages * (link.fixed_latency_ms + conversion)
     )
     decode_ms = (
         link.fixed_latency_ms + (decode_bytes / link.bandwidth_bytes_per_second * 1000) + conversion
@@ -263,9 +266,15 @@ def create_plan(
             raise PlanningError("worker configuration differs from frozen bundle")
         if settings.execution_dtype != workload.kv_dtype:
             raise PlanningError("measured execution and KV dtypes must agree")
+        if workload.prefill_chunk_tokens:
+            raise PlanningError(
+                "measured profiles cover whole-prompt prefill only; plan a chunked "
+                "workload in estimated or feasibility mode until the native profilers "
+                "support chunked prefill"
+            )
     elif profile_bundle is not None:
         raise PlanningError("profile bundle requires measured mode")
-    # Every two-stage candidate ships the whole prompt across one boundary message.
+    # Each prefill boundary message carries the whole prompt, or one chunk of it.
     boundary_limit = maximum_boundary_tokens(manifest.config.hidden_size, workload.activation_dtype)
     raw_candidates: list[PlanCandidate] = []
     for first, final in ((workers[0], workers[1]), (workers[1], workers[0])):
@@ -309,9 +318,9 @@ def create_plan(
                         reasons.append(
                             f"{transport_budget.domain.value}_MEMORY_EXCEEDED:{stage.worker_id}"
                         )
-            if workload.prompt_tokens > boundary_limit:
+            if workload.boundary_message_tokens > boundary_limit:
                 reasons.append(
-                    f"BOUNDARY_PAYLOAD_EXCEEDED:{workload.prompt_tokens}>{boundary_limit}"
+                    f"BOUNDARY_PAYLOAD_EXCEEDED:{workload.boundary_message_tokens}>{boundary_limit}"
                 )
             if settings.mode == PlanningMode.ESTIMATED and link is None:
                 reasons.append(f"MISSING_LINK_PROFILE:{first.worker_id}->{final.worker_id}")
@@ -349,6 +358,15 @@ def create_plan(
                 )
             )
 
+    chunk_notes = (
+        (
+            f"Prefill is chunked at {workload.prefill_chunk_tokens} tokens per boundary "
+            "message; serve this plan with the same --prefill-chunk-tokens. Memory estimates "
+            "still size activation buffers for the whole prompt.",
+        )
+        if workload.prefill_chunk_tokens
+        else ()
+    )
     feasible_candidates = sorted(
         (item for item in raw_candidates if item.feasible),
         key=lambda item: (item.score if item.score is not None else math.inf, item.candidate_id),
@@ -368,7 +386,7 @@ def create_plan(
             selected_candidate_id=None,
             candidates=candidates,
             plan=None,
-            notes=("No fully qualified feasible two-worker placement was found.",),
+            notes=("No fully qualified feasible two-worker placement was found.", *chunk_notes),
         )
 
     selected_id = feasible_candidates[0].candidate_id
@@ -455,6 +473,7 @@ def create_plan(
             "Estimated mode currently scores boundary transfer and memory pressure; "
             "compute profiles arrive in Milestone 5."
         ),
+        *chunk_notes,
     )
     return PlanningReport(
         planner_version=version,

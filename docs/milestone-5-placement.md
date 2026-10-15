@@ -103,6 +103,34 @@ optimality claim. Exact ties use candidate ID. Explanations include the winner,
 runners-up, TTFT/generation estimates and rejection reasons; JSON retains every
 component, context, objective settings, artifact digest and conservative physical envelope.
 
+## Long prompts and chunked prefill
+
+A two-stage plan sends prefill across the boundary in messages of at most 8 MiB.
+At F16 and a 2560-wide hidden state (Qwen3-4B) one message holds 1638 tokens, so a
+longer whole-prompt workload is rejected with `BOUNDARY_PAYLOAD_EXCEEDED`. Set
+`prefill_chunk_tokens` in the workload to plan it as chunked prefill:
+
+```bash
+uv run hllm plan --manifest build/4b/manifest.json \
+  --workers examples/profiles/workers-m3pro-3060ti.yaml \
+  --links examples/profiles/links-m3pro-3060ti.yaml \
+  --workload examples/workloads/chunked-4096-256.yaml --mode estimated \
+  --output build/4b/chunked-plan.json --report build/4b/chunked-report.json
+```
+
+The boundary check then applies to one chunk, and the estimated prefill transfer pays
+the link's fixed latency and conversion once per chunk. Memory estimates still size
+activation buffers for the whole prompt, and KV covers the full context. The report
+notes the chunk size; serve the plan with the same `--prefill-chunk-tokens`.
+
+The field must be below `prompt_tokens` and at most 65536; 0 or omitted means
+whole-prompt prefill and leaves existing workload, profile and plan digests unchanged.
+The chunk size is part of the workload identity. Measured mode refuses chunked
+workloads, profile keys refuse them, and serving refuses a measured bundle whose
+workload chunk size differs from `--prefill-chunk-tokens`. The native memory and
+compute probes run whole-prompt prefill only, so measured chunked placement waits for
+chunk-aware probes. `hllm generate` always sends whole-prompt prefill.
+
 ## Timing attribution
 
 The fixed workload objective is TTFT + 255 mean decode intervals for 512+256.
