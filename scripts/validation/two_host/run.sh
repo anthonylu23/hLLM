@@ -69,10 +69,18 @@ if remote "lsof -nP -iTCP:$MLX_PORT -iTCP:$CUDA_PORT -sTCP:LISTEN" >/dev/null; t
   log "a worker port is in use on the Mac"
   exit 1
 fi
-if pgrep -x hllm-worker-cuda >/dev/null || remote "pgrep -x hllm-worker-mlx" >/dev/null; then
-  log "an hLLM worker is already running; this run only uses workers it starts"
+# Any port: a worker or probe elsewhere would still contaminate the memory evidence.
+if pgrep -f "$HLLM_PROCESS_PATTERN" >/dev/null; then
+  log "an hLLM worker or probe is already running here; this run only uses workers it starts"
   exit 1
 fi
+mac_check=0
+remote "pgrep -f $(quote "$HLLM_PROCESS_PATTERN")" >/dev/null || mac_check=$?
+case $mac_check in
+  0) log "an hLLM worker or probe is already running on the Mac"; exit 1 ;;
+  1) ;;
+  *) log "cannot check the Mac for running workers (status $mac_check)"; exit 1 ;;
+esac
 identity="$RUN_DIR/inputs/source-identity-$ROLE-$(date -u +%Y%m%dT%H%M%SZ).json"
 source_digest=$("$PY" scripts/validation/source_identity.py "$SOURCE_DIR" "$identity" \
   "${CUDA_BUILD_DIR:-build/cuda}/cpp/hllm-worker-cuda" | tail -n 1)
@@ -134,8 +142,8 @@ fi
 
 log "MLX worker"
 mac_log=$MAC_RUN_DIR/$ROLE-mlx-worker.log
-MLX_GUARD=$(remote "cd $(quote "$MAC_REPO") && nohup scripts/validation/two_host/mlx-worker.sh \
-  $(quote "$MAC_ENV") $ROLE > $(quote "$mac_log") 2>&1 & echo \$!")
+MLX_GUARD=$(remote_detach "$mac_log" scripts/validation/two_host/mlx-worker.sh \
+  "$(quote "$MAC_ENV")" "$ROLE")
 wait_listen_remote "$MLX_PORT" "$MLX_GUARD" "$mac_log" 180
 log "MLX worker listening (guard PID $MLX_GUARD on the Mac)"
 

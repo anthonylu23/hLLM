@@ -32,6 +32,22 @@ remote() { ssh -o BatchMode=yes -o ConnectTimeout=15 "$MAC_SSH" "$@"; }
 # Single-quote a value for a remote shell command line.
 quote() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 
+# Start a script under MAC_REPO on the Mac, detached, and print its PID. The script
+# is the only background job (no subshell wraps it), so the PID is the script's own,
+# or that of the process it execs. Its redirected stdio releases the SSH session.
+# Usage: remote_detach LOG SCRIPT [ARG...], with ARGs already quoted for the remote shell.
+remote_detach() {
+  local log_path=$1
+  shift
+  remote "cd $(quote "$MAC_REPO") || exit 1; nohup $* </dev/null >$(quote "$log_path") 2>&1 & echo \$!"
+}
+
+# Command-line pattern for hLLM workers and memory probes, and the guards running them.
+# It matches the executable path because Linux truncates process names to 15
+# characters, so `pgrep -x hllm-worker-cuda` never matches. Used with `pgrep -f`.
+# shellcheck disable=SC2034 # Used by the scripts that source this file.
+HLLM_PROCESS_PATTERN='(^|/)hllm-(worker|profile-memory)-[a-z]+( |$)'
+
 # Wait for a local listener while the process that should open it stays alive.
 # Fails at once, with the log tail, if that process exits first.
 wait_listen_local() {

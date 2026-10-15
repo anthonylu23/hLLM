@@ -4,10 +4,14 @@
 # profile.sh starts this over SSH and copies the results back. The profiler's own
 # preflight refuses to load when macOS free+inactive memory is below the cap plus
 # headroom; freeing memory (quitting apps) is the operator's decision.
+# The exit status goes to MAC_RUN_DIR/mlx-profile.exit for profile.sh to propagate:
+# the profiler writes its artifact before refusing an incomplete measurement (2) or
+# an unsafe physical fit (3), so the artifact alone does not mean success.
 ENV_FILE=${1:-}
 . "$(dirname "$0")/lib.sh"
 require MAC_REPO MAC_RUN_DIR MLX_BUILD_DIR MLX_MODEL_ROOT MLX_LIMIT_BYTES MANIFEST PLAN \
   WORKLOAD PROFILE_CYCLES PROFILE_GUARD_SECONDS CONCURRENT_LOAD
+trap 'echo $? > "$MAC_RUN_DIR/mlx-profile.exit"' EXIT
 
 cd "$MAC_REPO"
 PY="$MAC_REPO/.venv/bin/python"
@@ -24,7 +28,7 @@ source_digest=$("$PY" scripts/validation/source_identity.py "$MAC_REPO" \
   sysctl vm.swapusage
 } > "$MAC_RUN_DIR/mlx-profile.prelaunch.txt"
 caffeinate -dis -w $$ &
-exec "$PY" scripts/validation/resource_guard.py \
+"$PY" scripts/validation/resource_guard.py \
   --seconds "$PROFILE_GUARD_SECONDS" --record "$MAC_RUN_DIR/mlx-profile.guard.jsonl" -- \
   "$MAC_REPO/.venv/bin/hllm" profile-memory \
   --manifest "$(under "$MAC_RUN_DIR" "$MANIFEST")" --plan "$plan_path" \

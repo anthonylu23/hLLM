@@ -225,11 +225,13 @@ SSH. Each Mac checkout needs `uv sync` and the MLX build at the same commit, plu
 | `build-cuda.sh` | Linux | RelWithDebInfo CUDA build of the worker and probes, with hashes |
 | `oracle.sh ENV PROMPT OUTPUT` | Linux | Guarded independent reference into `inputs/` |
 | `profile.sh ENV cuda` | Linux | Guarded CUDA memory profile (`cuda-profile.sh`) |
-| `profile.sh ENV mlx` | Linux to Mac | Copies settings and inputs, runs `mlx-profile.sh` on the Mac detached, copies results to `mac/` |
+| `profile.sh ENV mlx` | Linux to Mac | Copies settings and inputs, runs `mlx-profile.sh` on the Mac detached, copies results to `mac/`, exits with the profile's status |
 | `run.sh ENV baseline` | both | Guarded workers, tunnel, reload soak, cleanup |
 | `run.sh ENV concurrent` | both | The same plus the device watcher, the Mac guard mirror, the concurrency soak and results assembly |
 
-`run.sh` refuses busy ports or running workers on either host. Each launch waits for
+`run.sh` refuses busy ports on either host, and any hLLM worker or memory probe
+already running there on any port (matched by executable path with `pgrep -f`;
+Linux truncates process names to 15 characters). Each launch waits for
 its port while checking that the process is still alive, and fails at once with the
 log tail if it died. The device watcher (`watch-cuda.sh`) samples the PID the CUDA
 worker reports through its control API (`worker_pid.py`), never a command-line match.
@@ -240,7 +242,11 @@ leaving the mirror the soak read untouched, and only then runs
 `inputs/<role>-workers.json` in the reload-soak format; for `concurrent` the guard and
 sampler paths must be the ones `run.sh` writes (`<run>/concurrent-cuda.guard.jsonl`,
 `<run>/concurrent-cuda-device-samples.jsonl`, `<run>/mac/concurrent-mlx.guard.jsonl`),
-which `run.sh` checks before launching.
+which `run.sh` checks before launching. Mac processes start detached with their own
+stdio, so the SSH call returns at once with the process's own PID. `profile.sh mlx`
+propagates the Mac profiler's exit status (2: incomplete measurement, 3: physical fit
+not safe), which `mlx-profile.sh` records in `mlx-profile.exit`; the profiler writes
+its artifact before refusing, so the copied file alone is not success.
 
 `source_identity.py` records a checkout's revision, tracked-file hashes, combined
 source digest and binary hashes; profiles take that digest as `--source-revision` and
