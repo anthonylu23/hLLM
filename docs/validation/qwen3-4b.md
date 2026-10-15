@@ -174,6 +174,9 @@ does not establish that offloading is necessary. Longer contexts also need a
 separate assessment of the current dense-attention workspace reservation, which
 grows quadratically with total reserved sequence capacity even with chunked prefill.
 
+*Later: the footprint policy was implemented September 27 and qualified on both hosts
+October 10 ([report](qwen3-4b-serving-20261010.md)).*
+
 ## Remaining scope
 
 These experiments do not establish 32K context, arbitrary concurrent workloads,

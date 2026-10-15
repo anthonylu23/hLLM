@@ -155,3 +155,5 @@ gRPC threads during path sampling.
 Next: M5.5 should resolve compatible measured inputs, preserve unknown candidates,
 apply memory gates and explain predicted costs. M5.6 must then compare selected
 plans against an independent exhaustive sweep and evaluate the 15% criterion.
+*Both were implemented; see the [planner report](milestone-5-planner.md) and the
+[closeout](milestone-5-wan-closeout.md).*

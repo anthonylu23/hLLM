@@ -107,6 +107,11 @@ October 8 follow-up: the additional refusal tests in [PR #21](https://github.com
 also passed hosted validation (169 Python tests and all 81 CPU CTests). The pending
 local backlog and this status update are being published with that PR.
 
+Later: steps 4 and 5 ran October 10–13
+([serving](qwen3-4b-serving-20261010.md), [concurrency two](qwen3-4b-concurrency-20261013.md)),
+and `footprint-v1` has been the evaluation default since October 10. Current status:
+[STATUS](../STATUS.md).
+
 1. Land the stacked CI fixes ([PR #19](https://github.com/anthonylu23/hLLM/pull/19))
    and confirm a green hosted run with a populated native dependency cache.
 2. Review the qualification draft separately; preserve its conservative default.

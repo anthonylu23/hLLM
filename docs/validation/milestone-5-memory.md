@@ -61,7 +61,8 @@ an arbitrary-length RSS/cache plateau; the native lifecycle regressions and prio
 
 **Historical loader:** the M6 [bounded-conversion follow-up](milestone-6.md#memory-and-loading)
 reduces the endpoint load-admission term. The figures below remain the original M5
-assessment; they are not measurements of the new loader. Actual 4B execution is still unqualified.
+assessment; they are not measurements of the new loader. 4B execution and serving fit
+were qualified later; see [STATUS](../STATUS.md).
 
 The [4B assessment](milestone-5-memory/qwen3-4b-preflight.json) uses the existing
 metadata-only shape fixture for `Qwen/Qwen3-4B-Base` revision
@@ -99,4 +100,5 @@ memory result was extrapolated to establish 4B fit.
 
 The runtime serving protocol and its lifetime telemetry semantics are unchanged.
 M5.3–M5.6 still need native timing, directional transport measurement, measured planner
-integration and independent exhaustive split comparison.
+integration and independent exhaustive split comparison. (Implemented since; WAN
+acceptance is deferred: [closeout](milestone-5-wan-closeout.md).)

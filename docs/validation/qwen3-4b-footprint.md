@@ -131,3 +131,6 @@ September 27 follow-up: the [opt-in policy and reusable tooling](footprint-polic
 are implemented and pass tiny-model checks. Fresh 4B policy acceptance and the
 longer soak remain in the [overnight backlog](../overnight-backlog.md). The September
 23 evidence above retains its original diagnostic interpretation and fit result.
+
+October 10 follow-up: fresh 4B qualification passed under `footprint-v1`
+([report](qwen3-4b-serving-20261010.md)).

@@ -115,7 +115,8 @@ greedy soak or qualify new binary-bound placement profiles.
 
 Still unqualified: indefinite memory plateaus, controlled WAN throughput, concurrency 8,
 pinned CUDA batching, full model context, real 4B execution and M5's exhaustive within-15%
-placement comparison. See [usage and next steps](../milestone-6.md).
+placement comparison. See [usage and next steps](../milestone-6.md). Real 4B execution
+was qualified later ([September 18](qwen3-4b.md), [October 10](qwen3-4b-serving-20261010.md)).
 
 ## Reproduction
 
@@ -130,6 +131,12 @@ uv run python -m scripts.validation.serving_soak \
   --workers mlx cuda --mlx-endpoint HOST:PORT --cuda-endpoint HOST:PORT \
   --rounds 5 --output-tokens 64 --levels 1 2 4
 ```
+
+This is the command line as run. Since October 15, 2026 `serving_soak.py` takes
+`--plan PLAN --workers WORKERS.json` (worker specifications keyed by plan worker ID, as
+for `reload_soak.py`) instead of the stage order and endpoint flags, defaults to
+levels 1 and 2, and checks a fit gate before each level; see the
+[tools README](../../scripts/validation/README.md).
 
 Reverse `--workers` for the other order. For the optimization run, start native workers
 with `--max-decode-batch 4` and add `--prefill-chunk-tokens 128 --levels 1 4`. Use new

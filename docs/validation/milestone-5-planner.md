@@ -4,7 +4,8 @@ Measured planning and the independent sweep runner are implemented and tested.
 **Full checkpoint M5 acceptance is deferred by user decision.** See the
 [engineering closeout](milestone-5-wan-closeout.md) for the bounded code investigation
 and remaining WAN qualification gates. There is no qualified automatic
-0.6B selection or <=15% regret result yet. The 4B target remains unqualified.
+0.6B selection or <=15% regret result yet. The M5 4B and 32K targets remain unqualified
+here; later 4B serving evidence is in [STATUS](../STATUS.md).
 The [machine-readable status](milestone-5-planner/status.json) records the latest
 measured selection and partial sweep coverage; regret remains unqualified.
 The [preliminary acceptance audit](milestone-5-preacceptance-audit.md) consolidates
@@ -422,7 +423,6 @@ exact tokens and all other gates unchanged. Production implementation, fresh mem
 and performance qualification, the acceptance sweep, and the user's separate final
 M5 audit remain required before marking complete or creating the PR.
 
-
 ## Approved mixed-precision implementation — 2026-09-12
 
 The user approved the [explicit precision target](../milestone-5-precision-proposal.md):
@@ -449,7 +449,6 @@ qualification under the fixed caps. The [compact evidence](milestone-5-planner/m
 records schema/precision, executable and artifact identities, accounted memory and
 physical envelopes. These four memory checks do not establish exact-token serving,
 all-placement coverage, selection quality, or M5 acceptance.
-
 
 The [mixed-precision setup calibration](milestone-5-planner/mixed-setup-calibration.json)
 passed all ten fresh jobs at split 14, five in each direction. Each job used two
