@@ -117,7 +117,7 @@ TEST(BackendContractTest, ReportsIndependentDomainsAndReleasesReservations) {
   EXPECT_EQ(report.domain_usage(0).reserved_workspace_bytes(), 50U);
   EXPECT_EQ(report.domain_usage(1).reserved_cache_bytes(), 200U);
   EXPECT_EQ(report.domain_usage(2).reserved_workspace_bytes(), 40U);
-  service.release(lease.request);
+  service.release(lease.request, RequestOutcome::kCompleted);
   v1::MemoryReport released;
   ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &released).ok());
   EXPECT_EQ(released.active_requests(), 0U);
@@ -172,7 +172,7 @@ TEST(BackendContractTest, UnifiedAdmissionCountsAllAllocationsOnce) {
       EXPECT_EQ(report.loaded_weight_bytes(), 100U);
       EXPECT_EQ(report.reserved_cache_bytes(), 200U);
       EXPECT_EQ(report.reserved_workspace_bytes(), 100U);
-      service.release(lease.request);
+      service.release(lease.request, RequestOutcome::kCompleted);
       v1::MemoryReport released;
       ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &released).ok());
       EXPECT_EQ(released.reserved_cache_bytes(), 0U);

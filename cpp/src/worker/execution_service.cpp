@@ -60,13 +60,25 @@ struct CancelPeerOnExit {
 
 class RequestGuard final {
  public:
-  RequestGuard(ControlService& control, ExecutionLease lease)
-      : control_(control), lease_(std::move(lease)) {}
-  ~RequestGuard() { control_.release(lease_.request); }
+  RequestGuard(ControlService& control, grpc::ServerContext& context, ExecutionLease lease)
+      : control_(control), context_(context), lease_(std::move(lease)) {}
+  // Success paths release with kCompleted first; this is then a no-op.
+  ~RequestGuard() {
+    // The handler can see a client disconnect (check_running, a failed write)
+    // before the watchdog's next poll records it. Record it here, before release
+    // classifies the failure; a cause already recorded still wins.
+    if (context_.IsCancelled()) {
+      lease_.request->stop(std::chrono::system_clock::now() >= lease_.request->deadline
+                               ? StopCause::kExpired
+                               : StopCause::kCancelled);
+    }
+    control_.release(lease_.request, RequestOutcome::kFailed);
+  }
   ExecutionLease& lease() { return lease_; }
 
  private:
   ControlService& control_;
+  grpc::ServerContext& context_;
   ExecutionLease lease_;
 };
 
@@ -88,7 +100,11 @@ class Watchdog final {
           while (!stop.stop_requested()) {
             if (request->cancelled.load() || server.IsCancelled() ||
                 std::chrono::system_clock::now() >= request->deadline) {
-              request->cancelled.store(true);
+              // A cause already recorded (control cancel, reaper) wins; otherwise
+              // the deadline is checked before the client's own cancellation.
+              request->stop(std::chrono::system_clock::now() >= request->deadline
+                                ? StopCause::kExpired
+                                : StopCause::kCancelled);
               if (peer != nullptr) {
                 peer->TryCancel();
               }
@@ -275,7 +291,7 @@ grpc::Status ExecutionService::Execute(
         open.maximum_new_tokens() >= open.maximum_total_tokens()) {
       throw runtime::Error::invalid_request("invalid sequence opening");
     }
-    RequestGuard guard(control_,
+    RequestGuard guard(control_, *context,
                        control_.acquire(open.deployment_id(), open.deployment_version(),
                                         open.request_id(), open.maximum_total_tokens(),
                                         effective_deadline(*context, open.deadline_unix_ms()), 1U));
@@ -309,7 +325,7 @@ grpc::Status ExecutionService::Execute(
           throw runtime::Error::invalid_request("invalid sequence termination");
         }
         watchdog.stop();
-        control_.release(active);
+        control_.release(active, RequestOutcome::kCompleted);
         if (!stream->Write(message)) {
           throw std::runtime_error("termination acknowledgment failed");
         }
@@ -405,9 +421,10 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         static_cast<std::size_t>(request->token_ids_size()) + request->maximum_new_tokens();
     const auto acquire_start = request->capture_timing() ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     RequestGuard guard(
-        control_, control_.acquire(request->deployment_id(), request->deployment_version(),
-                                   request->request_id(), total,
-                                   effective_deadline(*context, request->deadline_unix_ms()), 0U));
+        control_, *context,
+        control_.acquire(request->deployment_id(), request->deployment_version(),
+                         request->request_id(), total,
+                         effective_deadline(*context, request->deadline_unix_ms()), 0U));
     const auto acquire_end = request->capture_timing() ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     auto& lease = guard.lease();
     active = lease.request;
@@ -599,7 +616,7 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     // Generation and downstream acknowledgment have completed. Commit the
     // outcome before releasing sequence state; slow cleanup or a late control
     // cancellation must not change it while usage/terminal events are written.
-    control_.release(active);
+    control_.release(active, RequestOutcome::kCompleted);
     v1::GenerationEvent event;
     event.set_request_id(request->request_id());
     event.mutable_usage()->set_prompt_tokens(static_cast<std::uint64_t>(request->token_ids_size()));

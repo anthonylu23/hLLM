@@ -1,4 +1,5 @@
 #include "hllm/cpu/llama.hpp"
+#include "hllm/runtime/error.hpp"
 
 #include <cmath>
 #include <cstddef>
@@ -117,6 +118,21 @@ TEST(CpuLlamaTest, RejectsOverflowingCacheDimensionsBeforeAllocation) {
 TEST(CpuLlamaTest, GreedySamplingSelectsFirstMaximumOnTheLastRow) {
   const Matrix logits(2U, 4U, {9.0F, 1.0F, 2.0F, 3.0F, -1.0F, 4.0F, 4.0F, 0.0F});
   EXPECT_EQ(greedy_sample_last(logits), 1U);
+}
+
+// The CPU greedy fast path must refuse what runtime::sample_token refuses, rather
+// than return token 0 for a leading NaN or silently skip one elsewhere.
+TEST(CpuLlamaTest, GreedySamplingRejectsNonFiniteLogitsOnTheLastRow) {
+  const auto nan = std::numeric_limits<float>::quiet_NaN();
+  const auto infinity = std::numeric_limits<float>::infinity();
+  for (const auto& row : std::vector<std::vector<float>>{
+           {nan, 1.0F, 2.0F}, {1.0F, nan, 2.0F}, {1.0F, 2.0F, infinity}, {-infinity, 0.0F, 1.0F}}) {
+    std::vector<float> values{0.0F, 0.0F, 0.0F};
+    values.insert(values.end(), row.begin(), row.end());
+    EXPECT_THROW(static_cast<void>(greedy_sample_last(Matrix(2U, 3U, values))), runtime::Error);
+  }
+  // Earlier rows are not sampled and are not inspected.
+  EXPECT_EQ(greedy_sample_last(Matrix(2U, 3U, {nan, nan, nan, 0.0F, 5.0F, 1.0F})), 1U);
 }
 
 }  // namespace

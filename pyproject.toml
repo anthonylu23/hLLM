@@ -7,9 +7,9 @@ requires-python = ">=3.12"
 dependencies = [
   "anyio>=4,<5",
   "fastapi>=0.115,<1",
-  "grpcio>=1.74,<2",
+  "grpcio>=1.81.1,<2",
   "jinja2>=3.1.6,<4",
-  "protobuf>=6.31,<7",
+  "protobuf>=6.33.5,<7",
   "pydantic>=2.12,<3",
   "pyyaml>=6.0.2,<7",
   "tokenizers>=0.23,<1",
@@ -23,7 +23,7 @@ hllm = "hllm_control.cli:app"
 [dependency-groups]
 dev = [
   "cmake>=3.31,<5",
-  "grpcio-tools>=1.74,<2",
+  "grpcio-tools==1.81.1",
   "httpx>=0.28,<1",
   "hypothesis>=6.138,<7",
   "ninja>=1.11,<2",

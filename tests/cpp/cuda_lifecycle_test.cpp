@@ -71,7 +71,7 @@ TEST(CudaLifecycleTest, AllocationFailureAfterRealSequenceAllocationRollsBackAnd
       auto lease = service.acquire("plan-1", 1U, "fault", 16U, 0U, 0U);
       EXPECT_NO_THROW(static_cast<void>(lease.deployment->backend->execute(
           runtime::TokenInput{{1U, 4U, 2U}}, 0U, *lease.request->sequence, lease.request->cancelled)));
-      service.release(lease.request);
+      service.release(lease.request, worker::RequestOutcome::kCompleted);
     }
     v1::MemoryReport report;
     ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &report).ok());

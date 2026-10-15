@@ -107,7 +107,12 @@ message RequestLifecycleEvent {
   // of allocated KV is recorded by the worker itself rather than inferred from
   // poll timing. Requests still allocating are omitted.
   repeated string concurrent_request_ids = 5;
-  // Retirement only: completed, cancelled or expired.
+  // Retirement only. `completed`: the execution owner finished successfully.
+  // `cancelled`: CancelRequest or the client cancelled the stream. `expired`: the
+  // request deadline passed, whether reserved or running. `failed`: execution
+  // ended with an error that was neither of those. `allocation-failed`: the
+  // sequence allocation threw. Workers before this vocabulary recorded failures
+  // as `completed` and running deadline expiry as `cancelled`.
   string reason = 6;
 }
 // Opt-in (`--request-observations`) request-lifecycle evidence for concurrency
@@ -121,7 +126,10 @@ message RequestObservations {
   // older events were evicted.
   repeated RequestLifecycleEvent events = 5;
   uint64 events_total = 6;
-  uint64 peak_concurrent_requests = 7;  // Process-lifetime; never reset.
+  // Process-lifetime maximum of requests holding allocated KV at once, counted
+  // when an allocation completes (the `concurrent_request_ids` definition, plus
+  // the newly allocated request); never reset.
+  uint64 peak_concurrent_requests = 7;
 }
 message MemoryReport {
   repeated MemoryBudget budgets = 1;
