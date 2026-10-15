@@ -1065,6 +1065,13 @@ decision was followed by the user-approved sampling and scheduling work.
 
 ### Milestone 7 — ROCm and additional stages
 
+Ordering is an open decision: this milestone was planned to follow Milestone 5's WAN
+acceptance, which is deferred indefinitely (see the
+[WAN closeout](docs/validation/milestone-5-wan-closeout.md)). Whether Milestone 7 stays
+gated on that acceptance or is re-scoped independently has not been decided; the
+placement planner currently enumerates exactly two workers. See
+[project status](docs/STATUS.md).
+
 - Build the LibTorch backend for supported ROCm systems.
 - Generalize placement to more than two workers.
 - Validate that no control or tensor protocol changes are required.

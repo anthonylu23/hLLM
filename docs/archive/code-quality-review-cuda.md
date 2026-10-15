@@ -56,7 +56,7 @@ fit, throughput, arbitrary-workload memory bounds, or cross-machine behavior.
 
 All 37 Python unit tests, 43 macOS CPU-only CTest entries, and 48 Linux
 CUDA-enabled CTest entries passed. Ruff, Pyright, generated-binding checks, and
-whitespace checks passed. See the [mixed qualification report](validation/mixed-cpu-cuda.md)
+whitespace checks passed. See the [mixed qualification report](../validation/mixed-cpu-cuda.md)
 for case counts, environment details, and the strengthened deadline checks.
 
 ## Next steps

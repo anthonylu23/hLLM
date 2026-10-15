@@ -1,40 +1,22 @@
 # Overnight qualification backlog
 
-Updated October 10, 2026. The CUDA host became available on October 8 after the user
-stopped an unrelated Minecraft server. P0 and P1 passed with fresh profiles on both
-hosts and P2, P4 and P3 all passed on October 10; see the
-[two-host serving report](validation/qwen3-4b-serving-20261010.md). `footprint-v1`
-is the evaluation default since that day. P5 remains open, as do the GPU-independent
-items below.
-All September 30 code and docs are merged to `main` (PRs #17–#20); hosted CI on `main`
-is green with a saved native dependency cache. The GPU-independent work below can
-proceed now; P1–P5 remain gated on fresh resource checks on both hosts.
-
-September 28 status: The user resumed this backlog overnight. The fresh Mac
-baseline profile passed; CUDA qualification is blocked by an unrelated active GPU
-workload. No automation is scheduled. See the
-[September 28 run report](validation/qwen3-4b-fit-20260928.md) for scope and results.
-That session is complete and no owned model process remains. The Linux CI recipe
-passed all 80 CTest entries, and the CUDA memory profiler is rebuilt. Resume with
-fresh resource checks; GPU runtime checks and P1's CUDA profile are next.
+This is the run book and checklist for guarded two-host qualification work. It records
+how each step is run and what each completed step found. Current status, open gates and
+the prioritized next steps live on [the status page](STATUS.md); do not restate them here.
 
 ## Handoff for the next agent
 
-Start from `main` (at or after merge commit `1571eea`) on a new `codex/*` branch;
-`codex/4b-qualification` and the other September branches are merged and deleted.
-Read the applicable `AGENTS.md`, this backlog and `scripts/validation/README.md`.
-Reach the CUDA host over SSH (its address is kept in the operator's local notes,
-not in this repository). The remote source snapshot from September 28 predates the
-merged hardening (notably the runtime RSS lifetime-peak clamp in `77dabf9`): before
-any GPU work, sync a fresh snapshot of `main` to a new remote directory, rebuild the
-CUDA worker and profilers, and record their new hashes. New binaries invalidate
-binary-bound profile evidence, so the September 28 Mac profile cannot be paired with
-them. Keep previous evidence immutable. Scoped commits and draft PRs are authorized;
+Start from current `main` on a new `codex/*` branch. Read [the status page](STATUS.md),
+this run book and `scripts/validation/README.md`. Reach the CUDA host over SSH (its
+address is kept in the operator's local notes, not in this repository). Before any GPU
+work, sync a fresh snapshot of `main` to a new remote directory, rebuild the CUDA worker
+and profilers, and record their new hashes. New binaries invalidate binary-bound profile
+evidence, so older profiles cannot be paired with them, and profiles expire after
+24 hours. Keep previous evidence immutable. Scoped commits and draft PRs are authorized;
 do not merge or alter unrelated workloads without authorization.
 
-`footprint-v1` is the evaluation default since October 10, 2026 (stored bundle and
-sweep bindings keep "omitted means `conservative-v1`"). Missing/incoherent telemetry
-falls back to the existing RSS-plus-allocator rule. Always report the actual policy used.
+The MLX fit policy in force is `footprint-v1`; missing or incoherent telemetry falls back
+to the RSS-plus-allocator rule. Always report the actual policy used.
 
 ## Completed during the low-memory session
 
@@ -71,8 +53,9 @@ falls back to the existing RSS-plus-allocator rule. Always report the actual pol
 - [x] Resume P0–P2 with fresh profiles when both hosts meet resource gates. Do not
   reuse September 28 profiles past the freshness limit. Done October 10.
 
-Larger context, reverse order and concurrency two remain follow-up experiments;
-they are not prerequisites for reviewing the single-request policy implementation.
+At the time, larger context, reverse order and concurrency two were follow-up
+experiments, not prerequisites for reviewing the single-request policy implementation
+(they ran as P3, P4 and P5 below).
 Known low-priority caveat: `observed_at_unix_ns` is wall-clock time, so a backward
 clock step during a profile makes the footprint policy fall back to the conservative
 formula (recorded in `policy_notes`). Steady-clock or sample-index ordering would
@@ -127,11 +110,12 @@ on the Mac and must pass the resource gates below; the rest are code and docs on
   items 1–5 are met by that night's evidence; item 6 was met when PR #22 merged.
   The evaluation default flipped to `footprint-v1` the same day; stored bindings keep
   their explicit semantics.
-- [ ] Reconcile `SPEC.md` with the implementation: SQLite, OpenTelemetry,
+- [x] Reconcile `SPEC.md` with the implementation: SQLite, OpenTelemetry,
   prometheus-cpp, spdlog, structlog and Buf are listed but unused; profiles are JSON
   files and metrics are hand-rendered Prometheus text. Either trim the spec or
   schedule the observability work. Answer or retire the §30 open questions the 4B
   work has already decided (tied-embedding placement, quantization timing).
+  October 12: done in `e85d2e4` (PR #26).
 - [ ] Order footprint observations by a steady clock or sample index instead of
   `observed_at_unix_ns`, so a backward wall-clock step no longer forces the
   conservative fallback. Low priority; the current fallback direction is safe.
@@ -295,7 +279,7 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   24 of 24 exact continuations and 6 of 6 exact cancellation prefixes in 1,174 s.
   The first full attempt was refused at cycle 1 by the fresh CUDA gate because the
   worker's own cached allocator hid 4.78 GiB; the tool now credits only inactive
-  cached bytes and records both values (PR pending review). Reuse the
+  cached bytes and records both values (PR #22, merged October 10). Reuse the
   pinned independent 128/256 oracle only after validating its payload identity.
   This is 24 exact continuations and six cancellation/unload cycles in the same
   worker processes, roughly 20 minutes based on previous timings.
@@ -347,7 +331,7 @@ Omit the footprint helper around Python profiler commands; see the tools README.
 
 ## P5 — concurrency is a separate gated follow-up
 
-- [ ] Start with two requests at 128/256, only after single-request acceptance.
+- [x] Start with two requests at 128/256, only after single-request acceptance.
   Check combined reservations and actual active request overlap; do not double
   the model weight allocation in the estimate. Each extra Mac request adds about
   0.669 GiB logical reservation at this workload, before batching effects.
@@ -370,6 +354,9 @@ Omit the footprint helper around Python profiler commands; see the tools README.
   not the allocator). A re-run on the corrected worker is an open follow-up. See the
   [October 13 report](validation/qwen3-4b-concurrency-20261013.md). No throughput
   claim and nothing above concurrency two follows.
+- [ ] Re-run the 128/256 concurrency-two measurement on the corrected MLX worker with
+  fresh same-day profiles on both hosts, following the procedure in the October 13
+  report. The Mac needs about 7 GiB free plus inactive at every cycle gate.
 - [x] `ProfileKey` currently supports concurrency one. Add/justify a separate
   combined-memory qualification path before treating these profiles as evidence
   for concurrency two. If that needs design work, leave P5 pending this night.

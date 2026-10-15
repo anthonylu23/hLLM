@@ -162,10 +162,10 @@ Asynchronous transfer overlap remains unverified.
 
 ## Next steps
 
-See the [mixed CPU/CUDA qualification plan](milestone-2-qualification-plan.md) for the
+See the [mixed CPU/CUDA qualification plan](archive/milestone-2-qualification-plan.md) for the
 three-PR sequence, constraints and acceptance criteria.
 
-The [CUDA stack review](code-quality-review-cuda.md) records correctness fixes and
+The [CUDA stack review](archive/code-quality-review-cuda.md) records correctness fixes and
 quality findings for PRs 5–9. [Milestone 4](milestone-4.md) records the full Qwen3-0.6B
 assessment and MLX/CUDA qualification. Assess larger workloads against available
 physical memory before scheduling inference. Account for

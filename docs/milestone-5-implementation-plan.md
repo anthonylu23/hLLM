@@ -1,6 +1,7 @@
 # Milestone 5 implementation plan
 
-Status: M5.1–M5.6 implemented; full acceptance remains pending as of 2026-09-14. The
+Status: M5.1–M5.6 implemented; WAN acceptance is deferred (checked 2026-10-14; see
+[the status page](STATUS.md)). The
 [profiling workflow](milestone-5-profiling.md) and
 [memory report](validation/milestone-5-memory.md) and
 [timing report](validation/milestone-5-timing.md) record the delivered behavior
@@ -253,6 +254,8 @@ M5.1–5.4 are implemented; their
 [profiling workflow](milestone-5-profiling.md),
 [memory evidence](validation/milestone-5-memory.md), and
 [timing evidence](validation/milestone-5-timing.md) document scope and limitations.
-The 4B endpoint-only MLX load-admission lower bound still exceeds observed Mac
-availability, so its physical profiling and inference qualification remain pending
-a successful preflight. Transport-only payload qualification does not establish 4B fit.
+Bounded weight conversion (Milestone 6) reduced the endpoint-only MLX load-admission
+term that once exceeded Mac availability; 4B physical profiling and serving fit then
+passed on October 10 for the recorded workloads
+([report](validation/qwen3-4b-serving-20261010.md)). Transport-only payload
+qualification does not establish 4B fit.

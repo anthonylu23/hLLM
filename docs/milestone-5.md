@@ -87,5 +87,6 @@ changed, measurably stable operating condition, following the
 [closeout restart gates](validation/milestone-5-wan-closeout.md#deferred-gates-and-restart-point).
 That requires current-build profiles and setup calibration, a new frozen selection,
 the exhaustive 0.6B sweep, and the final acceptance audit. The separate 4B fit gate
-and 32K-capacity qualification remain pending. Next development scope is to be agreed;
-the roadmap's Milestone 6 covers continuous batching and serving.
+passed on October 10 for the recorded workloads; 32K-capacity qualification remains
+pending. Milestone 6 (serving) is implemented. See [the status page](STATUS.md) for
+current gates.

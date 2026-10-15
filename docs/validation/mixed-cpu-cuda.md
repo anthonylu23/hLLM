@@ -145,7 +145,7 @@ process/container memory limits.
 
 ## PR review validation (2026-09-06)
 
-The independent [review of PRs 5–9](../code-quality-review-cuda.md) found and fixed
+The independent [review of PRs 5–9](../archive/code-quality-review-cuda.md) found and fixed
 large pinned-boundary transfers and combined host-stage/transport accounting.
 The new large-transfer regression failed on the original CUDA implementation,
 then passed after copying through bounded chunks. Final allocation checks confirm

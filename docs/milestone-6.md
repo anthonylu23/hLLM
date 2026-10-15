@@ -190,23 +190,25 @@ remain unchanged.
 
 The later [2026-09-18 4B pass](validation/qwen3-4b.md) loaded the complete checkpoint
 and matched a 256-token independent F16 continuation with a 15-layer MLX / 21-layer
-CUDA split. Its full serving-memory observations fail the existing conservative
-MLX physical-fit rule, despite normal pressure. This is bounded execution evidence,
-not broader capacity acceptance or a runtime-offloading implementation.
+CUDA split. Its serving-memory observations failed the conservative MLX physical-fit
+rule then in force. Physical fit later passed under the `footprint-v1` policy on
+October 10 ([report](validation/qwen3-4b-serving-20261010.md)), and concurrency two at
+128/256 was accepted on October 13 ([report](validation/qwen3-4b-concurrency-20261013.md));
+see [the status page](STATUS.md) for scope and caveats. None of this is a
+runtime-offloading implementation.
 
 ## Next steps
 
 GPU-independent readiness work is recorded in the [September 30 report](validation/cpu-readiness-20260930.md),
 including hosted CI results and the stacked CI/hardening follow-ups from review.
-The [concurrency-two evidence design](concurrency-qualification.md) remains a design,
-with actual combined-memory qualification deferred.
+The prioritized project-wide list is in [the status page](STATUS.md#next-steps-in-order).
+Serving-specific items:
 
 1. Refresh measured placement profiles with explicit sampling, chunk and batch settings;
    collect longer controlled throughput/latency comparisons and longer memory soaks.
-2. The footprint policy passed its baseline two-host serving gate, larger context
-   (P3) and reverse order (P4) on October 10 ([report](validation/qwen3-4b-serving-20261010.md))
-   and became the evaluation default. Concurrency two (P5) remains open per the
-   [overnight backlog](overnight-backlog.md).
+   Measured bundles currently reject sampling and chunked prefill.
+2. Run the bounded HTTP serving soak at levels 1 and 2 for Qwen3-4B after the
+   concurrency-two re-run listed on [the status page](STATUS.md).
 3. Optimize device sampling and attention/KV batching if measurements justify them.
-4. Keep M5's exhaustive WAN comparison deferred until its acceptance measurements pass;
-   then proceed with Milestone 7's additional backend/stage work.
+4. Milestone 7's additional backend/stage work is ordered after M5's deferred WAN
+   comparison; whether it stays gated on it is an open decision.

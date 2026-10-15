@@ -1,8 +1,9 @@
 # Concurrency-two qualification design
 
-Status: implemented October 11, 2026; **no concurrency-two capacity is qualified**
-until the bounded two-host experiment below runs and its record is accepted. The
-record is `hllm_control.qualification.concurrent.ConcurrentServingEvidence`, the
+Status: implemented October 11, 2026. The two-host record for Qwen3-4B at 128/256 was
+accepted on October 13, 2026 with a 5.125 GiB MLX cap, with a caveat and a re-run on the
+corrected MLX worker open (see the end of this page and [the status page](STATUS.md)).
+No other workload, cap or concurrency level is qualified by it. The record is `hllm_control.qualification.concurrent.ConcurrentServingEvidence`, the
 harness is `scripts/validation/concurrent_soak.py`, and workers expose the opt-in
 request-lifecycle observations with `--request-observations on` (see the
 [tools README](../scripts/validation/README.md#concurrent-soak-concurrency-two)). The
