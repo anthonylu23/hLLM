@@ -10,19 +10,21 @@ tensors. The complete checkpoint files remain available on each machine's disk.
 See the [qualification report](validation/full-checkpoint-cross-machine.md) for
 the pinned revision, numerical thresholds, timings, memory measurements, faults,
 and limitations. The [refresh on merged Milestone 3](validation/milestone-4-refresh.json)
-repeats the probes, both transport paths, and fault recovery. This qualifies the Milestone 4 transport/execution criterion on
-0.6B; the original Qwen3-4B-Base target still needs a separate physical-fit assessment.
+repeats the probes, both transport paths, and fault recovery. This qualifies the
+Milestone 4 transport/execution criterion on 0.6B. Qwen3-4B results are tracked on
+[the status page](STATUS.md).
 
 ## Checkpoint compatibility change
 
 This real checkpoint serializes both the embedding and an identical `lm_head.weight`
-despite declaring tied embeddings. The shared dense loader now accepts that form
+despite declaring tied embeddings. The shared dense loader accepts that form
 only after checking both tensors' metadata and comparing their payloads after load
 admission. Verification reuses the raw embedding buffer and streams the head in
-chunks of at most 1 MiB; this scratch space is included in the peak load budget. The final stage uses the embedding array for projection and retains no
-second resident copy. Different storage dtypes or payload bytes are rejected, even
-when converting the two tensors would produce equal numerical values. The first stage does not read
-the unowned head. CPU regression tests cover all supported checkpoint storage dtypes.
+chunks of at most 1 MiB; this scratch space is included in the peak load budget. The
+final stage uses the embedding array for projection and retains no second resident copy.
+Different storage dtypes or payload bytes are rejected, even when converting the two
+tensors would produce equal numerical values. The first stage does not read the unowned
+head. CPU regression tests cover all supported checkpoint storage dtypes.
 
 ## Reproduce
 
@@ -91,7 +93,7 @@ build/native/mlx/cpp/hllm-worker-mlx --listen "$MAC_TAILNET_IP:50161" \
   --worker-id mlx --model-root build/models/Qwen3-0.6B \
   --memory-limit-bytes 4294967296
 # Linux; use the library environment required by its CUDA build.
-build/cuda/cpp/hllm-worker-cuda --listen "$CUDA_TAILNET_IP:50163" \
+build/native/cuda/cpp/hllm-worker-cuda --listen "$CUDA_TAILNET_IP:50163" \
   --worker-id cuda --model-root build/models/Qwen3-0.6B \
   --memory-limit-bytes 2147483648 --device-memory-limit-bytes 6442450944
 ```
@@ -148,15 +150,13 @@ independent rollback timer installed first. It verified DERP pings before and af
 packet-drop counters, and restored direct connectivity. Network-specific fault rules
 are intentionally not installed by these scripts.
 
-## Remaining work
+## Limits
 
-Milestone 5 adds measured placement and split selection. Account for allocator caches
-and framework/context overhead as well as model reservations. The initial qualification acquired
-a CUDA pooled stream per stage load, retaining substantial VRAM across the stream
-pool. [Milestone 5](milestone-5.md) adds stream reuse and allocator-aware reload
-measurements. Allocator caches and context overhead still require headroom when
-sharing a GPU. The qualification report preserves the earlier coexistence OOM and
-the successful isolated rerun.
+The initial qualification acquired a CUDA pooled stream per stage load, retaining
+substantial VRAM across the stream pool. [Milestone 5](milestone-5.md#cuda-memory-accounting)
+adds per-device stream reuse and allocator telemetry. Allocator caches and
+framework/context overhead still need headroom when sharing a GPU. The qualification
+report preserves the earlier coexistence OOM and the successful isolated rerun.
 
 This milestone does not qualify the 4B checkpoint, long-context limits, quantization,
 BF16 execution, pinned MLX/CUDA transport, batching, optimized attention, application

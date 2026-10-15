@@ -3,7 +3,7 @@
 Measured-profile contracts and isolated memory, compute/conversion and directional
 transport profilers are implemented. The [placement workflow](milestone-5-placement.md)
 consumes these profiles for automatic selection and independent qualification.
-WAN performance acceptance is [deferred](validation/milestone-5-wan-closeout.md).
+For status, see [the status page](STATUS.md).
 
 ## Profile contracts
 
@@ -43,6 +43,8 @@ so direction, payload, component, context and endpoint environment cannot be ign
 Callers may impose an explicit maximum measurement age. These are compatibility
 primitives used by measured placement; `hllm plan --profile-bundle` consumes a sealed
 bundle of compatible evidence. See the placement workflow for bundle construction.
+Profiles refuse chunked workloads (`prefill_chunk_tokens` above 0): the native probes run
+whole-prompt prefill only.
 
 The original workload is `examples/workloads/milestone-5.yaml`: 512 prompt tokens,
 256 generated tokens, concurrency 1, 768-token capacity and F16 execution/KV/boundary.
@@ -120,8 +122,8 @@ differences alone do not establish allocation ownership or total system pressure
 
 The [instrumented 4B reload run](validation/qwen3-4b-footprint.md)
 includes system pressure/swap, available memory and retained-state evidence.
-The footprint policy described below is the MLX evaluation default since its
-[promotion](#promotion-criterion-for-footprint-v1); its full-checkpoint qualification
+The [footprint policy](#mlx-footprint-policy) described below is the MLX evaluation
+default; its full-checkpoint qualification
 is recorded in the [October 10 serving report](validation/qwen3-4b-serving-20261010.md).
 The [instrumentation validation](validation/process-memory.md) covers small native
 CPU/MLX fixtures and Linux counter availability; it is not a new 4B qualification.
@@ -136,7 +138,7 @@ CPU/MLX fixtures and Linux counter availability; it is not a new 4B qualificatio
 - CPU physical observations use RSS, including its process high-water mark.
 - CUDA uses process GPU observations separately from allocator counters and host RSS.
   Missing physical GPU observations or phase allocator peaks make fit unknown.
-- MLX defaults to `footprint-v1` since October 10, 2026: the maximum of OS lifetime
+- MLX defaults to [`footprint-v1`](#mlx-footprint-policy): the maximum of OS lifetime
   footprint, RSS and allocator envelopes when complete telemetry qualifies it, with a
   recorded fallback to `conservative-v1` (RSS plus allocator residency, an intentionally
   overcounted upper bound) otherwise. `--mlx-fit-policy conservative-v1` still selects
@@ -153,8 +155,8 @@ establish that a larger checkpoint will fit. No existing applications are stoppe
 
 A `safe` assessment applies to the observed conditions and specified allowances; it
 is not a new runtime RSS/VRAM cap or a guarantee about later competing workloads.
-Refresh headroom before deployment. M5.5 must resolve compatible profiles and apply
-these gates before ranking candidates.
+Refresh headroom before deployment. Measured planning resolves compatible profiles and
+applies these gates before ranking candidates.
 
 ### MLX footprint policy
 
@@ -206,9 +208,6 @@ formulas. An explicit policy on a CPU or CUDA worker binding, native worker or m
 exclusion is rejected rather than silently changing digests while being ignored.
 `profile-memory` prints the applied policy, the requested MLX policy and any fallback
 notes alongside the status.
-
-Tiny native CPU/MLX checks cover the implementation; no new full-checkpoint fit,
-larger-context, reverse-order or concurrency qualification is claimed yet.
 
 ### Promotion criterion for `footprint-v1`
 
@@ -405,14 +404,14 @@ activations and incomplete sequences are rejected.
 
 Qualification observes the route on the native source host. Tailscale ping and
 peer status are captured before and after the run, with status observations every
-0.5 seconds during it. The Mac collector uses `posix_spawn`-compatible subprocess options so route queries
-do not fork live gRPC threads. Direct endpoint changes, mixed connection types, inactive
-peers, unknown ping formats and observation failures invalidate reuse. Ping is
-path evidence only, never an application timing sample. It can warm NAT traversal;
-channel readiness therefore covers a new gRPC connection on the qualified path,
-not cold tailnet discovery. Sampling cannot rule out a
-transition shorter than its interval; raw observations and the interval remain in
-the artifact. Numeric loopback runs have an explicit, separate path scope.
+0.5 seconds during it. The Mac collector uses `posix_spawn`-compatible subprocess
+options so route queries do not fork live gRPC threads. Direct endpoint changes, mixed
+connection types, inactive peers, unknown ping formats and observation failures
+invalidate reuse. Ping is path evidence only, never an application timing sample. It can
+warm NAT traversal; channel readiness therefore covers a new gRPC connection on the
+qualified path, not cold tailnet discovery. Sampling cannot rule out a transition
+shorter than its interval; raw observations and the interval remain in the artifact.
+Numeric loopback runs have an explicit, separate path scope.
 
 `LinkArtifact` is a separately sealed schema 1.1 artifact: transport-only
 measurements bind to both host builds, endpoints, exact payload/workload, framing,
