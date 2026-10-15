@@ -321,6 +321,26 @@ TEST_F(GenerationDeadlineTest, ControlCancellationStillInterruptsSlowDecode) {
   recover_and_unload();
 }
 
+TEST_F(GenerationDeadlineTest, ClientCancellationRetiresAsCancelled) {
+  // Fast decode lets the handler observe the disconnect itself, before the
+  // watchdog's next poll could record it.
+  state->delay_decode = false;
+  for (int trial = 0; trial < 20; ++trial) {
+    grpc::ClientContext context;
+    context.set_deadline(std::chrono::system_clock::now() + 10s);
+    auto call = stub->Generate(&context, request(1'000'000U, 5s));
+    v1::GenerationEvent event;
+    while (call->Read(&event) && !event.has_token()) {}
+    ASSERT_TRUE(event.has_token());
+    context.TryCancel();
+    while (call->Read(&event)) EXPECT_FALSE(event.has_terminal());
+    EXPECT_EQ(call->Finish().error_code(), grpc::StatusCode::CANCELLED);
+    clean();
+    EXPECT_EQ(retirement(), "cancelled") << "trial " << trial;
+  }
+  recover_and_unload();
+}
+
 TEST_F(GenerationDeadlineTest, DeadlineUnblocksBackpressuredClientWrite) {
   state->delay_decode = false;
   grpc::ClientContext context;
