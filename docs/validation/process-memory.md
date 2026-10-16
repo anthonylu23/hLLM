@@ -40,3 +40,5 @@ breakdown. It supports an explicit footprint-aware fit policy with unchanged all
 The [September 27 implementation](footprint-policy.md) adds this policy as an opt-in
 and passes tiny-model checks; fresh 4B qualification is in the
 [overnight backlog](../overnight-backlog.md). RSS-plus-allocator remains the default.
+(October 10, 2026: `footprint-v1` became the evaluation default; see
+[STATUS](../STATUS.md).)

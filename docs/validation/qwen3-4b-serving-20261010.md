@@ -245,7 +245,7 @@ produced no cycle:
 | 1 (Oct 9, 13:43 UTC) | Mac left Tailscale 98 s in; stream closed after 254 tokens. |
 | 2–3 (Oct 9) | Mac reconnected for under three minutes each time; the tunnel never completed. |
 | 4 (Oct 10, 05:55 UTC) | Cycle 0 passed: four exact continuations, exact cancel prefix, clean unload. Cycle 1 refused by the fresh CUDA fit gate. |
-| 5 (Oct 10, 06:02 UTC) | Reported below. |
+| 5 (Oct 10, 06:02 UTC) | Reported above (P2). |
 
 Attempt 4 exposed a gate defect rather than a memory failure. After unload the CUDA
 worker's caching allocator kept 4.78 GiB reserved with 0.01 GiB active, so
@@ -280,10 +280,15 @@ Qualified by this run, for these binaries and this host pair:
 - The 512-prompt/256-output workload in forward order with a 5.125 GiB MLX cap, over
   three reload cycles against a fresh independent oracle.
 
-Not qualified: contexts above 768 cached tokens, concurrency two (P5), any indefinite reload plateau, throughput or latency, the M5
-WAN acceptance sweep, and `footprint-v1` as a default. The CUDA device cap leaves
-under 20 MiB of preflight margin on the 8 GiB card with the desktop running, and the
-Linux host swapped idle memory under load even with 7 GiB available; both are
-operating constraints to record before expanding the workload. The fresh-fit credit
-for same-process cached allocator bytes is a validation-tool change awaiting review
-in the accompanying PR; the production activation path is unchanged.
+Not qualified: contexts above 768 cached tokens, concurrency two (P5), any indefinite
+reload plateau, throughput or latency, the M5 WAN acceptance sweep, and `footprint-v1`
+as a default. The CUDA device cap leaves under 20 MiB of preflight margin on the 8 GiB
+card with the desktop running, and the Linux host swapped idle memory under load even
+with 7 GiB available; both are operating constraints to record before expanding the
+workload. The fresh-fit credit for same-process cached allocator bytes is a
+validation-tool change awaiting review in the accompanying PR; the production
+activation path is unchanged.
+
+*Later: P5 was accepted October 13 ([report](qwen3-4b-concurrency-20261013.md)),
+`footprint-v1` became the evaluation default (PR #24), and the cached-allocator credit
+merged in PR #22. See the [project status](../STATUS.md).*

@@ -1,13 +1,12 @@
 # Measured placement and independent qualification
 
-M5.5 implements explicit measured planning. M5.6 implements the independent sweep
-runner. The full checkpoint acceptance run remains pending; see the
-[implementation validation and hardware gate](validation/milestone-5-planner.md).
+M5.5 implements explicit measured planning and M5.6 the independent sweep runner. WAN
+acceptance is deferred; see [the status page](STATUS.md) and the
+[validation and gates](validation/milestone-5-planner.md).
 
 ## Build and compatibility
 
-Rebuild workers and regenerate protobuf bindings after updating this code. The
-worker runtime now links OpenSSL Crypto to hash its executable and validate measured
+The worker runtime links OpenSSL Crypto to hash its executable and validate measured
 plan hashes. Legacy feasibility/estimated plans retain schema 1.0 and their existing
 plan hashing. Measured plans use schema 1.1 and hash the full workload digest and
 profile-bundle digest. Python and native workers reject altered measured plans.
@@ -33,10 +32,10 @@ independent acceptance sweep, and the separate final audit remain required; the
 54-placement diagnostic is not production acceptance.
 
 `GetQualificationState` reports fresh physical availability, executable SHA-256,
-PID, a host/hardware fingerprint, backend/device/driver API identity, allocator configuration, and boundary
-transfer mode. It does not reset allocator peaks. Measured activation refreshes
-capabilities and this state before any load, requires unloaded idle workers, and
-checks the independent physical envelope. A failed load unwinds acknowledged stages
+PID, a host/hardware fingerprint, backend/device/driver API identity, allocator
+configuration, and boundary transfer mode. It does not reset allocator peaks. Measured
+activation refreshes capabilities and this state before any load, requires unloaded idle
+workers, and checks the independent physical envelope. A failed load unwinds acknowledged stages
 and a stage whose load response was lost. A definitive rejection is not treated as
 an acknowledged load. There is no automatic fallback to another placement.
 
@@ -58,7 +57,7 @@ Local restart tests bound retries and verify exact tokens, released reservations
 unchanged upstream process identity and final unload. They do not qualify WAN
 reconnect latency or alter gRPC backoff/keepalive settings.
 
-See the [PR #15 fixes and validation](validation/pr15-review-fixes.md).
+See the [PR #15 fixes and validation](archive/pr15-review-fixes.md).
 
 ## Assemble and use a bundle
 
@@ -70,7 +69,7 @@ memory probe, compute probe and serving executable; these are different binaries
 Bindings include configured admission caps and timestamped physical budgets.
 An MLX binding should set `mlx_fit_policy: "footprint-v1"` explicitly; an omitted
 field still means `conservative-v1` so that historical bundle digests are unchanged,
-even though `footprint-v1` is the profiling default since October 10, 2026. The choice
+even though `footprint-v1` is the evaluation default. The choice
 is hashed into the bundle and reused during fresh activation. Native sweep workers
 carry the same option in their frozen executor configuration and exclusion evidence.
 See the [fit-policy requirements](milestone-5-profiling.md#mlx-footprint-policy).
@@ -83,9 +82,9 @@ Store the assembled object as JSON, then seal and plan:
 uv run hllm seal-profile-bundle --input build/m5/bundle-input.json \
   --output build/m5/bundle.json
 uv run hllm plan --manifest build/m5/manifest.json \
-  --workers build/m5/workers.yaml --workload examples/workloads/milestone-5.yaml \
+  --workers build/m5/workers.yaml --workload examples/workloads/milestone-5-mixed.yaml \
   --mode measured --profile-bundle build/m5/bundle.json \
-  --settings examples/profiles/milestone-5-objective.yaml \
+  --settings examples/profiles/milestone-5-mixed-objective.yaml \
   --output build/m5/measured-plan.json --report build/m5/measured-report.json
 uv run hllm explain build/m5/measured-report.json
 ```
@@ -121,7 +120,9 @@ uv run hllm plan --manifest build/4b/manifest.json \
 The boundary check then applies to one chunk, and the estimated prefill transfer pays
 the link's fixed latency and conversion once per chunk. Memory estimates still size
 activation buffers for the whole prompt, and KV covers the full context. The report
-notes the chunk size; serve the plan with the same `--prefill-chunk-tokens`.
+notes the chunk size; serve it with `hllm serve --prefill-chunk-tokens N` using the same
+N. Serving checks the match only against a measured bundle, not against estimated or
+feasibility plans.
 
 The field must be below `prompt_tokens` and at most 65536; 0 or omitted means
 whole-prompt prefill and leaves existing workload, profile and plan digests unchanged.
@@ -217,6 +218,12 @@ jobs additionally exercise cancellation, a deadline during decode, cleanup and
 reference-checked recovery. Warm reload measurements remain separate from this
 fresh-process protocol.
 
+Health evidence retains each fault phase, token count, observed RPC status, recovery
+output and completion flag even when a later phase fails. Failed native attempts
+also retain a traceback. Recovery must produce the entire expected prefix (up to
+four tokens); a shorter matching prefix does not qualify. These diagnostics do
+not relax the required deadline status, exact tokens or cleanup checks.
+
 Memory exclusions require a completed independent native memory profile with exact
 assignment/checkpoint/workload scope and an unsafe physical/admission assessment.
 A failed load or an unavailable/preflight-rejected probe stays unknown; planner
@@ -249,6 +256,8 @@ when used, including its declared assignment. Planning loads only the profiles f
 the current assignment. This bounds profile residency by candidate size instead of
 the full collection; diagnostic records and all evidence gates remain intact.
 
+## Numerical diagnostics
+
 For an isolated mixed-backend numerical investigation, build the opt-in
 `hllm-boundary-trace-mlx` and `hllm-boundary-trace-cuda` targets. Invoke each as
 `MODEL_ROOT LOAD_SPEC HISTORY OUTPUT`. A first-stage history contains `steps` with
@@ -258,10 +267,3 @@ report last-row layer activations, and the final stage reports logits and sample
 IDs. The tool enforces the load specification's memory capacity and refuses existing
 outputs. These diagnostics do not replace independent serving correctness, timing,
 or fresh memory qualification, and are never registered as ordinary tests.
-
-
-Health evidence retains each fault phase, token count, observed RPC status, recovery
-output and completion flag even when a later phase fails. Failed native attempts
-also retain a traceback. Recovery must produce the entire expected prefix (up to
-four tokens); a shorter matching prefix does not qualify. These diagnostics do
-not relax the required deadline status, exact tokens or cleanup checks.

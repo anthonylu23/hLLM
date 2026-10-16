@@ -41,11 +41,10 @@ heads. Q/K projection outputs are normalized per head before RoPE. Attention pro
 residual width. Llama defaults retain normalization disabled. Invalid normalization
 weights and mismatched cache head geometry are rejected before cache mutation.
 
-The control service now loads executable CPU stages for both architectures and supports
-native generation and stage execution RPCs; see [Milestone 1](milestone-1.md). The optional
-[CUDA backend](milestone-2.md) now executes the same dense Qwen3 semantics with F32/F16
-weights and caches. Tiny layer/cache/logit parity and single-worker generation are tested.
-The example MLX/CUDA profiles remain configured planning estimates.
+CPU ([Milestone 1](milestone-1.md)), CUDA ([Milestone 2](milestone-2.md)) and MLX
+([Milestone 3](milestone-3.md)) execute these Qwen3 semantics. Tiny layer/cache/logit
+parity and generation are tested on each. The example MLX/CUDA profiles are configured
+planning estimates.
 
 ## Numerical validation
 
@@ -83,21 +82,13 @@ memory estimates, not measured throughput or proof of full-checkpoint execution.
 Use the README commands with a real pinned local checkpoint; Qwen output filenames
 are separate from Falcon artifacts.
 
-## Validation status and next steps
+## Validation history
 
 At the Qwen3 introduction, 34 Python tests, 32 normal native tests, Ruff, Pyright, and
-protobuf reproducibility checks passed. The prepare/plan/explain CLI flow passed on the sparse header fixture.
-The existing Apple AddressSanitizer startup issue from the quality review remains an
-unresolved toolchain limitation; this change does not claim sanitizer validation.
-
-Executable CPU loading and execution RPCs are now implemented and tested on tiny models
-in Milestone 1. Milestone 2 qualifies CUDA and mixed CPU/CUDA execution;
-[Milestone 3](milestone-3.md) qualifies MLX-only and CPU/MLX execution.
-[Milestone 4](milestone-4.md) qualifies the complete Qwen3-0.6B checkpoint against
-Transformers and across MLX/CUDA machines, including memory and latency measurements.
-Its redundant serialized tied head is validated against the embedding and deduplicated
-in resident storage. The Qwen3-4B-Base shape fixture above remains an estimate;
-it is not evidence of full 4B inference. Measured placement is Milestone 5.
+protobuf reproducibility checks passed. The prepare/plan/explain CLI flow passed on the
+sparse header fixture. The existing Apple AddressSanitizer startup issue from the quality
+review remains an unresolved toolchain limitation; this change does not claim sanitizer
+validation.
 
 The [2026-09-18 real 4B pass](validation/qwen3-4b.md) adds complete-checkpoint
 MLX→CUDA generation with exact 256-token agreement against an independent F16

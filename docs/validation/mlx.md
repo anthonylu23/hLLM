@@ -27,6 +27,8 @@ The resulting revisions are:
 - Make allocator scrapes nonblocking: omit the optional sample while the device lock
   is held, and clear a previously populated response field. A contention test failed
   before the change and now proves prompt completion and later sampling recovery.
+  (Superseded October 13 by PR #27: counters are now published at execution
+  boundaries; see the [October 13 report](qwen3-4b-concurrency-20261013.md#concurrency-attempts).)
 - Retain the 64 MiB cache guideline and add a measured-placement profiling TODO. The
   larger-workload allocation-churn concern merits measurement; it does not justify
   changing the cache policy without a fresh performance/memory assessment.

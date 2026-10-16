@@ -2,8 +2,9 @@
 
 Run these tools explicitly; none schedules work or starts automatically. Full model
 work needs a fresh resource check on every host. Tiny fixture tests are suitable for
-normal development. The [overnight backlog](../../docs/overnight-backlog.md) contains
-the ordered 4B work; host-specific values live in a run directory's copy of
+normal development. Ordered next steps are on [the status page](../../docs/STATUS.md);
+the [two-host log](../../docs/overnight-backlog.md) records the September–October 4B
+runs. Host-specific values live in a run directory's copy of
 [`two_host/two-host.env.example`](two_host/two-host.env.example), never in the repo.
 
 Run every tool from the repository root as a module (`uv run python -m
@@ -27,7 +28,7 @@ cc -O2 -Wall -Wextra -Werror scripts/validation/process_footprint.c -o build/pro
 uv run python scripts/validation/resource_guard.py \
   --seconds 1800 --record build/run/worker.guard.jsonl \
   --footprint-helper "$PWD/build/process-footprint" -- \
-  build/native/m6-mlx/cpp/hllm-worker-mlx \
+  build/native/mlx/cpp/hllm-worker-mlx \
   --listen 127.0.0.1:50291 --worker-id mlx \
   --model-root build/models/Qwen3-4B-Base \
   --memory-limit-bytes 4697620480 --max-cached-tokens 384
@@ -41,10 +42,34 @@ model-worker footprint. Run one guard on each host; a Mac controller timeout alo
 does not guarantee remote cleanup. Keep the owning guard PID and its recorded child
 PID; stop those processes explicitly when a run ends and verify both hosts are clean.
 
+## Resource gates
+
+These apply to every model-bearing step, by hand or through the launchers.
+
+1. Record Mac `vm_stat`, pressure, swap, load, disk and top processes, and Linux
+   `free -h`, `nvidia-smi`, load, disk and relevant processes. Do not stop other
+   applications; freeing memory is the operator's decision. Availability uses
+   `host_available_bytes()`, the definition profiling and native activation use.
+2. Native caps plus 10% safety, 256 MiB extra overhead and headroom (1 GiB host,
+   512 MiB CUDA device) must pass live preflight: for the Mac, free plus inactive memory
+   of about 6.06 GiB at a 4.375 GiB MLX cap and about 6.9 GiB at 5.125 GiB. Leave a
+   margin, because launching uv and the guard reclaims inactive pages. Never reduce
+   allowances, and never raise a cap without the user's approval.
+3. Guard every model-bearing worker or probe with `resource_guard.py` on its own host,
+   independent of SSH and controller lifetime. No unbounded model process.
+4. One substantial GPU workload at a time. Never run the independent oracle and hLLM
+   CUDA workers together. Respect Linux host memory as well as free VRAM.
+5. On any gate failure, preserve the rejected report, clean up owned processes and stop
+   that expansion. Missing evidence is `unknown`, not passing. Do not retry unchanged
+   resource conditions repeatedly.
+
+New binaries invalidate binary-bound profile evidence, and profiles expire after
+24 hours, so every run needs fresh same-day profiles on both hosts from the binaries it
+serves. Keep previous evidence immutable: each session gets a new run directory.
+
 ## Reload soak
 
-`reload_soak.py` replaces the fixed-path September 23 diagnostic. It accepts a fully
-hashed manifest, explicit uniform-F16 plan, independent reference, worker configuration
+`reload_soak.py` accepts a fully hashed manifest, explicit uniform-F16 plan, independent reference, worker configuration
 and an exclusive output path. Workers and network forwarding must already be running
 under guards. The tool never connects to arbitrary discovered endpoints.
 
@@ -81,8 +106,8 @@ Profiles must be complete, less than 24 hours old, match the exact assignment,
 checkpoint, precision, prompt/output lengths and capacity, and carry the same
 admission caps as the workers. Before every load, the tool checks binary, backend,
 device fingerprint, driver API, allocator, transfer mode, current availability and
-the selected fit policy (`footprint-v1` unless the worker entry says otherwise, since
-October 10, 2026). It refuses busy workers. Default headroom and extra overhead
+the selected fit policy (`footprint-v1` unless the worker entry says otherwise). It
+refuses busy workers. Default headroom and extra overhead
 are the production defaults (1 GiB host, 512 MiB CUDA device, 256 MiB extra, 10% safety).
 
 For a CUDA worker the fresh device budget credits the worker's own **inactive cached**
@@ -90,8 +115,8 @@ allocator bytes on top of the driver's free bytes: after an unload the caching a
 keeps the model's blocks reserved, `cudaMemGetInfo` no longer counts them as free, and the
 next load in the same process reuses them. Active allocator bytes are never credited, and
 each cycle's preflight records the reported, credited and effective values separately
-(`device_availability`). The October 10 four-request first cycle was refused on its second
-cycle before this credit existed, with 2.5 GiB reported free and 4.78 GiB cached.
+(`device_availability`). Before this credit existed, the October 10 soak passed cycle 0
+and was refused at cycle 1 with 2.5 GiB reported free and 4.78 GiB cached.
 
 Each request must match the independent reference exactly. Each cycle includes
 cancellation after three tokens, request cleanup, unload and idle snapshots. Phase
@@ -123,9 +148,9 @@ workers that do not advertise it, admit fewer than two requests, or batch decode
 uv run python -m scripts.validation.concurrent_soak \
   --manifest build/run/manifest.json --plan build/run/mlx-cuda.plan.json \
   --reference build/run/reference-f16.json --workers build/run/concurrent-workers.json \
-  --baseline-report build/run/reload-soak.json \
+  --baseline-report build/run/baseline-reload-soak.json \
   --source-digest "$HLLM_SOURCE_ID" --transport "loopback over ssh -L/-R forwarding" \
-  --guard-description "1 GiB floor, 256 MiB/60 s swap-out, 30-minute ceiling" \
+  --guard-description "1 GiB floor, 256 MiB/60 s swap-out, 40-minute ceiling" \
   --cycles 3 --pairs 3 --timeout 180 --output build/run/concurrent.json
 ```
 
@@ -179,8 +204,9 @@ outlive the experiment), so the harness reads each one exactly once: the recorde
 `record_sha256`, every parsed field and `<output>.guard-<worker>.jsonl` all come from
 those bytes, and that snapshot reproduces the hash later. An incomplete final line,
 from a mirror copied mid-write, is not yet evidence and is skipped, in guard records
-and in device samples alike. Records written before this change hashed the live file;
-their exact prefixes had to be reconstructed by hand. The cancellation round is a race: the controller's cancel RPCs must
+and in device samples alike. (The October 13 record predates this; see its report.)
+
+The cancellation round is a race: the controller's cancel RPCs must
 reach every worker before the victim completes naturally there, or that worker
 retires it as `completed` and the record is `unknown` (the reason names the observed
 retirement), so the reference must be long relative to `--cancel-after`. The CPU
@@ -210,10 +236,17 @@ uv run python -m scripts.validation.serving_soak \
   --levels 1 2 --rounds 5 --output-tokens 64 --timeout 180
 ```
 
+It sends two built-in prompts (not a fixed 128 tokens) and sizes each reservation as the
+longest prompt plus `--output-tokens`; record that workload rather than relabeling it.
+It does not check `--max-decode-batch`, so start the workers at batch 1 unless batching
+is what the run measures. `--prefill-chunk-tokens` must match the plan's workload;
+`--sampling-json` and `--minimum-duration-seconds` are optional. `run.sh` has no serving
+role: start the guarded workers as for `concurrent`, then run this by hand.
+
 ## Two-host launchers
 
-[`two_host/`](two_host/) holds the launch tooling the October 2026 4B runs used,
-parameterized by one settings file (copy `two-host.env.example` into the run
+[`two_host/`](two_host/) holds the launch tooling derived from the October 2026 4B runs,
+with the fixes those runs found, parameterized by one settings file (copy `two-host.env.example` into the run
 directory and fill it in; it is the only place host names, SSH aliases, paths, caps
 and limits go). Every script takes that file as its first argument. The Linux host
 runs the controller and the CUDA worker; the Mac runs the MLX worker, reached over
@@ -223,11 +256,26 @@ SSH. Each Mac checkout needs `uv sync` and the MLX build at the same commit, plu
 | Script | Host | Does |
 | --- | --- | --- |
 | `build-cuda.sh` | Linux | RelWithDebInfo CUDA build of the worker and probes, with hashes |
-| `oracle.sh ENV PROMPT OUTPUT` | Linux | Guarded independent reference into `inputs/` |
+| `oracle.sh ENV PROMPT OUTPUT` | Linux | Guarded independent reference into `inputs/reference-PROMPT-OUTPUT-f16.json`; point `REFERENCE` at it |
 | `profile.sh ENV cuda` | Linux | Guarded CUDA memory profile (`cuda-profile.sh`) |
 | `profile.sh ENV mlx` | Linux to Mac | Copies settings and inputs, runs `mlx-profile.sh` on the Mac detached, copies results to `mac/`, exits with the profile's status |
 | `run.sh ENV baseline` | both | Guarded workers, tunnel, reload soak, cleanup |
 | `run.sh ENV concurrent` | both | The same plus the device watcher, the Mac guard mirror, the concurrency soak and results assembly |
+
+The other scripts (`tunnel.sh`, `watch-cuda.sh`, `cuda-worker.sh`, `mlx-worker.sh`,
+`cuda-profile.sh`, `mlx-profile.sh`, `lib.sh`) are called by these.
+
+A run, in order: a new run directory with `source/` cloned from `main` and the same
+commit built on the Mac; `two-host.env` filled in; inputs (manifest, plan, workload,
+reference, `inputs/<role>-workers.json`) in place; `build-cuda.sh`; `profile.sh cuda`
+and `profile.sh mlx` on the same day; `run.sh baseline`; then `run.sh concurrent`.
+After each run, inspect fresh gates, every continuation, reservation cleanup, Mac
+pressure and swap-outs, Linux availability and sampling errors, and compare serving
+peaks against prelaunch availability with unchanged allowances. A report records
+source, binary, checkpoint and raw-evidence hashes, all failures and fallbacks, the exact
+scope, caps, policies and budgets, token comparisons, guard summaries, reload residuals
+and cleanup evidence, as a Markdown report and machine-readable summary in
+`docs/validation/`; bulky raw artifacts stay in the run directory.
 
 `run.sh` refuses busy ports on either host, and any hLLM worker or memory probe
 already running there on any port (matched by executable path with `pgrep -f`;
@@ -254,13 +302,12 @@ evidence as `--source-digest`. `assemble_two_host_results.py RUN OUTPUT` summari
 profiles, baselines and every P5 attempt in a run directory from the preserved files
 only, naming the directory by its base name. On the October 11–13 run directory it
 reproduces the committed `docs/validation/qwen3-4b-concurrency-20261013-results.json`
-except for that name and one more profile directory it discovers (`cuda_rejected_1`).
+except for one more profile directory it discovers (`cuda_rejected_1`).
 
 ## Independent reference
 
-`checkpoint_reference.py` now supports `--plain` for Base checkpoints and
-`--gpu-layers` for an explicitly chosen Accelerate device map. These promote the
-previous 4B oracle's behavior into a reusable tool. Run it in a separate pinned
+`checkpoint_reference.py` takes `--plain` for Base checkpoints and `--gpu-layers` for an
+explicit Accelerate device map. Run it in a separate pinned
 Torch/Transformers/Accelerate environment, under the Linux guard, with all hLLM
 GPU workers stopped. It hashes the checkpoint and records tokenizer mode, precision,
 library versions and placement. Example for the existing 4B model:
@@ -284,17 +331,14 @@ bindings and native CPU tests, and runs the same CTest suite under the `asan` pr
 dependency prefix is uninstrumented, so leak and container-overflow detection are
 disabled there, as the workflow comments explain). Pushes to `codex/**` run a deps-only
 job that restores or builds and saves the dependency cache so stacked pull requests
-based on those branches do not rebuild gRPC cold. The first local sanitizer run on
-October 10, 2026 passed all 81 entries on Fedora 44 with GCC 16 after installing
-`libasan`/`libubsan`. The native dependency helper builds matching gRPC
-and Protobuf from pinned gRPC v1.74.0 and caches the install prefix. Hardware/full-model
-runs are separate. The dependency configure explicitly sets a CMake 3.5 policy
-floor because the pinned c-ares submodule otherwise fails with CMake 4.
-The [September 28 Linux run](../../docs/validation/qwen3-4b-fit-20260928.md) built
-these dependencies from source and passed all 80 CPU CTest entries. Hosted Actions
-first ran on September 30 (see the [readiness report](../../docs/validation/cpu-readiness-20260930.md));
-the native job permits 90 minutes for a cold build and saves the dependency cache
-as soon as that build succeeds.
+based on those branches do not rebuild gRPC cold. Locally the `asan` preset needs
+`libasan` and `libubsan`. The native dependency helper builds matching gRPC and Protobuf
+from pinned gRPC v1.74.0 and caches the install prefix; its configure sets a CMake 3.5
+policy floor because the pinned c-ares submodule otherwise fails with CMake 4. The
+native job permits 90 minutes for a cold build and saves the dependency cache as soon as
+that build succeeds. Hardware and full-model runs are separate. The recipe was first
+validated in the [September 28 Linux run](../../docs/validation/qwen3-4b-fit-20260928.md)
+and the [September 30 readiness report](../../docs/validation/cpu-readiness-20260930.md).
 Sources for the workflow setup are the official
 [setup-uv instructions](https://github.com/astral-sh/setup-uv) and
 [gRPC build instructions](https://github.com/grpc/grpc/blob/master/BUILDING.md).

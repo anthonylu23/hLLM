@@ -2,7 +2,7 @@
 
 The optional Apple Silicon worker executes dense Llama and Qwen3 stages through the
 MLX C++ API on Metal. It implements the existing `BackendFactory` / `StageBackend`
-contract: token IDs or owned FP16 boundary bytes in, boundary bytes or a sampled token
+contract: token IDs or owned F16 boundary bytes in, boundary bytes or a sampled token
 out. The Python controller and native execution transport contain no MLX model code.
 CPU and CUDA builds do not require MLX.
 
@@ -10,8 +10,9 @@ CPU and CUDA builds do not require MLX.
 
 Use Apple Silicon macOS with a Metal-enabled MLX C++ installation, plus the existing
 C++ Protobuf/gRPC dependencies. CMake requires exactly MLX 0.32.2 because allocator
-error translation is qualified against that release. CMake accepts its
-installed package prefix; see the [official build instructions](https://ml-explore.github.io/mlx/build/html/install.html).
+error translation is qualified against that release. CMake accepts its installed package
+prefix; see the
+[official build instructions](https://ml-explore.github.io/mlx/build/html/install.html).
 
 The official 0.32.2 Python wheels also bundle C++ headers, CMake metadata, the dynamic
 library, and `mlx.metallib`. This isolated dependency environment was used for local
@@ -74,13 +75,14 @@ Every MLX operation, including the startup probe, runs with that stream selected
 The calling thread retains this shared GPU stream as its default; only the previous
 default device is restored afterward. Querying an uninitialized thread's previous
 GPU stream would create another permanent stream in MLX 0.32.2, so the backend never
-does that. This matches the one-request-per-worker runtime. Each layer
+does that. Concurrent requests share this stream under the device mutex, so their GPU work is
+serialized. Each layer
 explicitly evaluates its output and updated KV arrays, bounding lazy graph retention.
 Sequence allocation materializes its reserved cache before admission succeeds. Cache
 updates may copy storage; workspace admission does not assume in-place optimization.
 
-Boundary input is decoded from owned little-endian FP16 bytes, with finite/shape checks.
-Output is evaluated and copied into an owned, contiguous FP16 byte vector before return.
+Boundary input is decoded from owned little-endian F16 bytes, with finite/shape checks.
+Output is evaluated and copied into an owned, contiguous F16 byte vector before return.
 No MLX array crosses the common stage interface or network. Diagnostic traces expose
 host snapshots only to numerical tests and are outside production workspace accounting.
 
@@ -107,7 +109,7 @@ buffers, KV caches, conservative dense workspace, possible cache-update copies, 
 transport allocations are charged there. The control service requires a single unified
 budget for unified backends, checks the combined reservation before allocation, and
 reports unified usage in both domain and legacy totals exactly once. Existing host,
-device, and pinned-subset accounting is preserved. The planner now includes host
+device, and pinned-subset accounting is preserved. The planner includes host
 transport storage in unified-stage workspace, as it already does for CPU host stages.
 
 `GetMemoryReport` reports model payloads and conservative reservations. The additive
@@ -123,7 +125,8 @@ The worker also sets MLX's allocator guideline to the configured budget and caps
 cache guideline at `min(budget / 8, 64 MiB)`. MLX memory limits are guidelines, not hard
 physical limits; runtime admission and system headroom remain necessary. Cached blocks
 may remain after unloading. Reusing one stream avoids accumulating a new stream per
-load. See [MLX memory management](https://ml-explore.github.io/mlx/build/html/python/memory_management.html)
+load. See
+[MLX memory management](https://ml-explore.github.io/mlx/build/html/python/memory_management.html)
 for the distinction between active and cached allocations. The fixed cache guideline
 is conservative for this milestone's fixtures; larger workloads may incur allocation
 churn. Profile cache reuse against real workspace sizes before changing it in measured
@@ -134,19 +137,18 @@ placement work. Admission reservations alone do not establish a suitable cache c
 See [the MLX validation report](validation/mlx.md) for final results and limitations.
 The golden suite covers MLX-only execution and CPU/MLX execution in both orders.
 Mixed CPU/MLX plans use global F32 execution/KV because the CPU backend requires F32;
-FP16 remains the boundary representation. F16 is separately qualified on MLX-only
+F16 remains the boundary representation. F16 is separately qualified on MLX-only
 paths and direct split-stage numerical tests. Mixed F32/F16 stage execution is not added.
 
 Hardware tests fail when the MLX binary or working Metal device is missing. Run only
 MLX tests with `ctest --test-dir build/native/mlx -L mlx --output-on-failure`.
 
-## Next steps
+## Related work
 
 [Milestone 4](milestone-4.md) qualified the full Qwen3-0.6B checkpoint across the two
 Tailscale machines in both stage orders, over direct and DERP connections, with 256
-generated tokens while neither worker held the complete model.
-[Milestone 5](milestone-5.md) adds measured placement. Qwen3-4B-Base remains the
-target and still needs its physical-fit and inference assessment; tiny-model tests do
-not establish full-checkpoint fit, numerical tolerances or latency.
+generated tokens while neither worker held the complete model. Qwen3-4B-Base results are
+on [the status page](STATUS.md); tiny-model tests do not establish full-checkpoint fit,
+numerical tolerances or latency.
 Profile before adding fused attention, compiled functions, asynchronous evaluation,
 transfer overlap or more model families.

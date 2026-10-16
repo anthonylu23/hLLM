@@ -9,7 +9,7 @@ exit criterion for tiny deterministic models. Full-checkpoint performance is not
 
 The [model extensibility boundaries](model-extensibility.md) guide future model support.
 `runtime::StageBackend` owns opaque sequence state. The Milestone 2 integration contract
-accepts tokens or owned FP16 boundary bytes and returns boundary bytes or a sampled token,
+accepts tokens or owned F16 boundary bytes and returns boundary bytes or a sampled token,
 keeping embedding, layers and sampling inside the backend. This does not expose device
 tensors or cache layouts to the common runtime. The CPU implementation selects explicit
 `llama.v1` or `qwen3.v1` semantics; the controller and transport contain no model-family
@@ -24,12 +24,10 @@ unsplit stage and are explicitly duplicated in a two-stage plan. Files must reso
 the configured model root. Model files are trusted local deployment inputs and must remain
 immutable while loading. Manifest digests identify artifacts; they are not signatures.
 
-Execution capabilities now advertise F32 computation only. FP16 is the activation wire
-format; CPU caches remain F32. The optional [CUDA backend](milestone-2.md) now supports
-F32/F16 execution on tiny validated models. Example MLX/CUDA profiles remain configured
-planning estimates. The [MLX worker](milestone-3.md) now executes both architectures
-with F32/F16 and qualifies CPU/MLX locally. Python accepts one-stage plans for the unsplit reference; the
-placement planner continues to enumerate two-stage plans.
+The CPU backend advertises F32 execution only; F16 is the activation wire format and
+CPU caches stay F32. [CUDA](milestone-2.md) and [MLX](milestone-3.md) add F16 execution.
+Python accepts one-stage plans for the unsplit reference; the planner enumerates
+two-stage plans.
 
 ## Execution and lifecycle
 
@@ -38,28 +36,29 @@ placement planner continues to enumerate two-stage plans.
 2. Python sends prompt token IDs once through `Generation.Generate` and consumes events.
 3. Stage zero reserves local state and opens one native `StageExecution.Execute` stream
    to the final worker for the request. That stream remains open across all decode steps.
-4. Stage zero embeds and executes its layers, sends dense little-endian FP16 activations,
+4. Stage zero embeds and executes its layers, sends dense little-endian F16 activations,
    receives the final worker's greedy token, and emits it to Python. Native workers drive
    the loop without Python scheduling or activation relay.
 5. Both stages release sequence state on completion. Stage zero waits for downstream
    cleanup acknowledgment before emitting usage and the completed terminal event.
 
-One request and one sequence are active per worker. The final stage samples the first
+By default one request and one sequence are active per worker;
+[Milestone 6](milestone-6.md) adds `--max-active-requests`. The final stage samples the first
 maximum on ties. Stop IDs and maximum output length terminate generation natively. The
 controller defaults stop IDs to the manifest EOS IDs; callers can override them.
-The CLI streams integer token IDs. Text tokenization/detokenization and the public
-OpenAI-compatible HTTP API remain serving-layer work; this milestone's interface accepts
-already-tokenized prompts.
+`hllm generate` accepts already-tokenized prompts and streams integer token IDs; text
+and the OpenAI-compatible HTTP API are provided by `hllm serve` ([Milestone 6](milestone-6.md)).
 
 RPC identity, deployment version, sequence number, phase, token position, tensor shape,
 cache slot, payload size and finite values are checked. Empty prompts, zero output budgets,
 invalid token IDs, conflicting reservations, and unsupported encodings fail explicitly.
 Checksums are not negotiated in this version; a nonempty checksum field is rejected.
-Messages are capped at 16 MiB and activation payloads at 8 MiB. A prompt larger than one
-boundary payload is rejected by the planner (`BOUNDARY_PAYLOAD_EXCEEDED`), by the
-controller before a call is issued, and by a split first stage as `RESOURCE_EXHAUSTED`;
-single-stage deployments never cross a boundary and carry no such cap. Chunked prefill and
-continuous batching are later work.
+Messages are capped at 16 MiB and activation payloads at 8 MiB. A whole-prompt prefill
+larger than one boundary payload is rejected by the planner (`BOUNDARY_PAYLOAD_EXCEEDED`),
+by the controller before a call is issued, and by a split first stage as
+`RESOURCE_EXHAUSTED`; single-stage deployments carry no such cap. Milestone 6 adds chunked
+prefill (`hllm serve --prefill-chunk-tokens`) and decode batching; see
+[long prompts and chunked prefill](milestone-5-placement.md#long-prompts-and-chunked-prefill).
 
 A request defaults to a 60-second deadline; explicit deadlines must be within one hour
 and are bounded by the RPC deadline. A watchdog interrupts blocking stream operations
@@ -88,7 +87,8 @@ Allocation errors reject the operation without publishing partially loaded state
 and active request count. These are runtime-owned payload accounting and conservative
 reservations, not measured RSS or a hard process memory limit. Protobuf metadata, gRPC
 internals and allocator overhead require operating-system headroom. Use conservative
-worker budgets; measured backend workspace and peak-memory profiling remain Milestone 5.
+worker budgets; measured workspace and peak memory are covered by the
+[profiling workflow](milestone-5-profiling.md).
 
 ## Local demo
 
@@ -129,8 +129,9 @@ uv run hllm generate --manifest build/cpu-demo.manifest.json \
 ```
 
 These tiny synthetic weights exercise the pipeline and do not produce meaningful prose.
-The demo binds loopback and uses insecure gRPC locally. Private cross-machine deployment,
-Tailscale qualification and deployment credentials remain integration work for Milestone 4.
+The demo binds loopback and uses insecure gRPC locally. Cross-machine Tailscale deployment
+is qualified in [Milestone 4](milestone-4.md); application credentials (mTLS) are not
+implemented.
 
 ## Verification
 
@@ -148,7 +149,7 @@ The integration suite fails with a build instruction if the worker binary is mis
 
 - Loaded F32 stages match the independent Transformers Qwen3 layer oracle at `2e-5`
   absolute tolerance for prefill and incremental decode.
-- FP16 boundary activations and resulting Qwen3 hidden states match the unsplit oracle
+- F16 boundary activations and resulting Qwen3 hidden states match the unsplit oracle
   at `1e-3` absolute tolerance. This tolerance applies to the tiny fixture, not arbitrary
   full-size checkpoints or later GPU backends.
 - Two real worker processes match unsplit greedy tokens at every valid split and both
@@ -158,8 +159,8 @@ The integration suite fails with a build instruction if the worker binary is mis
   messages, idle-stream deadlines and control cancellation are covered.
 - The actual prepare/plan/generate CLI flow is tested against running native workers.
 
-The historical Apple ASan startup issue remains a separate toolchain limitation; do not
-infer ASan coverage from normal tests. See the validation record below for checks run.
+AddressSanitizer runs on Linux (the `asan` preset and CI); Apple ASan hangs before `main`,
+so do not infer ASan coverage for MLX. See the validation record below for checks run.
 
 ## Validation record — 2026-09-05
 
@@ -184,11 +185,8 @@ UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
 This establishes UBSan coverage for this local suite. ASan and full-checkpoint inference
 remain unverified.
 
-## Next steps
+## Later milestones
 
-See [the Milestone 2 integration status and PR sequence](milestone-2.md).
-Milestone 2 qualifies CUDA and mixed CPU/CUDA execution, transfers, and failure cleanup.
-[Milestone 3](milestone-3.md) adds qualified MLX-only and CPU/MLX paths.
-[Milestone 4](milestone-4.md) qualifies full Qwen3-0.6B across MLX/CUDA machines.
-Milestone 5 measures memory and placement performance. Choose the next model family with
-the user before expanding state, partition or modality contracts.
+[Milestones 2](milestone-2.md)–[4](milestone-4.md) add CUDA, MLX and cross-machine
+qualification; [Milestone 5](milestone-5.md) adds measured placement;
+[Milestone 6](milestone-6.md) adds serving.

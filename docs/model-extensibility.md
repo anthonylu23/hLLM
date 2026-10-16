@@ -1,7 +1,7 @@
 # Model and backend boundaries
 
 The runtime should support additional model families incrementally, without a general
-model graph engine or a major redesign before the CPU pipeline is complete.
+model graph engine or a major redesign.
 
 ## Responsibilities
 
@@ -38,7 +38,7 @@ formulas today. Framework objects must never cross the transport boundary.
 
 ## Stage contract
 
-The common stage interface accepts token IDs or FP16 boundary bytes and returns FP16
+The common stage interface accepts token IDs or F16 boundary bytes and returns F16
 boundary bytes or a sampled token. Embedding, layers, and sampling remain inside one
 backend operation so GPU intermediates can stay on device. CPU reference inspection APIs
 are separate from that contract. Factories supply truthful execution capabilities and
@@ -47,13 +47,9 @@ reservations separately, with a single unified-memory budget for MLX including t
 Pinned memory also counts toward host memory. Backend state and
 pending device operations must finish safely before buffers can be released.
 
-## Implementation order
+## Regression cases
 
-Executable CPU stages and a two-process pipeline for tiny Llama and Qwen3 are complete.
-Use both as regression cases for every backend. The [CUDA implementation](milestone-2.md)
-shares validated dense checkpoint metadata with CPU and executes model operations through
-ATen. Tiny-model parity, single-worker generation, mixed CPU/CUDA execution in both
-stage orders, and failure/memory qualification are covered. The [MLX worker](milestone-3.md)
-implements the same stage contract for Llama and Qwen3, with CPU/MLX qualification and
-unified-memory metrics. Select the next model family with the user before widening that contract.
-Full-checkpoint performance and measured placement remain later validation.
+The tiny Llama and Qwen3 fixtures are regression cases for every backend:
+[CPU](milestone-1.md), [CUDA](milestone-2.md) and [MLX](milestone-3.md) all implement this
+stage contract against the shared dense checkpoint metadata. Select the next model family
+with the user before widening the stage contract.

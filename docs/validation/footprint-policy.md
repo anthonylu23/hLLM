@@ -18,13 +18,17 @@ and fresh activation; historical fit reports are replayed under both policies.
 See the [policy contract](../milestone-5-profiling.md#mlx-footprint-policy)
 and the [CPU readiness report](cpu-readiness-20260930.md).
 
+October 10 follow-up: the two-host 4B serving qualification passed under `footprint-v1`
+([report](qwen3-4b-serving-20261010.md)); current status is in [STATUS](../STATUS.md).
+
 ## Behavior
 
 `footprint-v1` is an explicit MLX option in profiling, measured bundle worker
 bindings and native sweep worker configurations. `conservative-v1` remained the
 default at the time of this report (it became the profiling default on October 10,
-2026, after the [two-host serving qualification](qwen3-4b-serving-20261010.md)). Complete, coherent schema-1.3 memory evidence permits the maximum of OS
-footprint, RSS and allocator envelopes instead of their overlapping sum. Existing
+2026, after the [two-host serving qualification](qwen3-4b-serving-20261010.md)).
+Complete, coherent schema-1.3 memory evidence permits the maximum of OS footprint, RSS
+and allocator envelopes instead of their overlapping sum. Existing
 safety fractions, overhead, headroom, native reservations and configured-cap
 preflight remain in force. Missing or inconsistent footprint evidence records a
 fallback to the conservative policy; incomplete execution/allocator evidence keeps

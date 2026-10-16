@@ -38,7 +38,8 @@ decode (12 and 11 tokens), and admission rejection before output. Each recovered
 with the expected four reference tokens. Model and sequence reservations retired.
 MLX allocator active bytes returned to zero after each unload, retaining about
 64 MiB of cache. CUDA process VRAM still grew across assignments; its allocator
-telemetry and stream reuse are follow-up work.
+telemetry and stream reuse are follow-up work (done September 7:
+[CUDA memory reuse](cuda-memory-reuse.md)).
 
 DERP(dfw) was observed before and after the relayed runs, with peer-specific UDP
 drop counters increasing. The temporary table and firewall exception were removed,

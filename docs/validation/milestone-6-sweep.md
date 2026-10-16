@@ -167,6 +167,11 @@ uv run python -m scripts.validation.serving_soak \
   --minimum-duration-seconds 900 --sampling-json build/greedy-probabilities.json
 ```
 
+This is the command line as run. Since October 15, 2026 `serving_soak.py` takes
+`--plan PLAN --workers WORKERS.json` (worker specifications keyed by plan worker ID, as
+for `reload_soak.py`) instead of the stage order and endpoint flags, and checks a fit
+gate before each level; see the [tools README](../../scripts/validation/README.md).
+
 Reverse `--workers` and use a new output path for the other order. Physical samplers
 must cover each worker independently. The raw plan preserves the original sampled
 workload and the explicit reason for adjusting the sustained phase.

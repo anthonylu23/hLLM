@@ -3,7 +3,8 @@
 Status: **the concurrency-two experiment (P5) did not run.** The CUDA side was fully
 prepared (fresh profile, worker, sampler, tunnel and launch sequence) and a new
 1024-prompt oracle was produced, but the Mac never met the MLX profile preflight
-while the user's desktop applications were running (two refusals, 4.66 and 5.25 GiB observed against 6.06 GiB; watched for nearly three hours). No concurrency-two capacity
+while the user's desktop applications were running (two refusals, 4.66 and 5.25 GiB
+observed against 6.06 GiB; watched for nearly three hours). No concurrency-two capacity
 is qualified. All times are UTC and taken from the raw guard and profile records.
 
 ## Scope and identity
@@ -143,6 +144,10 @@ free-plus-inactive proxy. The runner now samples availability before that read a
 records the post-read value alongside it (preflight schema 1.1); the requirement
 and allowances are unchanged.
 
+*Superseded: P5 ran October 12–13 ([report](qwen3-4b-concurrency-20261013.md)), and
+the launchers are tracked in `scripts/validation/two_host/`
+([tools README](../../scripts/validation/README.md)).*
+
 To run P5 by hand once the Mac has about 0.9 GiB more free-plus-inactive memory, and
 before the CUDA profile expires at 04:50:49Z on October 12:
 
@@ -171,7 +176,9 @@ directory's `source/` clone also needs the updated harness.
 
 ## Cleanup
 
-Verified at 06:43Z–06:45Z after the first watch ended, and again at 07:31Z after the second MLX refusal (guard and profiler had exited on their own; only `caffeinate` remained).
+Verified at 06:43Z–06:45Z after the first watch ended, and again at 07:31Z after the
+second MLX refusal (guard and profiler had exited on their own; only `caffeinate`
+remained).
 
 - **Linux:** no hLLM worker, memory profiler, soak driver, resource guard, memory
   sampler or SSH tunnel process; `nvidia-smi` lists zero compute applications and

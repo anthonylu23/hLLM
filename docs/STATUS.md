@@ -1,6 +1,6 @@
 # Project status
 
-Updated October 14, 2026. This page is the single source for what is qualified, what is
+Updated October 15, 2026. This page is the single source for what is qualified, what is
 open and what comes next. Milestone documents describe design and usage and link here
 for status instead of restating it. When a gate passes or a decision is made, update this
 page in the same change as its evidence.
@@ -39,21 +39,18 @@ These need a decision before the dependent work can start.
 
 | Item | Owner | Dependency |
 | --- | --- | --- |
-| Re-run P5 on the corrected MLX worker with fresh same-day profiles on both hosts | Agent, with the user freeing Mac memory | Mac preflight needs about 7 GiB free plus inactive at every cycle gate, lid open, `caffeinate -dis`; idle CUDA host |
-| P5 follow-up: bounded HTTP `serving_soak.py` at levels 1 and 2 | Agent | After the P5 re-run. The tool lacks plan binding and a fit gate; harden it first |
-| Harness: hash guard records only after the guards stop (the October 13 hashes had to be reconstructed) | Agent | None |
-| Harness: bind the CUDA device watcher to the worker's PID. The worker already reports it through the control API (`QualificationState.process_id`, process-memory and observation records); only the launcher still uses `pgrep` | Agent | The launcher scripts, which are not yet tracked in the repository |
-| Track the qualification launchers and result-assembly scripts used for the October 11 and 13 records | Agent | Redact host names, addresses and home paths |
-| Launcher fails fast when a remote worker does not start, instead of waiting out its loop | Agent | Launchers tracked |
-| Planner and legacy controller ignore chunked prefill: any two-stage prompt above the 8 MiB boundary payload (1638 tokens for 4B with an F16 wire) is rejected, and serving refuses chunked prefill with measured bundles | Agent | Workload and profile identity must carry the chunk size. Blocks prompts above about 1.6K tokens and the 32K target |
+| Re-run P5 on the corrected MLX worker with fresh same-day profiles on both hosts, using the [two-host launchers](../scripts/validation/README.md) | Agent, with the user freeing Mac memory and re-approving the 5.125 GiB MLX cap | Mac preflight needs about 7 GiB free plus inactive at every cycle gate, lid open, `caffeinate -dis`; idle CUDA host |
+| P5 follow-up: bounded HTTP `serving_soak.py` at levels 1 and 2 (plan-bound, with a fit gate per level) | Agent | After the P5 re-run |
+| Measured placement for chunked prefill: the planner, controller and serving are chunk-aware, but measured mode refuses chunked workloads because the native memory and compute probes measure whole-prompt prefill only | Agent | Chunk-aware native probes. Blocks measured plans for prompts above about 1.6K tokens (the 8 MiB boundary payload for 4B with an F16 wire) and the 32K target |
 | Contexts above 768 cached tokens: 1024/256 next. A pinned 1024/256 F16 oracle exists in the October 11 run directory. Needs split 16 (the CUDA device reservation is within 27 MiB of its cap at 768) | Agent | Precision decision, MLX cap approval, Mac memory |
-| 32K context | Agent | Chunk-aware planning, profiles, memory |
+| 32K context | Agent | Chunk-aware native probes and profiles, memory |
 | M5 WAN performance acceptance: the 54-candidate exhaustive sweep, at most 10% reference drift, regret with a seeded 95% bootstrap upper bound at or below 15%, and the final audit | Deferred | A justified transport improvement or a measurably stable link; see the [restart gates](validation/milestone-5-wan-closeout.md#deferred-gates-and-restart-point) |
 | Unified-memory headroom per Mac memory tier (SPEC §30) | Deferred | Access to other Mac tiers; only the 18 GiB machine is qualified |
 | Native gRPC acceptability after conversion costs (SPEC §30) | Deferred | M5 WAN acceptance |
 | M6: refresh measured profiles with sampling, chunk and batch settings; longer throughput, latency and memory soaks; concurrency 8, pinned CUDA batching, full model context, batch-independent seeded sampling | Agent | Measured bundles currently reject sampling and chunking. See [M6 next steps](milestone-6.md#next-steps) |
 | M6 review follow-ups: conservative CUDA load admission, bounded or streamed soak evidence storage, direct-backend API preconditions | Agent | None; see the [M6 review](validation/milestone-6-pr-review.md#follow-ups) |
 | Order footprint observations by a steady clock instead of `observed_at_unix_ns` | Agent, low priority | None; the current fallback direction is safe |
+| PR #15 review leftovers: cross-language plan-canonicalization golden vectors, bounded profile reuse in the disk bundle, one probe target instead of two built from `memory_probe.cpp`, persistent F32 output-head storage | Agent, low priority | None; see the [PR #15 fixes report](archive/pr15-review-fixes.md) |
 | A stage stream closing before `Terminate` reports `INTERNAL`; `ABORTED` would be more precise | Agent, low priority | Process suites pin the current status |
 | Apple AddressSanitizer hangs before `main`; Linux ASan and UBSan run in CI, so MLX code has no sanitizer coverage | Deferred | Toolchain |
 | MLX cache limit is `min(limit / 8, 64 MiB)` and has not been profiled against full-checkpoint workspace (`TODO` in `cpp/src/mlx/backend.cpp`) | Agent | Mac time |
@@ -61,14 +58,30 @@ These need a decision before the dependent work can start.
 
 ## Next steps, in order
 
-1. Fix the worker's retirement reasons and the serving streaming-deadline truncation found
-   by the October 14 audit. The P5 cancellation evidence relies on the retirement reasons.
-2. Track the launchers and result-assembly scripts, and close the harness follow-ups above.
-3. Decide the canonical 4B precision target.
-4. Re-run P5 on the corrected worker, then the HTTP serving soak at levels 1 and 2.
-5. Make the planner and controller chunk-aware, then run 1024/256.
-6. Decide the MLX per-request workspace design and Milestone 7's gating.
+1. Re-run P5 on the corrected worker, then the HTTP serving soak at levels 1 and 2.
+2. Decide the canonical 4B precision target and the MLX cap for 1024/256, then run it.
+3. Make the native probes chunk-aware, so measured plans cover prompts above about 1.6K
+   tokens, toward 32K.
+4. Decide the MLX per-request workspace design and Milestone 7's gating.
 
 Qualification runs follow the [overnight backlog run book](overnight-backlog.md) and the
 [tools README](../scripts/validation/README.md). Profiles expire after 24 hours, so every
 GPU run needs fresh same-day profiles on matching binaries.
+
+## Closed October 15, 2026
+
+From the October 14 audit, merged in PRs #28–#31:
+
+- Worker retirement reasons: requests retire as `completed`, `cancelled`, `expired`,
+  `failed` or `allocation-failed` (see the
+  [concurrency design](concurrency-qualification.md#evidence-boundary)).
+- Serving streams under client backpressure end with their timeout error instead of
+  truncating silently ([M6 backpressure and cleanup](milestone-6.md#backpressure-and-cleanup)).
+- Two-stage planning and the legacy controller account for chunked prefill
+  (`prefill_chunk_tokens`; see the [placement workflow](milestone-5-placement.md)).
+- The two-host launchers and result assembly are tracked in `scripts/validation/two_host/`
+  with host details in one settings file; guard records are hashed from the bytes the
+  harness parsed, the CUDA device watcher follows the worker's reported PID, and launches
+  fail fast with the log tail.
+- `serving_soak.py` binds to a plan and worker specifications and applies a fit gate
+  before each level.

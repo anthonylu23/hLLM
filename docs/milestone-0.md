@@ -6,8 +6,8 @@ Milestone 0 produces a deterministic deployment plan without starting native wor
 
 - `proto/` defines the versioned model, profile, placement, control, execution, and
   telemetry wire contracts.
-- `hllm prepare` strictly validates a Llama-compatible or dense Qwen3 model and reads only Safetensors
-  headers unless full hashing is requested.
+- `hllm prepare` strictly validates a Llama-compatible or dense Qwen3 model and reads only
+  Safetensors headers unless full hashing is requested.
 - Worker profiles model CUDA device memory, ordinary host memory, pinned host allocations,
   and Apple unified memory as distinct domains.
 - `hllm plan` enumerates every split in both worker orders, rejects candidates that exceed
@@ -17,12 +17,12 @@ Milestone 0 produces a deterministic deployment plan without starting native wor
 Artifact digests exclude local filesystem paths. A source model should always be identified
 by a repository ID and immutable revision when a manifest is used as a golden artifact.
 
-## Current estimation limits
+## Estimation limits
 
 Feasibility mode ranks maximum primary-memory pressure and then pressure imbalance.
-Estimated mode currently incorporates directional boundary-transfer estimates but not
-per-layer compute. Consequently, it must not be described as measured automatic placement.
-Measured dry-load memory and performance profiles belong to Milestone 5.
+Estimated mode uses directional boundary-transfer estimates (per chunk when the workload
+sets `prefill_chunk_tokens`) but not per-layer compute, so it is not measured placement.
+Measured mode is described in the [placement workflow](milestone-5-placement.md).
 
 The planner counts tied token embeddings on both boundary stages because stage zero needs
 the embedding lookup and the final stage needs the LM head. That duplication is explicit in
@@ -48,12 +48,9 @@ but are not a replacement for payload-specific stage-transport benchmarks.
 The pinned Falcon3 checkpoint, generated manifest, planner result, and fresh-clone Fedora
 test are recorded in [the Milestone 0 validation report](validation/milestone-0.md).
 
-## Next steps
+## Later milestones
 
 [Milestone 1](milestone-1.md) connects executable CPU loading, native stage execution,
 and Python token streaming. Milestones 2–4 add the CUDA and MLX workers and the
-full-checkpoint cross-machine qualification; [Milestone 5](milestone-5.md) replaces
-these configured estimates with measured placement.
-
-Additional model families should follow the [extension boundaries](model-extensibility.md)
-and be selected with the user rather than delaying the working pipeline.
+full-checkpoint cross-machine qualification; [Milestone 5](milestone-5.md) adds measured
+placement. Additional model families follow the [extension boundaries](model-extensibility.md).

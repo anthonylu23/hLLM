@@ -1,14 +1,13 @@
 # Milestone 2 — CUDA backend
 
-The optional Linux CUDA worker now executes dense Llama and Qwen3 stages with LibTorch/ATen.
-Tiny-model numerical and single-worker process tests establish the initial execution path.
-Mixed CPU/CUDA loopback correctness now passes in both orders and all tiny-fixture splits.
-Opt-in bounded pinned transfers and failure/memory qualification are implemented.
-Full Qwen3-0.6B inference is qualified separately in [Milestone 4](milestone-4.md).
-See the [mixed validation report](validation/mixed-cpu-cuda.md). The initial CUDA PRs established backend selection, memory domains and model execution;
-the qualification PRs build on those interfaces.
-[Milestone 5](milestone-5.md) adds CUDA allocator telemetry and one reusable stream
-per device to bound repeated-assignment cache growth.
+The optional Linux CUDA worker executes dense Llama and Qwen3 stages with LibTorch/ATen.
+Tiny-model numerical and process tests cover execution; mixed CPU/CUDA loopback runs pass
+in both orders and every tiny-fixture split. Opt-in pinned transfers and failure/memory
+qualification are described below; see the
+[mixed validation report](validation/mixed-cpu-cuda.md). Full Qwen3-0.6B inference is
+qualified in [Milestone 4](milestone-4.md);
+[Milestone 5](milestone-5.md#cuda-memory-accounting) adds allocator telemetry and one
+reusable stream per device to bound repeated-assignment cache growth.
 
 ## Backend and model boundaries
 
@@ -23,7 +22,7 @@ plain metadata and a source that reads one tensor at a time. It does not instant
 CPU backend or retain a full host copy of GPU weights. Dense configuration lives in the
 model layer; CPU numerical kernels remain independent of CUDA execution.
 
-`StageBackend::execute` accepts tokens on the first stage or owned little-endian FP16
+`StageBackend::execute` accepts tokens on the first stage or owned little-endian F16
 boundary bytes on the final stage. It returns boundary bytes or a sampled token. Embedding,
 owned layers and sampling remain inside that call. Production CUDA execution retains
 weights, intermediate activations and KV state on the selected GPU. CPU float arrays and
@@ -58,14 +57,16 @@ and fit the reserved context. Operations complete before returning control to th
 error paths drain the stream before propagating the failure. A state interrupted during an
 operation is marked unusable, since some cache layers may already have been written.
 Cancellation is checked before/between layers and before returning output. It does not
-preempt an individual CUDA kernel. Transfers default to blocking pageable copies, with opt-in bounded pinned staging
-as described below. Transfer overlap is not implemented.
+preempt an individual CUDA kernel. Transfers default to blocking pageable copies, with
+opt-in bounded pinned staging as described below. Transfer overlap is not implemented.
 
 ## Memory admission and reporting
 
-Host, device and pinned-host amounts have independent caps. Pinned memory also counts toward
-host usage and is counted once in legacy host-plus-device totals. Pageable mode reserves zero pinned bytes; pinned mode charges sequence staging. Resident GPU weights and exact per-layer KV payloads are reported in
-the device domain; production retains no host weight or KV payload.
+Host, device and pinned-host amounts have independent caps. Pinned memory also counts
+toward host usage and is counted once in legacy host-plus-device totals. Pageable mode
+reserves zero pinned bytes; pinned mode charges sequence staging. Resident GPU weights and
+exact per-layer KV payloads are reported in the device domain; production retains no host
+weight or KV payload.
 
 Before loading, validate all assigned metadata, then check resident device weights plus the
 largest conversion/upload temporary. Host admission includes the largest checkpoint payload,
@@ -126,16 +127,17 @@ required; `--device-id` defaults to zero. The optional pinned budget defaults to
 CPU workers reject CUDA-only flags. Startup probes a real ATen CUDA operation; capabilities
 then advertise implemented model execution. As on CPU, health indicates a serving-capable
 worker even before a stage is loaded. Deploy through `DeploymentSession` with a
-one-stage F32/F16 CUDA plan or a two-stage F32 CPU/CUDA plan. The planner enumerates two-stage plans; CUDA process
-tests also construct one-stage plans against a tiny checkpoint.
+one-stage F32/F16 CUDA plan or a two-stage F32 CPU/CUDA plan. The planner enumerates
+two-stage plans; CUDA process tests also construct one-stage plans against a tiny
+checkpoint.
 
 ## Validation
 
-The second PR uses the same RTX 3060 Ti environment as the integration PR: GCC 14.4,
-CUDA toolkit 13.3, C++11-ABI LibTorch 2.13.0+cu130, gRPC 1.83, Protobuf 7.35.1 and driver
-610.57.04. Native dependencies and the checkout are isolated from existing workloads.
-The system GCC 16 is unsupported by the CUDA toolkit. The installed Abseil shared package
-has a Debug mutex-destructor link issue; Linux validation uses RelWithDebInfo.
+Validated on an RTX 3060 Ti with GCC 14.4, CUDA toolkit 13.3, C++11-ABI LibTorch
+2.13.0+cu130, gRPC 1.83, Protobuf 7.35.1 and driver 610.57.04. Native dependencies and
+the checkout are isolated from existing workloads. The system GCC 16 is unsupported by
+the CUDA toolkit. The installed Abseil shared package has a Debug mutex-destructor link
+issue; Linux validation uses RelWithDebInfo.
 
 Numerical tolerances are absolute and apply to the tiny fixture:
 
@@ -160,23 +162,6 @@ For subsequent mixed-process, fault and sanitizer results, see the
 parity and cross-machine measurements are recorded in [Milestone 4](milestone-4.md).
 Asynchronous transfer overlap remains unverified.
 
-## Next steps
-
-See the [mixed CPU/CUDA qualification plan](archive/milestone-2-qualification-plan.md) for the
-three-PR sequence, constraints and acceptance criteria.
-
-The [CUDA stack review](archive/code-quality-review-cuda.md) records correctness fixes and
-quality findings for PRs 5–9. [Milestone 4](milestone-4.md) records the full Qwen3-0.6B
-assessment and MLX/CUDA qualification. Assess larger workloads against available
-physical memory before scheduling inference. Account for
-CPU F32 resident weights, global F32 compute/KV in mixed plans, dense attention
-workspace, and measured framework/context overhead. Qwen3-4B-Base is still the
-project target; choose a smaller compatible checkpoint or shorter context if needed.
-
-The [model extension boundaries](model-extensibility.md) remain in force. Additional model
-families require explicit decisions rather than a generic graph engine. The [MLX worker](milestone-3.md) implements Milestone 3;
-cross-machine qualification is Milestone 4, and measured placement/performance is Milestone 5.
-
 ## Opt-in pinned boundary staging
 
 `hllm-worker-cuda --boundary-transfer-mode pinned` requires a positive
@@ -189,12 +174,12 @@ Its size is `min(maximum_tokens * hidden_size * 2, 8 MiB)` for a split stage,
 and zero for a stage owning the complete model. Admission charges these bytes
 to both host workspace and its pinned subset; total usage sums host and device
 only. The planner checks both budgets and rejects a pinned profile lacking a host budget.
-CUDA's existing conservative device workspace covers the FP16 conversion tensor.
+CUDA's existing conservative device workspace covers the F16 conversion tensor.
 
 Boundaries larger than staging are copied in chunks through the same allocation,
 including a final partial chunk. The 8 MiB cap limits pinned storage, not the
-accepted boundary payload. Copies use the stage stream and wait for the completion event before staging is
-reused or output bytes are published. Exception cleanup drains outstanding work.
+accepted boundary payload. Copies use the stage stream and wait for the completion event
+before staging is reused or output bytes are published. Exception cleanup drains outstanding work.
 The sequence frees staging on retirement; no cross-request pinned cache is used.
 The completed stage interface, owned byte-vector boundary and protobuf remain
 unchanged. Serialization and host copies still occur. This implementation does
@@ -236,3 +221,10 @@ They are isolated from protobuf-facing translation units; the public metrics
 schema and stage contract remain unchanged. Framework/context memory is distinct
 from model reservation accounting. Reserved allocator cache may remain after
 unload; qualification checks its plateau after warm-up.
+
+## Related documents
+
+- [Mixed CPU/CUDA qualification plan](archive/milestone-2-qualification-plan.md) (archived)
+- [CUDA stack review](archive/code-quality-review-cuda.md) for PRs 5–9
+- [Milestone 4](milestone-4.md) for the full Qwen3-0.6B qualification
+- [Model extension boundaries](model-extensibility.md)

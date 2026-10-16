@@ -57,7 +57,8 @@ anything about the reverse order. The MLX cap of 5.125 GiB is the P3 value from
 October 10 and was raised from 4.375 GiB only after the user approved it (below).
 
 Results file: [`qwen3-4b-concurrency-20261013-results.json`](qwen3-4b-concurrency-20261013-results.json)
-(`assemble_results_20261013.py` over the run directory: every profile attempt,
+(`assemble_results_20261013.py` over the run directory, tracked since PR #31 as
+`scripts/validation/assemble_two_host_results.py`: every profile attempt,
 baseline and concurrency attempt with its hashes, gates, envelopes and notes).
 
 ## Timeline
@@ -154,7 +155,8 @@ The exact prefixes the record hashed were reconstructed byte-for-byte and saved 
 the live files: `concurrent-cuda.guard.as-recorded.jsonl` (`d09ed85e…`, 360 rows) and
 `mac/concurrent-mlx.guard.as-recorded.jsonl` (`1ad72f85…`, 352 rows); the Mac's final
 record is `mac/concurrent-mlx.guard.final.jsonl`. A follow-up for the harness: stop the
-guards, or snapshot their records, before hashing them.
+guards, or snapshot their records, before hashing them. (Done in PR #31: the harness
+hashes the bytes it parsed and saves them as a snapshot.)
 
 ## Host conditions
 
@@ -171,10 +173,16 @@ guards, or snapshot their records, before hashing them.
 
 ## Follow-ups
 
+*October 15, 2026: the harness follow-ups below (guard hashing, PID-bound device
+watcher, fail-fast launches) closed in PR #31, which also tracks the launchers in
+`scripts/validation/two_host/`. The P5 re-run and the workspace question stay open in
+the [project status](../STATUS.md).*
+
 - Re-run P5 on the corrected MLX worker (boundary-published allocator sample) with
   fresh same-day profiles on both hosts, so that an accepted record exists whose
-  telemetry path is race-free. The procedure is unchanged: `mlx-profile.sh` on the Mac
-  with the memory gate met, `run-baseline.sh`, then `run-concurrent.sh`.
+  telemetry path is race-free. The procedure is unchanged:
+  `scripts/validation/two_host/profile.sh ENV mlx` with the Mac memory gate met, then
+  `run.sh ENV baseline` and `run.sh ENV concurrent`.
 - Harness: hash guard records after stopping the guards (above).
 - `run-concurrent.sh` relies on `pgrep -f` to find the worker PID for the device watcher;
   the worker should report its PID through the control API so the watcher is bound by

@@ -1,5 +1,8 @@
 # M5 preliminary acceptance audit — 2026-09-14
 
+*Superseded by the [engineering closeout](milestone-5-wan-closeout.md): acceptance is
+deferred.*
+
 **M5 is implemented but not accepted.** This audit records engineering checks and
 fixes before the final production qualification. It does not replace the separate
 final audit required after a successful independent sweep.

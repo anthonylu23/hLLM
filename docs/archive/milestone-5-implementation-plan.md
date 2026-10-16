@@ -1,11 +1,13 @@
 # Milestone 5 implementation plan
 
-Status: M5.1–M5.6 implemented; WAN acceptance is deferred (checked 2026-10-14; see
-[the status page](STATUS.md)). The
-[profiling workflow](milestone-5-profiling.md) and
-[memory report](validation/milestone-5-memory.md) and
-[timing report](validation/milestone-5-timing.md) record the delivered behavior
-and limitations. See [current status](milestone-5.md) and [SPEC](../SPEC.md).
+Status: archived plan. Slices M5.1–M5.6 are implemented; acceptance is deferred (see
+[the status page](../STATUS.md) and the
+[WAN closeout](../validation/milestone-5-wan-closeout.md#deferred-gates-and-restart-point)).
+Usage is in the [profiling](../milestone-5-profiling.md) and
+[placement](../milestone-5-placement.md) workflows; the
+[memory report](../validation/milestone-5-memory.md) and
+[timing report](../validation/milestone-5-timing.md) record the delivered behavior and
+limitations. See also the [Milestone 5 overview](../milestone-5.md) and [SPEC](../../SPEC.md).
 
 ## Scope and acceptance contract
 
@@ -14,7 +16,7 @@ concurrency 1, with capacity for 768 cached tokens**. F16 execution, KV and
 boundary activations were the original proposal. The approved qualification now
 uses **F16 resident weights, F32 execution and KV, and F16 boundary activations**,
 with fixed tokenized prompts and disabled early stopping. See the
-[precision decision](milestone-5-precision-proposal.md).
+[precision decision](../milestone-5-precision-proposal.md).
 Create a dedicated workload fixture; preserve the existing 32,768-token capacity
 example as a separate, unqualified capacity target.
 
@@ -46,7 +48,7 @@ pass is not a claim that every prediction is accurate within 15%.
 ## Initial gaps at planning time
 
 This table records the implementation starting point. Delivered behavior and
-outstanding acceptance gates are tracked in the [validation report](validation/milestone-5-planner.md).
+outstanding acceptance gates are tracked in the [validation report](../validation/milestone-5-planner.md).
 
 | Area | Existing implementation | Work required |
 | --- | --- | --- |
@@ -245,17 +247,17 @@ lifecycle and process tests. Full hardware timing sweeps are qualification artif
 not CI tests with hard speed thresholds. Update implementation status after each slice.
 
 M5.5 measured integration and the M5.6 independent runner are implemented; see the
-[placement workflow](milestone-5-placement.md) and
-[validation/gates](validation/milestone-5-planner.md). Acceptance is deferred under
-the [WAN closeout](validation/milestone-5-wan-closeout.md). On an explicit restart,
+[placement workflow](../milestone-5-placement.md) and
+[validation/gates](../validation/milestone-5-planner.md). Acceptance is deferred under
+the [WAN closeout](../validation/milestone-5-wan-closeout.md). On an explicit restart,
 current-build profile coverage, production setup calibration, the full 0.6B hardware
 sweep, and a final audit are required.
 M5.1–5.4 are implemented; their
-[profiling workflow](milestone-5-profiling.md),
-[memory evidence](validation/milestone-5-memory.md), and
-[timing evidence](validation/milestone-5-timing.md) document scope and limitations.
+[profiling workflow](../milestone-5-profiling.md),
+[memory evidence](../validation/milestone-5-memory.md), and
+[timing evidence](../validation/milestone-5-timing.md) document scope and limitations.
 Bounded weight conversion (Milestone 6) reduced the endpoint-only MLX load-admission
 term that once exceeded Mac availability; 4B physical profiling and serving fit then
 passed on October 10 for the recorded workloads
-([report](validation/qwen3-4b-serving-20261010.md)). Transport-only payload
+([report](../validation/qwen3-4b-serving-20261010.md)). Transport-only payload
 qualification does not establish 4B fit.

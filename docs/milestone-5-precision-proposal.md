@@ -1,19 +1,17 @@
 # M5 precision target — approved for implementation
 
 This document preserves the rationale and implementation plan at approval time.
-The approval covers the Qwen3-0.6B M5 qualification only. All Qwen3-4B evidence uses
-uniform F16, and the canonical 4B precision target is an open decision; see
-[the status page](STATUS.md).
-Mixed precision is now implemented; the production acceptance sweep remains
-pending. See the [current validation report](validation/milestone-5-planner.md)
-for subsequent exact-token, health and transport evidence. The diagnostic counts
-below describe the earlier decision point.
+The approval covers the Qwen3-0.6B M5 qualification only; for 4B see
+[the status page](STATUS.md). Mixed precision is implemented and acceptance is deferred;
+see the [validation report](validation/milestone-5-planner.md) for later exact-token,
+health and transport evidence. The diagnostic counts below describe the decision point.
 
-The isolated diagnostic now matches all 256 reference tokens at all 54 placements
-(13,824 teacher-forced outputs). The [evidence audit](validation/milestone-5-planner/kv-f32-complete.json)
-verifies coverage, raw hashes, shared inputs, cached prefixes and configured caps.
-It does **not** establish production acceptance. Current production remains at
-51/54 exact placements in the diagnostic matrix.
+The isolated diagnostic matched all 256 reference tokens at all 54 placements
+(13,824 teacher-forced outputs). The
+[evidence audit](validation/milestone-5-planner/kv-f32-complete.json) verifies coverage,
+raw hashes, shared inputs, cached prefixes and configured caps. It does **not** establish
+production acceptance. At the decision point, production matched exactly at 51 of 54
+placements in the diagnostic matrix.
 
 ## Approved target
 
@@ -89,6 +87,7 @@ remaining risks. Mark M5 complete and create the PR only after that audit passes
 ## Decision
 
 The user’s “Proceed with the proposed target” authorizes implementing and
-qualifying this explicit mixed-precision target. It does not approve milestone completion, a PR before the final audit,
-increased memory caps, or any correctness relaxation. Production acceptance remains
-pending until fresh qualification and the separate audit pass.
+qualifying this explicit mixed-precision target. It does not approve milestone
+completion, a PR before the final audit, increased memory caps, or any correctness
+relaxation. Production acceptance is deferred; it requires fresh qualification and the
+separate audit.
