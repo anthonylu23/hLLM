@@ -45,14 +45,14 @@ inline void compute_probe(rt::StageBackend& stage, const rt::MemoryAmounts& capa
       // keep their historical shape.
       const auto record = [&](const char* component, std::optional<std::size_t> layer,
                               std::size_t step, std::size_t position, double ms,
-                              std::optional<std::size_t> chunk_index = std::nullopt) {
+                              const json& chunk_index = nullptr) {
         if (!std::isfinite(ms) || ms < 0.0) throw std::runtime_error("invalid native timing");
         json item{{"event", "timing"}, {"cycle", cycle}, {"step", step},
           {"context_tokens", position}, {"phase", step == 0U ? "prefill" : "decode"},
           {"component", component}, {"layer_index", layer ? json(*layer) : json(nullptr)},
           {"timing_mode", instrumented ? "component-synchronized" : "whole-stage"},
           {"milliseconds", ms}};
-        if (chunk_index) item["chunk_index"] = *chunk_index;
+        if (!chunk_index.is_null()) item["chunk_index"] = chunk_index;
         records.push_back(std::move(item));
       };
       auto start = rt::ProfileClock::now();
@@ -71,8 +71,9 @@ inline void compute_probe(rt::StageBackend& stage, const rt::MemoryAmounts& capa
       for (std::size_t index = 0U; index < executions.size(); ++index) {
         const auto [step, position] = executions[index];
         const auto count = step == 0U ? std::min(chunk ? chunk : prompt, prompt - position) : 1U;
-        const std::optional<std::size_t> chunk_index =
-            chunk && step == 0U ? std::optional<std::size_t>(index) : std::nullopt;
+        // A JSON value rather than std::optional: GCC's -O2 maybe-uninitialized
+        // analysis misfires on an optional copied into the record lambda.
+        const json chunk_index = chunk && step == 0U ? json(index) : json(nullptr);
         state->prefilling = step == 0U;
         state->prefill_only = step == 0U && position + count < prompt;
         rt::StageInput input;
