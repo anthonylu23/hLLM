@@ -238,6 +238,8 @@ uv run python -m scripts.validation.serving_soak \
 
 It sends two built-in prompts (not a fixed 128 tokens) and sizes each reservation as the
 longest prompt plus `--output-tokens`; record that workload rather than relabeling it.
+With the Qwen3 tokenizer the longer prompt is 130 tokens, so against a 384-token
+profile use at most 254 output tokens; the gate refuses anything larger before loading.
 It does not check `--max-decode-batch`, so start the workers at batch 1 unless batching
 is what the run measures. `--prefill-chunk-tokens` must match the plan's workload;
 `--sampling-json` and `--minimum-duration-seconds` are optional. `run.sh` has no serving
