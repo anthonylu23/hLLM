@@ -1,6 +1,6 @@
 # Project status
 
-Updated October 19, 2026. This page is the single source for what is qualified, what is
+Updated October 20, 2026. This page is the single source for what is qualified, what is
 open and what comes next. Milestone documents describe design and usage and link here
 for status instead of restating it. When a gate passes or a decision is made, update this
 page in the same change as its evidence.
@@ -17,7 +17,7 @@ page in the same change as its evidence.
 | Qwen3-4B baseline fit (P1, P2) | 128/256, forward order, fresh profiles on both hosts, six-cycle reload soak, 24/24 exact | [October 10 report](validation/qwen3-4b-serving-20261010.md) |
 | Qwen3-4B reverse order (P4) | CUDA→MLX at split 21, six cycles, 24/24 exact | [October 10 report](validation/qwen3-4b-serving-20261010.md#p4--reverse-order-live-serving-cuda--mlx-split-21) |
 | Qwen3-4B larger context (P3) | 512/256 at 768 cached tokens, MLX cap 5.125 GiB, three cycles, 6/6 exact | [October 10 report](validation/qwen3-4b-serving-20261010.md#p3--512-prompt256-output-context-768-cached-tokens) |
-| Qwen3-4B concurrency two (P5) | Accepted October 13 at 128/256 with a user-approved 5.125 GiB MLX cap, three cycles, 27/27 exact. **Caveat:** measured with an MLX worker whose allocator read was a data race, corrected afterwards in PR #27. The MLX envelope was decided by OS footprint, not the allocator, so the numbers stand, but a re-run on the corrected worker is open | [October 13 report](validation/qwen3-4b-concurrency-20261013.md) |
+| Qwen3-4B concurrency two (P5) | Accepted October 13 and re-run on the corrected MLX worker October 20 (accepted on the first attempt): 128/256, user-approved 5.125 GiB MLX cap, three cycles, 27/27 exact, cancelled victims retired `cancelled` on both workers, physical peaks equal to October 13's. The HTTP serving soak then passed levels 1 and 2 with identical greedy tokens across levels | [October 20 report](validation/qwen3-4b-concurrency-20261020.md), [October 13 report](validation/qwen3-4b-concurrency-20261013.md) |
 | MLX fit policy | `footprint-v1` is the evaluation default since October 10, 2026; stored bindings keep "omitted means `conservative-v1`" | [profiling workflow](milestone-5-profiling.md#mlx-footprint-policy) |
 
 All Qwen3-4B evidence uses **uniform F16** weights, execution, KV and wire, which is
@@ -45,8 +45,7 @@ These need a decision before the dependent work can start.
 
 | Item | Owner | Dependency |
 | --- | --- | --- |
-| Re-run P5 on the corrected MLX worker with fresh same-day profiles on both hosts, using the [two-host launchers](../scripts/validation/README.md) | Agent, with the user freeing Mac memory and re-approving the 5.125 GiB MLX cap | Mac preflight needs about 7 GiB free plus inactive at every cycle gate, lid open, `caffeinate -dis`; idle CUDA host |
-| P5 follow-up: bounded HTTP `serving_soak.py` at levels 1 and 2 (plan-bound, with a fit gate per level) | Agent | After the P5 re-run |
+| Re-run P5 at the original 4.375 GiB MLX cap on workers with the shared stage workspace, with fresh profiles | Agent, with the user freeing Mac memory | PR #35 merged; Mac preflight about 6.1 GiB free plus inactive at that cap |
 | Measured placement for chunked prefill: the planner, controller and serving are chunk-aware, but measured mode refuses chunked workloads because the native memory and compute probes measure whole-prompt prefill only | Agent | Chunk-aware native probes. Blocks measured plans for prompts above about 1.6K tokens (the 8 MiB boundary payload for 4B with an F16 wire) and the 32K target |
 | Contexts above 768 cached tokens: 1024/256 next. A pinned 1024/256 F16 oracle exists in the October 11 run directory. Needs split 16 (the CUDA device reservation is within 27 MiB of its cap at 768) | Agent | Chunk-sized workspace (or a cap near 6.5 GiB), Mac memory |
 | 32K context | Agent | Chunk-aware native probes and profiles, memory |
@@ -64,10 +63,9 @@ These need a decision before the dependent work can start.
 
 ## Next steps, in order
 
-1. Re-run P5 on the corrected worker, then the HTTP serving soak at levels 1 and 2.
-2. Land the shared stage workspace (PR #35), qualify it with fresh profiles, and re-run
+1. Land the shared stage workspace (PR #35), qualify it with fresh profiles, and re-run
    P5 at the original 4.375 GiB MLX cap.
-3. Chunk-aware reservations and native probes, so workspace scales with the prefill
+2. Chunk-aware reservations and native probes, so workspace scales with the prefill
    chunk and measured plans cover prompts above about 1.6K tokens; then 1024/256 and
    toward 32K.
 
@@ -75,6 +73,14 @@ Qualification runs follow the
 [two-host launchers and run checklist](../scripts/validation/README.md#two-host-launchers);
 the [two-host log](overnight-backlog.md) records earlier runs. Profiles expire after 24
 hours, so every GPU run needs fresh same-day profiles on matching binaries.
+
+## Closed October 20, 2026
+
+- P5 re-run on the corrected MLX worker: accepted on the first attempt, 27/27 exact,
+  with correct retirement reasons, using the tracked launchers end to end.
+- HTTP serving soak at levels 1 and 2 on the same binaries and profiles: both levels
+  observed on each stage, identical greedy tokens across levels, cancelled requests
+  exact prefixes ([report](validation/qwen3-4b-concurrency-20261020.md#http-serving-soak-p5-follow-up)).
 
 ## Closed October 15, 2026
 

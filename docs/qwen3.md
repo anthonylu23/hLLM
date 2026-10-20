@@ -100,6 +100,6 @@ same-process reload cycles and twelve exact continuations, with a 4.576 GiB peak
 The footprint-aware fit policy became the MLX evaluation default after the
 [October 10 two-host run](validation/qwen3-4b-serving-20261010.md) qualified the
 baseline, reverse order and a 512/256 workload; concurrency two followed on
-[October 13](validation/qwen3-4b-concurrency-20261013.md). See
-[the status page](STATUS.md) for exact scope, open contexts and the open 4B
-precision decision.
+[October 13](validation/qwen3-4b-concurrency-20261013.md), re-run on
+[October 20](validation/qwen3-4b-concurrency-20261020.md). Uniform F16 is the canonical
+4B precision target. See [the status page](STATUS.md) for exact scope and open contexts.

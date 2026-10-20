@@ -137,4 +137,5 @@ qualify any changed numerical criterion as a separate experiment.
 - [x] Run the guarded two-host measurement only when the GPU is free and the baseline
   passes. Larger contexts, higher concurrency and throughput claims remain separate.
   Done: see the [October 13 report](validation/qwen3-4b-concurrency-20261013.md) and
-  [the status page](STATUS.md) for its caveat and the open re-run.
+  [the status page](STATUS.md). The re-run on the corrected worker was accepted on
+  October 20 ([report](validation/qwen3-4b-concurrency-20261020.md)).

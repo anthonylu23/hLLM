@@ -104,8 +104,11 @@ cleanup() {
   [ -n "$TUNNEL" ] && stop_and_wait "$TUNNEL" 10
   MIRROR='' WATCHER='' CUDA_GUARD='' MLX_GUARD='' TUNNEL=''
   log "GPU compute processes: $(nvidia-smi --query-compute-apps=pid --format=csv,noheader | wc -l)"
-  pgrep -af hllm-worker | tee -a "$LOG_FILE" || log "no local hLLM workers"
-  remote "pgrep -af hllm-worker || echo 'no Mac hLLM workers'" | tee -a "$LOG_FILE"
+  # The shared pattern, not a bare name: macOS `pgrep -a` lists ancestors, and a bare
+  # name also matches the SSH shell running the check.
+  pgrep -af "$HLLM_PROCESS_PATTERN" | tee -a "$LOG_FILE" || log "no local hLLM workers"
+  remote "pgrep -lf $(quote "$HLLM_PROCESS_PATTERN") || echo 'no Mac hLLM workers'" \
+    | tee -a "$LOG_FILE"
   set -e
 }
 trap cleanup EXIT
