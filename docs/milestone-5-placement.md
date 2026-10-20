@@ -126,11 +126,12 @@ feasibility plans.
 
 The field must be below `prompt_tokens` and at most 65536; 0 or omitted means
 whole-prompt prefill and leaves existing workload, profile and plan digests unchanged.
-The chunk size is part of the workload identity. Measured mode refuses chunked
-workloads, profile keys refuse them, and serving refuses a measured bundle whose
-workload chunk size differs from `--prefill-chunk-tokens`. The native memory and
-compute probes run whole-prompt prefill only, so measured chunked placement waits for
-chunk-aware probes. `hllm generate` always sends whole-prompt prefill.
+The chunk size is part of the workload identity. Workers reserve per-request workspace
+for the chunk, and the native memory and compute probes replay serving's chunks, so
+chunked workloads can be profiled. Measured mode still refuses chunked workloads until
+evaluation sums per-chunk stage and boundary costs, and serving refuses a measured
+bundle whose workload chunk size differs from `--prefill-chunk-tokens`.
+`hllm generate` always sends whole-prompt prefill.
 
 ## Timing attribution
 

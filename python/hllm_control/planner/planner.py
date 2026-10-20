@@ -267,10 +267,11 @@ def create_plan(
         if settings.execution_dtype != workload.kv_dtype:
             raise PlanningError("measured execution and KV dtypes must agree")
         if workload.prefill_chunk_tokens:
+            # Chunked profiles can be measured, but evaluation does not yet sum per-chunk
+            # stage and boundary costs, so measured placement still refuses them.
             raise PlanningError(
-                "measured profiles cover whole-prompt prefill only; plan a chunked "
-                "workload in estimated or feasibility mode until the native profilers "
-                "support chunked prefill"
+                "measured placement does not yet combine chunked prefill profiles; plan a "
+                "chunked workload in estimated or feasibility mode"
             )
     elif profile_bundle is not None:
         raise PlanningError("profile bundle requires measured mode")

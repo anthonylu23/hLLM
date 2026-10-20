@@ -52,9 +52,8 @@ class ServingRuntime:
         if bundle and self.prefill_chunk_tokens != bundle.workload.prefill_chunk_tokens:
             raise ValueError(
                 f"serving prefill chunk size {self.prefill_chunk_tokens} differs from the "
-                f"measured workload's {bundle.workload.prefill_chunk_tokens}; measured "
-                "profiles cover whole-prompt prefill only, so serve measured plans "
-                "without --prefill-chunk-tokens"
+                f"measured workload's {bundle.workload.prefill_chunk_tokens}; serve a "
+                "measured plan with the chunk size it was measured at"
             )
         self.channels = [
             aio.insecure_channel(

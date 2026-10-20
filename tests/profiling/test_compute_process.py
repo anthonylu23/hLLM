@@ -88,3 +88,69 @@ def test_paired_compute_and_conversion(tmp_path: Path, stage_index: int, pinned:
             row["milliseconds"] += 100
         with pytest.raises(ValueError):
             ProfileArtifact.model_validate({**data, "artifact_digest": digest(data)})
+
+
+@pytest.mark.parametrize("stage_index", [0, 1])
+def test_chunked_prefill_records_each_chunk(tmp_path: Path, stage_index: int) -> None:
+    assert BINARY is not None
+    backend = Backend(os.environ["HLLM_PROFILE_BACKEND"])
+    manifest = write_model(tmp_path / "model", redundant_head=True)
+    dtype = DType.F32 if backend == Backend.CPU else DType.F16
+    deployment = plan(manifest).model_copy(update={"execution_dtype": dtype})
+    workload = WorkloadProfile(
+        workload_id="compute-chunked",
+        prompt_tokens=8,
+        output_tokens=4,
+        total_cached_tokens=12,
+        kv_dtype=dtype,
+        prefill_chunk_tokens=3,
+    )
+    output = tmp_path / "compute.json"
+    artifact = run_memory_profile(
+        mode="compute",
+        binary=Path(BINARY),
+        root=tmp_path / "model",
+        manifest=manifest,
+        plan=deployment,
+        stage_index=stage_index,
+        workload=workload,
+        backend=backend,
+        capacity=MemoryAmounts(host=32 * 1024**2, device=32 * 1024**2, unified=32 * 1024**2),
+        output=output,
+        source_revision="test",
+        concurrent_load="test suite",
+        warmup_cycles=1,
+        measured_cycles=2,
+        timeout_seconds=60,
+        host_headroom_bytes=0,
+        device_headroom_bytes=0,
+    )
+    m = artifact.measurement
+    assert isinstance(m, ComputeRunMeasurement)
+    assert m.completed, m.error
+    # Both passes of every cycle produced identical outputs, chunk by chunk.
+    assert m.identical_output_cycles == (0, 1, 2)
+    assert ProfileArtifact.model_validate_json(output.read_text()) == artifact
+    spec = json.loads(output.with_suffix(".spec.json").read_text())
+    assert spec["prefill_chunk_tokens"] == 3
+    stage = [
+        (r.step, r.chunk_index, r.context_tokens)
+        for r in m.records
+        if r.cycle == 0 and r.timing_mode == "whole-stage" and r.component == "stage"
+    ]
+    # Chunks of 3, 3 and 2 at positions 0, 3 and 6, then decodes at 8, 9 and 10.
+    assert stage == [(0, 0, 0), (0, 1, 3), (0, 2, 6), (1, None, 8), (2, None, 9), (3, None, 10)]
+    sampling = {
+        (r.chunk_index, r.context_tokens)
+        for r in m.records
+        if r.timing_mode == "component-synchronized" and r.component == "sampling"
+    }
+    if stage_index == 1:
+        # The final stage samples nothing until the last prefill chunk.
+        assert sampling == {(2, 6), (None, 8), (None, 9), (None, 10)}
+    else:
+        assert sampling == set()
+        wire = {r.chunk_index for r in m.records if r.component == "to-wire" and r.step == 0}
+        assert wire == {0, 1, 2}
+    allocation = [r for r in m.records if r.component == "sequence_allocation"]
+    assert {r.chunk_index for r in allocation} == {0}

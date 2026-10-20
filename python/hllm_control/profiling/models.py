@@ -73,9 +73,6 @@ class ProfileKey(ProfileModel):
             raise ValueError("workload digest mismatch")
         if w.concurrency != 1:
             raise ValueError("measured profiles currently support concurrency 1")
-        if w.prefill_chunk_tokens:
-            # The native memory/compute probes run whole-prompt prefill only.
-            raise ValueError("measured profiles currently support whole-prompt prefill only")
         if w.total_cached_tokens < w.prompt_tokens + w.output_tokens:
             raise ValueError("cache capacity must cover prompt plus output tokens")
         supported = (
@@ -251,6 +248,9 @@ class TimingRecord(ProfileModel):
     layer_index: NonNegativeInt | None
     timing_mode: Literal["component-synchronized", "whole-stage"]
     milliseconds: Milliseconds
+    # Which prefill chunk a chunked-prefill record belongs to. Absent for whole-prompt
+    # prefill and decode, so historical records and digests are unchanged.
+    chunk_index: NonNegativeInt | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class ComputeRunMeasurement(ProfileModel):
@@ -410,24 +410,37 @@ def validate_compute_run(key: ProfileKey, conditions: Conditions, m: ComputeRunM
     cycles = conditions.warmup_cycles + conditions.measured_cycles
     if m.error is not None or m.identical_output_cycles != tuple(range(cycles)):
         raise ValueError("missing paired output parity checks")
-    indexed: dict[tuple[int, str, int], list[TimingRecord]] = {}
+    w = key.workload
+    # Chunked prefill executes step 0 as one input per chunk, at positions 0, c, 2c...
+    chunk = w.prefill_chunk_tokens
+    chunks = -(-w.prompt_tokens // chunk) if chunk else 1
+    indexed: dict[tuple[int, str, int, int | None], list[TimingRecord]] = {}
     for r in m.records:
-        if r.cycle >= cycles or r.step >= key.workload.output_tokens:
+        if r.cycle >= cycles or r.step >= w.output_tokens:
             raise ValueError("timing sample outside workload")
-        position = 0 if r.step == 0 else key.workload.prompt_tokens + r.step - 1
+        if (r.chunk_index is not None) != (bool(chunk) and r.step == 0) or (
+            r.chunk_index is not None and r.chunk_index >= chunks
+        ):
+            raise ValueError("timing chunk identity mismatch")
+        position = (r.chunk_index or 0) * chunk if r.step == 0 else w.prompt_tokens + r.step - 1
         if r.context_tokens != position or r.phase != ("prefill" if r.step == 0 else "decode"):
             raise ValueError("timing context/phase mismatch")
         if (r.component == "layer") != (r.layer_index is not None):
             raise ValueError("layer timing identity mismatch")
-        indexed.setdefault((r.cycle, r.timing_mode, r.step), []).append(r)
+        indexed.setdefault((r.cycle, r.timing_mode, r.step, r.chunk_index), []).append(r)
+    executions = [(0, k if chunk else None) for k in range(chunks)] + [
+        (step, None) for step in range(1, w.output_tokens)
+    ]
     for cycle in range(cycles):
         for mode in ("whole-stage", "component-synchronized"):
-            for step in range(key.workload.output_tokens):
-                rows = indexed.get((cycle, mode, step), [])
+            for step, chunk_index in executions:
+                rows = indexed.get((cycle, mode, step, chunk_index), [])
                 actual = [(r.component, r.layer_index) for r in rows]
                 expected: list[tuple[str, int | None]] = [("stage", None)]
-                if step == 0:
+                if step == 0 and not chunk_index:
                     expected.append(("sequence_allocation", None))
+                # A final stage samples nothing until the last prefill chunk.
+                sampled = step != 0 or chunk_index is None or chunk_index == chunks - 1
                 if mode == "component-synchronized":
                     expected += [
                         ("embedding" if key.assignment.owns_token_embedding else "from-wire", None)
@@ -438,11 +451,10 @@ def validate_compute_run(key: ProfileKey, conditions: Conditions, m: ComputeRunM
                     ]
                     if key.environment.backend != Backend.CPU:
                         expected.append(("validation", None))
-                    expected += (
-                        [(name, None) for name in ("final_norm", "lm_head", "sampling")]
-                        if key.assignment.owns_sampling
-                        else [("to-wire", None)]
-                    )
+                    if not key.assignment.owns_sampling:
+                        expected.append(("to-wire", None))
+                    elif sampled:
+                        expected += [(name, None) for name in ("final_norm", "lm_head", "sampling")]
                     expected.append(("runtime_overhead", None))
                 if set(actual) != set(expected) or len(actual) != len(expected):
                     raise ValueError("missing/duplicate or unexpected timing components")

@@ -201,7 +201,8 @@ The prioritized project-wide list is in [the status page](STATUS.md#next-steps-i
 Serving-specific items:
 
 1. Refresh measured placement profiles with explicit sampling, chunk and batch settings
-   (the native probes measure whole-prompt prefill only); collect longer controlled
+   (the native probes now replay chunked prefill; measured placement does not yet
+   combine chunked profiles); collect longer controlled
    throughput/latency comparisons and longer memory soaks.
 2. Run the bounded HTTP serving soak at levels 1 and 2 for Qwen3-4B after the
    concurrency-two re-run listed on [the status page](STATUS.md).
