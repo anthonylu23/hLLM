@@ -1,6 +1,6 @@
 workers:
   - worker_id: mac-m3-pro
-    endpoint: anthonys-macbook-pro-2:50051
+    endpoint: mac-host:50051
     backend: mlx
     primary_memory_domain: UNIFIED
     supported_architectures: [llama.v1, qwen3.v1]
@@ -17,7 +17,7 @@ workers:
     provenance: CONFIGURED
 
   - worker_id: rtx-3060-ti
-    endpoint: anthonypc:50051
+    endpoint: cuda-host:50051
     backend: cuda
     primary_memory_domain: DEVICE
     supported_architectures: [llama.v1, qwen3.v1]

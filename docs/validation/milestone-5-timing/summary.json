@@ -758,7 +758,7 @@
   ],
   "links": [
     {
-      "profile_digest": "7cfc541fd8227070410b69a466182a783e92ede747afcdc362c62ada1ce2517f",
+      "profile_digest": "022aa4a5a3e10c1f15cb9241afa287a2860a4417cec6bf84526033407ccb316f",
       "qualified": true,
       "error": null,
       "buckets": [
@@ -787,7 +787,7 @@
       "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
       "name": "mlx-cuda",
       "artifact": "mlx-cuda-link.json.gz",
-      "archive_sha256": "c4b8180386a2540fe366149c94f91fd7672978e73bf7c2ea1f7985c4a98efde2",
+      "archive_sha256": "6cba0bfee847670da6b48f1f7e806a58a04886673c56c3c98f1c61fd064e847d",
       "source": {
         "worker_id": "mlx-host",
         "binary_digest": "292e0cf68d65cb2b8fe4c4be278b1884062487173c2568fd27e98c7e8c5475a9",
@@ -795,9 +795,9 @@
         "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
         "grpc_version": "56.0.0",
         "protobuf_version": "7036000",
-        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "host": "<mac-host>",
         "os": "Darwin 25.5.0 arm64",
-        "endpoint": "100.68.43.49:50543"
+        "endpoint": "<mac-tailnet-ip>:50543"
       },
       "target": {
         "worker_id": "cuda-host",
@@ -806,9 +806,9 @@
         "compiler": "14.4.0",
         "grpc_version": "56.0.0",
         "protobuf_version": "7035001",
-        "host": "anthonypc",
+        "host": "<cuda-host>",
         "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
-        "endpoint": "100.86.45.68:50543"
+        "endpoint": "<cuda-tailnet-ip>:50543"
       },
       "prompt_tokens": 512,
       "output_tokens": 256,
@@ -822,7 +822,7 @@
       "stream_teardown_median_ms": 48.8215
     },
     {
-      "profile_digest": "0c117b622e993a3ceb10053887d8a3c267315b8191a83c60dbc13805ed16958b",
+      "profile_digest": "81df6af820f847d4c4724393f48c9ecbd59a3cf77bd71ed07c4273579b7eedc1",
       "qualified": true,
       "error": null,
       "buckets": [
@@ -851,7 +851,7 @@
       "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
       "name": "cuda-mlx",
       "artifact": "cuda-mlx-link.json.gz",
-      "archive_sha256": "085315bb23e4f192188e75e60491eaeda55d8aea659a1da0b13235604966b2ae",
+      "archive_sha256": "5a552e78a9c2cf90731a4d83b5a34e44f6d3fb8c950c6ff259c2cbc045ecd06f",
       "source": {
         "worker_id": "cuda-host",
         "binary_digest": "c766929bb72ff94fbc3c7c097f2aa47c2df55f7eb8d4c9c45744e79cc51e075a",
@@ -859,9 +859,9 @@
         "compiler": "14.4.0",
         "grpc_version": "56.0.0",
         "protobuf_version": "7035001",
-        "host": "anthonypc",
+        "host": "<cuda-host>",
         "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
-        "endpoint": "100.86.45.68:50543"
+        "endpoint": "<cuda-tailnet-ip>:50543"
       },
       "target": {
         "worker_id": "mlx-host",
@@ -870,9 +870,9 @@
         "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
         "grpc_version": "56.0.0",
         "protobuf_version": "7036000",
-        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "host": "<mac-host>",
         "os": "Darwin 25.5.0 arm64",
-        "endpoint": "100.68.43.49:50543"
+        "endpoint": "<mac-tailnet-ip>:50543"
       },
       "prompt_tokens": 512,
       "output_tokens": 256,
@@ -886,7 +886,7 @@
       "stream_teardown_median_ms": 49.44967
     },
     {
-      "profile_digest": "9b465347d2852e2f503c007b5e3b6e221624f0432609981b3443023c40211c21",
+      "profile_digest": "417166867e99bbff7f268f8223462c15473c4e822c76bab2c9c8a4e359b849b1",
       "qualified": true,
       "error": null,
       "buckets": [
@@ -915,7 +915,7 @@
       "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
       "name": "mlx-cuda-4b",
       "artifact": "mlx-cuda-4b-link.json.gz",
-      "archive_sha256": "f69f4a7f61a519f79041171c82c2bf3a99486cf6c5d11490346b53eca49a1f3e",
+      "archive_sha256": "c821bddd1a418eaaf352b05134d3b10c8cb0119bc357f96cea702f39be75e9ee",
       "source": {
         "worker_id": "mlx-host",
         "binary_digest": "292e0cf68d65cb2b8fe4c4be278b1884062487173c2568fd27e98c7e8c5475a9",
@@ -923,9 +923,9 @@
         "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
         "grpc_version": "56.0.0",
         "protobuf_version": "7036000",
-        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "host": "<mac-host>",
         "os": "Darwin 25.5.0 arm64",
-        "endpoint": "100.68.43.49:50543"
+        "endpoint": "<mac-tailnet-ip>:50543"
       },
       "target": {
         "worker_id": "cuda-host",
@@ -934,9 +934,9 @@
         "compiler": "14.4.0",
         "grpc_version": "56.0.0",
         "protobuf_version": "7035001",
-        "host": "anthonypc",
+        "host": "<cuda-host>",
         "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
-        "endpoint": "100.86.45.68:50543"
+        "endpoint": "<cuda-tailnet-ip>:50543"
       },
       "prompt_tokens": 512,
       "output_tokens": 256,
@@ -950,7 +950,7 @@
       "stream_teardown_median_ms": 46.450292
     },
     {
-      "profile_digest": "e1a9f2b056214a5de3806a56a68fbfaa5b5bf63c2fee1c38b5f790ac54f5496f",
+      "profile_digest": "0aa39d37da9ae15645aa21c11e9196cabe38b0e1cca6833f7b25c5d5635efcd9",
       "qualified": true,
       "error": null,
       "buckets": [
@@ -979,7 +979,7 @@
       "path_evidence": "Before/during/after source-host observations. Reject observed changes; sampling cannot rule out transitions shorter than the observation interval.",
       "name": "cuda-mlx-4b",
       "artifact": "cuda-mlx-4b-link.json.gz",
-      "archive_sha256": "c0b69bafbe9ea77df16a409f5058071647d59fe0af48b65d244d098a4e3cd188",
+      "archive_sha256": "388f68942325db5de4ed357d3ca665fe490b0008db177256f5122053cb5a715a",
       "source": {
         "worker_id": "cuda-host",
         "binary_digest": "c766929bb72ff94fbc3c7c097f2aa47c2df55f7eb8d4c9c45744e79cc51e075a",
@@ -987,9 +987,9 @@
         "compiler": "14.4.0",
         "grpc_version": "56.0.0",
         "protobuf_version": "7035001",
-        "host": "anthonypc",
+        "host": "<cuda-host>",
         "os": "Linux 7.1.9-200.fc44.x86_64 x86_64",
-        "endpoint": "100.86.45.68:50543"
+        "endpoint": "<cuda-tailnet-ip>:50543"
       },
       "target": {
         "worker_id": "mlx-host",
@@ -998,9 +998,9 @@
         "compiler": "Apple LLVM 17.0.0 (clang-1700.6.3.2)",
         "grpc_version": "56.0.0",
         "protobuf_version": "7036000",
-        "host": "10-18-40-73.dynapool.wireless.nyu.edu",
+        "host": "<mac-host>",
         "os": "Darwin 25.5.0 arm64",
-        "endpoint": "100.68.43.49:50543"
+        "endpoint": "<mac-tailnet-ip>:50543"
       },
       "prompt_tokens": 512,
       "output_tokens": 256,

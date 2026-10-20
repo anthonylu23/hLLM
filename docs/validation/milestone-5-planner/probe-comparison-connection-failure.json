@@ -4,7 +4,7 @@
   "attempt": "network-probe-comparison-01",
   "completed_timing_jobs": 0,
   "status": "unknown",
-  "detail": "RuntimeError: fresh memory qualification failed for cuda: ssh: connect to host 100.86.45.68 port 22: Operation timed out\n",
+  "detail": "RuntimeError: fresh memory qualification failed for cuda: ssh: connect to host <cuda-tailnet-ip> port 22: Operation timed out\n",
   "firewall_cleanup": {
     "returncode": 0,
     "stderr": "",
