@@ -11,7 +11,9 @@ allocation-failure handling and streaming-retention regressions.
 A single HTTP process owns one persistent deployment. It provides text/chat completions,
 SSE streaming, model/deployment discovery, health and Prometheus-format metrics.
 Each native request owns independent KV state and sampling state. Native admission sums
-weights, every request's KV cache and workspace in each memory domain. HTTP admission
+weights and every request's KV cache in each memory domain, plus one shared workspace:
+a worker's scheduler runs one pass at a time, so it reserves the largest per-request
+workspace, or with decode batching the sum of the `--max-decode-batch` largest. HTTP admission
 uses a bounded FIFO queue; queued HTTP requests do not reserve native KV buffers.
 
 Start **each participating worker** with its existing identity, model root and memory

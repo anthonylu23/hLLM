@@ -101,7 +101,7 @@ TEST(CudaLifecycleTest, RepeatedMixedExecutionAndUnloadHasBoundedMemoryAfterWarm
           auto b = cpu->allocate_sequence(16U);
           payload = gpu->weight_memory().device_bytes + gpu->sequence_memory(16U).cache.device_bytes;
           pinned_active = test::memory_snapshot().pinned;
-          EXPECT_EQ(pinned_active, gpu->sequence_memory(16U).workspace.pinned_host_bytes);
+          EXPECT_EQ(pinned_active, gpu->sequence_memory(16U).cache.pinned_host_bytes);
           std::atomic_bool cancelled{false};
           runtime::TokenInput input{{1U, 4U, 2U}};
           for (std::size_t step = 0; step < 8U; ++step) {

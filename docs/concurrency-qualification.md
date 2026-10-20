@@ -58,8 +58,14 @@ at least 768 aggregate cached tokens with `max_active_requests=2`. Calculate nat
 cache and workspace using the actual backend configuration. Count resident weights
 once per worker; count per-request KV once per request. Include concurrent or batched
 workspace according to its actual lifetime, and loader scratch when checking cold
-load. The roughly 0.67 GiB of extra MLX reservation per request (663–685 MiB on
-October 13) is a planning estimate, never admission evidence.
+load. Workers built from `main` after October 19, 2026 do this: workspace is transient
+and the scheduler runs one pass at a time, so admission reserves one shared workspace
+per stage (the largest admitted request's, or the sum of the `max_decode_batch` largest
+when the backend batches decodes), and the memory report's reserved workspace is that
+shared amount. Earlier workers, including the October 13 record, reserved about
+0.67 GiB of MLX workspace per request (663–685 MiB); with sharing, the second
+128/256 request adds only its 22.5 MiB KV cache, and concurrency two needs about
+4.24 GiB of logical MLX reservation instead of 4.88 GiB.
 
 Start with `max_decode_batch=1` to isolate overlap from batch-dependent numerical
 changes. Treat a later batch size of two as a separate configuration requiring new
