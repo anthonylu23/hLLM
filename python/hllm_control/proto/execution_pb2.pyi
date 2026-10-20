@@ -47,7 +47,7 @@ class SamplingOptions(_message.Message):
     def __init__(self, temperature: _Optional[float] = ..., top_p: _Optional[float] = ..., top_k: _Optional[int] = ..., seed: _Optional[int] = ..., return_logprobs: _Optional[bool] = ..., top_logprobs: _Optional[int] = ...) -> None: ...
 
 class SequenceOpen(_message.Message):
-    __slots__ = ("sampling", "prompt_tokens", "protocol_version", "deployment_id", "deployment_version", "request_id", "microbatch_id", "maximum_total_tokens", "maximum_new_tokens", "stop_token_ids", "deadline_unix_ms")
+    __slots__ = ("sampling", "prompt_tokens", "protocol_version", "deployment_id", "deployment_version", "request_id", "microbatch_id", "maximum_total_tokens", "maximum_new_tokens", "stop_token_ids", "deadline_unix_ms", "prefill_chunk_tokens")
     SAMPLING_FIELD_NUMBER: _ClassVar[int]
     PROMPT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     PROTOCOL_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -59,6 +59,7 @@ class SequenceOpen(_message.Message):
     MAXIMUM_NEW_TOKENS_FIELD_NUMBER: _ClassVar[int]
     STOP_TOKEN_IDS_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_UNIX_MS_FIELD_NUMBER: _ClassVar[int]
+    PREFILL_CHUNK_TOKENS_FIELD_NUMBER: _ClassVar[int]
     sampling: SamplingOptions
     prompt_tokens: int
     protocol_version: int
@@ -70,7 +71,8 @@ class SequenceOpen(_message.Message):
     maximum_new_tokens: int
     stop_token_ids: _containers.RepeatedScalarFieldContainer[int]
     deadline_unix_ms: int
-    def __init__(self, sampling: _Optional[_Union[SamplingOptions, _Mapping]] = ..., prompt_tokens: _Optional[int] = ..., protocol_version: _Optional[int] = ..., deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., maximum_total_tokens: _Optional[int] = ..., maximum_new_tokens: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
+    prefill_chunk_tokens: int
+    def __init__(self, sampling: _Optional[_Union[SamplingOptions, _Mapping]] = ..., prompt_tokens: _Optional[int] = ..., protocol_version: _Optional[int] = ..., deployment_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., request_id: _Optional[str] = ..., microbatch_id: _Optional[int] = ..., maximum_total_tokens: _Optional[int] = ..., maximum_new_tokens: _Optional[int] = ..., stop_token_ids: _Optional[_Iterable[int]] = ..., deadline_unix_ms: _Optional[int] = ..., prefill_chunk_tokens: _Optional[int] = ...) -> None: ...
 
 class TensorEnvelope(_message.Message):
     __slots__ = ("protocol_version", "deployment_id", "request_id", "microbatch_id", "sequence_number", "phase", "first_position", "sequence_lengths", "cache_slot_ids", "shape", "dtype", "layout", "payload_length", "checksum", "payload", "deployment_version")

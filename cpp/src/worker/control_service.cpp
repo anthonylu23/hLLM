@@ -389,6 +389,7 @@ grpc::Status ControlService::LoadStage(grpc::ServerContext*, const v1::LoadStage
 }
 
 std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, std::size_t tokens,
+                                                       std::size_t prefill_chunk_tokens,
                                                        std::uint64_t deadline_ms,
                                                        std::unique_lock<std::mutex>& lock) {
   prune_expired();
@@ -408,12 +409,16 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
     }
     deadline = std::chrono::system_clock::time_point(std::chrono::milliseconds(deadline_ms));
   }
+  // An older worker ignores the chunk field and reserves for the whole prompt, which
+  // only over-reserves, so peers need no capability negotiation for it.
+  const auto query_tokens = runtime::query_rows(tokens, prefill_chunk_tokens);
   if (const auto found = active_.find(id); found != active_.end()) {
     auto& existing = found->second;
     if (existing->allocating) {
       throw runtime::Error::resource_exhausted("request allocation is in progress");
     }
-    if (existing->maximum_tokens != tokens || existing->cancelled.load()) {
+    if (existing->maximum_tokens != tokens || existing->maximum_query_tokens != query_tokens ||
+        existing->cancelled.load()) {
       throw runtime::Error::invalid_request("conflicting request reservation retry");
     }
     if (!existing->running) existing->deadline = std::min(existing->deadline, deadline);
@@ -422,7 +427,7 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   if (active_.size() >= config_.maximum_active_requests) {
     throw runtime::Error::resource_exhausted("worker active request limit reached");
   }
-  const auto memory = deployment_->backend->sequence_memory(tokens);
+  const auto memory = deployment_->backend->sequence_memory(tokens, query_tokens);
   auto cache = memory.cache;
   std::vector<runtime::MemoryAmounts> workspaces{memory.workspace};
   auto cached_tokens = tokens;
@@ -441,6 +446,7 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
   auto next = std::make_shared<ActiveRequest>();
   next->id = id;
   next->maximum_tokens = tokens;
+  next->maximum_query_tokens = query_tokens;
   next->deadline = deadline;
   next->memory = memory;
   next->admitted = std::chrono::steady_clock::now();
@@ -487,12 +493,13 @@ std::size_t ControlService::pass_rows() const {
 
 ExecutionLease ControlService::acquire(const std::string& id, std::uint64_t version,
                                        const std::string& request, std::size_t tokens,
-                                       std::uint64_t deadline, std::uint32_t required_stage) {
+                                       std::uint64_t deadline, std::uint32_t required_stage,
+                                       std::size_t prefill_chunk_tokens) {
   std::unique_lock lock(mutex_);
   if (!deployment_matches(id, version) || deployment_->spec.stage_index() != required_stage) {
     throw runtime::Error::invalid_request("stale deployment or incorrect execution stage");
   }
-  auto state = reserve(request, tokens, deadline, lock);
+  auto state = reserve(request, tokens, prefill_chunk_tokens, deadline, lock);
   if (state->running) {
     throw runtime::Error::resource_exhausted("request already executing");
   }
@@ -532,7 +539,7 @@ grpc::Status ControlService::ReserveRequest(grpc::ServerContext*,
   }
   try {
     static_cast<void>(reserve(request->request_id(), request->maximum_total_tokens(),
-                              request->deadline_unix_ms(), lock));
+                              request->prefill_chunk_tokens(), request->deadline_unix_ms(), lock));
     response->set_accepted(true);
     response->set_detail("backend sequence allocated and workspace reserved");
   } catch (const runtime::Error& error) {

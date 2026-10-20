@@ -132,27 +132,36 @@ class MlxStage final : public ReferenceStage {
   std::size_t hidden_size() const override { return config_.hidden_size; }
   std::size_t vocabulary_size() const override { return vocab_; }
   std::size_t maximum_tokens() const override { return config_.maximum_sequence_length; }
-  runtime::SequenceMemory sequence_memory(std::size_t tokens) const override {
+  using runtime::StageBackend::sequence_memory;
+  runtime::SequenceMemory sequence_memory(std::size_t tokens,
+                                          std::size_t maximum_query_tokens) const override {
     if (tokens == 0U || tokens > maximum_tokens()) {
       throw runtime::Error::invalid_request("request exceeds model context capacity");
     }
     static_cast<void>(dimension(tokens));
+    const auto rows = runtime::query_rows(tokens, maximum_query_tokens);
     auto cache =
         mul(mul(mul(mul(tokens, end_ - start_), config_.key_value_heads), config_.head_dimension),
             2U * element_bytes());
+    // One prefill input of `rows` query rows attends to all `tokens` positions. Dense
+    // temporaries and transport scale with the query rows; the repeated F32
+    // keys/values span the whole context (16 floats per projection element reserved
+    // for them). With rows == tokens this is the whole-prompt bound.
     auto projections = mul(config_.attention_heads, config_.head_dimension);
-    auto width = add(add(mul(hidden_size(), 32U), mul(projections, 32U)),
-                     mul(config_.intermediate_size, 16U));
-    auto linear = mul(mul(tokens, width), sizeof(float));
-    auto attention = mul(mul(mul(tokens, tokens), config_.attention_heads), 4U * sizeof(float));
-    auto transport = add(mul(mul(tokens, hidden_size()), 12U), mul(tokens, 16U));
-    // slice_update may copy the complete cache; do not assume in-place reuse.
+    auto query_width = add(add(mul(hidden_size(), 32U), mul(projections, 16U)),
+                           mul(config_.intermediate_size, 16U));
+    auto linear = add(mul(mul(rows, query_width), sizeof(float)),
+                      mul(mul(tokens, mul(projections, 16U)), sizeof(float)));
+    auto attention = mul(mul(mul(rows, tokens), config_.attention_heads), 4U * sizeof(float));
+    auto transport = add(mul(mul(rows, hidden_size()), 12U), mul(rows, 16U));
+    // slice_update may copy the complete cache on every input; do not assume in-place
+    // reuse. This term stays at the whole cache for chunked prefill too.
     auto workspace = add(add(add(add(linear, attention), cache), transport),
                          add(mul(vocab_, 64U), 8U * 1024U * 1024U));
     return {{0U, 0U, 0U, cache}, {0U, 0U, 0U, add(workspace, cast_workspace_)}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
-    static_cast<void>(sequence_memory(tokens));
+    static_cast<void>(sequence_memory(tokens, tokens));
     std::scoped_lock lock(device_mutex());
     return completed(stream_, [&]() -> std::unique_ptr<runtime::SequenceState> {
       auto state = std::make_unique<MlxSequence>();

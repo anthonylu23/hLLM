@@ -39,6 +39,10 @@ message SequenceOpen {
   uint64 maximum_new_tokens = 7;
   repeated uint64 stop_token_ids = 8;
   uint64 deadline_unix_ms = 9;
+  // The upstream request's prefill chunk; this stage reserves for prefill inputs of at
+  // most this many tokens and rejects larger ones. 0 means whole-prompt prefill.
+  // Workers that predate this field reserve for the whole prompt.
+  uint32 prefill_chunk_tokens = 12;
 }
 
 message TensorEnvelope {

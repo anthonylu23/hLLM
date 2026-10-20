@@ -26,7 +26,9 @@ class TestStage final : public runtime::StageBackend {
   std::size_t hidden_size() const override { return 8U; }
   std::size_t vocabulary_size() const override { return 16U; }
   std::size_t maximum_tokens() const override { return 16U; }
-  runtime::SequenceMemory sequence_memory(std::size_t) const override { return plan_->sequence; }
+  runtime::SequenceMemory sequence_memory(std::size_t, std::size_t) const override {
+    return plan_->sequence;
+  }
   bool supports_decode_batch() const override { return plan_->batches; }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t) const override {
     ++plan_->allocations;

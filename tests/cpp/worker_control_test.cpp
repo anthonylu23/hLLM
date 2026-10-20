@@ -519,6 +519,75 @@ TEST(WorkerConcurrencyTest, SharedWorkspaceFollowsTheLargestActiveRequest) {
   }
 }
 
+TEST(WorkerConcurrencyTest, ChunkedReservationAdmitsLessWorkspaceAndBindsTheChunk) {
+  const test::ModelFixture model;
+  const auto load = model.load();
+  auto stage = cpu::make_backend_factory()->load(load, model.root, {1'000'000U, 0U, 0U});
+  constexpr std::size_t tokens = 32U;
+  const auto whole = stage->sequence_memory(tokens);
+  const auto chunked = stage->sequence_memory(tokens, 4U);
+  ASSERT_LT(chunked.workspace.host_bytes, whole.workspace.host_bytes);
+  // Fits the chunked reservation exactly, but not the whole-prompt one.
+  ControlService service({.worker_id = "cpu-a",
+                          .endpoint = "127.0.0.1:50051",
+                          .model_root = model.root,
+                          .host_memory_capacity_bytes = stage->weight_memory().host_bytes +
+                                                        chunked.cache.host_bytes +
+                                                        chunked.workspace.host_bytes,
+                          .maximum_active_requests = 2U},
+                         cpu::make_backend_factory());
+  grpc::ServerContext context;
+  v1::LoadStageResponse loaded;
+  ASSERT_TRUE(service.LoadStage(&context, &load, &loaded).ok());
+  ASSERT_TRUE(loaded.accepted()) << loaded.detail();
+  v1::ReserveRequestMessage reserve;
+  reserve.set_plan_id("plan-1");
+  reserve.set_deployment_version(1U);
+  reserve.set_request_id("one");
+  reserve.set_maximum_total_tokens(tokens);
+  for (const std::uint32_t whole_prompt : {0U, 32U, 100U}) {
+    reserve.set_prefill_chunk_tokens(whole_prompt);
+    v1::ReserveResponse rejected;
+    ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &rejected).ok());
+    EXPECT_FALSE(rejected.accepted());
+    EXPECT_EQ(rejected.error().code(), v1::ERROR_CODE_RESOURCE_EXHAUSTED);
+  }
+  reserve.set_prefill_chunk_tokens(4U);
+  v1::ReserveResponse accepted;
+  ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &accepted).ok());
+  ASSERT_TRUE(accepted.accepted()) << accepted.detail();
+  v1::Empty empty;
+  v1::MemoryReport report;
+  ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
+  EXPECT_EQ(report.reserved_cache_bytes(), chunked.cache.host_bytes);
+  EXPECT_EQ(report.reserved_workspace_bytes(), chunked.workspace.host_bytes);
+  // A retry must name the same chunk; another chunk is a conflicting reservation.
+  for (const std::uint32_t other : {0U, 3U, 8U}) {
+    reserve.set_prefill_chunk_tokens(other);
+    v1::ReserveResponse conflict;
+    ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &conflict).ok());
+    EXPECT_FALSE(conflict.accepted());
+    EXPECT_EQ(conflict.error().code(), v1::ERROR_CODE_INVALID_REQUEST);
+  }
+  EXPECT_THROW(static_cast<void>(service.acquire("plan-1", 1U, "one", tokens, 0U, 0U)),
+               runtime::Error);
+  reserve.set_prefill_chunk_tokens(4U);
+  v1::ReserveResponse retried;
+  ASSERT_TRUE(service.ReserveRequest(&context, &reserve, &retried).ok());
+  EXPECT_TRUE(retried.accepted());
+  auto lease = service.acquire("plan-1", 1U, "one", tokens, 0U, 0U, 4U);
+  EXPECT_EQ(lease.request->maximum_query_tokens, 4U);
+  service.release(lease.request, RequestOutcome::kCompleted);
+  // Whole-prompt requests record the full sequence as their query bound.
+  ControlService roomy({"cpu-a", "127.0.0.1:50051", model.root, 1'000'000U},
+                       cpu::make_backend_factory());
+  ASSERT_TRUE(roomy.LoadStage(&context, &load, &loaded).ok());
+  ASSERT_TRUE(loaded.accepted());
+  auto full = roomy.acquire("plan-1", 1U, "two", tokens, 0U, 0U);
+  EXPECT_EQ(full.request->maximum_query_tokens, tokens);
+  roomy.release(full.request, RequestOutcome::kCompleted);
+}
+
 TEST(WorkerConcurrencyTest, CombinedMemoryAdmissionRejectsSecondRequest) {
   const test::ModelFixture model;
   auto factory = cpu::make_backend_factory();

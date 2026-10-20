@@ -36,7 +36,9 @@ class GateBackend final : public hllm::runtime::StageBackend {
   std::size_t hidden_size() const override { return 1; }
   std::size_t vocabulary_size() const override { return 1; }
   std::size_t maximum_tokens() const override { return 10; }
-  hllm::runtime::SequenceMemory sequence_memory(std::size_t) const override { return {}; }
+  hllm::runtime::SequenceMemory sequence_memory(std::size_t, std::size_t) const override {
+    return {};
+  }
   std::unique_ptr<hllm::runtime::SequenceState> allocate_sequence(std::size_t) const override {
     return std::make_unique<hllm::runtime::SequenceState>();
   }

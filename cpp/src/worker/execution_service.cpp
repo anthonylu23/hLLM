@@ -294,7 +294,8 @@ grpc::Status ExecutionService::Execute(
     RequestGuard guard(control_, *context,
                        control_.acquire(open.deployment_id(), open.deployment_version(),
                                         open.request_id(), open.maximum_total_tokens(),
-                                        effective_deadline(*context, open.deadline_unix_ms()), 1U));
+                                        effective_deadline(*context, open.deadline_unix_ms()), 1U,
+                                        open.prefill_chunk_tokens()));
     auto& lease = guard.lease();
     active = lease.request;
     set_sampling(*active->sequence, sampling, lease.deployment->backend->vocabulary_size());
@@ -345,6 +346,9 @@ grpc::Status ExecutionService::Execute(
       const auto count = input.tokens;
       if ((prefilling && count > prompt - position) || (!prefilling && count != 1U)) {
         throw runtime::Error::invalid_request("invalid prefill/decode chunk length");
+      }
+      if (count > active->maximum_query_tokens) {
+        throw runtime::Error::invalid_request("prefill chunk exceeds the reserved chunk size");
       }
       active->sequence->prefilling = prefilling;
       active->sequence->prefill_only = prefilling && position + count < prompt;
@@ -424,7 +428,8 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
         control_, *context,
         control_.acquire(request->deployment_id(), request->deployment_version(),
                          request->request_id(), total,
-                         effective_deadline(*context, request->deadline_unix_ms()), 0U));
+                         effective_deadline(*context, request->deadline_unix_ms()), 0U,
+                         request->prefill_chunk_tokens()));
     const auto acquire_end = request->capture_timing() ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     auto& lease = guard.lease();
     active = lease.request;
@@ -442,6 +447,9 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
     if (split &&
         chunk_size > static_cast<std::size_t>(kMaximumRpcBytes / 4) / backend.hidden_size()) {
       throw runtime::Error::resource_exhausted("prefill activation exceeds transport limit");
+    }
+    if (chunk_size > active->maximum_query_tokens) {
+      throw runtime::Error::internal("prefill chunk exceeds the reserved chunk size");
     }
     std::vector<std::uint64_t> tokens(request->token_ids().begin(), request->token_ids().end());
     for (const auto token : tokens) {
@@ -469,6 +477,8 @@ grpc::Status GenerationService::Generate(grpc::ServerContext* context,
       open->set_prompt_tokens(static_cast<std::uint64_t>(request->token_ids_size()));
       open->set_maximum_new_tokens(request->maximum_new_tokens());
       open->set_deadline_unix_ms(milliseconds(active->deadline));
+      // The downstream stage reserves for, and enforces, the same chunk size.
+      open->set_prefill_chunk_tokens(request->prefill_chunk_tokens());
       *open->mutable_stop_token_ids() = request->stop_token_ids();
       auto* wire_sampling = open->mutable_sampling();
       wire_sampling->set_temperature(sampling.temperature);
