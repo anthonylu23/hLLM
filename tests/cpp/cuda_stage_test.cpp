@@ -318,9 +318,12 @@ TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
   budget.pinned_host_bytes = 1024U * 1024U;
   auto stage = factory->load(fixture.load(0U), fixture.root, budget);
   const auto memory = stage->sequence_memory(32U);
-  EXPECT_EQ(memory.workspace.pinned_host_bytes, 32U * stage->hidden_size() * 2U);
+  // Staging lives with the sequence, so it is per-request cache, not shared workspace.
+  EXPECT_EQ(memory.cache.pinned_host_bytes, 32U * stage->hidden_size() * 2U);
+  EXPECT_EQ(memory.cache.host_bytes, memory.cache.pinned_host_bytes);
+  EXPECT_EQ(memory.workspace.pinned_host_bytes, 0U);
   auto single = factory->load(fixture.load(0U, false), fixture.root, budget);
-  EXPECT_EQ(single->sequence_memory(32U).workspace.pinned_host_bytes, 0U);
+  EXPECT_EQ(single->sequence_memory(32U).cache.pinned_host_bytes, 0U);
   const auto needed = runtime::add_memory(stage->weight_memory(),
                                         runtime::add_memory(memory.cache, memory.workspace));
   for (const int short_domain : {0, 1, 2}) {
@@ -352,7 +355,7 @@ TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
       for (const auto& domain : report.domain_usage()) {
         if (domain.domain() == v1::MEMORY_DOMAIN_HOST) host = domain.reserved_workspace_bytes();
         if (domain.domain() == v1::MEMORY_DOMAIN_DEVICE) device = domain.reserved_workspace_bytes();
-        if (domain.domain() == v1::MEMORY_DOMAIN_HOST_PINNED) pinned = domain.reserved_workspace_bytes();
+        if (domain.domain() == v1::MEMORY_DOMAIN_HOST_PINNED) pinned = domain.reserved_cache_bytes();
       }
       EXPECT_EQ(pinned, needed.pinned_host_bytes);
       EXPECT_EQ(host, memory.workspace.host_bytes);

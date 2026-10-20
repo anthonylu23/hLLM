@@ -171,9 +171,9 @@ qualification profile and the same CPU/link/workload/planner settings as the bas
 
 Each reserved sequence owns one `cudaHostAlloc` buffer and a completion event.
 Its size is `min(maximum_tokens * hidden_size * 2, 8 MiB)` for a split stage,
-and zero for a stage owning the complete model. Admission charges these bytes
-to both host workspace and its pinned subset; total usage sums host and device
-only. The planner checks both budgets and rejects a pinned profile lacking a host budget.
+and zero for a stage owning the complete model. The buffer lives as long as its
+sequence, so admission charges these bytes to both host and pinned-host cache, per
+request, not to the shared workspace; total usage sums host and device only. The planner checks both budgets and rejects a pinned profile lacking a host budget.
 CUDA's existing conservative device workspace covers the F16 conversion tensor.
 
 Boundaries larger than staging are copied in chunks through the same allocation,

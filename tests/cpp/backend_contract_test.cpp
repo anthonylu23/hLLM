@@ -16,6 +16,7 @@ struct AllocationPlan {
   runtime::SequenceMemory sequence{{0U, 200U, 0U}, {50U, 100U, 40U}};
   int allocations{0};
   std::function<void()> on_allocate;
+  bool batches{false};
 };
 
 class TestStage final : public runtime::StageBackend {
@@ -26,6 +27,7 @@ class TestStage final : public runtime::StageBackend {
   std::size_t vocabulary_size() const override { return 16U; }
   std::size_t maximum_tokens() const override { return 16U; }
   runtime::SequenceMemory sequence_memory(std::size_t) const override { return plan_->sequence; }
+  bool supports_decode_batch() const override { return plan_->batches; }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t) const override {
     ++plan_->allocations;
     if (plan_->on_allocate) plan_->on_allocate();
@@ -124,6 +126,55 @@ TEST(BackendContractTest, ReportsIndependentDomainsAndReleasesReservations) {
   EXPECT_EQ(released.reserved_cache_bytes(), 0U);
   EXPECT_EQ(released.reserved_workspace_bytes(), 0U);
   EXPECT_EQ(released.loaded_weight_bytes(), 120U);
+}
+
+TEST(BackendContractTest, ConcurrentRequestsShareWorkspaceUnlessDecodeBatched) {
+  const test::ModelFixture model;
+  // Per request: device cache 200; workspace host 50, device 100, pinned 40. One
+  // pass runs at a time, so unbatched requests share one workspace; a decode batch
+  // of two can use two.
+  for (const bool batches : {false, true}) {
+    for (const bool short_device : {false, true}) {
+      SCOPED_TRACE(::testing::Message() << "batches=" << batches << " short=" << short_device);
+      auto plan = std::make_shared<AllocationPlan>();
+      plan->batches = batches;
+      const std::size_t rows = batches ? 2U : 1U;
+      const std::size_t device = 100U + 2U * 200U + rows * 100U - (short_device ? 1U : 0U);
+      ControlService service({.worker_id = "cpu-a",
+                              .endpoint = "127.0.0.1:50051",
+                              .model_root = model.root,
+                              .host_memory_capacity_bytes = 20U + rows * 50U,
+                              .device_memory_capacity_bytes = device,
+                              .pinned_host_memory_capacity_bytes = rows * 40U,
+                              .maximum_active_requests = 3U,
+                              .maximum_decode_batch = 2U},
+                             std::make_unique<TestFactory>(plan));
+      auto load = model.load();
+      v1::LoadStageResponse loaded;
+      ASSERT_TRUE(service.LoadStage(nullptr, &load, &loaded).ok());
+      ASSERT_TRUE(loaded.accepted()) << loaded.detail();
+      auto first = service.acquire("plan-1", 1U, "one", 4U, 0U, 0U);
+      if (short_device) {
+        EXPECT_THROW(static_cast<void>(service.acquire("plan-1", 1U, "two", 4U, 0U, 0U)),
+                     runtime::Error);
+        EXPECT_EQ(plan->allocations, 1);
+        service.release(first.request, RequestOutcome::kCompleted);
+        continue;
+      }
+      auto second = service.acquire("plan-1", 1U, "two", 4U, 0U, 0U);
+      v1::MemoryReport report;
+      ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &report).ok());
+      EXPECT_EQ(report.reserved_cache_bytes(), 400U);
+      EXPECT_EQ(report.reserved_workspace_bytes(), rows * 150U);  // Pinned is within host.
+      // A third request adds another cache, which no longer fits the device budget.
+      EXPECT_THROW(static_cast<void>(service.acquire("plan-1", 1U, "three", 4U, 0U, 0U)),
+                   runtime::Error);
+      service.release(second.request, RequestOutcome::kCompleted);
+      ASSERT_TRUE(service.GetMemoryReport(nullptr, nullptr, &report).ok());
+      EXPECT_EQ(report.reserved_workspace_bytes(), 150U);
+      service.release(first.request, RequestOutcome::kCompleted);
+    }
+  }
 }
 
 TEST(BackendContractTest, RejectsInvalidWeightAccountingWithoutPublishingStage) {
