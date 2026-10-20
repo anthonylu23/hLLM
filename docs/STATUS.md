@@ -64,9 +64,10 @@ These need a decision before the dependent work can start.
    tokens, toward 32K.
 4. Decide the MLX per-request workspace design and Milestone 7's gating.
 
-Qualification runs follow the [overnight backlog run book](overnight-backlog.md) and the
-[tools README](../scripts/validation/README.md). Profiles expire after 24 hours, so every
-GPU run needs fresh same-day profiles on matching binaries.
+Qualification runs follow the
+[two-host launchers and run checklist](../scripts/validation/README.md#two-host-launchers);
+the [two-host log](overnight-backlog.md) records earlier runs. Profiles expire after 24
+hours, so every GPU run needs fresh same-day profiles on matching binaries.
 
 ## Closed October 15, 2026
 
