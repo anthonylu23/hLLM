@@ -147,32 +147,41 @@ class CudaStage final : public ReferenceStage {
   std::size_t hidden_size() const override { return config_.hidden_size; }
   std::size_t vocabulary_size() const override { return vocab_; }
   std::size_t maximum_tokens() const override { return config_.maximum_sequence_length; }
-  runtime::SequenceMemory sequence_memory(std::size_t tokens) const override {
+  using runtime::StageBackend::sequence_memory;
+  runtime::SequenceMemory sequence_memory(std::size_t tokens,
+                                          std::size_t maximum_query_tokens) const override {
     if (tokens == 0U || tokens > maximum_tokens()) {
       throw runtime::Error::invalid_request("request exceeds model context capacity");
     }
     static_cast<void>(dimension(tokens));
+    const auto rows = runtime::query_rows(tokens, maximum_query_tokens);
     const auto cache =
         mul(mul(mul(mul(tokens, end_ - start_), config_.key_value_heads), config_.head_dimension),
             2U * element_bytes());
     // The initial implementation uses explicit dense attention, including F32
-    // scores/softmax. Reserve the worst prefill/decode shape for this sequence.
+    // scores/softmax. Reserve the worst prefill/decode shape for this sequence: one
+    // prefill input of `rows` query rows attending to all `tokens` positions.
+    // Dense temporaries scale with the query rows. The repeated F32 keys/values span
+    // the whole context (16 floats per projection element reserved for them). With
+    // rows == tokens this is the whole-prompt bound.
     const auto projections = mul(config_.attention_heads, config_.head_dimension);
-    const auto width = add(add(mul(hidden_size(), 32U), mul(projections, 32U)),
-                           mul(config_.intermediate_size, 16U));
-    const auto linear = mul(mul(tokens, width), sizeof(float));
+    const auto query_width = add(add(mul(hidden_size(), 32U), mul(projections, 16U)),
+                                 mul(config_.intermediate_size, 16U));
+    const auto linear = add(mul(mul(rows, query_width), sizeof(float)),
+                            mul(mul(tokens, mul(projections, 16U)), sizeof(float)));
     const auto attention =
-        mul(mul(mul(tokens, tokens), config_.attention_heads), 4U * sizeof(float));
+        mul(mul(mul(rows, tokens), config_.attention_heads), 4U * sizeof(float));
     const auto device = add(add(add(linear, attention), mul(vocab_, 32U)), 8U * 1024U * 1024U);
-    const auto host = add(add(mul(mul(tokens, hidden_size()), 6U), mul(tokens, 16U)), 65536U);
+    const auto host = add(add(mul(mul(rows, hidden_size()), 6U), mul(rows, 16U)), 65536U);
     // Pinned staging is allocated with the sequence and lives as long as it, like the
     // KV cache, so it is not part of the transient workspace that requests share.
+    // allocate_sequence() sizes it for the whole sequence, so it stays at `tokens`.
     const auto staging = staging_bytes(tokens);
     return {{staging, cache, staging},
             {add(host, mul(vocab_, 32U)), add(device, cast_workspace_), 0U}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
-    static_cast<void>(sequence_memory(tokens));
+    static_cast<void>(sequence_memory(tokens, tokens));
     std::scoped_lock lock(mutex_);
     return completed(stream_, [&]() -> std::unique_ptr<runtime::SequenceState> {
       auto state = std::make_unique<CudaSequence>();

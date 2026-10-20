@@ -45,6 +45,14 @@ struct DecodeBatchItem {
 StageInput combine_decode_inputs(const std::vector<DecodeBatchItem>& items);
 std::vector<StageOutput> split_decode_boundary(BoundaryActivation output);
 
+// Effective query rows for a reservation: zero or anything at least `tokens` is the
+// whole sequence.
+[[nodiscard]] constexpr std::size_t query_rows(std::size_t tokens,
+                                               std::size_t maximum_query_tokens) noexcept {
+  return maximum_query_tokens == 0U || maximum_query_tokens > tokens ? tokens
+                                                                     : maximum_query_tokens;
+}
+
 class StageBackend {
  public:
   virtual ~StageBackend() = default;
@@ -52,7 +60,14 @@ class StageBackend {
   [[nodiscard]] virtual std::size_t hidden_size() const = 0;
   [[nodiscard]] virtual std::size_t vocabulary_size() const = 0;
   [[nodiscard]] virtual std::size_t maximum_tokens() const = 0;
-  [[nodiscard]] virtual SequenceMemory sequence_memory(std::size_t tokens) const = 0;
+  // Reservation for a sequence of `tokens` total positions whose prefill inputs carry
+  // at most `maximum_query_tokens` rows each (chunked prefill). Zero, or a value of at
+  // least `tokens`, means whole-prompt prefill: the reservation for `tokens` rows.
+  [[nodiscard]] virtual SequenceMemory sequence_memory(std::size_t tokens,
+                                                       std::size_t maximum_query_tokens) const = 0;
+  [[nodiscard]] SequenceMemory sequence_memory(std::size_t tokens) const {
+    return sequence_memory(tokens, tokens);
+  }
   [[nodiscard]] virtual std::unique_ptr<SequenceState> allocate_sequence(
       std::size_t tokens) const = 0;
   // Execute embedding (when first), owned layers, and sampling (when last) as

@@ -104,18 +104,20 @@ class UnloadStageRequest(_message.Message):
     def __init__(self, plan_id: _Optional[str] = ..., deployment_version: _Optional[int] = ...) -> None: ...
 
 class ReserveRequestMessage(_message.Message):
-    __slots__ = ("plan_id", "request_id", "deployment_version", "maximum_total_tokens", "deadline_unix_ms")
+    __slots__ = ("plan_id", "request_id", "deployment_version", "maximum_total_tokens", "deadline_unix_ms", "prefill_chunk_tokens")
     PLAN_ID_FIELD_NUMBER: _ClassVar[int]
     REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
     DEPLOYMENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     MAXIMUM_TOTAL_TOKENS_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_UNIX_MS_FIELD_NUMBER: _ClassVar[int]
+    PREFILL_CHUNK_TOKENS_FIELD_NUMBER: _ClassVar[int]
     plan_id: str
     request_id: str
     deployment_version: int
     maximum_total_tokens: int
     deadline_unix_ms: int
-    def __init__(self, plan_id: _Optional[str] = ..., request_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., maximum_total_tokens: _Optional[int] = ..., deadline_unix_ms: _Optional[int] = ...) -> None: ...
+    prefill_chunk_tokens: int
+    def __init__(self, plan_id: _Optional[str] = ..., request_id: _Optional[str] = ..., deployment_version: _Optional[int] = ..., maximum_total_tokens: _Optional[int] = ..., deadline_unix_ms: _Optional[int] = ..., prefill_chunk_tokens: _Optional[int] = ...) -> None: ...
 
 class ReserveResponse(_message.Message):
     __slots__ = ("accepted", "detail", "error")
