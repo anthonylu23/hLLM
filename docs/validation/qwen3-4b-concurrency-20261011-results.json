@@ -272,7 +272,7 @@
     }
   ],
   "oracle_1024": {
-    "driver_tail": "{\"output\": \"/home/anthonylu/Projects/experiments/hllm-4b-fit-20261011-044533/inputs/reference-1024-256-f16.json\", \"dtype\": \"f16\", \"tokens\": 256, \"seconds\": 69.88343500392511, \"peak_cuda_allocated_bytes\": 6520437248}",
+    "driver_tail": "{\"output\": \"~/Projects/experiments/hllm-4b-fit-20261011-044533/inputs/reference-1024-256-f16.json\", \"dtype\": \"f16\", \"tokens\": 256, \"seconds\": 69.88343500392511, \"peak_cuda_allocated_bytes\": 6520437248}",
     "file": "inputs/reference-1024-256-f16.json",
     "guard": {
       "min_available_gib": 6.45,
@@ -481,7 +481,7 @@
     ]
   },
   "p5": null,
-  "run_directory": "/home/anthonylu/Projects/experiments/hllm-4b-fit-20261011-044533",
+  "run_directory": "~/Projects/experiments/hllm-4b-fit-20261011-044533",
   "source": {
     "branch": "codex/concurrency-evidence",
     "cuda_binaries": {
