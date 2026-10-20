@@ -11,6 +11,7 @@ from hllm_control.profiling.models import (
     MEMORY_PHASES,
     AllocatorSample,
     ComputeMeasurement,
+    ComputeRunMeasurement,
     Conditions,
     ConversionMeasurement,
     Environment,
@@ -22,6 +23,7 @@ from hllm_control.profiling.models import (
     ProcessMemoryObservation,
     ProfileArtifact,
     ProfileKey,
+    TimingRecord,
     check_compatibility,
     digest,
     make_artifact,
@@ -570,3 +572,122 @@ def test_preflight_treats_a_missing_device_sample_as_unavailable(
             concurrent_load="test",
             timeout_seconds=5,
         )
+
+
+def _chunked_run(
+    key: ProfileKey, *, final: bool, mutate: str | None = None
+) -> tuple[ProfileKey, ComputeRunMeasurement]:
+    """A CPU compute run for prompt 5 in chunks of 2 (positions 0, 2, 4) plus 2 decodes."""
+    workload = key.workload.model_copy(
+        update={"prompt_tokens": 5, "output_tokens": 3, "total_cached_tokens": 8}
+    )
+    workload = workload.model_copy(update={"prefill_chunk_tokens": 2})
+    assignment = key.assignment
+    if final:
+        assignment = assignment.model_copy(
+            update={
+                "stage_index": 1,
+                "layer_start": 1,
+                "layer_end": 2,
+                "owns_token_embedding": False,
+                "owns_final_norm": True,
+                "owns_lm_head": True,
+                "owns_sampling": True,
+            }
+        )
+    k = ProfileKey.model_validate(
+        {
+            **key.model_dump(),
+            "assignment": assignment,
+            "workload": workload,
+            "workload_digest": digest(workload),
+        }
+    )
+    records: list[TimingRecord] = []
+    executions = [(0, 0, 0), (0, 1, 2), (0, 2, 4), (1, None, 5), (2, None, 6)]
+    for mode in ("whole-stage", "component-synchronized"):
+        for step, chunk, position in executions:
+            names: list[tuple[str, int | None, float]] = [("stage", None, 3.0)]
+            if chunk == 0:
+                names.append(("sequence_allocation", None, 0.5))
+            if mode == "component-synchronized":
+                last = chunk is None or chunk == 2 or mutate == "early-sampling"
+                tail = (
+                    [("final_norm", None, 0.5), ("lm_head", None, 0.5), ("sampling", None, 0.5)]
+                    if final and last
+                    else [("to-wire", None, 1.5)]
+                    if not final
+                    else [("runtime_overhead", None, 1.5)]
+                )
+                names += [("from-wire" if final else "embedding", None, 0.5)]
+                names += [("layer", assignment.layer_start, 1.0)]
+                names += tail
+                if tail[-1][0] != "runtime_overhead":
+                    names.append(("runtime_overhead", None, 3.0 - 1.5 - sum(t[2] for t in tail)))
+            for component, layer, ms in names:
+                records.append(
+                    TimingRecord(
+                        cycle=0,
+                        step=step,
+                        context_tokens=position + (1 if mutate == "position" and chunk == 1 else 0),
+                        phase="prefill" if step == 0 else "decode",
+                        component=component,  # type: ignore[arg-type]
+                        layer_index=layer if component == "layer" else None,
+                        timing_mode=mode,  # type: ignore[arg-type]
+                        milliseconds=ms,
+                        chunk_index=None if mutate == "unindexed" else chunk,
+                    )
+                )
+    return k, ComputeRunMeasurement(
+        admission_capacity=MemoryAmounts(host=1),
+        records=tuple(records),
+        identical_output_cycles=(0,),
+        completed=True,
+    )
+
+
+@pytest.mark.parametrize("final", [False, True])
+def test_chunked_compute_run_validates_per_chunk_records(key: ProfileKey, final: bool) -> None:
+    k, run = _chunked_run(key, final=final)
+    artifact = make_artifact(
+        k, conditions().model_copy(update={"process_policy": "loaded-stage-paired-passes"}), run
+    )
+    stage = [r for r in run.records if r.component == "stage" and r.timing_mode == "whole-stage"]
+    assert [(r.chunk_index, r.context_tokens) for r in stage] == [
+        (0, 0),
+        (1, 2),
+        (2, 4),
+        (None, 5),
+        (None, 6),
+    ]
+    assert ProfileArtifact.model_validate_json(artifact.model_dump_json()) == artifact
+
+
+@pytest.mark.parametrize(
+    "final,mutate",
+    [(True, "early-sampling"), (False, "position"), (False, "unindexed")],
+)
+def test_chunked_compute_run_rejects_wrong_chunk_records(
+    key: ProfileKey, final: bool, mutate: str
+) -> None:
+    k, run = _chunked_run(key, final=final, mutate=mutate)
+    with pytest.raises(ValueError):
+        make_artifact(
+            k,
+            conditions().model_copy(update={"process_policy": "loaded-stage-paired-passes"}),
+            run,
+        )
+
+
+def test_whole_prompt_timing_records_omit_the_chunk_index() -> None:
+    record = TimingRecord(
+        cycle=0,
+        step=0,
+        context_tokens=0,
+        phase="prefill",
+        component="stage",
+        layer_index=None,
+        timing_mode="whole-stage",
+        milliseconds=1.0,
+    )
+    assert "chunk_index" not in record.model_dump(mode="json")

@@ -333,6 +333,12 @@ def run_memory_profile(
             "cycles": warmup_cycles + measured_cycles,
             "transport_mode": transport_mode,
             "device_id": device_id,
+            # Only chunked workloads carry the chunk, so whole-prompt specs are unchanged.
+            **(
+                {"prefill_chunk_tokens": workload.prefill_chunk_tokens}
+                if workload.prefill_chunk_tokens
+                else {}
+            ),
         },
     )
     conditions = Conditions(
@@ -395,6 +401,10 @@ def run_memory_profile(
         raise RuntimeError(f"native profiler failed before initialization; see {log_path}")
     if str(env["backend"]) != f"BACKEND_{backend.value.upper()}":
         raise ValueError("native executable backend does not match requested profile")
+    # A profiler that predates chunked prefill ignores the spec field and would measure
+    # whole-prompt prefill under a chunked identity.
+    if env.get("prefill_chunk_tokens", 0) != workload.prefill_chunk_tokens:
+        raise ValueError("native profiler did not execute the requested prefill chunk")
     # cudaDriverGetVersion reports CUDA API compatibility, not the NVIDIA release.
     # Keep both so a driver update cannot accidentally reuse an old profile.
     if backend == Backend.CUDA:
