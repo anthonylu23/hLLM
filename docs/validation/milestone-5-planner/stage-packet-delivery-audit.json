@@ -18,8 +18,8 @@
   },
   "packet_log_sha256": "3ba281039b9d94ab0cb49bbf56756fed28b37febaa0b9a7af300efea9f4ca868",
   "stage_connection": {
-    "client": "100.68.43.49.65524",
-    "server": "100.86.45.68.50546"
+    "client": "<mac-tailnet-ip>.65524",
+    "server": "<cuda-tailnet-ip>.50546"
   },
   "tcp_sequence_gap_episodes": [
     {

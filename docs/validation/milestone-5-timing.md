@@ -13,7 +13,11 @@ not implement measured placement, qualify all splits, or establish the full M5
 The [machine-readable summary](milestone-5-timing/summary.json) contains component
 costs, paired phase distributions, physical preflight settings, software identities
 and links to compressed raw artifacts. Every archive was decompressed and validated
-against its schema and content digest after writing. The
+against its schema and content digest after writing. Host identifiers in the four
+link archives and the summary were redacted on 2026-10-19 (see
+[publishing evidence](../../scripts/validation/README.md#publishing-evidence)); their
+`artifact_digest`, `profile_digest` and `archive_sha256` values were recomputed after
+redaction and revalidated, and the pre-redaction bytes remain in git history. The
 [workflow and timing attribution](../milestone-5-profiling.md) describe how to repeat
 these measurements and how to consume them without double counting.
 
