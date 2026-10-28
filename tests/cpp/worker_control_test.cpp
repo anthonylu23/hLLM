@@ -315,7 +315,11 @@ TEST(WorkerControlTest, RejectsOversizedAndConflictingReservationsAndReportsAllo
   ASSERT_TRUE(service.GetMemoryReport(&context, &empty, &report).ok());
   EXPECT_EQ(report.active_requests(), 1U);
   EXPECT_GT(report.loaded_weight_bytes(), 0U);
-  EXPECT_EQ(report.reserved_cache_bytes(), 4U * 2U * 2U * 4U * 4U);
+  // Four tokens of KV cache plus the handlers' transport buffers.
+  const auto hidden =
+      cpu::make_backend_factory()->load(load, model.root, {1'000'000U, 0U, 0U})->hidden_size();
+  EXPECT_EQ(report.reserved_cache_bytes(),
+            4U * 2U * 2U * 4U * 4U + runtime::request_transport_bytes(4U, hidden));
   EXPECT_GT(report.reserved_workspace_bytes(), 0U);
 }
 }  // namespace
@@ -355,7 +359,8 @@ TEST(WorkerConcurrencyTest, AccountsCombinedReservationsAndCancelsOnlyOneRequest
   EXPECT_EQ(two.active_requests(), 2U);
   EXPECT_EQ(two.loaded_weight_bytes(), one.loaded_weight_bytes());
   EXPECT_EQ(two.reserved_cache_bytes(), 2U * one.reserved_cache_bytes());
-  EXPECT_EQ(two.reserved_workspace_bytes(), 2U * one.reserved_workspace_bytes());
+  // Execution is serialized, so both requests share one workspace reservation.
+  EXPECT_EQ(two.reserved_workspace_bytes(), one.reserved_workspace_bytes());
   request.set_request_id("c");
   service.ReserveRequest(&context, &request, &accepted);
   EXPECT_FALSE(accepted.accepted());
@@ -471,6 +476,54 @@ TEST(WorkerConcurrencyTest, RequestObservationsRecordOverlapAndRetirementOnlyWhe
     EXPECT_EQ(report.request_observations().events(3).reason(), "completed");
     EXPECT_EQ(report.request_observations().events_total(), 4U);
     EXPECT_EQ(report.request_observations().peak_concurrent_requests(), 2U);
+  }
+}
+
+TEST(WorkerConcurrencyTest, SharedWorkspaceFollowsTheLargestActiveRequest) {
+  const test::ModelFixture model;
+  auto factory = cpu::make_backend_factory();
+  const auto load = model.load();
+  auto stage = factory->load(load, model.root, {1'000'000U, 0U, 0U});
+  const auto small = stage->sequence_memory(16U);
+  const auto large = stage->sequence_memory(32U);
+  ASSERT_LT(small.workspace.host_bytes, large.workspace.host_bytes);
+  // The handlers hold transport buffers between passes, so each request's own cache,
+  // not the shared workspace, covers them.
+  EXPECT_GE(small.cache.host_bytes, runtime::request_transport_bytes(16U, stage->hidden_size()));
+  EXPECT_GE(large.cache.host_bytes, runtime::request_transport_bytes(32U, stage->hidden_size()));
+  // Weights, both caches and only the larger workspace.
+  const auto exact = stage->weight_memory().host_bytes + small.cache.host_bytes +
+                     large.cache.host_bytes + large.workspace.host_bytes;
+  for (const bool short_budget : {false, true}) {
+    SCOPED_TRACE(short_budget);
+    ControlService service({.worker_id = "cpu-a",
+                            .endpoint = "127.0.0.1:50051",
+                            .model_root = model.root,
+                            .host_memory_capacity_bytes = exact - (short_budget ? 1U : 0U),
+                            .maximum_active_requests = 2U},
+                           cpu::make_backend_factory());
+    grpc::ServerContext context;
+    v1::LoadStageResponse loaded;
+    service.LoadStage(&context, &load, &loaded);
+    ASSERT_TRUE(loaded.accepted());
+    auto first = service.acquire("plan-1", 1U, "large", 32U, 0U, 0U);
+    if (short_budget) {
+      EXPECT_THROW(static_cast<void>(service.acquire("plan-1", 1U, "small", 16U, 0U, 0U)),
+                   runtime::Error);
+      service.release(first.request, RequestOutcome::kCompleted);
+      continue;
+    }
+    auto second = service.acquire("plan-1", 1U, "small", 16U, 0U, 0U);
+    v1::Empty empty;
+    v1::MemoryReport report;
+    service.GetMemoryReport(&context, &empty, &report);
+    EXPECT_EQ(report.reserved_cache_bytes(), small.cache.host_bytes + large.cache.host_bytes);
+    EXPECT_EQ(report.reserved_workspace_bytes(), large.workspace.host_bytes);
+    // Retiring the larger request shrinks the shared workspace to the smaller one.
+    service.release(first.request, RequestOutcome::kCompleted);
+    service.GetMemoryReport(&context, &empty, &report);
+    EXPECT_EQ(report.reserved_workspace_bytes(), small.workspace.host_bytes);
+    service.release(second.request, RequestOutcome::kCompleted);
   }
 }
 

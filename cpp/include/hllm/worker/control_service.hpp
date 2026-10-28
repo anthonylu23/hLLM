@@ -120,6 +120,9 @@ class ControlService final : public v1::WorkerControl::Service {
   bool deployment_matches(const std::string&, std::uint64_t) const;
   std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::uint64_t,
                                          std::unique_lock<std::mutex>&);
+  // Requests one execution pass can serve: the decode batch limit if the backend
+  // batches, otherwise one. Requires the control mutex.
+  std::size_t pass_rows() const;
   // Both require the control mutex. Retirement erases the entry and records why.
   void record_lifecycle(v1::RequestLifecycleEvent::Kind kind, const std::string& request_id,
                         const std::string& reason);

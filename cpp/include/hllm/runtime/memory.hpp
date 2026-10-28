@@ -40,6 +40,9 @@ inline void require_memory(const MemoryAmounts& used, const MemoryAmounts& capac
   }
 }
 
+// `cache` is held by each request for its lifetime (KV cache, pinned staging, transport
+// buffers). `workspace` is a single pass's temporaries, which requests share because a
+// stage runs one pass at a time.
 struct SequenceMemory {
   MemoryAmounts cache;
   MemoryAmounts workspace;

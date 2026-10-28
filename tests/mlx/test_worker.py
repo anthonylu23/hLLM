@@ -110,6 +110,10 @@ def test_mlx_only_generation_and_metrics(
                         * 2
                         * (4 if dtype == DType.F32 else 2)
                     )
+                    # The handlers' transport buffers: three copies of the token IDs
+                    # and three F16 copies of the boundary activations.
+                    + 16 * 3 * 8
+                    + 16 * manifest.config.hidden_size * 3 * 2
                 )
                 assert usage.reserved_workspace_bytes == report.reserved_workspace_bytes > 0
                 control.CancelRequest(

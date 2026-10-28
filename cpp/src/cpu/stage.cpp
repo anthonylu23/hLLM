@@ -48,16 +48,17 @@ class DenseStage final : public ReferenceStage {
         multiply(multiply(multiply(multiply(tokens, layers.size()), config.key_value_heads),
                           config.head_dimension),
                  2U * sizeof(float));
-    // Conservative upper bound for simultaneous dense temporaries, wire copies,
-    // attention scores and final-row logits. No quadratic attention matrix is
-    // stored.
+    // Conservative upper bound for one pass's simultaneous dense temporaries, wire
+    // copies, attention scores and final-row logits. No quadratic attention matrix is
+    // stored. Buffers the handlers keep between passes are reserved per request.
     const auto width =
         add(add(multiply(config.hidden_size, 24U),
                 multiply(multiply(config.attention_heads, config.head_dimension), 12U)),
             add(multiply(config.intermediate_size, 6U), 4U));
     const auto workspace =
         add(add(multiply(multiply(tokens, width), sizeof(float)), multiply(vocab, 32U)), 65536U);
-    return {{.host_bytes = cache}, {.host_bytes = workspace}};
+    return {{.host_bytes = add(cache, runtime::request_transport_bytes(tokens, config.hidden_size))},
+            {.host_bytes = workspace}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens));

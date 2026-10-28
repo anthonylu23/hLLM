@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 #include <limits>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <stdexcept>
+#include <vector>
 
 #include "hllm/runtime/checked_size.hpp"
 #include "hllm/runtime/error.hpp"
@@ -16,6 +18,28 @@ namespace hllm::worker {
 namespace {
 
 constexpr std::size_t kLifecycleHistory = 256U;
+
+// Workspace is transient. The deployment's scheduler runs one pass at a time: a
+// prefill alone, or a decode batch of at most `rows` requests. Admission therefore
+// reserves, per domain, the sum of the `rows` largest per-request workspaces instead
+// of one workspace per active request. Caches stay per request.
+runtime::MemoryAmounts largest_workspaces(const std::vector<runtime::MemoryAmounts>& workspaces,
+                                          std::size_t rows) {
+  const auto top = [&](std::size_t runtime::MemoryAmounts::* field) {
+    std::vector<std::size_t> values;
+    values.reserve(workspaces.size());
+    for (const auto& workspace : workspaces) values.push_back(workspace.*field);
+    const auto count = std::min(rows, values.size());
+    std::partial_sort(values.begin(), values.begin() + static_cast<std::ptrdiff_t>(count),
+                      values.end(), std::greater<>());
+    std::size_t total = 0U;
+    for (std::size_t i = 0U; i < count; ++i) total = runtime::checked_add(total, values[i]);
+    return total;
+  };
+  return {top(&runtime::MemoryAmounts::host_bytes), top(&runtime::MemoryAmounts::device_bytes),
+          top(&runtime::MemoryAmounts::pinned_host_bytes),
+          top(&runtime::MemoryAmounts::unified_bytes)};
+}
 
 std::uint64_t monotonic_ns(const std::chrono::steady_clock::time_point point) {
   return static_cast<std::uint64_t>(
@@ -399,18 +423,21 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
     throw runtime::Error::resource_exhausted("worker active request limit reached");
   }
   const auto memory = deployment_->backend->sequence_memory(tokens);
-  auto required = runtime::add_memory(deployment_->backend->weight_memory(),
-                                      runtime::add_memory(memory.cache, memory.workspace));
+  auto cache = memory.cache;
+  std::vector<runtime::MemoryAmounts> workspaces{memory.workspace};
   auto cached_tokens = tokens;
   for (const auto& [identifier, request] : active_) {
-    required = runtime::add_memory(
-        required, runtime::add_memory(request->memory.cache, request->memory.workspace));
+    cache = runtime::add_memory(cache, request->memory.cache);
+    workspaces.push_back(request->memory.workspace);
     cached_tokens = runtime::checked_add(cached_tokens, request->maximum_tokens);
   }
   if (config_.maximum_cached_tokens && cached_tokens > config_.maximum_cached_tokens) {
     throw runtime::Error::resource_exhausted("worker cached token limit reached");
   }
-  runtime::require_memory(required, capacity_);
+  runtime::require_memory(
+      runtime::add_memory(deployment_->backend->weight_memory(),
+                          runtime::add_memory(cache, largest_workspaces(workspaces, pass_rows()))),
+      capacity_);
   auto next = std::make_shared<ActiveRequest>();
   next->id = id;
   next->maximum_tokens = tokens;
@@ -451,6 +478,11 @@ std::shared_ptr<ActiveRequest> ControlService::reserve(const std::string& id, st
       active_.begin(), active_.end(), [](const auto& entry) { return !entry.second->allocating; }));
   peak_concurrent_requests_ = std::max(peak_concurrent_requests_, allocated);
   return next;
+}
+
+std::size_t ControlService::pass_rows() const {
+  return deployment_ && deployment_->backend->supports_decode_batch() ? config_.maximum_decode_batch
+                                                                      : 1U;
 }
 
 ExecutionLease ControlService::acquire(const std::string& id, std::uint64_t version,
@@ -548,12 +580,15 @@ grpc::Status ControlService::GetMemoryReport(grpc::ServerContext*, const v1::Emp
   prune_expired();
   const auto weights =
       deployment_ ? deployment_->backend->weight_memory() : runtime::MemoryAmounts{};
-  runtime::MemoryAmounts cache{}, workspace{};
+  runtime::MemoryAmounts cache{};
+  std::vector<runtime::MemoryAmounts> workspaces;
   for (const auto& [identifier, request] : active_) {
     response->add_active_request_ids(identifier);
     cache = runtime::add_memory(cache, request->memory.cache);
-    workspace = runtime::add_memory(workspace, request->memory.workspace);
+    workspaces.push_back(request->memory.workspace);
   }
+  // The shared reservation admission used, not the per-request sum.
+  const auto workspace = largest_workspaces(workspaces, pass_rows());
   const auto report_domain = [&](v1::MemoryDomain domain, std::size_t capacity, std::size_t weight,
                                  std::size_t cached, std::size_t work) {
     if (capacity == 0U) {
