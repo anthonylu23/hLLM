@@ -594,12 +594,12 @@ def test_measured_matching_requires_weight_precision(tmp_path: Path, key: Profil
     assert reasons and prediction is None
 
 
-def test_chunked_prefill_is_never_measured(tmp_path: Path, key: ProfileKey):
+def test_chunked_prefill_is_profiled_but_not_yet_planned(tmp_path: Path, key: ProfileKey):
     manifest, bundle = bundle_fixture(tmp_path, key)
     chunked = bundle.workload.model_copy(update={"prefill_chunk_tokens": 2})
     # The chunk size is part of the workload identity that profiles and plans bind.
     assert digest(chunked) != digest(bundle.workload)
-    with pytest.raises(PlanningError, match="whole-prompt prefill only"):
+    with pytest.raises(PlanningError, match="does not yet combine chunked prefill"):
         create_plan(
             manifest,
             [w.worker for w in bundle.workers],
@@ -608,11 +608,13 @@ def test_chunked_prefill_is_never_measured(tmp_path: Path, key: ProfileKey):
             PlannerSettings(mode=PlanningMode.MEASURED, execution_dtype=DType.F32),
             profile_bundle=bundle,
         )
-    with pytest.raises(ValueError, match="whole-prompt prefill only"):
-        ProfileKey.model_validate(
-            {
-                **key.model_dump(),
-                "workload": chunked.model_dump(),
-                "workload_digest": digest(chunked),
-            }
-        )
+    # Native probes replay chunks, so a chunked workload is a valid profile identity.
+    chunked_key = ProfileKey.model_validate(
+        {
+            **key.model_dump(),
+            "workload": chunked.model_dump(),
+            "workload_digest": digest(chunked),
+        }
+    )
+    assert chunked_key.workload.prefill_chunk_tokens == 2
+    assert "prefill_chunk_tokens" not in key.model_dump(mode="json")["workload"]

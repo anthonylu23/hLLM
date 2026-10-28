@@ -29,7 +29,7 @@ does not apply to 4B.
 | Decision | Outcome | Why |
 | --- | --- | --- |
 | Canonical Qwen3-4B precision target | **Uniform F16** weights, execution, KV and wire, checked against the independent F16 reference (user-approved) | All 4B evidence uses it and matches its reference exactly. The 0.6B mixed target would add an F32 output head of about 1.45 GiB (151,936 × 2,560 × 4 bytes, an estimate from the model shape) to the final stage, whose CUDA device reservation is already within 27 MiB of its cap at 768 tokens. 4B results are not comparable to the 0.6B F32-reference target |
-| MLX per-request workspace | Share one workspace per stage across concurrent requests ([PR #35](https://github.com/anthonylu23/hLLM/pull/35), qualified at 4.375 GiB), then size it to the prefill chunk ([PR #36](https://github.com/anthonylu23/hLLM/pull/36), with chunk-aware probes in [PR #38](https://github.com/anthonylu23/hLLM/pull/38)) | Workspace is transient and each worker runs one pass at a time. Of the 685 MiB each 128/256 request reserved, 22.5 MiB is KV; the October 13 MLX footprint grew by about 22 MiB from concurrency one to two. With sharing, concurrency two needs about 4.24 GiB of logical MLX reservation, within the original 4.375 GiB cap |
+| MLX per-request workspace | Share one workspace per stage across concurrent requests ([PR #35](https://github.com/anthonylu23/hLLM/pull/35), qualified at 4.375 GiB; transport buffers stay per request), then size it to the prefill chunk ([PR #36](https://github.com/anthonylu23/hLLM/pull/36), with chunk-aware probes in [PR #38](https://github.com/anthonylu23/hLLM/pull/38)); all merged October 28 | Workspace is transient and each worker runs one pass at a time. Of the 685 MiB each 128/256 request reserved, 22.5 MiB is KV; the October 13 MLX footprint grew by about 22 MiB from concurrency one to two. With sharing, concurrency two needs about 4.24 GiB of logical MLX reservation, within the original 4.375 GiB cap |
 | Milestone 7 gating | Stays parked behind M5's WAN acceptance | No ROCm hardware is available to qualify it |
 
 ## Open decisions (user)
@@ -45,8 +45,8 @@ These need a decision before the dependent work can start.
 
 | Item | Owner | Dependency |
 | --- | --- | --- |
-| Shared stage workspace: P5 at the original 4.375 GiB MLX cap was accepted on October 20 on the PR's binaries (27/27 exact, MLX reservation 4.24 GiB); its report lands with the PR | User review | [PR #35](https://github.com/anthonylu23/hLLM/pull/35) |
-| Measured placement for chunked prefill: the planner, controller and serving are chunk-aware, but measured mode refuses chunked workloads because the native memory and compute probes measure whole-prompt prefill only | Agent | PRs #36 (reservation) and #38 (memory and compute probes) are open; the link probe and the evaluator remain. Blocks measured plans for prompts above about 1.6K tokens (the 8 MiB boundary payload for 4B with an F16 wire) and the 32K target |
+| Re-run P5 at the original 4.375 GiB MLX cap on `main`, which now has the shared workspace (#35) with per-request transport buffers. The October 20 acceptance ran on #35's earlier binaries (27/27 exact, MLX reservation 4.24 GiB); the transport fix adds 5.6 MiB per request (4.25 GiB) | Agent | Mac memory freed by the user; fresh same-day profiles on both hosts |
+| Measured placement for chunked prefill: the planner, controller and serving are chunk-aware, workers reserve per-chunk workspace (#36) and the native memory and compute probes replay chunks (#38), but measured mode refuses chunked workloads until the link probe and evaluation handle per-chunk costs | Agent | Chunk-aware link probe and measured evaluation. Blocks measured plans for prompts above about 1.6K tokens (the 8 MiB boundary payload for 4B with an F16 wire) and the 32K target |
 | Contexts above 768 cached tokens: 1024/256 next. A pinned 1024/256 F16 oracle exists in the October 11 run directory. Needs split 16 (the CUDA device reservation is within 27 MiB of its cap at 768) | Agent | Chunk-sized workspace (or a cap near 6.5 GiB), Mac memory |
 | 32K context | Agent | Chunk-aware native probes and profiles, memory |
 | M5 WAN performance acceptance: the 54-candidate exhaustive sweep, at most 10% reference drift, regret with a seeded 95% bootstrap upper bound at or below 15%, and the final audit | Deferred | A justified transport improvement or a measurably stable link; see the [restart gates](validation/milestone-5-wan-closeout.md#deferred-gates-and-restart-point) |
@@ -63,11 +63,12 @@ These need a decision before the dependent work can start.
 
 ## Next steps, in order
 
-1. Land the shared stage workspace (PR #35, qualified at 4.375 GiB on October 20).
-2. Chunk-aware reservations ([PR #36](https://github.com/anthonylu23/hLLM/pull/36)) and
-   memory and compute probes ([PR #38](https://github.com/anthonylu23/hLLM/pull/38)):
-   validate both on CUDA and MLX, then make the link probe and the measured evaluator
-   chunk-aware so measured plans accept chunked workloads; then 1024/256 and toward 32K.
+1. Re-run P5 on `main` at the original 4.375 GiB MLX cap, now that the shared stage
+   workspace reserves transport buffers per request.
+2. Make the link probe and the measured evaluator chunk-aware so measured plans accept
+   chunked workloads (reservations and the memory and compute probes already are,
+   [PR #36](https://github.com/anthonylu23/hLLM/pull/36) and
+   [PR #38](https://github.com/anthonylu23/hLLM/pull/38)); then 1024/256 and toward 32K.
 
 Qualification runs follow the
 [two-host launchers and run checklist](../scripts/validation/README.md#two-host-launchers);

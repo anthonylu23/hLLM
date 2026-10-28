@@ -76,6 +76,12 @@ int main(int argc, char** argv) {
     const auto cycles = number(spec, "cycles", 32U);
     if (!prompt || !steps || !cycles || rt::checked_add(prompt, steps) > capacity_tokens)
       throw std::invalid_argument("invalid workload dimensions");
+    // Absent (whole-prompt prefill) unless the workload chunks prefill; a chunk must be
+    // below the prompt so whole-prompt prefill keeps a single spec and identity.
+    const auto chunk = spec.contains("prefill_chunk_tokens")
+        ? number(spec, "prefill_chunk_tokens", prompt - 1U) : 0U;
+    if (spec.contains("prefill_chunk_tokens") && chunk == 0U)
+      throw std::invalid_argument("invalid prefill chunk");
     const auto& budget = spec.at("budget");
     constexpr auto maximum = std::numeric_limits<std::size_t>::max();
     const rt::MemoryAmounts capacity{number(budget, "host", maximum), number(budget, "device", maximum),
@@ -91,16 +97,19 @@ int main(int argc, char** argv) {
     factory = backend::make_backend_factory();
 #endif
     const auto info = factory->profiling_device_info();
-    emit({{"event", "environment"}, {"device_identity", info.identity},
+    json environment{{"event", "environment"}, {"device_identity", info.identity},
           {"device_name", info.name}, {"backend_version", info.backend_version},
           {"driver_version", info.driver_version}, {"allocator", info.allocator},
           {"backend", hllm::v1::Backend_Name(factory->capabilities().kind)},
-          {"compiler", __VERSION__}});
+          {"compiler", __VERSION__}};
+    // Echoed so the runner can refuse a binary that ignored the chunk.
+    if (chunk) environment["prefill_chunk_tokens"] = chunk;
+    emit(environment);
     const auto& assignment = request.plan().stages(static_cast<int>(request.stage_index()));
     if (spec.value("mode", "memory") == "compute") {
       stage = factory->load(request, argv[1], capacity);
       hllm::profiling::compute_probe(*stage, capacity, assignment.owns_token_embedding(),
-          capacity_tokens, prompt, steps, cycles, emit);
+          capacity_tokens, prompt, steps, cycles, chunk, emit);
       stage.reset();
       emit({{"event", "complete"}});
       return 0;
@@ -144,7 +153,7 @@ int main(int argc, char** argv) {
       stage = factory->load(request, argv[1], capacity);
       snapshot("load");
       reset_phase();
-      reserved = stage->sequence_memory(capacity_tokens);
+      reserved = stage->sequence_memory(capacity_tokens, chunk);
       rt::require_memory(rt::add_memory(stage->weight_memory(),
           rt::add_memory(reserved.cache, reserved.workspace)), capacity);
       sequence = stage->allocate_sequence(capacity_tokens);
@@ -159,13 +168,26 @@ int main(int argc, char** argv) {
           input_value = rt::BoundaryActivation{tokens, stage->hidden_size(), std::vector<std::byte>(bytes)};
         }
         static_cast<void>(stage->execute(std::move(input_value), position, *sequence, cancelled));
-        ++completed_steps;
       };
       reset_phase();
-      execute(prompt, 0U);
+      // Serving's prefill: chunks in order with the same sequence flags, so the phase
+      // peak covers the largest chunk. The whole prefill counts as one step.
+      sequence->prefilling = true;
+      for (std::size_t position = 0U; position < prompt;) {
+        const auto count = std::min(chunk ? chunk : prompt, prompt - position);
+        sequence->prefill_only = position + count < prompt;
+        execute(count, position);
+        position += count;
+      }
+      ++completed_steps;
       snapshot("prefill");
       reset_phase();
-      for (std::size_t step = 1U; step < steps; ++step) execute(1U, prompt + step - 1U);
+      sequence->prefilling = false;
+      sequence->prefill_only = false;
+      for (std::size_t step = 1U; step < steps; ++step) {
+        execute(1U, prompt + step - 1U);
+        ++completed_steps;
+      }
       snapshot("decode");
       reset_phase();
       sequence.reset();

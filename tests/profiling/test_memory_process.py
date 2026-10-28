@@ -119,6 +119,80 @@ def test_native_phases_reload_and_cleanup(tmp_path: Path, stage_index: int, mixe
         )
 
 
+def test_chunked_prefill_reserves_less_and_retires(tmp_path: Path) -> None:
+    assert BINARY is not None
+    backend = Backend(os.environ["HLLM_PROFILE_BACKEND"])
+    manifest = write_model(tmp_path / "model")
+    dtype = DType.F32 if backend == Backend.CPU else DType.F16
+    deployment = plan(manifest).model_copy(update={"execution_dtype": dtype})
+    artifacts = {}
+    for chunk in (0, 3):
+        w = WorkloadProfile(
+            workload_id="native-memory-chunked",
+            prompt_tokens=8,
+            output_tokens=4,
+            total_cached_tokens=12,
+            kv_dtype=dtype,
+            prefill_chunk_tokens=chunk,
+        )
+        output = tmp_path / f"memory-{chunk}.json"
+        artifacts[chunk] = run_memory_profile(
+            binary=Path(BINARY),
+            root=tmp_path / "model",
+            manifest=manifest,
+            plan=deployment,
+            stage_index=1,
+            workload=w,
+            backend=backend,
+            capacity=MemoryAmounts(host=32 * 1024**2, device=32 * 1024**2, unified=32 * 1024**2),
+            output=output,
+            source_revision="test",
+            concurrent_load="test suite",
+            measured_cycles=2,
+            timeout_seconds=60,
+            host_headroom_bytes=0,
+            device_headroom_bytes=0,
+        )
+        spec = json.loads(output.with_suffix(".spec.json").read_text())
+        # Whole-prompt specs are unchanged; only chunked ones carry the chunk.
+        assert ("prefill_chunk_tokens" in spec) == bool(chunk)
+    whole, chunked = artifacts[0].measurement, artifacts[3].measurement
+    assert isinstance(whole, MemoryMeasurement) and isinstance(chunked, MemoryMeasurement)
+    # Every phase in order, the prefill counted once, and all reservations retired
+    # (the artifact validator enforces these for a completed exercise).
+    assert chunked.completed, chunked.error
+    assert [s.phase for s in chunked.samples] == [s.phase for s in whole.samples]
+    assert all(s.completed_steps == 4 for s in chunked.samples if s.phase in ("decode", "unload"))
+    assert all(
+        s.cache == MemoryAmounts() and s.workspace == MemoryAmounts()
+        for s in chunked.samples
+        if s.phase in ("request_cleanup", "unload")
+    )
+
+    def prefill(m: MemoryMeasurement, field: str) -> int:
+        values = []
+        for s in m.samples:
+            if s.phase == "prefill":
+                if field == "allocator":
+                    assert s.allocator is not None
+                    values.append(s.allocator.peak_bytes)
+                else:
+                    values.append(sum(getattr(s.workspace, n) for n in MemoryAmounts.model_fields))
+        return max(values)
+
+    # The chunked reservation is smaller: a smaller workspace, and per-request memory no
+    # larger in any domain (the same KV cache and token IDs, fewer activation rows held
+    # between passes). The measured phase peak, where the backend reports one, is no
+    # higher than whole-prompt prefill.
+    assert prefill(chunked, "workspace") < prefill(whole, "workspace")
+    chunked_cache = [s.cache for s in chunked.samples if s.phase == "prefill"]
+    whole_cache = [s.cache for s in whole.samples if s.phase == "prefill"]
+    for c, w in zip(chunked_cache, whole_cache, strict=True):
+        assert all(getattr(c, n) <= getattr(w, n) for n in MemoryAmounts.model_fields)
+    if backend != Backend.CPU:
+        assert prefill(chunked, "allocator") <= prefill(whole, "allocator")
+
+
 def test_native_allocation_failure_preserves_evidence(tmp_path: Path) -> None:
     assert BINARY is not None
     backend = Backend(os.environ["HLLM_PROFILE_BACKEND"])

@@ -43,8 +43,13 @@ so direction, payload, component, context and endpoint environment cannot be ign
 Callers may impose an explicit maximum measurement age. These are compatibility
 primitives used by measured placement; `hllm plan --profile-bundle` consumes a sealed
 bundle of compatible evidence. See the placement workflow for bundle construction.
-Profiles refuse chunked workloads (`prefill_chunk_tokens` above 0): the native probes run
-whole-prompt prefill only.
+Chunked workloads (`prefill_chunk_tokens` above 0) replay serving's prefill: one input per
+chunk, with the sequence flags serving sets. The memory probe's prefill phase spans all
+chunks, so its phase peak is the largest chunk's. Compute records for a chunk carry
+`chunk_index` and the chunk's first position; whole-prompt records omit it, so their
+digests are unchanged. The spec carries the chunk only when it is nonzero, and the
+runner refuses a profiler that does not echo it. Measured placement does not yet consume
+chunked profiles.
 
 The original workload is `examples/workloads/milestone-5.yaml`: 512 prompt tokens,
 256 generated tokens, concurrency 1, 768-token capacity and F16 execution/KV/boundary.
