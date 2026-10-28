@@ -180,12 +180,16 @@ def test_chunked_prefill_reserves_less_and_retires(tmp_path: Path) -> None:
                     values.append(sum(getattr(s.workspace, n) for n in MemoryAmounts.model_fields))
         return max(values)
 
-    # The chunked reservation is smaller and the same cache; the measured phase peak,
-    # where the backend reports one, is no higher than whole-prompt prefill.
+    # The chunked reservation is smaller: a smaller workspace, and per-request memory no
+    # larger in any domain (the same KV cache and token IDs, fewer activation rows held
+    # between passes). The measured phase peak, where the backend reports one, is no
+    # higher than whole-prompt prefill.
     assert prefill(chunked, "workspace") < prefill(whole, "workspace")
-    assert [s.cache for s in chunked.samples if s.phase == "prefill"] == [
-        s.cache for s in whole.samples if s.phase == "prefill"
-    ]
+    chunked_cache = [s.cache for s in chunked.samples if s.phase == "prefill"]
+    whole_cache = [s.cache for s in whole.samples if s.phase == "prefill"]
+    assert len(chunked_cache) == len(whole_cache)
+    for c, w in zip(chunked_cache, whole_cache):
+        assert all(getattr(c, n) <= getattr(w, n) for n in MemoryAmounts.model_fields)
     if backend != Backend.CPU:
         assert prefill(chunked, "allocator") <= prefill(whole, "allocator")
 
