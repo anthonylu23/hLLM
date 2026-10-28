@@ -4250,9 +4250,9 @@
     }
   },
   "network_evidence": {
-    "tailscale-direct-current": "pong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 61ms\npong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 50ms\npong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 50ms\n",
-    "tailscale-relay-before": "pong from anthonypc (CUDA tailnet address) via DERP(dfw) in 58ms\npong from anthonypc (CUDA tailnet address) via DERP(dfw) in 71ms\npong from anthonypc (CUDA tailnet address) via DERP(dfw) in 111ms\npong from anthonypc (CUDA tailnet address) via DERP(dfw) in 71ms\npong from anthonypc (CUDA tailnet address) via DERP(dfw) in 63ms\n",
-    "tailscale-relay-after": "pong from anthonypc (CUDA tailnet address) via DERP(dfw) in 58ms\npong from anthonypc (CUDA tailnet address) via DERP(dfw) in 67ms\npong from anthonypc (CUDA tailnet address) via DERP(dfw) in 62ms\n",
-    "tailscale-restored": "pong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 48ms\npong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 47ms\npong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 48ms\npong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 68ms\npong from anthonypc (CUDA tailnet address) via direct IPv6 endpoint in 52ms\n"
+    "tailscale-direct-current": "pong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 61ms\npong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 50ms\npong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 50ms\n",
+    "tailscale-relay-before": "pong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 58ms\npong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 71ms\npong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 111ms\npong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 71ms\npong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 63ms\n",
+    "tailscale-relay-after": "pong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 58ms\npong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 67ms\npong from <cuda-host> (CUDA tailnet address) via DERP(dfw) in 62ms\n",
+    "tailscale-restored": "pong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 48ms\npong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 47ms\npong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 48ms\npong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 68ms\npong from <cuda-host> (CUDA tailnet address) via direct IPv6 endpoint in 52ms\n"
   }
 }

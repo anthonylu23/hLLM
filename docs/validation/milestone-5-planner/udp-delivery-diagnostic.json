@@ -28,12 +28,12 @@
   "path_before": {
     "peers": [
       {
-        "HostName": "anthonypc",
+        "HostName": "<cuda-host>",
         "TailscaleIPs": [
-          "100.86.45.68",
-          "fd7a:115c:a1e0::4a34:2d44"
+          "<cuda-tailnet-ip>",
+          "<cuda-tailnet-ipv6>"
         ],
-        "CurAddr": "[2605:a601:aa9d:7300::b]:41641",
+        "CurAddr": "[<cuda-public-ipv6>]:41641",
         "Relay": "dfw",
         "Online": true
       }
@@ -43,12 +43,12 @@
   "path_after": {
     "peers": [
       {
-        "HostName": "anthonypc",
+        "HostName": "<cuda-host>",
         "TailscaleIPs": [
-          "100.86.45.68",
-          "fd7a:115c:a1e0::4a34:2d44"
+          "<cuda-tailnet-ip>",
+          "<cuda-tailnet-ipv6>"
         ],
-        "CurAddr": "[2605:a601:aa9d:7300::b]:41641",
+        "CurAddr": "[<cuda-public-ipv6>]:41641",
         "Relay": "dfw",
         "Online": true
       }

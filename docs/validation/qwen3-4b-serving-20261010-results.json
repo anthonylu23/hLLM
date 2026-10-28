@@ -2044,7 +2044,7 @@
   },
   "plan_digest": "1ed77abe4726116b52a6fb73ebbcf7a19dc722433925a9339bfda6e2ed313215",
   "raw_evidence_directory": {
-    "linux": "/home/anthonylu/Projects/experiments/hllm-4b-fit-20261008-232736",
+    "linux": "~/Projects/experiments/hllm-4b-fit-20261008-232736",
     "mac": "build/4b-fit-20261008-232736"
   },
   "raw_evidence_sha256": {

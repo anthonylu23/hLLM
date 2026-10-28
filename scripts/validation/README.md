@@ -323,6 +323,32 @@ Accelerate 1.15.0. Verify that environment before reuse. The 26-GPU-layer mappin
 is historical evidence, not an unconditional fit guarantee for a new context.
 This oracle's CPU weight placement is distinct from hLLM runtime offloading.
 
+## Publishing evidence
+
+The repository is public. Before committing evidence, run `redact_report.py` over
+every file of the report in one invocation, so each value gets the same placeholder
+everywhere:
+
+```bash
+uv run python -m scripts.validation.redact_report --in-place \
+  docs/validation/<report>/*.json docs/validation/<report>/*.json.gz
+```
+
+It replaces host names (`<cuda-host>`, `<mac-host>`), tailnet, public and LAN addresses
+(`<cuda-tailnet-ip>`, `<mac-public-ip>`; unattributed ones become `<IPv4 address>`),
+Tailscale node IDs and keys, reverse-DNS names, MAC addresses and home directories
+(`~`). Roles come from link-probe worker IDs, their path observations and Tailscale
+peer records. JSON formatting is preserved; a sealed `artifact_digest` is recomputed
+with the profiler's canonical digest, and digests of rewritten archives cited by
+other files in the same invocation (a summary's `archive_sha256` and
+`profile_digest`) are updated. Digests that cover uncommitted raw files (for example
+`evidence_digest` or `artifact_sha256` in planner diagnostics) are left as recorded.
+`redact_report.py INPUT OUTPUT` still redacts a single report.
+
+Host identifiers in already committed evidence were redacted on 2026-10-19 with this
+tool; the affected link archive digests and the [timing summary](../../docs/validation/milestone-5-timing/summary.json)
+were recomputed after redaction. The pre-redaction bytes remain in git history.
+
 ## Routine CI
 
 The [workflow](../../.github/workflows/ci.yml) checks Python, types, lint, generated

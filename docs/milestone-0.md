@@ -38,7 +38,7 @@ not replace validation against the pinned upstream weight bytes.
 The initial profiles describe:
 
 - An 18 GiB Apple M3 Pro MacBook Pro using an MLX worker.
-- An 8 GiB RTX 3060 Ti on `anthonypc` using a CUDA worker.
+- An 8 GiB RTX 3060 Ti Linux PC using a CUDA worker.
 
 The Tailscale route was direct in both directions during the 2026-09-03 validation. The
 checked-in link profile records point-in-time RTTs and conservative effective throughput
