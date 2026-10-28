@@ -82,6 +82,10 @@ tonight's Mac than the baseline. The feasibility planner with the checked-in nom
 budgets (`examples/profiles/workers-m3pro-3060ti.yaml`) marks every forward split from
 11 up as feasible, which only shows that the nominal budgets are not the binding ones.
 
+Later: the 5.25 GiB figure understates the reservation. The native formula's attention
+term grows with the square of the context, so 16 layers at 1280 tokens reserve about
+6.5 GiB; see [the status page](../STATUS.md#open-decisions-user).
+
 ## P5 — concurrency two
 
 **Did not run.** The experiment requires both P1 profiles fresh on the same binaries, and

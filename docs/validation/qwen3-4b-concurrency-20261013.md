@@ -178,6 +178,10 @@ watcher, fail-fast launches) closed in PR #31, which also tracks the launchers i
 `scripts/validation/two_host/`. The P5 re-run and the workspace question stay open in
 the [project status](../STATUS.md).*
 
+*October 20, 2026: the P5 re-run on the corrected worker was accepted with the same
+physical peaks ([report](qwen3-4b-concurrency-20261020.md)), which resolves the caveat
+above. The workspace question is answered by sharing one workspace per stage (PR #35).*
+
 - Re-run P5 on the corrected MLX worker (boundary-published allocator sample) with
   fresh same-day profiles on both hosts, so that an accepted record exists whose
   telemetry path is race-free. The procedure is unchanged:

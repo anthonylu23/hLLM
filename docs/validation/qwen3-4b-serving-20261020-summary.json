@@ -1,0 +1,66 @@
+{
+  "schema": "serving-summary-1",
+  "run_directory": "hllm-4b-fit-20261020-042423",
+  "report": "serving/serving.json",
+  "report_sha256": "cb258a28726191a0b81213700bc35851f51d93de04ea181e2a723ac35ea7b38d",
+  "completed": true,
+  "plan_digest": "1ed77abe4726116b52a6fb73ebbcf7a19dc722433925a9339bfda6e2ed313215",
+  "manifest_digest": "6a0c45bf2772dba0bd7d648bce490700bd8a9ee5c5ae6cc0164ceb845cc0663a",
+  "output_tokens": 254,
+  "rounds": 5,
+  "prefill_chunk_tokens": 0,
+  "sampling": "greedy",
+  "physical_fit_gate": true,
+  "prompt_tokens": [
+    5,
+    130
+  ],
+  "reservation_tokens": 384,
+  "attempts": [
+    {
+      "attempt": 1,
+      "outcome": "refused before loading",
+      "reason": "--output-tokens 256 with the 130-token built-in prompt reserves 386 tokens, above the profiled 384"
+    },
+    {
+      "attempt": 2,
+      "outcome": "completed"
+    }
+  ],
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 13,
+      "completed": 8,
+      "cancelled": 5,
+      "peak_active_requests": {
+        "mlx": 1,
+        "cuda": 1
+      },
+      "soak_seconds": 193.1,
+      "first_token_seconds": {
+        "median": 1.003,
+        "max": 1.293
+      },
+      "completed_tokens_identical_per_prompt": true,
+      "cancelled_are_prefixes": true
+    },
+    {
+      "concurrency": 2,
+      "requests": 18,
+      "completed": 13,
+      "cancelled": 5,
+      "peak_active_requests": {
+        "mlx": 2,
+        "cuda": 2
+      },
+      "soak_seconds": 200.6,
+      "first_token_seconds": {
+        "median": 1.539,
+        "max": 2.111
+      },
+      "completed_tokens_identical_per_prompt": true,
+      "cancelled_are_prefixes": true
+    }
+  ]
+}
