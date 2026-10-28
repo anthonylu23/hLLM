@@ -174,10 +174,12 @@ class CudaStage final : public ReferenceStage {
     const auto device = add(add(add(linear, attention), mul(vocab_, 32U)), 8U * 1024U * 1024U);
     const auto host = add(add(mul(mul(rows, hidden_size()), 6U), mul(rows, 16U)), 65536U);
     // Pinned staging is allocated with the sequence and lives as long as it, like the
-    // KV cache, so it is not part of the transient workspace that requests share.
-    // allocate_sequence() sizes it for the whole sequence, so it stays at `tokens`.
+    // KV cache, and the handlers' transport buffers outlive a pass; neither is part of
+    // the transient workspace that requests share. allocate_sequence() sizes staging
+    // for the whole sequence, so it stays at `tokens`.
     const auto staging = staging_bytes(tokens);
-    return {{staging, cache, staging},
+    const auto transport = runtime::request_transport_bytes(tokens, rows, hidden_size());
+    return {{add(staging, transport), cache, staging},
             {add(host, mul(vocab_, 32U)), add(device, cast_workspace_), 0U}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {

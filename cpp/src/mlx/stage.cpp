@@ -158,7 +158,9 @@ class MlxStage final : public ReferenceStage {
     // reuse. This term stays at the whole cache for chunked prefill too.
     auto workspace = add(add(add(add(linear, attention), cache), transport),
                          add(mul(vocab_, 64U), 8U * 1024U * 1024U));
-    return {{0U, 0U, 0U, cache}, {0U, 0U, 0U, add(workspace, cast_workspace_)}};
+    // The handlers' transport buffers outlive a pass, so they are reserved per request.
+    return {{0U, 0U, 0U, add(cache, runtime::request_transport_bytes(tokens, hidden_size()))},
+            {0U, 0U, 0U, add(workspace, cast_workspace_)}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
     static_cast<void>(sequence_memory(tokens, tokens));
