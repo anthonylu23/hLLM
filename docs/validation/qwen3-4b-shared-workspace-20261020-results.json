@@ -1,0 +1,789 @@
+{
+  "baselines": {
+    "final": {
+      "all_exact": true,
+      "completed": true,
+      "cycles": 3,
+      "directory": ".",
+      "guards": {
+        "cuda": {
+          "file": "baseline-cuda.guard.jsonl",
+          "max_available_gib": 8.936,
+          "max_gap_seconds": 2.0,
+          "min_available_gib": 6.453,
+          "observations": 173,
+          "record_sha256": "179759c918c392ff02f6a8ce44fdcba1877e78ff314ae60507b58c08d915ebb4",
+          "returncode": -15,
+          "stop_reason": "guard received signal 15",
+          "swapout_mib": 0
+        },
+        "mlx": {
+          "file": "mac/final/baseline-mlx.guard.jsonl",
+          "max_available_gib": 8.797,
+          "max_gap_seconds": 2.1,
+          "min_available_gib": 4.921,
+          "observations": 170,
+          "record_sha256": "1d5f09127bab77af61687000eeaf97a5d400006aac7ba41eda894d672f210f9f",
+          "returncode": -15,
+          "stop_reason": "guard received signal 15",
+          "swapout_mib": 0
+        }
+      },
+      "note": null,
+      "plan_digest": "1ed77abe4726116b52a6fb73ebbcf7a19dc722433925a9339bfda6e2ed313215",
+      "present": true,
+      "report_sha256": "3db945f9b74820eafa1f9df4bd3dec6f1ee04d076f84eba39e71d8740842e1c0",
+      "requests": 6,
+      "scope": "f16-reload-qualification",
+      "worker_binaries": {
+        "cuda": "e0d409bb5fe32cd5e9449457d7c2271e1b99a02554e1a2e2ee46a4ee68e890cd",
+        "mlx": "e2f12db539786e464af7f1340ef8def348c4c3699d7fb3669652dfc0631112c7"
+      }
+    }
+  },
+  "inputs": {
+    "baseline-workers.json": "14f614e78e54c220d09a37bf726e96b68b273c65cb64cc7c1e6be71914f26f22",
+    "concurrent-workers.json": "9990f264e8a83965e1a79ad2fa609dc7ac2e2518677431f7a008eaa32017fb34",
+    "manifest.json": "83beb94e1285bd1b5c3caaf4cbb889fcd864e4b7b772949958df158ac966b747",
+    "mlx-cuda.plan.json": "a0083af95642ba886c363986f20be0c2c51f231867614db7c2ec59900fdcfe67",
+    "reference-f16.json": "329ea04b80920acb85ba0430f2dca4b9c31f8b1e8ad8c76f580738995b77f4b3",
+    "source-identity-baseline-20261020T054350Z.json": "e9ddb979109515c40caf0b3191272ad74d2255b59e3925445325bddfb29e6028",
+    "source-identity-concurrent-20261020T054953Z.json": "e9ddb979109515c40caf0b3191272ad74d2255b59e3925445325bddfb29e6028",
+    "workload-128-256.json": "7a35ab80b4102e3fac4140c3fa94c6d67aa0fdaa2734c29a67c7f43bce65c005"
+  },
+  "p1": {
+    "cuda": {
+      "artifact": {
+        "artifact_digest": "5a98fb0b1eb89eff4da305bbf8d0b7aeb2f39b17c0ebf36d4f3ad7ab510d4ce3",
+        "binary_digest": "5db688c64ab04dc973c18fd90adb9fc655841db9ccd69ac96c2a5156e6e8ac13",
+        "completed": true,
+        "fit": {
+          "device_envelope_bytes": 6139412480,
+          "host_envelope_bytes": 4392749056,
+          "notes": [],
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "requested_mlx_policy": null,
+          "status": "safe"
+        },
+        "measured_at": "2026-10-20T05:42:41.716057Z",
+        "source_revision": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1"
+      },
+      "directory": ".",
+      "guard": {
+        "file": "cuda-profile.guard.jsonl",
+        "max_available_gib": 8.967,
+        "max_gap_seconds": 2.0,
+        "min_available_gib": 6.374,
+        "observations": 35,
+        "record_sha256": "61368e8ffabaeb1dc155e4fa64d081a4ac2f5e473e39362d41746c2389dfda53",
+        "returncode": 0,
+        "stop_reason": null,
+        "swapout_mib": 0
+      },
+      "note": null,
+      "preflight": {
+        "admission_capacity": {
+          "device": 6576668672,
+          "host": 4026531840,
+          "pinned": 0,
+          "unified": 0
+        },
+        "binary_digest": "5db688c64ab04dc973c18fd90adb9fc655841db9ccd69ac96c2a5156e6e8ac13",
+        "host_available_after_checkpoint_read": 9734725632,
+        "host_available_bytes": 9594036224,
+        "reasons": [],
+        "sampled_before_checkpoint_read": true,
+        "schema": "1.2",
+        "source_revision": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1",
+        "status": "accepted"
+      }
+    },
+    "mlx": {
+      "artifact": {
+        "artifact_digest": "7fd90cc94c28610e66997a9437d9546b177bf4f8eb5d9d4286ecad886a6dde6b",
+        "binary_digest": "5a4a51ae94cb3323164a6d20f2c02570855e33ea38be0a3035e20d6c1e8cb533",
+        "completed": true,
+        "fit": {
+          "device_envelope_bytes": null,
+          "host_envelope_bytes": 5670528108,
+          "notes": [],
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "requested_mlx_policy": "footprint-v1",
+          "status": "safe"
+        },
+        "measured_at": "2026-10-20T05:32:32.707098Z",
+        "source_revision": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1"
+      },
+      "directory": "mac",
+      "guard": {
+        "file": "mac/mlx-profile.guard.jsonl",
+        "max_available_gib": 8.713,
+        "max_gap_seconds": 2.0,
+        "min_available_gib": 4.542,
+        "observations": 28,
+        "record_sha256": "510fc54d7b0a199c3c1a470a72b90029035a68706e9b3f1a5777281784a8453d",
+        "returncode": 0,
+        "stop_reason": null,
+        "swapout_mib": 0
+      },
+      "note": null,
+      "preflight": {
+        "admission_capacity": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 4697620480
+        },
+        "binary_digest": "5a4a51ae94cb3323164a6d20f2c02570855e33ea38be0a3035e20d6c1e8cb533",
+        "host_available_after_checkpoint_read": 9431023616,
+        "host_available_bytes": 9316712448,
+        "reasons": [],
+        "sampled_before_checkpoint_read": true,
+        "schema": "1.2",
+        "source_revision": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1",
+        "status": "accepted"
+      }
+    }
+  },
+  "p5": {
+    "acceptance": "accepted",
+    "baseline": {
+      "all_exact": true,
+      "cycles": 3,
+      "requests": 6,
+      "scope": "f16-reload-qualification"
+    },
+    "cleanup": [
+      {
+        "verified": true,
+        "worker": "mlx"
+      },
+      {
+        "verified": true,
+        "worker": "cuda"
+      }
+    ],
+    "comparisons": 27,
+    "configuration": {
+      "controller_limit": 2,
+      "device_headroom_bytes": 536870912,
+      "extra_overhead_bytes": 268435456,
+      "host_headroom_bytes": 1073741824,
+      "mlx_fit_policy": "footprint-v1",
+      "queue_capacity": 0,
+      "safety_fraction": 0.1,
+      "workers": [
+        {
+          "admission_capacity": {
+            "device": 0,
+            "host": 0,
+            "pinned": 0,
+            "unified": 4697620480
+          },
+          "maximum_active_requests": 2,
+          "maximum_cached_tokens": 768,
+          "maximum_decode_batch": 1,
+          "prefill_chunk_tokens": 0,
+          "request_observations": true,
+          "worker_id": "mlx"
+        },
+        {
+          "admission_capacity": {
+            "device": 6576668672,
+            "host": 4026531840,
+            "pinned": 0,
+            "unified": 0
+          },
+          "maximum_active_requests": 2,
+          "maximum_cached_tokens": 768,
+          "maximum_decode_batch": 1,
+          "prefill_chunk_tokens": 0,
+          "request_observations": true,
+          "worker_id": "cuda"
+        }
+      ]
+    },
+    "directory": ".",
+    "evidence_digest": "9c19cf2122a5b79673f99aac05f7388b82eceeee2dd14d983a346ce81b06990f",
+    "evidence_present": true,
+    "evidence_sha256": "4639b29aa26f3f1a2734f2f3084cc3f90896ff7e76684b43dce2192a2469d883",
+    "exact": 27,
+    "failure_reason": null,
+    "files": {
+      "concurrent-cuda-device-samples.jsonl": {
+        "rows": 1338,
+        "sha256": "6c87d8728c3eeb88790e76ce64f55d597c0339e26dde34145d3b6aba6570764a"
+      },
+      "concurrent-cuda.guard.jsonl": {
+        "rows": 357,
+        "sha256": "a4847b68441b470d82f705307a2194b99e318ca84a169ba81205f2bf2f7f5623"
+      },
+      "concurrent.guard-cuda.jsonl": {
+        "rows": 344,
+        "sha256": "3ce1f0a4ff538b5e5ecda9e091ac90f275b9f05a4f6e373c53e9eb1733f6f4da"
+      },
+      "concurrent.guard-mlx.jsonl": {
+        "rows": 336,
+        "sha256": "bddc96e2f46eb933ffa609d0949b76219982bf62790938e0edcfddbcaa4b8765"
+      },
+      "concurrent.observations.jsonl": {
+        "rows": 25144,
+        "sha256": "3776bb6d4540dbe91baad3dde324d3ff1c40865f7b64f6af86c678a1385e8147"
+      },
+      "mac/concurrent-mlx.guard.jsonl": {
+        "rows": 346,
+        "sha256": "1d9e0cb030dbc3c453d51adb14a46de7ce0ec3f6366045814b4c0cab8a56ab91"
+      },
+      "mac/final/concurrent-mlx.guard.jsonl": {
+        "rows": 350,
+        "sha256": "e194e85a78f3088a9fb6a85a5e8661c507712e37319c5c78960f32c5c646944a"
+      }
+    },
+    "finished_at": "2026-10-20T06:01:23.335571Z",
+    "gates": [
+      {
+        "cycle": 0,
+        "device_available_bytes": null,
+        "host_available_bytes": 9512763392,
+        "reasons": [],
+        "sampled_at": "2026-10-20T05:50:05.773798Z",
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 0,
+        "device_available_bytes": 7865040896,
+        "host_available_bytes": 8999886848,
+        "reasons": [],
+        "sampled_at": "2026-10-20T05:50:05.774899Z",
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": null,
+        "host_available_bytes": 9451552768,
+        "reasons": [],
+        "sampled_at": "2026-10-20T05:53:57.643455Z",
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": 7848722432,
+        "host_available_bytes": 7928041472,
+        "reasons": [],
+        "sampled_at": "2026-10-20T05:53:57.644841Z",
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": null,
+        "host_available_bytes": 9304539136,
+        "reasons": [],
+        "sampled_at": "2026-10-20T05:57:40.742840Z",
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": 7822835712,
+        "host_available_bytes": 7865864192,
+        "reasons": [],
+        "sampled_at": "2026-10-20T05:57:40.744485Z",
+        "status": "safe",
+        "worker": "cuda"
+      }
+    ],
+    "guards": [
+      {
+        "observations": 334,
+        "outcome": "normal",
+        "process_id": 12131,
+        "reasons": [],
+        "record_sha256": "bddc96e2f46eb933ffa609d0949b76219982bf62790938e0edcfddbcaa4b8765",
+        "worker": "mlx"
+      },
+      {
+        "observations": 342,
+        "outcome": "normal",
+        "process_id": 1412728,
+        "reasons": [],
+        "record_sha256": "3ce1f0a4ff538b5e5ecda9e091ac90f275b9f05a4f6e373c53e9eb1733f6f4da",
+        "worker": "cuda"
+      }
+    ],
+    "logical_peaks": [
+      {
+        "within_admission": true,
+        "worker": "mlx"
+      },
+      {
+        "within_admission": true,
+        "worker": "cuda"
+      }
+    ],
+    "note": null,
+    "overlap_rows": 24,
+    "physical": [
+      {
+        "cycle": 0,
+        "device_available_bytes": null,
+        "device_envelope_bytes": null,
+        "device_peak_bytes": null,
+        "host_available_bytes": 9512763392,
+        "host_envelope_bytes": 5698967482,
+        "host_peak_bytes": 4936847296,
+        "policy": "mlx-footprint-max-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": null,
+        "device_envelope_bytes": null,
+        "device_peak_bytes": null,
+        "host_available_bytes": 9451552768,
+        "host_envelope_bytes": 5699778490,
+        "host_peak_bytes": 4937584576,
+        "policy": "mlx-footprint-max-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": null,
+        "device_envelope_bytes": null,
+        "device_peak_bytes": null,
+        "host_available_bytes": 9304539136,
+        "host_envelope_bytes": 5699814561,
+        "host_peak_bytes": 4937617368,
+        "policy": "mlx-footprint-max-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 0,
+        "device_available_bytes": 7865040896,
+        "device_envelope_bytes": 6220152832,
+        "device_peak_bytes": 5410652160,
+        "host_available_bytes": 8999886848,
+        "host_envelope_bytes": 3472354100,
+        "host_peak_bytes": 2912653312,
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": 7848722432,
+        "device_envelope_bytes": 6220152832,
+        "device_peak_bytes": 5410652160,
+        "host_available_bytes": 7928041472,
+        "host_envelope_bytes": 4376938906,
+        "host_peak_bytes": 3735003136,
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": 7822835712,
+        "device_envelope_bytes": 6220152832,
+        "device_peak_bytes": 5410652160,
+        "host_available_bytes": 7865864192,
+        "host_envelope_bytes": 4401638605,
+        "host_peak_bytes": 3757457408,
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "cuda"
+      }
+    ],
+    "profiles": [
+      {
+        "artifact_digest": "7fd90cc94c28610e66997a9437d9546b177bf4f8eb5d9d4286ecad886a6dde6b",
+        "measured_at": "2026-10-20T05:32:32.707098Z",
+        "worker": "mlx"
+      },
+      {
+        "artifact_digest": "5a98fb0b1eb89eff4da305bbf8d0b7aeb2f39b17c0ebf36d4f3ad7ab510d4ce3",
+        "measured_at": "2026-10-20T05:42:41.716057Z",
+        "worker": "cuda"
+      }
+    ],
+    "reasons": [],
+    "rounds": 15,
+    "schema": "1.1",
+    "snapshots": {
+      "cuda": {
+        "allocator_missing": 0,
+        "count": 21521,
+        "device_samples": 1290,
+        "peak_concurrent_requests": 2
+      },
+      "mlx": {
+        "allocator_missing": 0,
+        "count": 3617,
+        "device_samples": 0,
+        "peak_concurrent_requests": 2
+      }
+    },
+    "source_digest": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1",
+    "workers": [
+      {
+        "binary_digest": "e2f12db539786e464af7f1340ef8def348c4c3699d7fb3669652dfc0631112c7",
+        "process_id": 12131,
+        "worker": "mlx"
+      },
+      {
+        "binary_digest": "e0d409bb5fe32cd5e9449457d7c2271e1b99a02554e1a2e2ee46a4ee68e890cd",
+        "process_id": 1412728,
+        "worker": "cuda"
+      }
+    ]
+  },
+  "p5_attempts": [
+    {
+      "acceptance": "accepted",
+      "baseline": {
+        "all_exact": true,
+        "cycles": 3,
+        "requests": 6,
+        "scope": "f16-reload-qualification"
+      },
+      "cleanup": [
+        {
+          "verified": true,
+          "worker": "mlx"
+        },
+        {
+          "verified": true,
+          "worker": "cuda"
+        }
+      ],
+      "comparisons": 27,
+      "configuration": {
+        "controller_limit": 2,
+        "device_headroom_bytes": 536870912,
+        "extra_overhead_bytes": 268435456,
+        "host_headroom_bytes": 1073741824,
+        "mlx_fit_policy": "footprint-v1",
+        "queue_capacity": 0,
+        "safety_fraction": 0.1,
+        "workers": [
+          {
+            "admission_capacity": {
+              "device": 0,
+              "host": 0,
+              "pinned": 0,
+              "unified": 4697620480
+            },
+            "maximum_active_requests": 2,
+            "maximum_cached_tokens": 768,
+            "maximum_decode_batch": 1,
+            "prefill_chunk_tokens": 0,
+            "request_observations": true,
+            "worker_id": "mlx"
+          },
+          {
+            "admission_capacity": {
+              "device": 6576668672,
+              "host": 4026531840,
+              "pinned": 0,
+              "unified": 0
+            },
+            "maximum_active_requests": 2,
+            "maximum_cached_tokens": 768,
+            "maximum_decode_batch": 1,
+            "prefill_chunk_tokens": 0,
+            "request_observations": true,
+            "worker_id": "cuda"
+          }
+        ]
+      },
+      "directory": ".",
+      "evidence_digest": "9c19cf2122a5b79673f99aac05f7388b82eceeee2dd14d983a346ce81b06990f",
+      "evidence_present": true,
+      "evidence_sha256": "4639b29aa26f3f1a2734f2f3084cc3f90896ff7e76684b43dce2192a2469d883",
+      "exact": 27,
+      "failure_reason": null,
+      "files": {
+        "concurrent-cuda-device-samples.jsonl": {
+          "rows": 1338,
+          "sha256": "6c87d8728c3eeb88790e76ce64f55d597c0339e26dde34145d3b6aba6570764a"
+        },
+        "concurrent-cuda.guard.jsonl": {
+          "rows": 357,
+          "sha256": "a4847b68441b470d82f705307a2194b99e318ca84a169ba81205f2bf2f7f5623"
+        },
+        "concurrent.guard-cuda.jsonl": {
+          "rows": 344,
+          "sha256": "3ce1f0a4ff538b5e5ecda9e091ac90f275b9f05a4f6e373c53e9eb1733f6f4da"
+        },
+        "concurrent.guard-mlx.jsonl": {
+          "rows": 336,
+          "sha256": "bddc96e2f46eb933ffa609d0949b76219982bf62790938e0edcfddbcaa4b8765"
+        },
+        "concurrent.observations.jsonl": {
+          "rows": 25144,
+          "sha256": "3776bb6d4540dbe91baad3dde324d3ff1c40865f7b64f6af86c678a1385e8147"
+        },
+        "mac/concurrent-mlx.guard.jsonl": {
+          "rows": 346,
+          "sha256": "1d9e0cb030dbc3c453d51adb14a46de7ce0ec3f6366045814b4c0cab8a56ab91"
+        },
+        "mac/final/concurrent-mlx.guard.jsonl": {
+          "rows": 350,
+          "sha256": "e194e85a78f3088a9fb6a85a5e8661c507712e37319c5c78960f32c5c646944a"
+        }
+      },
+      "finished_at": "2026-10-20T06:01:23.335571Z",
+      "gates": [
+        {
+          "cycle": 0,
+          "device_available_bytes": null,
+          "host_available_bytes": 9512763392,
+          "reasons": [],
+          "sampled_at": "2026-10-20T05:50:05.773798Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 0,
+          "device_available_bytes": 7865040896,
+          "host_available_bytes": 8999886848,
+          "reasons": [],
+          "sampled_at": "2026-10-20T05:50:05.774899Z",
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": null,
+          "host_available_bytes": 9451552768,
+          "reasons": [],
+          "sampled_at": "2026-10-20T05:53:57.643455Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": 7848722432,
+          "host_available_bytes": 7928041472,
+          "reasons": [],
+          "sampled_at": "2026-10-20T05:53:57.644841Z",
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": null,
+          "host_available_bytes": 9304539136,
+          "reasons": [],
+          "sampled_at": "2026-10-20T05:57:40.742840Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": 7822835712,
+          "host_available_bytes": 7865864192,
+          "reasons": [],
+          "sampled_at": "2026-10-20T05:57:40.744485Z",
+          "status": "safe",
+          "worker": "cuda"
+        }
+      ],
+      "guards": [
+        {
+          "observations": 334,
+          "outcome": "normal",
+          "process_id": 12131,
+          "reasons": [],
+          "record_sha256": "bddc96e2f46eb933ffa609d0949b76219982bf62790938e0edcfddbcaa4b8765",
+          "worker": "mlx"
+        },
+        {
+          "observations": 342,
+          "outcome": "normal",
+          "process_id": 1412728,
+          "reasons": [],
+          "record_sha256": "3ce1f0a4ff538b5e5ecda9e091ac90f275b9f05a4f6e373c53e9eb1733f6f4da",
+          "worker": "cuda"
+        }
+      ],
+      "logical_peaks": [
+        {
+          "within_admission": true,
+          "worker": "mlx"
+        },
+        {
+          "within_admission": true,
+          "worker": "cuda"
+        }
+      ],
+      "note": null,
+      "overlap_rows": 24,
+      "physical": [
+        {
+          "cycle": 0,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 9512763392,
+          "host_envelope_bytes": 5698967482,
+          "host_peak_bytes": 4936847296,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 9451552768,
+          "host_envelope_bytes": 5699778490,
+          "host_peak_bytes": 4937584576,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 9304539136,
+          "host_envelope_bytes": 5699814561,
+          "host_peak_bytes": 4937617368,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 0,
+          "device_available_bytes": 7865040896,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 8999886848,
+          "host_envelope_bytes": 3472354100,
+          "host_peak_bytes": 2912653312,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": 7848722432,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 7928041472,
+          "host_envelope_bytes": 4376938906,
+          "host_peak_bytes": 3735003136,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": 7822835712,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 7865864192,
+          "host_envelope_bytes": 4401638605,
+          "host_peak_bytes": 3757457408,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        }
+      ],
+      "profiles": [
+        {
+          "artifact_digest": "7fd90cc94c28610e66997a9437d9546b177bf4f8eb5d9d4286ecad886a6dde6b",
+          "measured_at": "2026-10-20T05:32:32.707098Z",
+          "worker": "mlx"
+        },
+        {
+          "artifact_digest": "5a98fb0b1eb89eff4da305bbf8d0b7aeb2f39b17c0ebf36d4f3ad7ab510d4ce3",
+          "measured_at": "2026-10-20T05:42:41.716057Z",
+          "worker": "cuda"
+        }
+      ],
+      "reasons": [],
+      "rounds": 15,
+      "schema": "1.1",
+      "snapshots": {
+        "cuda": {
+          "allocator_missing": 0,
+          "count": 21521,
+          "device_samples": 1290,
+          "peak_concurrent_requests": 2
+        },
+        "mlx": {
+          "allocator_missing": 0,
+          "count": 3617,
+          "device_samples": 0,
+          "peak_concurrent_requests": 2
+        }
+      },
+      "source_digest": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1",
+      "workers": [
+        {
+          "binary_digest": "e2f12db539786e464af7f1340ef8def348c4c3699d7fb3669652dfc0631112c7",
+          "process_id": 12131,
+          "worker": "mlx"
+        },
+        {
+          "binary_digest": "e0d409bb5fe32cd5e9449457d7c2271e1b99a02554e1a2e2ee46a4ee68e890cd",
+          "process_id": 1412728,
+          "worker": "cuda"
+        }
+      ]
+    }
+  ],
+  "run_directory": "hllm-4b-fit-20261020-053205",
+  "source_identities": {
+    "linux": {
+      "source-identity-baseline-20261020T054350Z": {
+        "base_revision": "c27bd8acaa88dc434f079620f791eaa6ccfea5dd",
+        "binaries": {
+          "build/cuda/cpp/hllm-worker-cuda": "e0d409bb5fe32cd5e9449457d7c2271e1b99a02554e1a2e2ee46a4ee68e890cd"
+        },
+        "source_digest": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1"
+      },
+      "source-identity-concurrent-20261020T054953Z": {
+        "base_revision": "c27bd8acaa88dc434f079620f791eaa6ccfea5dd",
+        "binaries": {
+          "build/cuda/cpp/hllm-worker-cuda": "e0d409bb5fe32cd5e9449457d7c2271e1b99a02554e1a2e2ee46a4ee68e890cd"
+        },
+        "source_digest": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1"
+      }
+    },
+    "mac": {
+      "source-identity-mlx-profile-20261020T053229Z": {
+        "base_revision": "c27bd8acaa88dc434f079620f791eaa6ccfea5dd",
+        "binaries": {
+          "build/native/m6-mlx/cpp/hllm-profile-memory-mlx": "5a4a51ae94cb3323164a6d20f2c02570855e33ea38be0a3035e20d6c1e8cb533",
+          "build/native/m6-mlx/cpp/hllm-worker-mlx": "e2f12db539786e464af7f1340ef8def348c4c3699d7fb3669652dfc0631112c7"
+        },
+        "source_digest": "e67d8a138110848f697e153f4c88dd04bb77782246def3a97328d42ef8a7e1f1"
+      }
+    }
+  }
+}

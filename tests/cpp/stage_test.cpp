@@ -74,11 +74,18 @@ TEST(CpuStageTest, ChunkedReservationKeepsWholePromptBoundAndShrinksWithChunk) {
     EXPECT_EQ(same.cache.host_bytes, whole.cache.host_bytes);
     EXPECT_EQ(same.workspace.host_bytes, whole.workspace.host_bytes);
   }
+  // Per-request memory always covers the whole sequence's KV cache and every copy of
+  // the prompt's token IDs the handlers keep (24 bytes per token, even for one-token
+  // chunks); only the activation copies and the transient workspace shrink.
+  const auto kv = whole.cache.host_bytes -
+                  runtime::request_transport_bytes(tokens, tokens, c.hidden_size());
+  EXPECT_GE(stage->sequence_memory(tokens, 1U).cache.host_bytes,
+            kv + tokens * 3U * sizeof(std::uint64_t));
   std::size_t previous = 0U;
   for (std::size_t query = 1U; query <= tokens; ++query) {
     const auto memory = stage->sequence_memory(tokens, query);
-    // The cache always covers the whole sequence; only the transient workspace shrinks.
-    EXPECT_EQ(memory.cache.host_bytes, whole.cache.host_bytes);
+    EXPECT_EQ(memory.cache.host_bytes,
+              kv + runtime::request_transport_bytes(tokens, query, c.hidden_size()));
     EXPECT_GT(memory.workspace.host_bytes, previous);
     EXPECT_LE(memory.workspace.host_bytes, whole.workspace.host_bytes);
     previous = memory.workspace.host_bytes;
