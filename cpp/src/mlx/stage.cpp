@@ -159,7 +159,8 @@ class MlxStage final : public ReferenceStage {
     auto workspace = add(add(add(add(linear, attention), cache), transport),
                          add(mul(vocab_, 64U), 8U * 1024U * 1024U));
     // The handlers' transport buffers outlive a pass, so they are reserved per request.
-    return {{0U, 0U, 0U, add(cache, runtime::request_transport_bytes(tokens, hidden_size()))},
+    const auto handlers = runtime::request_transport_bytes(tokens, rows, hidden_size());
+    return {{0U, 0U, 0U, add(cache, handlers)},
             {0U, 0U, 0U, add(workspace, cast_workspace_)}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {

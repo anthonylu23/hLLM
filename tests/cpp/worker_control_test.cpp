@@ -319,7 +319,7 @@ TEST(WorkerControlTest, RejectsOversizedAndConflictingReservationsAndReportsAllo
   const auto hidden =
       cpu::make_backend_factory()->load(load, model.root, {1'000'000U, 0U, 0U})->hidden_size();
   EXPECT_EQ(report.reserved_cache_bytes(),
-            4U * 2U * 2U * 4U * 4U + runtime::request_transport_bytes(4U, hidden));
+            4U * 2U * 2U * 4U * 4U + runtime::request_transport_bytes(4U, 4U, hidden));
   EXPECT_GT(report.reserved_workspace_bytes(), 0U);
 }
 }  // namespace
@@ -489,8 +489,8 @@ TEST(WorkerConcurrencyTest, SharedWorkspaceFollowsTheLargestActiveRequest) {
   ASSERT_LT(small.workspace.host_bytes, large.workspace.host_bytes);
   // The handlers hold transport buffers between passes, so each request's own cache,
   // not the shared workspace, covers them.
-  EXPECT_GE(small.cache.host_bytes, runtime::request_transport_bytes(16U, stage->hidden_size()));
-  EXPECT_GE(large.cache.host_bytes, runtime::request_transport_bytes(32U, stage->hidden_size()));
+  EXPECT_GE(small.cache.host_bytes, runtime::request_transport_bytes(16U, 16U, stage->hidden_size()));
+  EXPECT_GE(large.cache.host_bytes, runtime::request_transport_bytes(32U, 32U, stage->hidden_size()));
   // Weights, both caches and only the larger workspace.
   const auto exact = stage->weight_memory().host_bytes + small.cache.host_bytes +
                      large.cache.host_bytes + large.workspace.host_bytes;
