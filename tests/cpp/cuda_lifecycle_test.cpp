@@ -20,7 +20,9 @@ class FailOnceStage final : public runtime::StageBackend {
   std::size_t hidden_size() const override { return inner_->hidden_size(); }
   std::size_t vocabulary_size() const override { return inner_->vocabulary_size(); }
   std::size_t maximum_tokens() const override { return inner_->maximum_tokens(); }
-  runtime::SequenceMemory sequence_memory(std::size_t n) const override { return inner_->sequence_memory(n); }
+  runtime::SequenceMemory sequence_memory(std::size_t n, std::size_t q) const override {
+    return inner_->sequence_memory(n, q);
+  }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t n) const override {
     auto allocated = inner_->allocate_sequence(n);
     if (fail_.exchange(false)) throw std::bad_alloc();

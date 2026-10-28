@@ -60,6 +60,9 @@ enum class RequestOutcome : std::uint8_t { kCompleted, kFailed };
 struct ActiveRequest {
   std::string id;
   std::size_t maximum_tokens;
+  // Most query rows one prefill input may carry: the reserved chunk size, or
+  // maximum_tokens for whole-prompt prefill. Inputs above it are rejected.
+  std::size_t maximum_query_tokens;
   std::chrono::system_clock::time_point deadline;
   runtime::SequenceMemory memory;
   std::chrono::steady_clock::time_point admitted;
@@ -99,10 +102,12 @@ class ControlService final : public v1::WorkerControl::Service {
   grpc::Status Health(grpc::ServerContext*, const v1::Empty*, v1::HealthResponse*) override;
 
   // Atomically claims a prior reservation, or reserves and claims for native
-  // execution.
+  // execution. `prefill_chunk_tokens` bounds the query rows of each prefill input;
+  // 0 (or at least `tokens`) reserves for whole-prompt prefill. Claiming a prior
+  // reservation with a different effective chunk is a conflicting retry.
   ExecutionLease acquire(const std::string& deployment, std::uint64_t version,
                          const std::string& request, std::size_t tokens, std::uint64_t deadline_ms,
-                         std::uint32_t required_stage);
+                         std::uint32_t required_stage, std::size_t prefill_chunk_tokens = 0U);
   // Retires the request. A failed outcome is recorded as cancelled, expired or
   // failed from the request's stop cause and deadline.
   void release(const std::shared_ptr<ActiveRequest>& request, RequestOutcome outcome);
@@ -118,8 +123,8 @@ class ControlService final : public v1::WorkerControl::Service {
   };
   void prune_expired();
   bool deployment_matches(const std::string&, std::uint64_t) const;
-  std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::uint64_t,
-                                         std::unique_lock<std::mutex>&);
+  std::shared_ptr<ActiveRequest> reserve(const std::string&, std::size_t, std::size_t,
+                                         std::uint64_t, std::unique_lock<std::mutex>&);
   // Requests one execution pass can serve: the decode batch limit if the backend
   // batches, otherwise one. Requires the control mutex.
   std::size_t pass_rows() const;

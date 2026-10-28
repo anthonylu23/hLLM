@@ -54,6 +54,46 @@ TEST(CpuStageTest, LoadedPayloadsMatchIndependentTransformersAtBothLayerBoundari
   EXPECT_GT(first->sequence_memory(16U).cache.host_bytes, 0U);
 }
 
+TEST(CpuStageTest, ChunkedReservationKeepsWholePromptBoundAndShrinksWithChunk) {
+  const test::ModelFixture fixture;
+  const auto request = fixture.load(0U);
+  const auto& c = request.manifest().config();
+  auto stage = load_stage(request, fixture.root, 1'000'000U);
+  const std::size_t tokens = stage->maximum_tokens();
+  ASSERT_GE(tokens, 8U);
+  const auto whole = stage->sequence_memory(tokens);
+  // The whole-prompt bound is unchanged from before chunk-aware reservations.
+  const std::size_t width = c.hidden_size() * 24U +
+                            std::size_t{c.num_attention_heads()} * c.head_dim() * 12U +
+                            c.intermediate_size() * 6U + 4U;
+  EXPECT_EQ(whole.workspace.host_bytes,
+            tokens * width * sizeof(float) + c.vocabulary_size() * 32U + 65536U);
+  // Zero, the whole sequence, or more all mean whole-prompt prefill.
+  for (const std::size_t query : {std::size_t{0U}, tokens, tokens + 1U, std::size_t{1U} << 40U}) {
+    const auto same = stage->sequence_memory(tokens, query);
+    EXPECT_EQ(same.cache.host_bytes, whole.cache.host_bytes);
+    EXPECT_EQ(same.workspace.host_bytes, whole.workspace.host_bytes);
+  }
+  // Per-request memory always covers the whole sequence's KV cache and every copy of
+  // the prompt's token IDs the handlers keep (24 bytes per token, even for one-token
+  // chunks); only the activation copies and the transient workspace shrink.
+  const auto kv = whole.cache.host_bytes -
+                  runtime::request_transport_bytes(tokens, tokens, c.hidden_size());
+  EXPECT_GE(stage->sequence_memory(tokens, 1U).cache.host_bytes,
+            kv + tokens * 3U * sizeof(std::uint64_t));
+  std::size_t previous = 0U;
+  for (std::size_t query = 1U; query <= tokens; ++query) {
+    const auto memory = stage->sequence_memory(tokens, query);
+    EXPECT_EQ(memory.cache.host_bytes,
+              kv + runtime::request_transport_bytes(tokens, query, c.hidden_size()));
+    EXPECT_GT(memory.workspace.host_bytes, previous);
+    EXPECT_LE(memory.workspace.host_bytes, whole.workspace.host_bytes);
+    previous = memory.workspace.host_bytes;
+  }
+  EXPECT_EQ(previous, whole.workspace.host_bytes);
+  EXPECT_LT(stage->sequence_memory(tokens, 4U).workspace.host_bytes, whole.workspace.host_bytes);
+}
+
 TEST(CpuStageTest, IgnoresRedundantLmHeadShippedWithTiedEmbeddings) {
   // The oracle's lm_head equals its embedding, as Transformers ties them at load.
   const test::ModelFixture tied;

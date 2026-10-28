@@ -40,28 +40,38 @@ class DenseStage final : public ReferenceStage {
   std::size_t hidden_size() const override { return config.hidden_size; }
   std::size_t vocabulary_size() const override { return vocab; }
   std::size_t maximum_tokens() const override { return config.maximum_sequence_length; }
-  runtime::SequenceMemory sequence_memory(std::size_t tokens) const override {
+  using runtime::StageBackend::sequence_memory;
+  runtime::SequenceMemory sequence_memory(std::size_t tokens,
+                                          std::size_t maximum_query_tokens) const override {
     if (tokens == 0U || tokens > maximum_tokens()) {
       throw runtime::Error::invalid_request("request exceeds model context capacity");
     }
+    const auto rows = runtime::query_rows(tokens, maximum_query_tokens);
     const auto cache =
         multiply(multiply(multiply(multiply(tokens, layers.size()), config.key_value_heads),
                           config.head_dimension),
                  2U * sizeof(float));
     // Conservative upper bound for one pass's simultaneous dense temporaries, wire
     // copies, attention scores and final-row logits. No quadratic attention matrix is
-    // stored. Buffers the handlers keep between passes are reserved per request.
-    const auto width =
+    // stored. Dense temporaries and wire copies scale with the rows of one prefill
+    // input; the reused attention score row (4 floats reserved per position) scales
+    // with the whole context. With rows == tokens this is the whole-prompt bound.
+    // Buffers the handlers keep between passes are reserved per request.
+    const auto query_width =
         add(add(multiply(config.hidden_size, 24U),
                 multiply(multiply(config.attention_heads, config.head_dimension), 12U)),
-            add(multiply(config.intermediate_size, 6U), 4U));
+            multiply(config.intermediate_size, 6U));
     const auto workspace =
-        add(add(multiply(multiply(tokens, width), sizeof(float)), multiply(vocab, 32U)), 65536U);
-    return {{.host_bytes = add(cache, runtime::request_transport_bytes(tokens, config.hidden_size))},
+        add(add(add(multiply(multiply(rows, query_width), sizeof(float)),
+                    multiply(multiply(tokens, 4U), sizeof(float))),
+                multiply(vocab, 32U)),
+            65536U);
+    return {{.host_bytes = add(cache, runtime::request_transport_bytes(tokens, rows,
+                                                                       config.hidden_size))},
             {.host_bytes = workspace}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t tokens) const override {
-    static_cast<void>(sequence_memory(tokens));
+    static_cast<void>(sequence_memory(tokens, tokens));
     auto state = std::make_unique<CpuSequence>();
     state->caches.reserve(layers.size());
     for (std::size_t i = 0U; i < layers.size(); ++i) {

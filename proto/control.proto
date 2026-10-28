@@ -58,6 +58,9 @@ message ReserveRequestMessage {
   uint64 deployment_version = 3;
   uint64 maximum_total_tokens = 4;
   uint64 deadline_unix_ms = 5;
+  // Most prompt tokens one prefill input carries; 0 reserves for whole-prompt
+  // prefill. Workers that predate this field reserve for the whole prompt.
+  uint32 prefill_chunk_tokens = 6;
 }
 message ReserveResponse {
   bool accepted = 1;

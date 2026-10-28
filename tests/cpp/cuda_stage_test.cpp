@@ -140,7 +140,7 @@ TEST(CudaStageTest, QwenPrefillDecodeLayersCachesAndLogitsMatchIndependentOracle
     const auto memory = stage->sequence_memory(16U);
     // Host cache is only the handlers' transport buffers; staging here is pageable.
     EXPECT_EQ(memory.cache.host_bytes,
-              runtime::request_transport_bytes(16U, stage->hidden_size()));
+              runtime::request_transport_bytes(16U, 16U, stage->hidden_size()));
     EXPECT_EQ(memory.workspace.pinned_host_bytes, 0U);
     EXPECT_GT(memory.cache.device_bytes, 0U);
     EXPECT_GT(memory.workspace.host_bytes, 0U);
@@ -324,7 +324,7 @@ TEST(CudaStageTest, PinnedAdmissionCountsHostAndPinnedAndReleasesReservation) {
   EXPECT_EQ(memory.cache.pinned_host_bytes, 32U * stage->hidden_size() * 2U);
   EXPECT_EQ(memory.cache.host_bytes,
             memory.cache.pinned_host_bytes +
-                runtime::request_transport_bytes(32U, stage->hidden_size()));
+                runtime::request_transport_bytes(32U, 32U, stage->hidden_size()));
   EXPECT_EQ(memory.workspace.pinned_host_bytes, 0U);
   auto single = factory->load(fixture.load(0U, false), fixture.root, budget);
   EXPECT_EQ(single->sequence_memory(32U).cache.pinned_host_bytes, 0U);

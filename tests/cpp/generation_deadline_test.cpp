@@ -30,7 +30,7 @@ class DeadlineStage final : public runtime::StageBackend {
   std::size_t hidden_size() const override { return 6U; }
   std::size_t vocabulary_size() const override { return 11U; }
   std::size_t maximum_tokens() const override { return 1'000'001U; }
-  runtime::SequenceMemory sequence_memory(std::size_t) const override {
+  runtime::SequenceMemory sequence_memory(std::size_t, std::size_t) const override {
     return {{10U, 0U, 0U}, {10U, 0U, 0U}};
   }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t) const override {

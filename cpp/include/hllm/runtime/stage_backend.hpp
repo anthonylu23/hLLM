@@ -28,14 +28,15 @@ struct TokenInput {
 using StageInput = std::variant<TokenInput, BoundaryActivation>;
 
 // Host bytes the serving handlers hold for one request outside the stage's serialized
-// passes: the prompt's token IDs up to three times (request message, prompt and input
-// vectors) and one input's F16 boundary activations up to three times (the activation,
-// its message payload and gRPC's serialized copy). Queued and streaming requests hold
-// them at the same time, so backends reserve them per request, never in the shared
-// workspace.
-[[nodiscard]] inline std::size_t request_transport_bytes(std::size_t tokens, std::size_t hidden) {
+// passes: the whole prompt's token IDs up to three times (request message, prompt and
+// input vectors, whatever the chunk size) and one input's F16 boundary activations, of
+// at most `rows` rows, up to three times (the activation, its message payload and
+// gRPC's serialized copy). Queued and streaming requests hold them at the same time, so
+// backends reserve them per request, never in the shared workspace.
+[[nodiscard]] inline std::size_t request_transport_bytes(std::size_t tokens, std::size_t rows,
+                                                         std::size_t hidden) {
   return checked_add(checked_multiply(tokens, 3U * sizeof(std::uint64_t)),
-                     checked_multiply(checked_multiply(tokens, hidden), 3U * 2U));
+                     checked_multiply(checked_multiply(rows, hidden), 3U * 2U));
 }
 struct PrefillProgress {};
 using StageOutput = std::variant<BoundaryActivation, SampledToken, PrefillProgress>;
@@ -57,6 +58,14 @@ struct DecodeBatchItem {
 StageInput combine_decode_inputs(const std::vector<DecodeBatchItem>& items);
 std::vector<StageOutput> split_decode_boundary(BoundaryActivation output);
 
+// Effective query rows for a reservation: zero or anything at least `tokens` is the
+// whole sequence.
+[[nodiscard]] constexpr std::size_t query_rows(std::size_t tokens,
+                                               std::size_t maximum_query_tokens) noexcept {
+  return maximum_query_tokens == 0U || maximum_query_tokens > tokens ? tokens
+                                                                     : maximum_query_tokens;
+}
+
 class StageBackend {
  public:
   virtual ~StageBackend() = default;
@@ -64,7 +73,14 @@ class StageBackend {
   [[nodiscard]] virtual std::size_t hidden_size() const = 0;
   [[nodiscard]] virtual std::size_t vocabulary_size() const = 0;
   [[nodiscard]] virtual std::size_t maximum_tokens() const = 0;
-  [[nodiscard]] virtual SequenceMemory sequence_memory(std::size_t tokens) const = 0;
+  // Reservation for a sequence of `tokens` total positions whose prefill inputs carry
+  // at most `maximum_query_tokens` rows each (chunked prefill). Zero, or a value of at
+  // least `tokens`, means whole-prompt prefill: the reservation for `tokens` rows.
+  [[nodiscard]] virtual SequenceMemory sequence_memory(std::size_t tokens,
+                                                       std::size_t maximum_query_tokens) const = 0;
+  [[nodiscard]] SequenceMemory sequence_memory(std::size_t tokens) const {
+    return sequence_memory(tokens, tokens);
+  }
   [[nodiscard]] virtual std::unique_ptr<SequenceState> allocate_sequence(
       std::size_t tokens) const = 0;
   // Execute embedding (when first), owned layers, and sampling (when last) as

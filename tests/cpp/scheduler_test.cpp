@@ -22,7 +22,7 @@ class GateStage : public runtime::StageBackend {
   std::size_t hidden_size() const override { return 1U; }
   std::size_t vocabulary_size() const override { return 1000U; }
   std::size_t maximum_tokens() const override { return 1024U; }
-  runtime::SequenceMemory sequence_memory(std::size_t) const override { return {}; }
+  runtime::SequenceMemory sequence_memory(std::size_t, std::size_t) const override { return {}; }
   std::unique_ptr<runtime::SequenceState> allocate_sequence(std::size_t) const override {
     return std::make_unique<runtime::SequenceState>();
   }
