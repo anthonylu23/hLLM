@@ -31,7 +31,16 @@ Logical peaks, from the workers' own memory reports:
 | MLX (unified) | 3,805,836,800 | 47,185,920 | 695,236,608 | **4,548,259,328** | 4,697,620,480 |
 | CUDA (device) | 5,017,011,712 | 66,060,288 | 654,979,072 | 5,738,051,072 | 6,576,668,672 |
 
-The MLX stage holds two requests with 142 MiB of its cap to spare. On the `main`
+The MLX stage holds two requests with 142 MiB of its cap to spare.
+
+After this run, review found that the request handlers hold transport buffers between
+passes: a request's token IDs and copies of one input's boundary activations, held
+while it waits for or streams around another request's pass. The PR now reserves
+`24 × tokens + 6 × tokens × hidden` bytes of them per request, in the request's cache
+rather than the shared workspace. At this workload that is 5,907,456 B per request, so
+the MLX combined reservation becomes 4,560,074,240 B, 131 MiB under the same cap (the
+CUDA addition is in its host domain). The figures above are as recorded, on head
+`c27bd8a`; the change alters what admission reserves, not what the workers allocate. On the `main`
 workers earlier the same morning its combined peak was 5,243,495,936 B (workspace
 1,390,473,216 B, one per request), which needs the 5.125 GiB cap. The CUDA device peak
 falls by one workspace too (6,393,030,144 B on `main`).

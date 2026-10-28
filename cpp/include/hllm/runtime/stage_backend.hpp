@@ -8,6 +8,7 @@
 #include <variant>
 #include <vector>
 
+#include "hllm/runtime/checked_size.hpp"
 #include "hllm/runtime/memory.hpp"
 #include "hllm/runtime/sampling.hpp"
 #include "hllm/runtime/timing.hpp"
@@ -25,6 +26,17 @@ struct TokenInput {
   std::vector<std::uint64_t> ids;
 };
 using StageInput = std::variant<TokenInput, BoundaryActivation>;
+
+// Host bytes the serving handlers hold for one request outside the stage's serialized
+// passes: the prompt's token IDs up to three times (request message, prompt and input
+// vectors) and one input's F16 boundary activations up to three times (the activation,
+// its message payload and gRPC's serialized copy). Queued and streaming requests hold
+// them at the same time, so backends reserve them per request, never in the shared
+// workspace.
+[[nodiscard]] inline std::size_t request_transport_bytes(std::size_t tokens, std::size_t hidden) {
+  return checked_add(checked_multiply(tokens, 3U * sizeof(std::uint64_t)),
+                     checked_multiply(checked_multiply(tokens, hidden), 3U * 2U));
+}
 struct PrefillProgress {};
 using StageOutput = std::variant<BoundaryActivation, SampledToken, PrefillProgress>;
 
