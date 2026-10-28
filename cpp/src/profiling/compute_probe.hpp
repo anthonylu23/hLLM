@@ -57,8 +57,9 @@ inline void compute_probe(rt::StageBackend& stage, const rt::MemoryAmounts& capa
       };
       auto start = rt::ProfileClock::now();
       auto state = stage.allocate_sequence(tokens);
-      const std::optional<std::size_t> first_chunk =
-          chunk ? std::optional<std::size_t>(0U) : std::nullopt;
+      // JSON values, not std::optional: converting an optional to JSON needs
+      // nlohmann_json 3.12, and installed packages may be older.
+      const json first_chunk = chunk ? json(0U) : json(nullptr);
       record("sequence_allocation", std::nullopt, 0U, 0U, rt::elapsed_ms(start), first_chunk);
       // One execution per prefill chunk, then one per decode step.
       std::vector<std::pair<std::size_t, std::size_t>> executions;  // (step, position)
@@ -71,8 +72,8 @@ inline void compute_probe(rt::StageBackend& stage, const rt::MemoryAmounts& capa
       for (std::size_t index = 0U; index < executions.size(); ++index) {
         const auto [step, position] = executions[index];
         const auto count = step == 0U ? std::min(chunk ? chunk : prompt, prompt - position) : 1U;
-        // A JSON value rather than std::optional: GCC's -O2 maybe-uninitialized
-        // analysis misfires on an optional copied into the record lambda.
+        // Also avoids GCC's -O2 maybe-uninitialized misfire on an optional copied into
+        // the record lambda.
         const json chunk_index = chunk && step == 0U ? json(index) : json(nullptr);
         state->prefilling = step == 0U;
         state->prefill_only = step == 0U && position + count < prompt;
