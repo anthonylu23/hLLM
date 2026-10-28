@@ -187,8 +187,7 @@ def test_chunked_prefill_reserves_less_and_retires(tmp_path: Path) -> None:
     assert prefill(chunked, "workspace") < prefill(whole, "workspace")
     chunked_cache = [s.cache for s in chunked.samples if s.phase == "prefill"]
     whole_cache = [s.cache for s in whole.samples if s.phase == "prefill"]
-    assert len(chunked_cache) == len(whole_cache)
-    for c, w in zip(chunked_cache, whole_cache):
+    for c, w in zip(chunked_cache, whole_cache, strict=True):
         assert all(getattr(c, n) <= getattr(w, n) for n in MemoryAmounts.model_fields)
     if backend != Backend.CPU:
         assert prefill(chunked, "allocator") <= prefill(whole, "allocator")
