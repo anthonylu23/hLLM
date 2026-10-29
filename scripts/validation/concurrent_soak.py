@@ -71,6 +71,7 @@ if __package__ in (None, ""):  # `python scripts/validation/concurrent_soak.py`
 from scripts.validation.reload_soak import (
     Worker,
     fresh_fit,
+    profile_chunk,
     reference_tokens,
     validate_profile,
 )
@@ -373,11 +374,19 @@ def guard_snapshot_path(output: Path, worker_id: str) -> Path:
 
 
 def validate_baseline(
-    path: Path, *, plan: DeploymentPlan, reference: Path, workers: dict, cpu_rehearsal: bool
+    path: Path,
+    *,
+    plan: DeploymentPlan,
+    reference: Path,
+    workers: dict,
+    cpu_rehearsal: bool,
+    prefill_chunk_tokens: int,
 ) -> BaselineSummary:
     """Parse the single-request report and bind it to this run before anything loads."""
     try:
         report = json.loads(path.read_text())
+        # Reports from before chunked soaks sent whole-prompt prefill.
+        baseline_chunk = int(report.get("prefill_chunk_tokens", 0))
         summary = BaselineSummary(
             scope=report["scope"],
             completed=bool(report["completed"]),
@@ -414,6 +423,8 @@ def validate_baseline(
         problems.append("was produced against a different reference")
     if summary.worker_binary_digests != tuple((k, w.binary_digest) for k, w in workers.items()):
         problems.append("was produced on different worker binaries")
+    if baseline_chunk != prefill_chunk_tokens:
+        problems.append(f"was produced with prefill chunk {baseline_chunk}")
     if problems:
         raise ValueError("baseline report " + "; ".join(problems))
     return summary
@@ -465,12 +476,14 @@ class Run:
                 len(self.ids),
                 len(self.expected),
             )
+        self.chunk = profile_chunk(self.profiles)
         self.baseline = validate_baseline(
             args.baseline_report,
             plan=self.plan,
             reference=args.reference,
             workers=self.workers,
             cpu_rehearsal=args.cpu_rehearsal,
+            prefill_chunk_tokens=self.chunk,
         )
         self.channels = {k: grpc.insecure_channel(w.endpoint) for k, w in self.workers.items()}
         self.controls = {k: control_pb2_grpc.WorkerControlStub(c) for k, c in self.channels.items()}
@@ -562,6 +575,7 @@ class Run:
             stop_token_ids=[],
             timeout=self.args.timeout,
             request_id=identifier,
+            prefill_chunk_tokens=self.chunk,
         )
         try:
             for event in stream:
@@ -722,7 +736,7 @@ class Run:
                     maximum_active_requests=int(c.maximum_active_requests),
                     maximum_cached_tokens=int(c.maximum_cached_tokens),
                     maximum_decode_batch=int(c.maximum_decode_batch),
-                    prefill_chunk_tokens=0,
+                    prefill_chunk_tokens=self.chunk,
                     request_observations=bool(c.supports_request_observations),
                 )
             )

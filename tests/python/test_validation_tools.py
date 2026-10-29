@@ -443,6 +443,23 @@ def test_concurrent_guard_outcome_hashes_exactly_the_bytes_it_parses(tmp_path):
         guard_outcome("mlx", record, snapshot)
 
 
+def test_soaks_send_the_one_chunk_every_profile_was_measured_at():
+    from types import SimpleNamespace
+    from typing import Any, cast
+
+    from scripts.validation.reload_soak import profile_chunk
+
+    def profile(chunk: int) -> Any:
+        return SimpleNamespace(
+            key=SimpleNamespace(workload=SimpleNamespace(prefill_chunk_tokens=chunk))
+        )
+
+    assert profile_chunk(cast(Any, {"mlx": profile(128), "cuda": profile(128)})) == 128
+    assert profile_chunk(cast(Any, {"mlx": profile(0), "cuda": profile(0)})) == 0
+    with pytest.raises(ValueError, match="different prefill chunk sizes"):
+        profile_chunk(cast(Any, {"mlx": profile(128), "cuda": profile(0)}))
+
+
 def test_wait_for_guard_exit_returns_once_the_exit_event_is_written(tmp_path):
     import threading
     import time

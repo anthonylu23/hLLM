@@ -110,6 +110,13 @@ the selected fit policy (`footprint-v1` unless the worker entry says otherwise).
 refuses busy workers. Default headroom and extra overhead
 are the production defaults (1 GiB host, 512 MiB CUDA device, 256 MiB extra, 10% safety).
 
+Requests use the prefill chunk the profiles were measured at (the workload's
+`prefill_chunk_tokens`, 0 for whole-prompt prefill), because each worker's
+reservation depends on it. Every profile must share one chunk, each worker must
+advertise chunked prefill when the chunk is nonzero, and the report records it as
+`prefill_chunk_tokens`. Chunking bounds a long prompt's boundary payload and the
+per-pass workspace that admission reserves.
+
 For a CUDA worker the fresh device budget credits the worker's own **inactive cached**
 allocator bytes on top of the driver's free bytes: after an unload the caching allocator
 keeps the model's blocks reserved, `cudaMemGetInfo` no longer counts them as free, and the
@@ -157,7 +164,8 @@ uv run python -m scripts.validation.concurrent_soak \
 `--baseline-report` must be the reload soak's report: before anything loads, the
 harness checks that it completed with exact outputs, in the same scope (`f16-reload-
 qualification`, or `cpu-rehearsal` under `--cpu-rehearsal`), for this plan digest,
-against this reference file and on these worker binaries, and the record keeps that
+against this reference file, on these worker binaries and at the profiles' prefill
+chunk (a report without one sent whole-prompt prefill), and the record keeps that
 summary. A baseline produced on other binaries is refused, so a rebuild needs a new
 reload soak first. The worker configuration is the reload-soak format plus two
 optional paths per worker: `guard_record` (that worker's `resource_guard.py` JSONL)
