@@ -813,6 +813,7 @@ def test_serving_envelope_falls_back_and_refuses_unsafe_budgets() -> None:
 
 
 def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> None:
+    from scripts.validation.assemble_two_host_results import Summary
     from scripts.validation.assemble_two_host_results import main as assemble
 
     run = tmp_path / "hllm-run-20261014"
@@ -846,17 +847,22 @@ def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> Non
     guard_text = "".join(json.dumps(r) + "\n" for r in guard_rows)
     (run / "baseline-cuda.guard.jsonl").write_text(guard_text)
 
-    def guard_record(reason: str) -> str:
-        stop = dict(guard_rows[-1], reason=reason, returncode=-15)
+    def guard_record(reason: str, exited: float = FINISHED.timestamp() + 5) -> str:
+        stop = dict(guard_rows[-1], unix_time=exited, reason=reason, returncode=-15)
         return "".join(json.dumps(r) + "\n" for r in [*guard_rows[:-1], stop])
 
-    # The launcher stopped the MLX guard; the CUDA guard stopped its own worker, after
-    # the soak had read its record.
+    # The launcher stopped the MLX guard after the experiment; the CUDA guard stopped
+    # its own worker, after the soak had read its record.
     (run / "mac" / "final" / "concurrent-mlx.guard.jsonl").write_text(
         guard_record("guard received signal 15")
     )
     (run / "concurrent-cuda.guard.jsonl").write_text(
         guard_record("new swap-out exceeds configured 60-second limit")
+    )
+    # A guard that stopped its worker before the harness sealed any evidence; its
+    # mirror ends mid-line, as one copied during a write can.
+    (run / "concurrent-attempt-1" / "concurrent-cuda.guard.jsonl").write_text(
+        guard_record("available memory below the configured floor") + '{"unix_time": 9'
     )
     # A baseline refused before its first request.
     (run / "baseline-refused").mkdir()
@@ -903,9 +909,13 @@ def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> Non
     assert (refused["requests"], refused["all_exact"]) == (0, False)
     assert final["guards"]["cuda"]["swapout_mib"] == 1 and final["guards"]["mlx"] is None
     attempts = summary["p5_attempts"]
-    assert attempts[0] == dict(
-        directory="concurrent-attempt-1", note="refused at the cap", evidence_present=False
+    assert {k: v for k, v in attempts[0].items() if k != "final_guards"} == dict(
+        directory="concurrent-attempt-1",
+        note="refused at the cap",
+        evidence_present=False,
+        guard_stops=[dict(worker="cuda", reason="available memory below the configured floor")],
     )
+    assert attempts[0]["final_guards"]["mlx"] is None
     assert summary["p5"] == attempts[-1]
     assert summary["p5"]["acceptance"] == evidence.results.acceptance == "accepted"
     assert summary["p5"]["evidence_digest"] == evidence.evidence_digest
@@ -919,5 +929,21 @@ def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> Non
     assert summary["p5"]["guard_stops"] == [
         dict(worker="cuda", reason="new swap-out exceeds configured 60-second limit")
     ]
+    # Only a SIGTERM after the experiment finished is the launcher's cleanup.
+    stops = Summary.guard_stops
+    finished = FINISHED.timestamp()
+
+    def exiting(reason: str, exited: float) -> dict:
+        return dict(stop_reason=reason, exited_unix_time=exited)
+
+    assert stops({"mlx": exiting("guard received signal 15", finished + 5)}, finished) == []
+    assert stops({"mlx": exiting("guard received signal 15", finished - 5)}, finished) == [
+        dict(worker="mlx", reason="guard received signal 15")
+    ]
+    assert stops({"mlx": exiting("guard received signal 1", finished + 5)}, finished) == [
+        dict(worker="mlx", reason="guard received signal 1")
+    ]
+    # Without evidence there is no finish time, so a SIGTERM counts as cleanup.
+    assert stops({"mlx": exiting("guard received signal 15", 1.0), "cuda": None}, None) == []
     with pytest.raises(FileExistsError):
         assemble([str(run), str(output)])
