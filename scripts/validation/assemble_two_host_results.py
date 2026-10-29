@@ -13,10 +13,12 @@ writes (and the October 2026 runs used):
 - baselines: the run directory (`final`) and every `baseline-<label>/` holding
   `baseline-reload-soak.json`.
 - P5 attempts: every `concurrent-attempt-*/` and then the run directory; the last is
-  `p5`. Besides the guard summaries sealed in the evidence, each attempt lists the
-  final guard records the launcher copied after stopping the guards (`final_guards`),
-  and `guard_stops` names every guard that stopped its worker itself rather than
-  being stopped by the launcher, even when the sealed record missed it.
+  `p5`. Besides the guard summaries sealed in the evidence, each attempt, with or
+  without evidence, lists the final guard records the launcher copied after stopping
+  the guards (`final_guards`). `guard_stops` names every guard that exited for any
+  reason other than the launcher's cleanup, which is a SIGTERM after the experiment
+  finished (any SIGTERM when there is no evidence to say when it finished), even
+  when the sealed record missed it.
 
 The output names the run directory by its base name only, so no host path is
 recorded. `--link KEY=VALUE` adds top-level cross-references (for example the
@@ -29,12 +31,13 @@ import argparse
 import hashlib
 import json
 import re
+from datetime import datetime
 from itertools import pairwise
 from pathlib import Path
 
 ATTEMPT_FILES = re.compile(r"^concurrent.*\.jsonl$")
-# The exit reason a guard records when the launcher's cleanup stops it.
-LAUNCHER_STOP = "guard received signal"
+# The exit reason a guard records when the launcher's cleanup stops it with SIGTERM.
+LAUNCHER_STOP = "guard received signal 15"
 
 
 def sha(path: Path) -> str:
@@ -59,7 +62,12 @@ class Summary:
     def guard(self, path: Path) -> dict | None:
         if not path.is_file():
             return None
-        rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        lines = [line for line in path.read_text().splitlines() if line.strip()]
+        try:
+            rows = [json.loads(line) for line in lines]
+        except ValueError:
+            # A mirror copied mid-write may end in a partial line; nothing else may be.
+            rows = [json.loads(line) for line in lines[:-1]]
         observations = [r for r in rows if not r.get("event") and "available_bytes" in r]
         exit_ = next((r for r in rows if r.get("event") == "exit"), None)
         times = [r["unix_time"] for r in rows if "unix_time" in r]
@@ -70,6 +78,7 @@ class Summary:
             observations=len(observations),
             max_gap_seconds=round(max(gaps), 1) if gaps else None,
             stop_reason=exit_ and exit_.get("reason"),
+            exited_unix_time=exit_ and exit_.get("unix_time"),
             returncode=exit_ and exit_.get("returncode"),
             min_available_gib=round(min(r["available_bytes"] for r in observations) / 2**30, 3)
             if observations
@@ -191,12 +200,41 @@ class Summary:
         result["final"] = self.baseline(self.root)
         return result
 
+    @staticmethod
+    def guard_stops(guards: dict, finished_unix_time: float | None) -> list[dict]:
+        """Guards that exited for anything but the launcher's cleanup.
+
+        Cleanup sends SIGTERM after the experiment; another signal, or a SIGTERM
+        before the experiment finished, stopped the worker during it.
+        """
+        return [
+            dict(worker=k, reason=g["stop_reason"])
+            for k, g in guards.items()
+            if g
+            and g["stop_reason"]
+            and not (
+                g["stop_reason"] == LAUNCHER_STOP
+                and (
+                    finished_unix_time is None or (g["exited_unix_time"] or 0) >= finished_unix_time
+                )
+            )
+        ]
+
     def attempt(self, d: Path) -> dict:
         e = d / "concurrent.json"
         record: dict = dict(
             directory=self.relative(d), note=text(d / "README.txt"), evidence_present=e.is_file()
         )
+        # The launcher's final copies, read whether or not the harness sealed evidence:
+        # a worker its guard stopped during startup leaves no record.
+        final_guards = dict(
+            cuda=self.guard(d / "concurrent-cuda.guard.jsonl"),
+            mlx=self.guard(d / "mac/final/concurrent-mlx.guard.jsonl")
+            or self.guard(d / "mac/concurrent-mlx.guard.jsonl"),
+        )
+        record["final_guards"] = final_guards
         if not e.is_file():
+            record["guard_stops"] = self.guard_stops(final_guards, None)
             return record
         ev = load(e)
         res = ev["results"]
@@ -301,17 +339,10 @@ class Summary:
                         )
         if files:
             record["files"] = files
-        final_guards = dict(
-            cuda=self.guard(d / "concurrent-cuda.guard.jsonl"),
-            mlx=self.guard(d / "mac/final/concurrent-mlx.guard.jsonl")
-            or self.guard(d / "mac/concurrent-mlx.guard.jsonl"),
+        finished = res.get("finished_at")
+        record["guard_stops"] = self.guard_stops(
+            final_guards, datetime.fromisoformat(finished).timestamp() if finished else None
         )
-        record["final_guards"] = final_guards
-        record["guard_stops"] = [
-            dict(worker=k, reason=g["stop_reason"])
-            for k, g in final_guards.items()
-            if g and g["stop_reason"] and not g["stop_reason"].startswith(LAUNCHER_STOP)
-        ]
         return record
 
     def identities(self, directory: Path, pattern: str, exclude: set[str]) -> dict:

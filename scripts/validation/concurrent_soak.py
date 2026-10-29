@@ -301,6 +301,35 @@ def wait_for_guard_exit(record: Path | None, seconds: float) -> bool:
         time.sleep(0.5)
 
 
+def read_guards(
+    workers: dict[str, WorkerSpec],
+    cleanup: list[CleanupEvidence],
+    output: Path,
+    wait_seconds: float = GUARD_EXIT_WAIT_SECONDS,
+) -> list[GuardOutcome]:
+    """Each worker's guard outcome, read once its record can show why a worker is gone.
+
+    A worker that no longer answers may have been stopped by its guard, so its record is
+    read after its exit event arrives. If none arrives in time, the record still looks
+    like a running guard; `detail` then says so, because that read is not evidence that
+    the guard was still protecting a live worker.
+    """
+    unreachable = {c.worker_id for c in cleanup if c.detail.startswith("unreachable:")}
+    guards = []
+    for k, w in workers.items():
+        exited = k not in unreachable or wait_for_guard_exit(w.guard_record, wait_seconds)
+        guard = guard_outcome(k, w.guard_record, guard_snapshot_path(output, k))
+        if not exited:
+            guard = guard.model_copy(
+                update=dict(
+                    detail=f"worker stopped answering and no guard exit event arrived within "
+                    f"{wait_seconds:g} s; {guard.detail}"
+                )
+            )
+        guards.append(guard)
+    return guards
+
+
 def device_samples(samples: Path | None, start: float, end: float) -> tuple[DeviceSample, ...]:
     """Every `memory_watch.py --cuda` row inside the experiment window, PID included.
 
@@ -781,17 +810,7 @@ class Run:
             clock_alignment=CLOCK_ALIGNMENT,
         )
         cleanup = self.cleanup_evidence()
-        # A worker that no longer answers may have been stopped by its guard: read that
-        # guard's record once it shows why, so the evidence does not call it running.
-        for row in cleanup:
-            if row.detail.startswith("unreachable:"):
-                wait_for_guard_exit(
-                    self.workers[row.worker_id].guard_record, GUARD_EXIT_WAIT_SECONDS
-                )
-        guards = [
-            guard_outcome(k, w.guard_record, guard_snapshot_path(self.args.output, k))
-            for k, w in self.workers.items()
-        ]
+        guards = read_guards(self.workers, cleanup, self.args.output)
         request = RequestWorkload(
             prompt_ids=tuple(self.ids),
             expected_ids=tuple(self.expected),

@@ -307,13 +307,18 @@ source digest and binary hashes; profiles take that digest as `--source-revision
 evidence as `--source-digest`. `assemble_two_host_results.py RUN OUTPUT` summarizes
 profiles, baselines and every P5 attempt in a run directory from the preserved files
 only, naming the directory by its base name. A baseline that ran no requests is not
-`all_exact`. Each attempt also lists the final guard records (`final_guards`) and, in
-`guard_stops`, every guard that stopped its worker itself rather than being stopped
-by cleanup. When a worker stops answering, the concurrency soak waits up to 20 s for
-that guard's exit event before reading its record, so a guard-stopped worker is
-recorded as `stopped`, not `normal`. On the October 11–13 run directory it
-reproduces the committed `docs/validation/qwen3-4b-concurrency-20261013-results.json`
-except for one more profile directory it discovers (`cuda_rejected_1`).
+`all_exact`. Every attempt, with or without sealed evidence, also lists the final guard
+records the launcher copied (`final_guards`) and, in `guard_stops`, every guard that
+exited for anything but cleanup. Cleanup is a SIGTERM after the experiment finished, or
+any SIGTERM when there is no evidence to say when it finished; another signal, a
+SIGTERM during the experiment, or a resource stop is listed. When a worker stops
+answering, the concurrency soak waits up to 20 s for that guard's exit event before
+reading its record, so a guard-stopped worker is recorded as `stopped`, not `normal`;
+if no exit event arrives, the guard's `detail` says so. On the October 11–13 run
+directory it reproduces the committed
+`docs/validation/qwen3-4b-concurrency-20261013-results.json` except for one more
+profile directory it discovers (`cuda_rejected_1`) and the fields added since
+(`final_guards`, `guard_stops`, each guard summary's `exited_unix_time`).
 
 ## Independent reference
 
