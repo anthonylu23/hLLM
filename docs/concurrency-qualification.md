@@ -68,8 +68,9 @@ includes them. Earlier workers, including the October 13 record, reserved about
 0.67 GiB of MLX workspace per request (663–685 MiB). With sharing, the second 128/256
 request adds only its 22.5 MiB KV cache and 5.6 MiB of transport buffers: concurrency
 two was [accepted on October 20](validation/qwen3-4b-shared-workspace-20261020.md) at
-the original 4.375 GiB MLX cap with a combined MLX reservation of 4.24 GiB, or 4.25 GiB
-with transport reserved per request.
+the original 4.375 GiB MLX cap with a combined MLX reservation of 4.24 GiB, and
+[on `main` on October 29](validation/qwen3-4b-concurrency-20261029.md) with transport
+reserved per request: 4.25 GiB (4,560,074,240 B).
 
 Start with `max_decode_batch=1` to isolate overlap from batch-dependent numerical
 changes. Treat a later batch size of two as a separate configuration requiring new

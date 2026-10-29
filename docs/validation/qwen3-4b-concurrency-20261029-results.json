@@ -1,0 +1,1207 @@
+{
+  "baselines": {
+    "aborted_1": {
+      "directory": "baseline-aborted-1",
+      "note": "Aborted 2026-10-29T02:34Z before launch: run.sh was given a relative env path, so scp to the Mac failed. Nothing ran.",
+      "present": false
+    },
+    "aborted_2": {
+      "all_exact": true,
+      "completed": false,
+      "cycles": 1,
+      "directory": "baseline-aborted-2",
+      "guards": {
+        "cuda": {
+          "file": "baseline-aborted-2/baseline-cuda.guard.jsonl",
+          "max_available_gib": 8.312,
+          "max_gap_seconds": 2.0,
+          "min_available_gib": 7.872,
+          "observations": 3,
+          "record_sha256": "cc81187a79aa273f92628b9924b610f393c2e03e52f417661aa6e2bb11bbbc98",
+          "returncode": -15,
+          "stop_reason": "guard received signal 15",
+          "swapout_mib": 0
+        },
+        "mlx": null
+      },
+      "note": "Refused 2026-10-29T02:34:53Z at the soak's fresh-fit check: inputs/baseline-workers.json and concurrent-workers.json still carried the Oct 20 worker binary digests (CUDA e0d409bb..., MLX e2f12db5...), not this build's (CUDA 7597e412..., MLX a00aacb5...). No load ran. The Mac's baseline files are in the Mac run dir's baseline-aborted-2/.",
+      "plan_digest": "1ed77abe4726116b52a6fb73ebbcf7a19dc722433925a9339bfda6e2ed313215",
+      "present": true,
+      "report_sha256": "481b28524bbb0b4bc79bf05db3137ed8b09d0dbbff62db55b7fd5edc41fb190a",
+      "requests": 0,
+      "scope": "f16-reload-qualification",
+      "worker_binaries": {
+        "cuda": "e0d409bb5fe32cd5e9449457d7c2271e1b99a02554e1a2e2ee46a4ee68e890cd",
+        "mlx": "e2f12db539786e464af7f1340ef8def348c4c3699d7fb3669652dfc0631112c7"
+      }
+    },
+    "final": {
+      "all_exact": true,
+      "completed": true,
+      "cycles": 3,
+      "directory": ".",
+      "guards": {
+        "cuda": {
+          "file": "baseline-cuda.guard.jsonl",
+          "max_available_gib": 8.297,
+          "max_gap_seconds": 2.0,
+          "min_available_gib": 4.55,
+          "observations": 186,
+          "record_sha256": "1a7d6ceef634cac86b19068e08e9c2905aa9865b592abbd3c3076a2529df1c62",
+          "returncode": -15,
+          "stop_reason": "guard received signal 15",
+          "swapout_mib": 137
+        },
+        "mlx": {
+          "file": "mac/final/baseline-mlx.guard.jsonl",
+          "max_available_gib": 7.565,
+          "max_gap_seconds": 2.0,
+          "min_available_gib": 3.282,
+          "observations": 183,
+          "record_sha256": "c7bc51dcf07ff36e6e9f64eba34d4740282a62b534f19af73bef6171d70ab0f6",
+          "returncode": -15,
+          "stop_reason": "guard received signal 15",
+          "swapout_mib": 0
+        }
+      },
+      "note": null,
+      "plan_digest": "1ed77abe4726116b52a6fb73ebbcf7a19dc722433925a9339bfda6e2ed313215",
+      "present": true,
+      "report_sha256": "711a87d3cbeaa0a6fba51e1eca0ba28e49d801709c57711d54e4e0dfbd5b6a72",
+      "requests": 6,
+      "scope": "f16-reload-qualification",
+      "worker_binaries": {
+        "cuda": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694",
+        "mlx": "a00aacb52fed4f7f545b7f08455378f7e3eedc3731b98286864fa84a1fb93072"
+      }
+    }
+  },
+  "inputs": {
+    "baseline-workers.json": "83684f15d39976edc0aca8a7d8f20484021f8945bc07af7eeab77ea81940c0e2",
+    "concurrent-workers.json": "55ad37c50c7df49ad80022c869766f974178720e0286cfc54b3a98a344d037d7",
+    "manifest.json": "83beb94e1285bd1b5c3caaf4cbb889fcd864e4b7b772949958df158ac966b747",
+    "mlx-cuda.plan.json": "a0083af95642ba886c363986f20be0c2c51f231867614db7c2ec59900fdcfe67",
+    "reference-f16.json": "329ea04b80920acb85ba0430f2dca4b9c31f8b1e8ad8c76f580738995b77f4b3",
+    "source-identity-baseline-20261029T023539Z.json": "75b553d3ab87d9f0043372bcffda0f18b0908bd217f0c48caa98c88688f57625",
+    "source-identity-concurrent-20261029T024211Z.json": "75b553d3ab87d9f0043372bcffda0f18b0908bd217f0c48caa98c88688f57625",
+    "source-identity-concurrent-20261029T025306Z.json": "75b553d3ab87d9f0043372bcffda0f18b0908bd217f0c48caa98c88688f57625",
+    "workload-128-256.json": "7a35ab80b4102e3fac4140c3fa94c6d67aa0fdaa2734c29a67c7f43bce65c005"
+  },
+  "p1": {
+    "cuda": {
+      "artifact": {
+        "artifact_digest": "d80731c7befc1ee34681976371b36de40757c4e93ff9cf732689cf691cf41866",
+        "binary_digest": "6e90da1d164a5698eb1e57b5209595df97bc475b429d137d04db68b85b5bef39",
+        "completed": true,
+        "fit": {
+          "device_envelope_bytes": 6139412480,
+          "host_envelope_bytes": 4390577357,
+          "notes": [],
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "requested_mlx_policy": null,
+          "status": "safe"
+        },
+        "measured_at": "2026-10-29T02:31:47.423888Z",
+        "source_revision": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439"
+      },
+      "directory": ".",
+      "guard": {
+        "file": "cuda-profile.guard.jsonl",
+        "max_available_gib": 8.288,
+        "max_gap_seconds": 2.0,
+        "min_available_gib": 6.12,
+        "observations": 36,
+        "record_sha256": "cc3c038dfd3ca58ce98d053ad5fdef79d990ecb32327049280c0c85596d0508d",
+        "returncode": 0,
+        "stop_reason": null,
+        "swapout_mib": 0
+      },
+      "note": null,
+      "preflight": {
+        "admission_capacity": {
+          "device": 6576668672,
+          "host": 4026531840,
+          "pinned": 0,
+          "unified": 0
+        },
+        "binary_digest": "6e90da1d164a5698eb1e57b5209595df97bc475b429d137d04db68b85b5bef39",
+        "host_available_after_checkpoint_read": 8989855744,
+        "host_available_bytes": 8888938496,
+        "reasons": [],
+        "sampled_before_checkpoint_read": true,
+        "schema": "1.2",
+        "source_revision": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+        "status": "accepted"
+      }
+    },
+    "cuda_rejected_1": {
+      "directory": "cuda-profile-rejected-1",
+      "guard": {
+        "file": "cuda-profile-rejected-1/cuda-profile.guard.jsonl",
+        "max_available_gib": 8.536,
+        "max_gap_seconds": 2.0,
+        "min_available_gib": 7.853,
+        "observations": 5,
+        "record_sha256": "a546abfe6630190d9f88715b10f54b9d0e4f1efa7951f496d27313a4a324b163",
+        "returncode": 1,
+        "stop_reason": null,
+        "swapout_mib": 6
+      },
+      "note": "Refused at preflight 2026-10-28T08:03Z: an Ollama embedding model (nomic-embed-text, 595 MB VRAM) loaded during the checkpoint read; device availability fell from 7,753,170,944 to 7,207,911,424 B. Not a measurement.\n\nCorrection (2026-10-29): the 7,753,170,944 B sampled before the read was already under the 8,039,641,907 B the preflight requires for the 6,576,668,672 B device cap, so this attempt would have been refused without Ollama as well. The desktop session's GPU use was the binding constraint (see cuda-profile-rejected-2).",
+      "preflight": {
+        "admission_capacity": {
+          "device": 6576668672,
+          "host": 4026531840,
+          "pinned": 0,
+          "unified": 0
+        },
+        "binary_digest": "6e90da1d164a5698eb1e57b5209595df97bc475b429d137d04db68b85b5bef39",
+        "host_available_after_checkpoint_read": 9110540288,
+        "host_available_bytes": 9145634816,
+        "reasons": [
+          "device: configured probe cap plus physical allowances exceeds availability"
+        ],
+        "sampled_before_checkpoint_read": true,
+        "schema": "1.2",
+        "source_revision": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+        "status": "rejected"
+      }
+    },
+    "cuda_rejected_2": {
+      "directory": "cuda-profile-rejected-2",
+      "guard": {
+        "file": "cuda-profile-rejected-2/cuda-profile.guard.jsonl",
+        "max_available_gib": 8.101,
+        "max_gap_seconds": 2.0,
+        "min_available_gib": 7.294,
+        "observations": 4,
+        "record_sha256": "bb309c4ddcd92f485e6264c5acf9abeb8dbf3bc2d6274d8b9100a44a05af0710",
+        "returncode": 1,
+        "stop_reason": null,
+        "swapout_mib": 0
+      },
+      "note": "Refused at preflight 2026-10-29T02:26Z. Device availability was 7,788,822,528 B both before and after the checkpoint read. The preflight requires cap*1.1 + 512 MiB headroom + 256 MiB overhead = 8,039,641,907 B for the 6,576,668,672 B device cap. The GPU held 409 MiB in use: gnome-remote-desktop-daemon 134 MiB, gnome-shell 115 MiB, a Helium GPU process 42 MiB, plus Xwayland. The accepted Oct 20 profiles had 8,056,209,408 to 8,082,423,808 B available. Not a measurement.",
+      "preflight": {
+        "admission_capacity": {
+          "device": 6576668672,
+          "host": 4026531840,
+          "pinned": 0,
+          "unified": 0
+        },
+        "binary_digest": "6e90da1d164a5698eb1e57b5209595df97bc475b429d137d04db68b85b5bef39",
+        "host_available_after_checkpoint_read": 8660340736,
+        "host_available_bytes": 8681897984,
+        "reasons": [
+          "device: configured probe cap plus physical allowances exceeds availability"
+        ],
+        "sampled_before_checkpoint_read": true,
+        "schema": "1.2",
+        "source_revision": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+        "status": "rejected"
+      }
+    },
+    "mlx": {
+      "artifact": {
+        "artifact_digest": "bcdfbc059bcd39b0dced9c8ee8061ca33584b638e3e08350967aeebc926db461",
+        "binary_digest": "98888c8ae754e60ae4849f8d8a4294f7428cdce80a45874a7e745765ee72b848",
+        "completed": true,
+        "fit": {
+          "device_envelope_bytes": null,
+          "host_envelope_bytes": 5664436511,
+          "notes": [],
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "requested_mlx_policy": "footprint-v1",
+          "status": "safe"
+        },
+        "measured_at": "2026-10-29T02:33:10.221988Z",
+        "source_revision": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439"
+      },
+      "directory": "mac",
+      "guard": {
+        "file": "mac/mlx-profile.guard.jsonl",
+        "max_available_gib": 7.302,
+        "max_gap_seconds": 2.0,
+        "min_available_gib": 3.392,
+        "observations": 28,
+        "record_sha256": "484abd6cdfc6b9eda247ce05444b890463b394d1e9d81c556eb6c3eca1866ba4",
+        "returncode": 0,
+        "stop_reason": null,
+        "swapout_mib": 0
+      },
+      "note": null,
+      "preflight": {
+        "admission_capacity": {
+          "device": 0,
+          "host": 0,
+          "pinned": 0,
+          "unified": 4697620480
+        },
+        "binary_digest": "98888c8ae754e60ae4849f8d8a4294f7428cdce80a45874a7e745765ee72b848",
+        "host_available_after_checkpoint_read": 6848987136,
+        "host_available_bytes": 7618592768,
+        "reasons": [],
+        "sampled_before_checkpoint_read": true,
+        "schema": "1.2",
+        "source_revision": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+        "status": "accepted"
+      }
+    }
+  },
+  "p5": {
+    "acceptance": "accepted",
+    "baseline": {
+      "all_exact": true,
+      "cycles": 3,
+      "requests": 6,
+      "scope": "f16-reload-qualification"
+    },
+    "cleanup": [
+      {
+        "verified": true,
+        "worker": "mlx"
+      },
+      {
+        "verified": true,
+        "worker": "cuda"
+      }
+    ],
+    "comparisons": 27,
+    "configuration": {
+      "controller_limit": 2,
+      "device_headroom_bytes": 536870912,
+      "extra_overhead_bytes": 268435456,
+      "host_headroom_bytes": 1073741824,
+      "mlx_fit_policy": "footprint-v1",
+      "queue_capacity": 0,
+      "safety_fraction": 0.1,
+      "workers": [
+        {
+          "admission_capacity": {
+            "device": 0,
+            "host": 0,
+            "pinned": 0,
+            "unified": 4697620480
+          },
+          "maximum_active_requests": 2,
+          "maximum_cached_tokens": 768,
+          "maximum_decode_batch": 1,
+          "prefill_chunk_tokens": 0,
+          "request_observations": true,
+          "worker_id": "mlx"
+        },
+        {
+          "admission_capacity": {
+            "device": 6576668672,
+            "host": 4026531840,
+            "pinned": 0,
+            "unified": 0
+          },
+          "maximum_active_requests": 2,
+          "maximum_cached_tokens": 768,
+          "maximum_decode_batch": 1,
+          "prefill_chunk_tokens": 0,
+          "request_observations": true,
+          "worker_id": "cuda"
+        }
+      ]
+    },
+    "directory": ".",
+    "evidence_digest": "12165dcec3a9296d76f8ba945a990aa5088a072ed09eaa9f9d9bbfff332b44b9",
+    "evidence_present": true,
+    "evidence_sha256": "5e4630a96f3372927c42d6d7f23addfb13c8da46be1cd6a9b565d53d0d0fce6d",
+    "exact": 27,
+    "failure_reason": null,
+    "files": {
+      "concurrent-cuda-device-samples.jsonl": {
+        "rows": 1378,
+        "sha256": "f76c96c762b02cead763c20984d480ff1d24854f8d99a4593d44fad9f7100d61"
+      },
+      "concurrent-cuda.guard.jsonl": {
+        "rows": 368,
+        "sha256": "a114892c84383cdc7dad703a89bdbf145a7c50df57d83beab9df1057fc9efa9f"
+      },
+      "concurrent.guard-cuda.jsonl": {
+        "rows": 355,
+        "sha256": "1cdf6bc0bf5ff3687b10adbc16e89078c88d00c1453799d391c7799c4db6ca14"
+      },
+      "concurrent.guard-mlx.jsonl": {
+        "rows": 343,
+        "sha256": "ee1d949932143c5b5423c04cf427330eeca4b89c1744af745ba48191caf556e0"
+      },
+      "concurrent.observations.jsonl": {
+        "rows": 25898,
+        "sha256": "b1551536892e68d5182da9ff9882b0fdf7472e0c66bdd521fe675826242689e0"
+      },
+      "mac/concurrent-mlx.guard.jsonl": {
+        "rows": 354,
+        "sha256": "e9822c899fb9b44512bf9e9db7beaa86e6d6f4a5a0b8adaaf7903b2fddcf680f"
+      },
+      "mac/final/concurrent-mlx.guard.jsonl": {
+        "rows": 359,
+        "sha256": "11030a34c8f84d04bc46c4872bd36fb1ec3f9fde60d765b15edd662d7f192643"
+      }
+    },
+    "finished_at": "2026-10-29T03:04:57.210514Z",
+    "gates": [
+      {
+        "cycle": 0,
+        "device_available_bytes": null,
+        "host_available_bytes": 6842974208,
+        "reasons": [],
+        "sampled_at": "2026-10-29T02:53:20.280182Z",
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 0,
+        "device_available_bytes": 7865040896,
+        "host_available_bytes": 8672206848,
+        "reasons": [],
+        "sampled_at": "2026-10-29T02:53:20.281374Z",
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": null,
+        "host_available_bytes": 8595357696,
+        "reasons": [],
+        "sampled_at": "2026-10-29T02:57:10.252823Z",
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": 7822835712,
+        "host_available_bytes": 7667867648,
+        "reasons": [],
+        "sampled_at": "2026-10-29T02:57:10.253982Z",
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": null,
+        "host_available_bytes": 9379151872,
+        "reasons": [],
+        "sampled_at": "2026-10-29T03:01:02.832649Z",
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": 7822835712,
+        "host_available_bytes": 7686283264,
+        "reasons": [],
+        "sampled_at": "2026-10-29T03:01:02.834094Z",
+        "status": "safe",
+        "worker": "cuda"
+      }
+    ],
+    "guards": [
+      {
+        "observations": 341,
+        "outcome": "normal",
+        "process_id": 70282,
+        "reasons": [],
+        "record_sha256": "ee1d949932143c5b5423c04cf427330eeca4b89c1744af745ba48191caf556e0",
+        "worker": "mlx"
+      },
+      {
+        "observations": 353,
+        "outcome": "normal",
+        "process_id": 1169679,
+        "reasons": [],
+        "record_sha256": "1cdf6bc0bf5ff3687b10adbc16e89078c88d00c1453799d391c7799c4db6ca14",
+        "worker": "cuda"
+      }
+    ],
+    "logical_peaks": [
+      {
+        "within_admission": true,
+        "worker": "mlx"
+      },
+      {
+        "within_admission": true,
+        "worker": "cuda"
+      }
+    ],
+    "note": null,
+    "overlap_rows": 24,
+    "physical": [
+      {
+        "cycle": 0,
+        "device_available_bytes": null,
+        "device_envelope_bytes": null,
+        "device_peak_bytes": null,
+        "host_available_bytes": 6842974208,
+        "host_envelope_bytes": 5699490158,
+        "host_peak_bytes": 4937322456,
+        "policy": "mlx-footprint-max-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": null,
+        "device_envelope_bytes": null,
+        "device_peak_bytes": null,
+        "host_available_bytes": 8595357696,
+        "host_envelope_bytes": 5700012808,
+        "host_peak_bytes": 4937797592,
+        "policy": "mlx-footprint-max-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": null,
+        "device_envelope_bytes": null,
+        "device_peak_bytes": null,
+        "host_available_bytes": 9379151872,
+        "host_envelope_bytes": 5700048879,
+        "host_peak_bytes": 4937830384,
+        "policy": "mlx-footprint-max-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "mlx"
+      },
+      {
+        "cycle": 0,
+        "device_available_bytes": 7865040896,
+        "device_envelope_bytes": 6220152832,
+        "device_peak_bytes": 5410652160,
+        "host_available_bytes": 8672206848,
+        "host_envelope_bytes": 3471894528,
+        "host_peak_bytes": 2912235520,
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 1,
+        "device_available_bytes": 7822835712,
+        "device_envelope_bytes": 6220152832,
+        "device_peak_bytes": 5410652160,
+        "host_available_bytes": 7667867648,
+        "host_envelope_bytes": 4414042522,
+        "host_peak_bytes": 3768733696,
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "cuda"
+      },
+      {
+        "cycle": 2,
+        "device_available_bytes": 7822835712,
+        "device_envelope_bytes": 6229380301,
+        "device_peak_bytes": 5419040768,
+        "host_available_bytes": 7686283264,
+        "host_envelope_bytes": 4438372762,
+        "host_peak_bytes": 3790852096,
+        "policy": "cuda-rss-device-v1",
+        "reasons": [],
+        "status": "safe",
+        "worker": "cuda"
+      }
+    ],
+    "profiles": [
+      {
+        "artifact_digest": "bcdfbc059bcd39b0dced9c8ee8061ca33584b638e3e08350967aeebc926db461",
+        "measured_at": "2026-10-29T02:33:10.221988Z",
+        "worker": "mlx"
+      },
+      {
+        "artifact_digest": "d80731c7befc1ee34681976371b36de40757c4e93ff9cf732689cf691cf41866",
+        "measured_at": "2026-10-29T02:31:47.423888Z",
+        "worker": "cuda"
+      }
+    ],
+    "reasons": [],
+    "rounds": 15,
+    "schema": "1.1",
+    "snapshots": {
+      "cuda": {
+        "allocator_missing": 0,
+        "count": 22303,
+        "device_samples": 1328,
+        "peak_concurrent_requests": 2
+      },
+      "mlx": {
+        "allocator_missing": 0,
+        "count": 3589,
+        "device_samples": 0,
+        "peak_concurrent_requests": 2
+      }
+    },
+    "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+    "workers": [
+      {
+        "binary_digest": "a00aacb52fed4f7f545b7f08455378f7e3eedc3731b98286864fa84a1fb93072",
+        "process_id": 70282,
+        "worker": "mlx"
+      },
+      {
+        "binary_digest": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694",
+        "process_id": 1169679,
+        "worker": "cuda"
+      }
+    ]
+  },
+  "p5_attempts": [
+    {
+      "acceptance": "failed",
+      "baseline": {
+        "all_exact": true,
+        "cycles": 3,
+        "requests": 6,
+        "scope": "f16-reload-qualification"
+      },
+      "cleanup": [
+        {
+          "verified": true,
+          "worker": "mlx"
+        },
+        {
+          "verified": false,
+          "worker": "cuda"
+        }
+      ],
+      "comparisons": 19,
+      "configuration": {
+        "controller_limit": 2,
+        "device_headroom_bytes": 536870912,
+        "extra_overhead_bytes": 268435456,
+        "host_headroom_bytes": 1073741824,
+        "mlx_fit_policy": "footprint-v1",
+        "queue_capacity": 0,
+        "safety_fraction": 0.1,
+        "workers": [
+          {
+            "admission_capacity": {
+              "device": 0,
+              "host": 0,
+              "pinned": 0,
+              "unified": 4697620480
+            },
+            "maximum_active_requests": 2,
+            "maximum_cached_tokens": 768,
+            "maximum_decode_batch": 1,
+            "prefill_chunk_tokens": 0,
+            "request_observations": true,
+            "worker_id": "mlx"
+          },
+          {
+            "admission_capacity": {
+              "device": 6576668672,
+              "host": 4026531840,
+              "pinned": 0,
+              "unified": 0
+            },
+            "maximum_active_requests": 2,
+            "maximum_cached_tokens": 768,
+            "maximum_decode_batch": 1,
+            "prefill_chunk_tokens": 0,
+            "request_observations": true,
+            "worker_id": "cuda"
+          }
+        ]
+      },
+      "directory": "concurrent-attempt-1",
+      "evidence_digest": "717a026e1cdc66b1aefa3eb44a3258c9119622c991dbbbfae0b7aa6e34f82514",
+      "evidence_present": true,
+      "evidence_sha256": "7bb622d96c4409c02382f8cac9c5d816c4a3e7d0119aef7514b64ad0fbd60990",
+      "exact": 18,
+      "failure_reason": "RuntimeError: _MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"Stream removed (Socket closed)\"\n\tdebug_error_string = \"UNAVAILABLE:Stream removed (Socket closed)\"\n>",
+      "files": {
+        "concurrent-cuda-device-samples.jsonl": {
+          "rows": 1003,
+          "sha256": "9a21cf0a25a604cf50a2b2cb3c2dd1772485680843a7cd9a294c8242890db4a5"
+        },
+        "concurrent-cuda.guard.jsonl": {
+          "rows": 269,
+          "sha256": "2fd75279ec4e4321256e3edcd1199a2b29aacc29dc0d15d07e337f7245e03b1c"
+        },
+        "concurrent.guard-cuda.jsonl": {
+          "rows": 268,
+          "sha256": "6f02dd64c89253e70f76632e14d5e667d96ce45ac13811009a61a0b8954ef84c"
+        },
+        "concurrent.guard-mlx.jsonl": {
+          "rows": 260,
+          "sha256": "be14e786cfaf724eff77eac2df58adb7fa852697cb7e55d19b6dfac4918e9921"
+        },
+        "concurrent.observations.jsonl": {
+          "rows": 17181,
+          "sha256": "ede075b0fdc9ba9f69f455557595356a915e474fc46eca96b82c8a18f61cd5a0"
+        },
+        "mac/concurrent-mlx.guard.jsonl": {
+          "rows": 265,
+          "sha256": "7f244f853184d4484497d4750bdd30040868dbe85fc2adad4459c9ea4fafc7c4"
+        },
+        "mac/final/concurrent-mlx.guard.jsonl": {
+          "rows": 270,
+          "sha256": "92b584ffbf3e96a74dcf6b2c8ce47263aa68a1b901946a9fa8648445583c387b"
+        }
+      },
+      "finished_at": "2026-10-29T02:51:08.399605Z",
+      "gates": [
+        {
+          "cycle": 0,
+          "device_available_bytes": null,
+          "host_available_bytes": 8491089920,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:42:25.141521Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 0,
+          "device_available_bytes": 7865040896,
+          "host_available_bytes": 8119853056,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:42:25.142949Z",
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": null,
+          "host_available_bytes": 8154169344,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:46:16.329322Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": 7822835712,
+          "host_available_bytes": 7688929280,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:46:16.335390Z",
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": null,
+          "host_available_bytes": 9481863168,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:50:13.773289Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": 7822835712,
+          "host_available_bytes": 7397818368,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:50:13.774614Z",
+          "status": "safe",
+          "worker": "cuda"
+        }
+      ],
+      "guards": [
+        {
+          "observations": 258,
+          "outcome": "normal",
+          "process_id": 67831,
+          "reasons": [],
+          "record_sha256": "be14e786cfaf724eff77eac2df58adb7fa852697cb7e55d19b6dfac4918e9921",
+          "worker": "mlx"
+        },
+        {
+          "observations": 266,
+          "outcome": "normal",
+          "process_id": 1142282,
+          "reasons": [],
+          "record_sha256": "6f02dd64c89253e70f76632e14d5e667d96ce45ac13811009a61a0b8954ef84c",
+          "worker": "cuda"
+        }
+      ],
+      "logical_peaks": [
+        {
+          "within_admission": true,
+          "worker": "mlx"
+        },
+        {
+          "within_admission": true,
+          "worker": "cuda"
+        }
+      ],
+      "note": "First concurrency-two attempt, 2026-10-29T02:42:24Z-02:51:08Z, main b1ba4f6 (source 6081e665), plan 1ed77abe (MLX unified cap 4,697,620,480 B = 4.375 GiB; CUDA host 3.75 GiB, device 6.125 GiB), baseline-reload-soak.json in the run directory (3 cycles, 6/6 exact, same binaries). Evidence digest 717a026e1cdc66b1aefa3eb44a3258c9119622c991dbbbfae0b7aa6e34f82514.\n\nCycles 0 and 1 completed: 18/18 exact, both paired rounds and the cancellation round admitted on both workers. MLX logical peak 4,560,074,240 B (weights 3,805,836,800 + cache 59,000,832 for two requests including transport buffers + shared workspace 695,236,608), within the cap; CUDA device 5,738,051,072 B.\n\nCycle 2 serial failed with UNAVAILABLE \"Stream removed (Socket closed)\": the Linux resource guard stopped the CUDA worker at 02:51:08.97Z (SIGTERM, \"new swap-out exceeds configured 60-second limit\", 256 MiB). Linux available memory fell from about 6.9 GiB to 4.3 GiB and swap-out rose by 0.93 GiB in the last 14 s (0.87 GiB in the last 2 s), while another session on this host started `cargo test --workspace` (distr-hnsw, CPU only, about 02:50Z) with swap already 92% full. Not a defect in the workers; the guard acted as designed. The soak wrote concurrent.json at 02:51:08.40Z, before the guard's exit record, so the record's guard summary says \"normal\"; concurrent-cuda.guard.jsonl holds the exit event. Preserved unchanged apart from moving the files here.",
+      "overlap_rows": 16,
+      "physical": [
+        {
+          "cycle": 0,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 8491089920,
+          "host_envelope_bytes": 5695723476,
+          "host_peak_bytes": 4933898200,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 8154169344,
+          "host_envelope_bytes": 5699850606,
+          "host_peak_bytes": 4937650136,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 9481863168,
+          "host_envelope_bytes": 5699850606,
+          "host_peak_bytes": 4937650136,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 0,
+          "device_available_bytes": 7865040896,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 8119853056,
+          "host_envelope_bytes": 3472056730,
+          "host_peak_bytes": 2912382976,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": 7822835712,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 7688929280,
+          "host_envelope_bytes": 4118727476,
+          "host_peak_bytes": 3500265472,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": 7822835712,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 7397818368,
+          "host_envelope_bytes": 4143400141,
+          "host_peak_bytes": 3522695168,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        }
+      ],
+      "profiles": [
+        {
+          "artifact_digest": "bcdfbc059bcd39b0dced9c8ee8061ca33584b638e3e08350967aeebc926db461",
+          "measured_at": "2026-10-29T02:33:10.221988Z",
+          "worker": "mlx"
+        },
+        {
+          "artifact_digest": "d80731c7befc1ee34681976371b36de40757c4e93ff9cf732689cf691cf41866",
+          "measured_at": "2026-10-29T02:31:47.423888Z",
+          "worker": "cuda"
+        }
+      ],
+      "reasons": [
+        "run failed: RuntimeError: _MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"Stream removed (Socket closed)\"\n\tdebug_error_string = \"UNAVAILABLE:Stream removed (Socket closed)\"\n>",
+        "c2-serial: stream error: _MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"Stream removed (Socket closed)\"\n\tdebug_error_string = \"UNAVAILABLE:Stream removed (Socket closed)\"\n>",
+        "c2-serial: continuation differs from the reference",
+        "cuda: cleanup not verified: unreachable: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50293: Failed to connect to remote host: Connection refused\"\n\tdebug_error_string = \"UNAVAILABLE:failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50293: Failed to connect to remote host: Connection refused\"\n>"
+      ],
+      "rounds": 11,
+      "schema": "1.1",
+      "snapshots": {
+        "cuda": {
+          "allocator_missing": 0,
+          "count": 14774,
+          "device_samples": 993,
+          "peak_concurrent_requests": 2
+        },
+        "mlx": {
+          "allocator_missing": 0,
+          "count": 2401,
+          "device_samples": 0,
+          "peak_concurrent_requests": 2
+        }
+      },
+      "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+      "workers": [
+        {
+          "binary_digest": "a00aacb52fed4f7f545b7f08455378f7e3eedc3731b98286864fa84a1fb93072",
+          "process_id": 67831,
+          "worker": "mlx"
+        },
+        {
+          "binary_digest": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694",
+          "process_id": 1142282,
+          "worker": "cuda"
+        }
+      ]
+    },
+    {
+      "acceptance": "accepted",
+      "baseline": {
+        "all_exact": true,
+        "cycles": 3,
+        "requests": 6,
+        "scope": "f16-reload-qualification"
+      },
+      "cleanup": [
+        {
+          "verified": true,
+          "worker": "mlx"
+        },
+        {
+          "verified": true,
+          "worker": "cuda"
+        }
+      ],
+      "comparisons": 27,
+      "configuration": {
+        "controller_limit": 2,
+        "device_headroom_bytes": 536870912,
+        "extra_overhead_bytes": 268435456,
+        "host_headroom_bytes": 1073741824,
+        "mlx_fit_policy": "footprint-v1",
+        "queue_capacity": 0,
+        "safety_fraction": 0.1,
+        "workers": [
+          {
+            "admission_capacity": {
+              "device": 0,
+              "host": 0,
+              "pinned": 0,
+              "unified": 4697620480
+            },
+            "maximum_active_requests": 2,
+            "maximum_cached_tokens": 768,
+            "maximum_decode_batch": 1,
+            "prefill_chunk_tokens": 0,
+            "request_observations": true,
+            "worker_id": "mlx"
+          },
+          {
+            "admission_capacity": {
+              "device": 6576668672,
+              "host": 4026531840,
+              "pinned": 0,
+              "unified": 0
+            },
+            "maximum_active_requests": 2,
+            "maximum_cached_tokens": 768,
+            "maximum_decode_batch": 1,
+            "prefill_chunk_tokens": 0,
+            "request_observations": true,
+            "worker_id": "cuda"
+          }
+        ]
+      },
+      "directory": ".",
+      "evidence_digest": "12165dcec3a9296d76f8ba945a990aa5088a072ed09eaa9f9d9bbfff332b44b9",
+      "evidence_present": true,
+      "evidence_sha256": "5e4630a96f3372927c42d6d7f23addfb13c8da46be1cd6a9b565d53d0d0fce6d",
+      "exact": 27,
+      "failure_reason": null,
+      "files": {
+        "concurrent-cuda-device-samples.jsonl": {
+          "rows": 1378,
+          "sha256": "f76c96c762b02cead763c20984d480ff1d24854f8d99a4593d44fad9f7100d61"
+        },
+        "concurrent-cuda.guard.jsonl": {
+          "rows": 368,
+          "sha256": "a114892c84383cdc7dad703a89bdbf145a7c50df57d83beab9df1057fc9efa9f"
+        },
+        "concurrent.guard-cuda.jsonl": {
+          "rows": 355,
+          "sha256": "1cdf6bc0bf5ff3687b10adbc16e89078c88d00c1453799d391c7799c4db6ca14"
+        },
+        "concurrent.guard-mlx.jsonl": {
+          "rows": 343,
+          "sha256": "ee1d949932143c5b5423c04cf427330eeca4b89c1744af745ba48191caf556e0"
+        },
+        "concurrent.observations.jsonl": {
+          "rows": 25898,
+          "sha256": "b1551536892e68d5182da9ff9882b0fdf7472e0c66bdd521fe675826242689e0"
+        },
+        "mac/concurrent-mlx.guard.jsonl": {
+          "rows": 354,
+          "sha256": "e9822c899fb9b44512bf9e9db7beaa86e6d6f4a5a0b8adaaf7903b2fddcf680f"
+        },
+        "mac/final/concurrent-mlx.guard.jsonl": {
+          "rows": 359,
+          "sha256": "11030a34c8f84d04bc46c4872bd36fb1ec3f9fde60d765b15edd662d7f192643"
+        }
+      },
+      "finished_at": "2026-10-29T03:04:57.210514Z",
+      "gates": [
+        {
+          "cycle": 0,
+          "device_available_bytes": null,
+          "host_available_bytes": 6842974208,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:53:20.280182Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 0,
+          "device_available_bytes": 7865040896,
+          "host_available_bytes": 8672206848,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:53:20.281374Z",
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": null,
+          "host_available_bytes": 8595357696,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:57:10.252823Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": 7822835712,
+          "host_available_bytes": 7667867648,
+          "reasons": [],
+          "sampled_at": "2026-10-29T02:57:10.253982Z",
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": null,
+          "host_available_bytes": 9379151872,
+          "reasons": [],
+          "sampled_at": "2026-10-29T03:01:02.832649Z",
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": 7822835712,
+          "host_available_bytes": 7686283264,
+          "reasons": [],
+          "sampled_at": "2026-10-29T03:01:02.834094Z",
+          "status": "safe",
+          "worker": "cuda"
+        }
+      ],
+      "guards": [
+        {
+          "observations": 341,
+          "outcome": "normal",
+          "process_id": 70282,
+          "reasons": [],
+          "record_sha256": "ee1d949932143c5b5423c04cf427330eeca4b89c1744af745ba48191caf556e0",
+          "worker": "mlx"
+        },
+        {
+          "observations": 353,
+          "outcome": "normal",
+          "process_id": 1169679,
+          "reasons": [],
+          "record_sha256": "1cdf6bc0bf5ff3687b10adbc16e89078c88d00c1453799d391c7799c4db6ca14",
+          "worker": "cuda"
+        }
+      ],
+      "logical_peaks": [
+        {
+          "within_admission": true,
+          "worker": "mlx"
+        },
+        {
+          "within_admission": true,
+          "worker": "cuda"
+        }
+      ],
+      "note": null,
+      "overlap_rows": 24,
+      "physical": [
+        {
+          "cycle": 0,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 6842974208,
+          "host_envelope_bytes": 5699490158,
+          "host_peak_bytes": 4937322456,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 8595357696,
+          "host_envelope_bytes": 5700012808,
+          "host_peak_bytes": 4937797592,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": null,
+          "device_envelope_bytes": null,
+          "device_peak_bytes": null,
+          "host_available_bytes": 9379151872,
+          "host_envelope_bytes": 5700048879,
+          "host_peak_bytes": 4937830384,
+          "policy": "mlx-footprint-max-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "mlx"
+        },
+        {
+          "cycle": 0,
+          "device_available_bytes": 7865040896,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 8672206848,
+          "host_envelope_bytes": 3471894528,
+          "host_peak_bytes": 2912235520,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 1,
+          "device_available_bytes": 7822835712,
+          "device_envelope_bytes": 6220152832,
+          "device_peak_bytes": 5410652160,
+          "host_available_bytes": 7667867648,
+          "host_envelope_bytes": 4414042522,
+          "host_peak_bytes": 3768733696,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        },
+        {
+          "cycle": 2,
+          "device_available_bytes": 7822835712,
+          "device_envelope_bytes": 6229380301,
+          "device_peak_bytes": 5419040768,
+          "host_available_bytes": 7686283264,
+          "host_envelope_bytes": 4438372762,
+          "host_peak_bytes": 3790852096,
+          "policy": "cuda-rss-device-v1",
+          "reasons": [],
+          "status": "safe",
+          "worker": "cuda"
+        }
+      ],
+      "profiles": [
+        {
+          "artifact_digest": "bcdfbc059bcd39b0dced9c8ee8061ca33584b638e3e08350967aeebc926db461",
+          "measured_at": "2026-10-29T02:33:10.221988Z",
+          "worker": "mlx"
+        },
+        {
+          "artifact_digest": "d80731c7befc1ee34681976371b36de40757c4e93ff9cf732689cf691cf41866",
+          "measured_at": "2026-10-29T02:31:47.423888Z",
+          "worker": "cuda"
+        }
+      ],
+      "reasons": [],
+      "rounds": 15,
+      "schema": "1.1",
+      "snapshots": {
+        "cuda": {
+          "allocator_missing": 0,
+          "count": 22303,
+          "device_samples": 1328,
+          "peak_concurrent_requests": 2
+        },
+        "mlx": {
+          "allocator_missing": 0,
+          "count": 3589,
+          "device_samples": 0,
+          "peak_concurrent_requests": 2
+        }
+      },
+      "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439",
+      "workers": [
+        {
+          "binary_digest": "a00aacb52fed4f7f545b7f08455378f7e3eedc3731b98286864fa84a1fb93072",
+          "process_id": 70282,
+          "worker": "mlx"
+        },
+        {
+          "binary_digest": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694",
+          "process_id": 1169679,
+          "worker": "cuda"
+        }
+      ]
+    }
+  ],
+  "run_directory": "hllm-4b-fit-20261028-030120",
+  "source_identities": {
+    "linux": {
+      "source-identity-baseline-20261029T023539Z": {
+        "base_revision": "b1ba4f674c2467f739cb0c98a0191e3bdf5380ad",
+        "binaries": {
+          "build/cuda/cpp/hllm-worker-cuda": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694"
+        },
+        "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439"
+      },
+      "source-identity-concurrent-20261029T024211Z": {
+        "base_revision": "b1ba4f674c2467f739cb0c98a0191e3bdf5380ad",
+        "binaries": {
+          "build/cuda/cpp/hllm-worker-cuda": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694"
+        },
+        "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439"
+      },
+      "source-identity-concurrent-20261029T025306Z": {
+        "base_revision": "b1ba4f674c2467f739cb0c98a0191e3bdf5380ad",
+        "binaries": {
+          "build/cuda/cpp/hllm-worker-cuda": "7597e41241b4feaa693fafa1b6a6f1365a08c04c6b0f3108af01b877911d0694"
+        },
+        "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439"
+      }
+    },
+    "mac": {
+      "source-identity-mlx-profile-20261029T023305Z": {
+        "base_revision": "b1ba4f674c2467f739cb0c98a0191e3bdf5380ad",
+        "binaries": {
+          "build/native/m6-mlx/cpp/hllm-profile-memory-mlx": "98888c8ae754e60ae4849f8d8a4294f7428cdce80a45874a7e745765ee72b848",
+          "build/native/m6-mlx/cpp/hllm-worker-mlx": "a00aacb52fed4f7f545b7f08455378f7e3eedc3731b98286864fa84a1fb93072"
+        },
+        "source_digest": "6081e665001670c87f640489aeb64d0c52adc5ab03ddd22d859e0c6ae4705439"
+      }
+    }
+  }
+}
