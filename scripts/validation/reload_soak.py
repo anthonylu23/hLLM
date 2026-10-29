@@ -140,6 +140,17 @@ def effective_device_availability(q, metrics) -> dict | None:
     )
 
 
+def profile_chunk(profiles: dict[str, ProfileArtifact]) -> int:
+    """The prefill chunk the profiles were measured at; requests are sent with it.
+
+    Each worker's reservation depends on the chunk, so every profile must share one.
+    """
+    chunks = {a.key.workload.prefill_chunk_tokens for a in profiles.values()}
+    if len(chunks) != 1:
+        raise ValueError("memory profiles were measured at different prefill chunk sizes")
+    return chunks.pop()
+
+
 def fresh_fit(a: ProfileArtifact, worker: Worker, control) -> dict:
     age = (datetime.now(UTC) - a.conditions.measured_at).total_seconds()
     if not 0 <= age <= 86400:
@@ -158,6 +169,8 @@ def fresh_fit(a: ProfileArtifact, worker: Worker, control) -> dict:
         or c.backend != profile_pb2.Backend.Value(f"BACKEND_{e.backend.value.upper()}")
     ):
         raise ValueError("worker binary/environment/identity changed since qualification setup")
+    if a.key.workload.prefill_chunk_tokens and not c.supports_chunked_prefill:
+        raise ValueError("worker does not support the profiled prefill chunk")
     if e.backend == Backend.CUDA:
         allocator_config = json.loads(e.allocator_config)
         for name in ("pytorch_alloc_conf", "pytorch_cuda_alloc_conf"):
@@ -250,6 +263,7 @@ def main(argv: list[str] | None = None) -> None:
         validate_profile(
             a, manifest, plan, k, reference["checkpoint_digest"], len(ids), len(expected)
         )
+    chunk = profile_chunk(profiles)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     report: dict = dict(
         completed=False,
@@ -261,6 +275,7 @@ def main(argv: list[str] | None = None) -> None:
         workers={k: w.model_dump(mode="json") for k, w in workers.items()},
         reference_sha256=sha256_file(args.reference),
         profile_digests={k: a.artifact_digest for k, a in profiles.items()},
+        prefill_chunk_tokens=chunk,
     )
     args.output.touch(exist_ok=False)
 
@@ -338,6 +353,7 @@ def main(argv: list[str] | None = None) -> None:
                             maximum_new_tokens=len(expected),
                             stop_token_ids=[],
                             timeout=args.timeout,
+                            prefill_chunk_tokens=chunk,
                         )
                         try:
                             for event in stream:
@@ -377,6 +393,7 @@ def main(argv: list[str] | None = None) -> None:
                         maximum_new_tokens=len(expected),
                         stop_token_ids=[],
                         timeout=args.timeout,
+                        prefill_chunk_tokens=chunk,
                     )
                     try:
                         for event in stream:

@@ -131,7 +131,9 @@ for the chunk, and the native memory and compute probes replay serving's chunks,
 chunked workloads can be profiled. Measured mode still refuses chunked workloads until
 evaluation sums per-chunk stage and boundary costs, and serving refuses a measured
 bundle whose workload chunk size differs from `--prefill-chunk-tokens`.
-`hllm generate` always sends whole-prompt prefill.
+`hllm generate` always sends whole-prompt prefill. `DeploymentSession.generate` takes
+`prefill_chunk_tokens`, and the reload and concurrency soaks send the chunk their
+profiles were measured at.
 
 ## Timing attribution
 

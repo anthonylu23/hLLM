@@ -9,6 +9,7 @@ from uuid import uuid4
 import grpc
 
 from hllm_control.models import (
+    MAXIMUM_PREFILL_CHUNK_TOKENS,
     MAXIMUM_RPC_BYTES,
     DeploymentPlan,
     ModelManifest,
@@ -119,22 +120,32 @@ class DeploymentSession:
         timeout: float = 60.0,
         request_id: str | None = None,
         capture_timing: bool = False,
+        prefill_chunk_tokens: int = 0,
     ) -> Generator[execution_pb2.GenerationEvent, None, None]:
+        """Stream one request's events. A nonzero `prefill_chunk_tokens` sends the prompt
+        through the pipeline in chunks of at most that many tokens, which bounds both the
+        stage boundary payload and the workers' per-pass workspace reservation."""
         if not token_ids or maximum_new_tokens <= 0 or not 0 < timeout <= 3600:
             raise ValueError("prompt, output length and timeout must be positive and bounded")
+        if not 0 <= prefill_chunk_tokens <= MAXIMUM_PREFILL_CHUNK_TOKENS:
+            raise ValueError("invalid prefill chunk size")
         if len(token_ids) + maximum_new_tokens > self.manifest.config.maximum_sequence_length:
             raise ValueError("prompt and output exceed model context capacity")
-        # This session always sends whole-prompt prefill; only serving chunks it.
-        if len(self.plan.stages) == 2 and len(token_ids) > maximum_boundary_tokens(
-            self.manifest.config.hidden_size, self.plan.activation_dtype
-        ):
+        if len(self.plan.stages) == 2 and min(
+            len(token_ids), prefill_chunk_tokens or len(token_ids)
+        ) > maximum_boundary_tokens(self.manifest.config.hidden_size, self.plan.activation_dtype):
             raise ValueError(
-                "prompt exceeds the stage boundary transport limit for whole-prompt "
-                "prefill; serve with --prefill-chunk-tokens to send it in chunks"
+                "prefill input exceeds the stage boundary transport limit; "
+                "send the prompt in smaller prefill chunks"
             )
-        if self.profile_bundle is not None and (len(token_ids), maximum_new_tokens) != (
+        if self.profile_bundle is not None and (
+            len(token_ids),
+            maximum_new_tokens,
+            prefill_chunk_tokens,
+        ) != (
             self.profile_bundle.workload.prompt_tokens,
             self.profile_bundle.workload.output_tokens,
+            self.profile_bundle.workload.prefill_chunk_tokens,
         ):
             raise ValueError("request differs from measured workload")
         stops = self.manifest.config.eos_token_ids if stop_token_ids is None else stop_token_ids
@@ -150,6 +161,7 @@ class DeploymentSession:
         call = execution_pb2_grpc.GenerationStub(self._channels[0]).Generate(
             execution_pb2.GenerationRequest(
                 capture_timing=capture_timing,
+                prefill_chunk_tokens=prefill_chunk_tokens,
                 deployment_id=self.plan.plan_id,
                 deployment_version=self.plan.deployment_version,
                 request_id=identifier,

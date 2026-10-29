@@ -38,7 +38,7 @@ These need a decision before the dependent work can start.
 
 | Decision | What is open | Blocks |
 | --- | --- | --- |
-| MLX cap increases | The design forbids automatic cap expansion. Under the current reservation formula, 1024/256 at split 16 needs **about 6.5 GiB** of logical MLX reservation (weights 3.73 GiB plus 2.75 GiB of workspace whose attention term grows with the square of the context), not the 5.5 GiB estimated on October 11. That is not practical on the 18 GiB Mac; with chunk-sized workspace and 128-token prefill chunks it is estimated at about 4.2 GiB | The larger-context run |
+| MLX cap increases | The design forbids automatic cap expansion. Whole-prompt 1024/256 at split 16 needs **about 6.5 GiB** of logical MLX reservation (weights 3.73 GiB plus 2.75 GiB of workspace whose attention term grows with the square of the context). With 128-token prefill chunks, the workers' reservation formulas, which reproduce the October 29 record exactly, give **4.25 GiB for one request and 4.32 GiB for two at the current split 15**, within the 4.375 GiB cap. Split 16 would need 4.45 and 4.53 GiB, over it (the earlier estimate of about 4.2 GiB at split 16 was wrong). No increase is needed for 1024/256 | Only contexts beyond 1024/256, or split 16 |
 | Persistent reloadable MLX workers | Only worthwhile if long-lived workers are wanted; a fresh worker per deployment is the qualified path | The MLX unload-retention study |
 
 ## Open gates and follow-ups
@@ -46,7 +46,7 @@ These need a decision before the dependent work can start.
 | Item | Owner | Dependency |
 | --- | --- | --- |
 | Measured placement for chunked prefill: the planner, controller and serving are chunk-aware, workers reserve per-chunk workspace (#36) and the native memory and compute probes replay chunks (#38), but measured mode refuses chunked workloads until the link probe and evaluation handle per-chunk costs | Agent | Chunk-aware link probe and measured evaluation. Blocks measured plans for prompts above about 1.6K tokens (the 8 MiB boundary payload for 4B with an F16 wire) and the 32K target |
-| Contexts above 768 cached tokens: 1024/256 next. A pinned 1024/256 F16 oracle exists in the October 11 run directory. Needs split 16 (the CUDA device reservation is within 27 MiB of its cap at 768) | Agent | Chunk-sized workspace (or a cap near 6.5 GiB), Mac memory |
+| Contexts above 768 cached tokens: 1024/256 next, at split 15 with 128-token prefill chunks. Admission reserves MLX 4.25 / 4.32 GiB (one / two requests) of 4.375 GiB and CUDA device 5.32 / 5.43 GiB of 6.125 GiB; with chunking, split 16 is no longer needed for the CUDA side and would put the MLX side over its cap. A pinned 1024/256 F16 oracle exists in the October 11 run directory | Agent | A new plan and workload, fresh chunked profiles on both hosts, Mac memory |
 | 32K context | Agent | Chunk-aware native probes and profiles, memory |
 | M5 WAN performance acceptance: the 54-candidate exhaustive sweep, at most 10% reference drift, regret with a seeded 95% bootstrap upper bound at or below 15%, and the final audit | Deferred | A justified transport improvement or a measurably stable link; see the [restart gates](validation/milestone-5-wan-closeout.md#deferred-gates-and-restart-point) |
 | Unified-memory headroom per Mac memory tier (SPEC §30) | Deferred | Access to other Mac tiers; only the 18 GiB machine is qualified |
@@ -62,10 +62,13 @@ These need a decision before the dependent work can start.
 
 ## Next steps, in order
 
-1. Make the link probe and the measured evaluator chunk-aware so measured plans accept
+1. Qualify 1024/256 at split 15 with 128-token prefill chunks: a new plan and
+   workload, fresh chunked profiles on both hosts, then the baseline and concurrency
+   two. The reload and concurrency soaks send the profiles' prefill chunk.
+2. Make the link probe and the measured evaluator chunk-aware so measured plans accept
    chunked workloads (reservations and the memory and compute probes already are,
    [PR #36](https://github.com/anthonylu23/hLLM/pull/36) and
-   [PR #38](https://github.com/anthonylu23/hLLM/pull/38)); then 1024/256 and toward 32K.
+   [PR #38](https://github.com/anthonylu23/hLLM/pull/38)); then toward 32K.
 
 Qualification runs follow the
 [two-host launchers and run checklist](../scripts/validation/README.md#two-host-launchers);

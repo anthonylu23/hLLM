@@ -55,7 +55,7 @@ def guards(tmp_path: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
     )  # type: ignore[return-value]
 
 
-def prepare(tmp_path: Path, workers: Workers) -> list[str]:
+def prepare(tmp_path: Path, workers: Workers, chunk: int = 0) -> list[str]:
     manifest = prepare_model(tmp_path, hash_mode=HashMode.FULL)
     deployment = plan(manifest)
     ids = PROMPT
@@ -92,6 +92,7 @@ def prepare(tmp_path: Path, workers: Workers) -> list[str]:
                 output_tokens=TOKENS,
                 total_cached_tokens=len(PROMPT) + TOKENS,
                 kv_dtype=DType.F32,
+                prefill_chunk_tokens=chunk,
             ),
             backend=Backend.CPU,
             capacity=MemoryAmounts(host=CAP),
@@ -160,15 +161,20 @@ def prepare(tmp_path: Path, workers: Workers) -> list[str]:
     return args
 
 
-def test_cpu_rehearsal_produces_accepted_concurrency_evidence(tmp_path: Path) -> None:
+# Chunk 2 sends the five-token prompt in three prefill passes; profiles, baseline and
+# requests all use it.
+@pytest.mark.parametrize("chunk", [0, 2])
+def test_cpu_rehearsal_produces_accepted_concurrency_evidence(tmp_path: Path, chunk: int) -> None:
     write_model(tmp_path)
     with Workers(
         tmp_path, limit=CAP, extra_args=(OBSERVING, OBSERVING), wrappers=guards(tmp_path)
     ) as workers:
-        args = prepare(tmp_path, workers)
+        args = prepare(tmp_path, workers, chunk)
+        assert json.loads((tmp_path / "baseline.json").read_text())["prefill_chunk_tokens"] == chunk
         concurrent_soak.main(args)
         evidence = read_evidence(tmp_path / "evidence.json")
         assert evidence.results.acceptance == "accepted", evidence.results.acceptance_reasons
+        assert all(c.prefill_chunk_tokens == chunk for c in evidence.configuration.workers)
         assert evidence.results.failure_reason is None
         assert evidence.preconditions.baseline.scope == "cpu-rehearsal"
         assert evidence.preconditions.baseline.worker_binary_digests == tuple(
@@ -291,6 +297,10 @@ def test_harness_refuses_an_unbound_baseline_before_loading(tmp_path: Path, monk
                     json.dumps({**report, "plan": {**report["plan"], "plan_digest": "other"}})
                 ),
                 "different plan",
+            ),
+            (
+                lambda: baseline.write_text(json.dumps({**report, "prefill_chunk_tokens": 2})),
+                "with prefill chunk 2",
             ),
         ):
             mutate()
