@@ -443,6 +443,36 @@ def test_concurrent_guard_outcome_hashes_exactly_the_bytes_it_parses(tmp_path):
         guard_outcome("mlx", record, snapshot)
 
 
+def test_wait_for_guard_exit_returns_once_the_exit_event_is_written(tmp_path):
+    import threading
+    import time
+
+    from scripts.validation.concurrent_soak import wait_for_guard_exit
+
+    record = tmp_path / "guard.jsonl"
+    record.write_text(
+        '{"event": "start", "unix_time": 1.0, "pid": 7}\n'
+        '{"unix_time": 2.0, "pid": 7, "available_bytes": 10, "swapout_bytes": 0}\n'
+        '{"unix_time": 4.0, "avail'  # Mirrored mid-write.
+    )
+    began = time.monotonic()
+    assert not wait_for_guard_exit(record, 0.6)
+    assert time.monotonic() - began >= 0.6
+    assert not wait_for_guard_exit(None, 30) and not wait_for_guard_exit(tmp_path / "no", 0)
+
+    def stop() -> None:
+        time.sleep(0.3)
+        with record.open("a") as f:
+            f.write('ble": 9}\n{"event": "exit", "unix_time": 5.0, "reason": "swap-out"}\n')
+
+    writer = threading.Thread(target=stop)
+    writer.start()
+    began = time.monotonic()
+    assert wait_for_guard_exit(record, 30)
+    writer.join()
+    assert time.monotonic() - began < 5
+
+
 def test_device_samples_skip_only_an_incomplete_final_line(tmp_path):
     from scripts.validation.concurrent_soak import device_samples
 

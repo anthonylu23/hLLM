@@ -292,7 +292,11 @@ leaving the mirror the soak read untouched, and only then runs
 `inputs/<role>-workers.json` in the reload-soak format; for `concurrent` the guard and
 sampler paths must be the ones `run.sh` writes (`<run>/concurrent-cuda.guard.jsonl`,
 `<run>/concurrent-cuda-device-samples.jsonl`, `<run>/mac/concurrent-mlx.guard.jsonl`),
-which `run.sh` checks before launching. Mac processes start detached with their own
+which `run.sh` checks before launching. It also checks that each `binary_digest` is
+the SHA-256 of the worker binary it will start (`CUDA_BUILD_DIR` here, `MLX_BUILD_DIR`
+on the Mac), so specifications copied from an earlier run fail before anything
+starts, with both digests in the log; set them to the new build's hashes. The scripts
+resolve the settings path to an absolute one, so a relative path works. Mac processes start detached with their own
 stdio, so the SSH call returns at once with the process's own PID. `profile.sh mlx`
 propagates the Mac profiler's exit status (2: incomplete measurement, 3: physical fit
 not safe), which `mlx-profile.sh` records in `mlx-profile.exit`; the profiler writes
@@ -302,7 +306,12 @@ its artifact before refusing, so the copied file alone is not success.
 source digest and binary hashes; profiles take that digest as `--source-revision` and
 evidence as `--source-digest`. `assemble_two_host_results.py RUN OUTPUT` summarizes
 profiles, baselines and every P5 attempt in a run directory from the preserved files
-only, naming the directory by its base name. On the October 11–13 run directory it
+only, naming the directory by its base name. A baseline that ran no requests is not
+`all_exact`. Each attempt also lists the final guard records (`final_guards`) and, in
+`guard_stops`, every guard that stopped its worker itself rather than being stopped
+by cleanup. When a worker stops answering, the concurrency soak waits up to 20 s for
+that guard's exit event before reading its record, so a guard-stopped worker is
+recorded as `stopped`, not `normal`. On the October 11–13 run directory it
 reproduces the committed `docs/validation/qwen3-4b-concurrency-20261013-results.json`
 except for one more profile directory it discovers (`cuda_rejected_1`).
 

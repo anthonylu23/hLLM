@@ -13,7 +13,10 @@ writes (and the October 2026 runs used):
 - baselines: the run directory (`final`) and every `baseline-<label>/` holding
   `baseline-reload-soak.json`.
 - P5 attempts: every `concurrent-attempt-*/` and then the run directory; the last is
-  `p5`.
+  `p5`. Besides the guard summaries sealed in the evidence, each attempt lists the
+  final guard records the launcher copied after stopping the guards (`final_guards`),
+  and `guard_stops` names every guard that stopped its worker itself rather than
+  being stopped by the launcher, even when the sealed record missed it.
 
 The output names the run directory by its base name only, so no host path is
 recorded. `--link KEY=VALUE` adds top-level cross-references (for example the
@@ -30,6 +33,8 @@ from itertools import pairwise
 from pathlib import Path
 
 ATTEMPT_FILES = re.compile(r"^concurrent.*\.jsonl$")
+# The exit reason a guard records when the launcher's cleanup stops it.
+LAUNCHER_STOP = "guard received signal"
 
 
 def sha(path: Path) -> str:
@@ -155,6 +160,7 @@ class Summary:
             return dict(directory=self.relative(d), present=False, note=text(d / "README.txt"))
         b = load(p)
         cycles = b.get("cycles", [])
+        results = [r for c in cycles for r in c.get("requests", [])]
         return dict(
             directory=self.relative(d),
             present=True,
@@ -163,10 +169,9 @@ class Summary:
             scope=b.get("scope"),
             plan_digest=b["plan"]["plan_digest"],
             cycles=len(cycles),
-            requests=sum(len(c.get("requests", [])) for c in cycles),
-            all_exact=all(
-                r.get("exact_reference_match") for c in cycles for r in c.get("requests", [])
-            ),
+            requests=len(results),
+            # No requests is no exactness evidence, not vacuously exact.
+            all_exact=bool(results) and all(r.get("exact_reference_match") for r in results),
             worker_binaries={k: v["binary_digest"] for k, v in b["workers"].items()},
             guards=dict(
                 cuda=self.guard(d / "baseline-cuda.guard.jsonl"),
@@ -296,6 +301,17 @@ class Summary:
                         )
         if files:
             record["files"] = files
+        final_guards = dict(
+            cuda=self.guard(d / "concurrent-cuda.guard.jsonl"),
+            mlx=self.guard(d / "mac/final/concurrent-mlx.guard.jsonl")
+            or self.guard(d / "mac/concurrent-mlx.guard.jsonl"),
+        )
+        record["final_guards"] = final_guards
+        record["guard_stops"] = [
+            dict(worker=k, reason=g["stop_reason"])
+            for k, g in final_guards.items()
+            if g and g["stop_reason"] and not g["stop_reason"].startswith(LAUNCHER_STOP)
+        ]
         return record
 
     def identities(self, directory: Path, pattern: str, exclude: set[str]) -> dict:

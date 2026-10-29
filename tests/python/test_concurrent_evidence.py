@@ -845,7 +845,32 @@ def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> Non
     ]
     guard_text = "".join(json.dumps(r) + "\n" for r in guard_rows)
     (run / "baseline-cuda.guard.jsonl").write_text(guard_text)
-    (run / "mac" / "final" / "concurrent-mlx.guard.jsonl").write_text("{}\n")
+
+    def guard_record(reason: str) -> str:
+        stop = dict(guard_rows[-1], reason=reason, returncode=-15)
+        return "".join(json.dumps(r) + "\n" for r in [*guard_rows[:-1], stop])
+
+    # The launcher stopped the MLX guard; the CUDA guard stopped its own worker, after
+    # the soak had read its record.
+    (run / "mac" / "final" / "concurrent-mlx.guard.jsonl").write_text(
+        guard_record("guard received signal 15")
+    )
+    (run / "concurrent-cuda.guard.jsonl").write_text(
+        guard_record("new swap-out exceeds configured 60-second limit")
+    )
+    # A baseline refused before its first request.
+    (run / "baseline-refused").mkdir()
+    (run / "baseline-refused" / "baseline-reload-soak.json").write_text(
+        json.dumps(
+            dict(
+                completed=False,
+                scope="f16-reload-qualification",
+                plan=dict(plan_digest="p"),
+                cycles=[dict(requests=[], preflight={})],
+                workers=dict(cuda=dict(binary_digest="4" * 64)),
+            )
+        )
+    )
     (run / "baseline-reload-soak.json").write_text(
         json.dumps(
             dict(
@@ -874,6 +899,8 @@ def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> Non
     assert "cuda" not in summary["p1"]  # Absent evidence is absent, not filled in.
     final = summary["baselines"]["final"]
     assert final["all_exact"] and final["guards"]["cuda"]["observations"] == 2
+    refused = summary["baselines"]["refused"]
+    assert (refused["requests"], refused["all_exact"]) == (0, False)
     assert final["guards"]["cuda"]["swapout_mib"] == 1 and final["guards"]["mlx"] is None
     attempts = summary["p5_attempts"]
     assert attempts[0] == dict(
@@ -883,6 +910,14 @@ def test_run_directory_summary_reads_only_preserved_files(tmp_path: Path) -> Non
     assert summary["p5"]["acceptance"] == evidence.results.acceptance == "accepted"
     assert summary["p5"]["evidence_digest"] == evidence.evidence_digest
     assert summary["p5"]["exact"] == summary["p5"]["comparisons"]
-    assert set(summary["p5"]["files"]) == {"mac/final/concurrent-mlx.guard.jsonl"}
+    assert set(summary["p5"]["files"]) == {
+        "concurrent-cuda.guard.jsonl",
+        "mac/final/concurrent-mlx.guard.jsonl",
+    }
+    # The sealed record may predate a guard's exit; the final records do not.
+    assert summary["p5"]["final_guards"]["mlx"]["stop_reason"] == "guard received signal 15"
+    assert summary["p5"]["guard_stops"] == [
+        dict(worker="cuda", reason="new swap-out exceeds configured 60-second limit")
+    ]
     with pytest.raises(FileExistsError):
         assemble([str(run), str(output)])

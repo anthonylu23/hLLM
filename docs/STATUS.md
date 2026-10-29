@@ -53,7 +53,6 @@ These need a decision before the dependent work can start.
 | Native gRPC acceptability after conversion costs (SPEC §30) | Deferred | M5 WAN acceptance |
 | M6: refresh measured profiles with sampling, chunk and batch settings; longer throughput, latency and memory soaks; concurrency 8, pinned CUDA batching, full model context, batch-independent seeded sampling | Agent | Measured bundles currently reject sampling and chunking. See [M6 next steps](milestone-6.md#next-steps) |
 | M6 review follow-ups: conservative CUDA load admission, bounded or streamed soak evidence storage, direct-backend API preconditions | Agent | None; see the [M6 review](validation/milestone-6-pr-review.md#follow-ups) |
-| Evidence tooling from the October 29 P5 run: the concurrency soak writes `concurrent.json` before reading guard exits (a guard-stopped worker is recorded `normal`), the assembler reports `all_exact` for a baseline with no requests, worker binary digests in `inputs/*-workers.json` are hand-edited, and `run.sh` needs an absolute settings path | Agent | None; see the [October 29 report](validation/qwen3-4b-concurrency-20261029.md#follow-ups) |
 | Order footprint observations by a steady clock instead of `observed_at_unix_ns` | Agent, low priority | None; the current fallback direction is safe |
 | PR #15 review leftovers: cross-language plan-canonicalization golden vectors, bounded profile reuse in the disk bundle, one probe target instead of two built from `memory_probe.cpp`, persistent F32 output-head storage | Agent, low priority | None; see the [PR #15 fixes report](archive/pr15-review-fixes.md) |
 | A stage stream closing before `Terminate` reports `INTERNAL`; `ABORTED` would be more precise | Agent, low priority | Process suites pin the current status |
@@ -80,6 +79,12 @@ hours, so every GPU run needs fresh same-day profiles on matching binaries.
   buffers. The first attempt was stopped by the Linux swap guard when another workload's
   build pushed the host into swap; both are in the
   [October 29 report](validation/qwen3-4b-concurrency-20261029.md).
+- The evidence tooling problems that run found: the concurrency soak waits for the
+  exit event of a guard whose worker stopped answering, so the guard is recorded
+  `stopped`; the results assembler lists the final guard records and guard-initiated
+  stops and no longer calls an empty baseline exact; `run.sh` checks each worker
+  specification's binary digest before launching anything; and the launchers accept
+  a relative settings path.
 
 ## Closed October 20, 2026
 

@@ -90,6 +90,10 @@ CLOCK_ALIGNMENT = (
     "overlap is claimed per worker from those. Controller wall-clock times mark round "
     "boundaries only and never establish cross-host order."
 )
+# How long to wait for the exit event of a guard whose worker stopped answering. The
+# guard writes it after its worker exits, and the Mac record reaches this host through
+# a mirror refreshed every few seconds.
+GUARD_EXIT_WAIT_SECONDS = 20.0
 
 
 class WorkerSpec(Worker):
@@ -270,6 +274,31 @@ def guard_outcome(
         )
     except (KeyError, TypeError, ValueError) as error:
         return unavailable(f"malformed guard record: {error}", checksum)
+
+
+def wait_for_guard_exit(record: Path | None, seconds: float) -> bool:
+    """Wait until a guard record holds its exit event; true if it does in time.
+
+    A guard that stops its worker (memory pressure, swap-out, time limit) writes the
+    exit event only after the worker is gone, which can be after the harness saw the
+    worker's streams fail. Reading the record before then would summarize a stopped
+    guard as still running.
+    """
+    deadline = time.monotonic() + seconds
+    while True:
+        try:
+            lines = record.read_text().splitlines() if record is not None else []
+        except OSError:
+            lines = []
+        for line in lines:
+            try:
+                if json.loads(line).get("event") == "exit":
+                    return True
+            except (ValueError, AttributeError):
+                continue  # Incomplete or foreign lines are guard_outcome's to judge.
+        if record is None or time.monotonic() >= deadline:
+            return False
+        time.sleep(0.5)
 
 
 def device_samples(samples: Path | None, start: float, end: float) -> tuple[DeviceSample, ...]:
@@ -751,11 +780,18 @@ class Run:
             ),  # type: ignore[arg-type]
             clock_alignment=CLOCK_ALIGNMENT,
         )
+        cleanup = self.cleanup_evidence()
+        # A worker that no longer answers may have been stopped by its guard: read that
+        # guard's record once it shows why, so the evidence does not call it running.
+        for row in cleanup:
+            if row.detail.startswith("unreachable:"):
+                wait_for_guard_exit(
+                    self.workers[row.worker_id].guard_record, GUARD_EXIT_WAIT_SECONDS
+                )
         guards = [
             guard_outcome(k, w.guard_record, guard_snapshot_path(self.args.output, k))
             for k, w in self.workers.items()
         ]
-        cleanup = self.cleanup_evidence()
         request = RequestWorkload(
             prompt_ids=tuple(self.ids),
             expected_ids=tuple(self.expected),
