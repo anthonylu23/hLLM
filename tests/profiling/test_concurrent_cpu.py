@@ -161,10 +161,28 @@ def prepare(tmp_path: Path, workers: Workers, chunk: int = 0) -> list[str]:
     return args
 
 
+def recording(sent: list[int]) -> type[DeploymentSession]:
+    """A session class that records the prefill chunk of every request it sends."""
+
+    class Recording(DeploymentSession):
+        def generate(self, *args, **kwargs):  # pyright: ignore[reportIncompatibleMethodOverride]
+            sent.append(kwargs.get("prefill_chunk_tokens", 0))
+            return super().generate(*args, **kwargs)
+
+    return Recording
+
+
 # Chunk 2 sends the five-token prompt in three prefill passes; profiles, baseline and
 # requests all use it.
 @pytest.mark.parametrize("chunk", [0, 2])
-def test_cpu_rehearsal_produces_accepted_concurrency_evidence(tmp_path: Path, chunk: int) -> None:
+def test_cpu_rehearsal_produces_accepted_concurrency_evidence(
+    tmp_path: Path, chunk: int, monkeypatch
+) -> None:
+    # Every request either soak sends, cancellation probes included, carries the chunk;
+    # the reference generation in prepare() uses the unpatched session.
+    sent: dict[str, list[int]] = {"reload": [], "concurrent": []}
+    monkeypatch.setattr(reload_soak, "DeploymentSession", recording(sent["reload"]))
+    monkeypatch.setattr(concurrent_soak, "DeploymentSession", recording(sent["concurrent"]))
     write_model(tmp_path)
     with Workers(
         tmp_path, limit=CAP, extra_args=(OBSERVING, OBSERVING), wrappers=guards(tmp_path)
@@ -175,6 +193,8 @@ def test_cpu_rehearsal_produces_accepted_concurrency_evidence(tmp_path: Path, ch
         evidence = read_evidence(tmp_path / "evidence.json")
         assert evidence.results.acceptance == "accepted", evidence.results.acceptance_reasons
         assert all(c.prefill_chunk_tokens == chunk for c in evidence.configuration.workers)
+        assert sent["reload"] == [chunk, chunk]  # One request and the cancellation probe.
+        assert sent["concurrent"] == [chunk] * len(evidence.results.comparisons)
         assert evidence.results.failure_reason is None
         assert evidence.preconditions.baseline.scope == "cpu-rehearsal"
         assert evidence.preconditions.baseline.worker_binary_digests == tuple(
