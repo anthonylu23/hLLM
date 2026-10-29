@@ -9,6 +9,9 @@ set -euo pipefail
   echo "usage: $0 /path/to/two-host.env ..." >&2
   exit 2
 }
+# Absolute, because the scripts change directory before copying the file to the Mac or
+# handing it to the scripts they start.
+ENV_FILE=$(cd "$(dirname "$ENV_FILE")" && pwd)/$(basename "$ENV_FILE")
 # shellcheck disable=SC1090
 . "$ENV_FILE"
 

@@ -16,11 +16,14 @@
 # the mirror the soak read, closes the tunnel, and only then assembles the results.
 # Inputs: RUN_DIR/inputs/ROLE-workers.json (worker specifications, see the README),
 # today's profiles (profile.sh), and for concurrent RUN_DIR/baseline-reload-soak.json.
+# Each specification's binary_digest must be that of the worker binary the launchers
+# start (CUDA_BUILD_DIR here, MLX_BUILD_DIR on the Mac); a stale one stops the run
+# before anything starts, with both digests in the log.
 ENV_FILE=${1:-}
 ROLE=${2:-}
 . "$(dirname "$0")/lib.sh"
-require RUN_DIR SOURCE_DIR MAC_SSH MAC_REPO MAC_RUN_DIR MLX_PORT CUDA_PORT MANIFEST PLAN \
-  REFERENCE TIMEOUT IDLE_SECONDS
+require RUN_DIR SOURCE_DIR MAC_SSH MAC_REPO MAC_RUN_DIR MLX_BUILD_DIR MLX_PORT CUDA_PORT \
+  MANIFEST PLAN REFERENCE TIMEOUT IDLE_SECONDS
 case $ROLE in
   baseline) require BASELINE_CYCLES BASELINE_REQUESTS; OUTPUT=$RUN_DIR/baseline-reload-soak.json ;;
   concurrent) require CYCLES PAIRS TRANSPORT GUARD_DESCRIPTION; OUTPUT=$RUN_DIR/concurrent.json ;;
@@ -35,10 +38,16 @@ cd "$SOURCE_DIR"
 # ------------------------------------------------------------------ preconditions
 [ ! -e "$OUTPUT" ] || { log "$OUTPUT exists; use a new run directory or move it aside"; exit 1; }
 [ -f "$WORKERS" ] || { log "missing $WORKERS"; exit 1; }
+# The soak refuses a worker whose binary differs from its specification only once both
+# workers are running; check the binaries the launchers will start before that.
+cuda_binary=$(sha256sum "${CUDA_BUILD_DIR:-build/cuda}/cpp/hllm-worker-cuda" | cut -d' ' -f1)
+mlx_binary=$(remote "cd $(quote "$MAC_REPO") &&
+  shasum -a 256 $(quote "$MLX_BUILD_DIR/cpp/hllm-worker-mlx")" | cut -d' ' -f1)
 # The soak reads guard and sampler files at the paths this script writes.
-"$PY" - "$WORKERS" "$RUN_DIR" "$ROLE" <<'EOF'
+"$PY" - "$WORKERS" "$RUN_DIR" "$ROLE" "$cuda_binary" "$mlx_binary" <<'EOF'
 import json, sys
 workers, run, role = json.load(open(sys.argv[1])), sys.argv[2], sys.argv[3]
+binaries = {"cuda": sys.argv[4], "mlx": sys.argv[5]}
 expected = {"cuda": {}, "mlx": {}}
 if role == "concurrent":
     expected = {
@@ -56,6 +65,11 @@ problems = [
 ]
 if set(workers) != {"cuda", "mlx"}:
     problems.append("workers must be exactly cuda and mlx")
+problems += [
+    f"{k}.binary_digest is {workers[k].get('binary_digest')}, but the {k} worker binary is {d}"
+    for k, d in binaries.items()
+    if k in workers and workers[k].get("binary_digest") != d
+]
 if problems:
     sys.exit("worker specifications: " + "; ".join(problems))
 EOF
